@@ -32,17 +32,16 @@ test('HR: /attendance/dashboard renders stat cards + department breakdown', asyn
   await expect(page.getByRole('heading', { name: /Dashboard Kehadiran HR/i })).toBeVisible();
 
   // Stat cards — assert the labels are present and the total is a
-  // non-negative number. We use `Total karyawan` (unique label) as the
-  // deterministic anchor. Anchor on the label element itself and jump
-  // to its sibling <p> (the numeric value) via XPath — using `locator('div')
-  // .filter({ has: ... })` matches BOTH the leaf StatCard AND every
-  // ancestor grid container, which yields 8 `p.text-2xl` children and
-  // trips Playwright's strict-mode.
+  // non-negative number. Anchor on the "Total karyawan" label element
+  // then read the FINAL numeric target from the sibling `<p>`'s
+  // `<span data-value>` (emitted by `<CountUp>`). Reading the rendered
+  // text mid-animation is flaky; `data-value` is the atomic target.
   const totalLabel = page.getByText('Total karyawan', { exact: true });
   await expect(totalLabel).toBeVisible({ timeout: 10_000 });
-  const totalValue = totalLabel.locator('xpath=following-sibling::p[1]');
-  const totalText = await totalValue.innerText();
-  const total = Number(totalText.trim());
+  const totalValue = totalLabel.locator('xpath=following-sibling::p[1]//span[@data-value]');
+  await expect(totalValue).toBeVisible({ timeout: 10_000 });
+  const dataValueAttr = await totalValue.getAttribute('data-value');
+  const total = Number(dataValueAttr ?? '');
   expect(Number.isFinite(total)).toBe(true);
   expect(total).toBeGreaterThanOrEqual(3);
 

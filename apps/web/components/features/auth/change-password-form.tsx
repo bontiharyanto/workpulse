@@ -77,7 +77,7 @@ export function ChangePasswordForm(): JSX.Element {
   return (
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
       {isForced ? (
-        <Alert variant="warning">
+        <Alert variant="warning" role="status">
           <Info aria-hidden />
           <AlertTitle>Password sementara terdeteksi</AlertTitle>
           <AlertDescription>

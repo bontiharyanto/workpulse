@@ -187,25 +187,29 @@ export function CountUp({
   });
   const rounded = useTransform(spring, (v) => (format ? format(v) : v.toFixed(decimals)));
 
+  const finalDisplay = format ? format(value) : value.toFixed(decimals);
   const [displayed, setDisplayed] = useState<string>(() =>
     format ? format(0) : (0).toFixed(decimals),
   );
 
   useEffect(() => {
     if (reduce) {
-      setDisplayed(format ? format(value) : value.toFixed(decimals));
+      setDisplayed(finalDisplay);
       return;
     }
     if (runWhenInView && !inView) return;
     motionValue.set(value);
-  }, [value, decimals, format, motionValue, reduce, runWhenInView, inView]);
+  }, [value, finalDisplay, motionValue, reduce, runWhenInView, inView]);
 
   useEffect(() => {
     return rounded.on('change', (next) => setDisplayed(String(next)));
   }, [rounded]);
 
+  // `data-value` exposes the final numeric target regardless of where
+  // the count-up animation currently is. E2E tests should read this
+  // instead of the (potentially mid-animation) text content.
   return (
-    <span ref={ref} className={className}>
+    <span ref={ref} className={className} data-value={value} data-final={finalDisplay}>
       {displayed}
     </span>
   );

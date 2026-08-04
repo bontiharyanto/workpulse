@@ -36,13 +36,22 @@ const WEB_URL = process.env.E2E_WEB_URL ?? 'http://localhost:3000';
 
 export default defineConfig({
   testDir: './tests',
-  timeout: 30_000,
+  // Local dev-mode boots Next.js/Nest with lazy compilation; multi-role
+  // serial flows (leave, overtime) can spend 20+ seconds compiling
+  // routes on first hit. CI uses `start` (production build) and needs
+  // less headroom but paying the extra budget is cheap on CI too.
+  timeout: CI ? 30_000 : 60_000,
   expect: { timeout: 5_000 },
 
   fullyParallel: false, // multi-role tests coordinate on shared server state
   workers: 1, // avoid Prisma connection contention on tiny CI runners
   forbidOnly: CI,
-  retries: CI ? 2 : 0,
+  // Local dev-mode has an intermittent first-request flake where the
+  // browser gets `Failed to fetch` on the very first `/auth/login`
+  // because Nest `--watch` reloads the Prisma client mid-response
+  // right after `prisma migrate reset` in global-setup. One retry is
+  // enough to shake the flake off in practice.
+  retries: CI ? 2 : 1,
 
   reporter: CI
     ? [['github'], ['html', { open: 'never' }], ['list']]
@@ -56,6 +65,15 @@ export default defineConfig({
     video: 'on-first-retry',
     screenshot: 'only-on-failure',
     ignoreHTTPSErrors: true,
+    // Force `prefers-reduced-motion: reduce`. Motion primitives
+    // (CountUp, FadeIn, StaggerList, HoverLift, PageTransition) all
+    // fall back to non-animated renders when this is set, which
+    // eliminates race conditions where a test reads a value mid-
+    // animation (e.g. `expect(total).toBe(4)` while `<CountUp>` is
+    // still animating 0 → 4). Nested under `contextOptions` because
+    // `@playwright/test` at this version only types the option on
+    // `BrowserContextOptions`.
+    contextOptions: { reducedMotion: 'reduce' },
   },
 
   projects: [

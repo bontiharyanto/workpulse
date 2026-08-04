@@ -57,13 +57,18 @@ export default async function globalSetup(): Promise<void> {
 
 async function waitForApiHealth(): Promise<void> {
   const url = (process.env.E2E_API_URL ?? 'http://localhost:4000') + '/api/v1/health';
-  const deadline = Date.now() + 30_000;
+  const deadline = Date.now() + 60_000;
   // Require N consecutive successful health probes before proceeding. A
   // single 200 is not enough because `nest start --watch` reloads the
   // API mid-request when Prisma regenerates the client — the socket
-  // stays open just long enough to answer ONE probe, then closes. Two
-  // probes 250ms apart flushes that reload window.
-  const REQUIRED_CONSECUTIVE_OK = 3;
+  // stays open just long enough to answer ONE probe, then closes.
+  //
+  // 10 probes at 300ms apart = 3s of steady green before we hand
+  // control back to the runner. Prior 3-probe setting was flaky on
+  // machines where the Prisma-reload cascade takes longer to settle
+  // (the very first `loginAs` of the run would surface `Failed to
+  // fetch` in the browser).
+  const REQUIRED_CONSECUTIVE_OK = 10;
   let consecutiveOk = 0;
   let lastErr: unknown = null;
   while (Date.now() < deadline) {
@@ -71,7 +76,12 @@ async function waitForApiHealth(): Promise<void> {
       const res = await fetch(url);
       if (res.ok) {
         consecutiveOk += 1;
-        if (consecutiveOk >= REQUIRED_CONSECUTIVE_OK) return;
+        if (consecutiveOk >= REQUIRED_CONSECUTIVE_OK) {
+          // One extra breather after the streak lands — Next.js on the
+          // web side may still be compiling its first request pipeline.
+          await sleep(2000);
+          return;
+        }
       } else {
         consecutiveOk = 0;
       }
@@ -79,10 +89,10 @@ async function waitForApiHealth(): Promise<void> {
       consecutiveOk = 0;
       lastErr = err;
     }
-    await sleep(250);
+    await sleep(300);
   }
   throw new Error(
-    `[e2e:setup] API did not become stably ready at ${url} within 30s: ${String(lastErr)}`,
+    `[e2e:setup] API did not become stably ready at ${url} within 60s: ${String(lastErr)}`,
   );
 }
 

@@ -118,7 +118,7 @@ export function ApprovalList(): JSX.Element {
       {list.data.map((r) => {
         const busy = decide.isPending && decide.variables?.id === r.id;
         return (
-          <Card key={r.id}>
+          <Card key={r.id} data-testid="leave-approval-row" data-request-id={r.id}>
             <CardContent className="space-y-4 p-6">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
