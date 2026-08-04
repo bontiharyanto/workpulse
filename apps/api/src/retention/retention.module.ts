@@ -1,8 +1,5 @@
 import { Module } from '@nestjs/common';
 
-import { DataErasureModule } from '../data-erasure/data-erasure.module';
-import { NotificationModule } from '../notification/notification.module';
-import { PrismaModule } from '../prisma/prisma.module';
 
 import { RetentionAuditController } from './retention-audit.controller';
 import { RetentionAuditService } from './retention-audit.service';
@@ -10,6 +7,9 @@ import { RetentionAuditWorker } from './retention-audit.worker';
 import { RetentionController } from './retention.controller';
 import { RetentionService } from './retention.service';
 import { RetentionWorker } from './retention.worker';
+import { DataErasureModule } from '../data-erasure/data-erasure.module';
+import { NotificationModule } from '../notification/notification.module';
+import { PrismaModule } from '../prisma/prisma.module';
 
 /**
  * Retention + auto-erasure surface.

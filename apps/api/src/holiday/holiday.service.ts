@@ -3,7 +3,6 @@ import type { Holiday, Prisma } from '@prisma/client';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
 import type { BulkImportHolidaysResponseDto, HolidayResponseDto } from './dto/holiday-response.dto';
 
 export interface CreateHolidayInput {

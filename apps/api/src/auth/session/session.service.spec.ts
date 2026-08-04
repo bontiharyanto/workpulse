@@ -4,10 +4,9 @@ import { RefreshTokenStatus } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
-import { PrismaService } from '../../prisma/prisma.service';
-
-import { hashRefreshSecret } from '../domain/token-hash';
 import { SessionService } from './session.service';
+import { PrismaService } from '../../prisma/prisma.service';
+import { hashRefreshSecret } from '../domain/token-hash';
 
 interface Kit {
   service: SessionService;

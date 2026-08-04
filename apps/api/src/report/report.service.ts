@@ -5,7 +5,6 @@ import type { Prisma } from '@prisma/client';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
 import { summarize, toAttendanceReportRows } from './domain/attendance-report';
 import { summarizeLeave, toLeaveSummaryRows } from './domain/leave-summary-report';
 import { summarizeOvertime, toOvertimeReportRows } from './domain/overtime-report';

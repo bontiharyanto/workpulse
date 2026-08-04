@@ -1,8 +1,8 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
 import type { CreateDepartmentInput, Department } from '@workpulse/shared-types';
+import { useState } from 'react';
 
 import { ApiError, departmentsAdminApi } from '@/lib/api-client';
 

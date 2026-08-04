@@ -1,8 +1,6 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
-
 import type {
   CustomReportCatalogue,
   CustomReportDefinition,
@@ -12,6 +10,8 @@ import type {
   CustomReportWindow,
   SavedReportResponse,
 } from '@workpulse/shared-types';
+import { useState } from 'react';
+
 
 import { ApiError, customReportAdminApi, saveBlob } from '@/lib/api-client';
 
@@ -232,7 +232,8 @@ export function CustomReportBuilder(): JSX.Element {
           <PreviewTable preview={preview} />
         ) : (
           <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm">
-            Klik "Preview" untuk menjalankan definition di server dan melihat hasilnya di sini.
+            Klik &quot;Preview&quot; untuk menjalankan definition di server dan melihat hasilnya di
+            sini.
           </div>
         )}
 

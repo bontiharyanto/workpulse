@@ -12,15 +12,15 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { ListUsersQueryDto } from './dto/list-users-query.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import type { AdminUserDto, UserCredentialResponseDto } from './dto/user-response.dto';
 import { UserAdminService } from './user-admin.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 @ApiTags('admin · users')
 @Controller('admin/users')

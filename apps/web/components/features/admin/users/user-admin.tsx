@@ -1,19 +1,18 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
 import type {
   AdminUser,
   CreateUserInput,
   UpdateUserInput,
   UserRole,
 } from '@workpulse/shared-types';
+import { useMemo, useState } from 'react';
 
 import { useAuth } from '@/components/providers/auth-provider';
 import { ApiError, departmentsAdminApi, usersAdminApi } from '@/lib/api-client';
 
 import { CredentialReveal } from '../credential-reveal';
-
 import { UserEditPanel } from './user-edit-panel';
 import { UserForm } from './user-form';
 

@@ -11,14 +11,14 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 import { CreateLeaveTypeDto } from './dto/create-leave-type.dto';
 import type { AdminLeaveTypeDto } from './dto/leave-type-response.dto';
 import { UpdateLeaveTypeDto } from './dto/update-leave-type.dto';
 import { LeaveTypeService } from './leave-type.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 @ApiTags('admin · leave-types')
 @Controller('admin/leave-types')

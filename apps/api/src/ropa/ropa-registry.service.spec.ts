@@ -5,7 +5,6 @@ import { mockDeep, mockReset } from 'jest-mock-extended';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
 import { ROPA_SEED_BLUEPRINTS } from './domain/seed-catalogue';
 import { RopaRegistryService } from './ropa-registry.service';
 

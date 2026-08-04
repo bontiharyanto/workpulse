@@ -2,12 +2,12 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Put } from '@nestjs/common
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { TimesheetConfig } from '@prisma/client';
 
+import { TimesheetConfigDto, UpdateTimesheetConfigDto } from './dto/timesheet.dto';
+import { TimesheetConfigService } from './timesheet-config.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-import { TimesheetConfigDto, UpdateTimesheetConfigDto } from './dto/timesheet.dto';
-import { TimesheetConfigService } from './timesheet-config.service';
 
 /**
  * `/admin/timesheet/config` — HR / Super Admin surface for the tenant's

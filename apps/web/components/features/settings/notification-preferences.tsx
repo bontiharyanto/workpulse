@@ -1,10 +1,10 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { NotificationPreferenceRow, NotificationType } from '@workpulse/shared-types';
 import { useEffect, useMemo, useState } from 'react';
 
 import { ApiError, notificationsApi } from '@/lib/api-client';
-import type { NotificationPreferenceRow, NotificationType } from '@workpulse/shared-types';
 
 /**
  * Human-facing labels for each notification type. Keep the copy short —

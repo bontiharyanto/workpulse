@@ -14,7 +14,6 @@ import { Prisma } from '@prisma/client';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 import { WebhookDispatcher } from '../webhook/webhook-dispatcher.service';
-
 import { sign, verify, type VerifyResult } from './domain/share-signature';
 import { type ExportResult, TimesheetExportService } from './timesheet-export.service';
 

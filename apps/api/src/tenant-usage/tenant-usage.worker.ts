@@ -2,9 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 
+import { TenantUsageService } from './tenant-usage.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { TenantUsageService } from './tenant-usage.service';
 
 /**
  * OPS-7 — Tenant usage snapshot worker.

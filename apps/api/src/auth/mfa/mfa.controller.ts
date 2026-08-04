@@ -20,7 +20,6 @@ import type { AuthenticatedUser } from '../../common/types/authenticated-user';
 import { AllowMfaEnrollmentPending } from '../decorators/allow-mfa-enrollment-pending.decorator';
 import { AllowMustChangePassword } from '../decorators/allow-must-change-password.decorator';
 import { AllowUnverifiedMfa } from '../decorators/allow-unverified-mfa.decorator';
-
 import {
   MfaBackupCodesResponseDto,
   MfaDisableDto,

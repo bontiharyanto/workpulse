@@ -2,7 +2,6 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import type { Prisma, TenantUsageSnapshot } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
-
 import {
   computeDbRowsTotal,
   computeStorageTotal,

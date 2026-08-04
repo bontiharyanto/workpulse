@@ -1,14 +1,13 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import type { DataExportRequest } from '@prisma/client';
 import { DataExportStatus } from '@prisma/client';
 
+import { DataExportService } from './data-export.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { STORAGE_PROVIDER, type StorageProvider } from '../storage/storage.provider';
-
 import { assembleExportArchive } from './domain/assemble-export';
-import { DataExportService } from './data-export.service';
 
 /**
  * Background worker that picks up PENDING `DataExportRequest` rows,

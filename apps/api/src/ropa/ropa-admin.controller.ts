@@ -2,10 +2,6 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post } from 
 import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
-
 import {
   CreateRopaActivityDto,
   RopaActivityDetailDto,
@@ -16,6 +12,10 @@ import {
 } from './dto/ropa.dto';
 import { toDetailDto, toListItemDto, toVersionDto } from './ropa-mapper';
 import { RopaRegistryService } from './ropa-registry.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
+
 
 /**
  * Fase 31d — HR / Super Admin ROPA registry controller.

@@ -1,4 +1,4 @@
-import { ReportFrequency } from '@prisma/client';
+import type { ReportFrequency } from '@prisma/client';
 
 /**
  * Fase 33c — pure "next-run" calculator.

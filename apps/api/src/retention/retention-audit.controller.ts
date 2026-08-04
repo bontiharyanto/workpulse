@@ -2,10 +2,6 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from 
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { RetentionAuditReport } from '@prisma/client';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
-
 import {
   ListRetentionAuditQueryDto,
   ListRetentionAuditResponseDto,
@@ -15,6 +11,10 @@ import {
   type RetentionAuditStatusLiteral,
 } from './dto/retention-audit.dto';
 import { RetentionAuditService } from './retention-audit.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
+
 
 /**
  * OPS-6 — Monthly retention audit read + regenerate surface.

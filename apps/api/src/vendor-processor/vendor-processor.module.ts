@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 
-import { NotificationModule } from '../notification/notification.module';
-import { PrismaModule } from '../prisma/prisma.module';
 
 import { VendorProcessorController } from './vendor-processor.controller';
 import { VendorProcessorService } from './vendor-processor.service';
 import { VendorReviewReminderWorker } from './vendor-review-reminder.worker';
+import { NotificationModule } from '../notification/notification.module';
+import { PrismaModule } from '../prisma/prisma.module';
 
 /**
  * Fase 31f — Vendor / Processor Register module.

@@ -4,7 +4,6 @@ import type { Notification as SharedNotification, NotificationPage } from '@work
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
 import type { NotificationContent } from './domain/templates';
 import { EMAIL_ADAPTER, type EmailAdapter } from './email/email-adapter';
 import { NotificationPreferenceService } from './notification-preference.service';

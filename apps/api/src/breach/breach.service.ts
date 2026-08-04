@@ -17,7 +17,6 @@ import {
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
 import { snapshot } from './domain/deadline';
 import {
   BreachTransition,

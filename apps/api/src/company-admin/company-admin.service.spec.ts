@@ -7,11 +7,11 @@ import {
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { CompanyAdminService } from './company-admin.service';
 import type { PasswordService } from '../auth/password.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { CompanyAdminService } from './company-admin.service';
 
 const superAdmin: AuthenticatedUser = {
   id: 'root',

@@ -1,10 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { AnalyticsMetricKey } from '@prisma/client';
 
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
-import { PrismaService } from '../prisma/prisma.service';
-
 import { AnalyticsComputationService } from './analytics-computation.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { AggregationMode, aggregate, computeDelta, Delta } from './domain/delta';
 import { METRIC_DESCRIPTORS, METRIC_KEYS } from './domain/metric-keys';
 import {
@@ -17,6 +15,7 @@ import {
   previousWindow,
   ymdToUtcDateOnly,
 } from './domain/period';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 /** Result of `getDashboard`, one entry per metric. */
 export interface DashboardTile {

@@ -11,11 +11,11 @@ import { ConfigService } from '@nestjs/config';
 
 import { AnalyticsSnapshotService } from '../analytics/analytics-snapshot.service';
 import { AnalyticsSnapshotWorker } from '../analytics/analytics-snapshot.worker';
-import { ReportSchedulerWorker } from '../reports/report-scheduler.worker';
 import { asYmd } from '../analytics/domain/period';
 import { Public } from '../auth/decorators/public.decorator';
 import { DataErasureWorker } from '../data-erasure/data-erasure.worker';
 import { PrismaService } from '../prisma/prisma.service';
+import { ReportSchedulerWorker } from '../reports/report-scheduler.worker';
 import { RetentionWorker } from '../retention/retention.worker';
 import { TimesheetSchedulerWorker } from '../timesheet/timesheet-scheduler.worker';
 import { TimesheetService } from '../timesheet/timesheet.service';

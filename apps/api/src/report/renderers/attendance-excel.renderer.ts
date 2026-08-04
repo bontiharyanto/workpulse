@@ -1,8 +1,8 @@
 import ExcelJS from 'exceljs';
 
+import type { RendererStream } from './render-context';
 import type { AttendanceReportRow, AttendanceReportSummary } from '../domain/attendance-report';
 
-import type { RendererStream } from './render-context';
 
 const COLUMNS: Array<{
   key: keyof AttendanceReportRow | 'no';

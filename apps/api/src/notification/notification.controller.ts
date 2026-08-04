@@ -18,9 +18,6 @@ import type {
   UnreadCountResponse,
 } from '@workpulse/shared-types';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 import {
   NotificationArchivePageDto,
@@ -32,6 +29,9 @@ import {
 } from './dto/notification-preference.dto';
 import { NotificationPreferenceService } from './notification-preference.service';
 import { NotificationService } from './notification.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 /**
  * All endpoints operate on the *caller's* notifications only. There is no

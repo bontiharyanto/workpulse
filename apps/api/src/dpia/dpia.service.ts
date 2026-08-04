@@ -9,19 +9,18 @@ import { DpiaAssessment, DpiaRiskItem, DpiaStatus, Prisma } from '@prisma/client
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
-import {
-  DpiaTransition,
-  IllegalDpiaTransitionError,
-  isEditable,
-  transition,
-} from './domain/state-machine';
 import {
   InvalidRiskAxisError,
   ResidualExceedsInherentError,
   deriveRisk,
   summariseResidual,
 } from './domain/risk-scoring';
+import {
+  DpiaTransition,
+  IllegalDpiaTransitionError,
+  isEditable,
+  transition,
+} from './domain/state-machine';
 
 interface CreateAssessmentInput {
   ropaActivityId: string;

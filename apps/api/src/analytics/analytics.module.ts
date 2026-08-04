@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 
-import { PrismaModule } from '../prisma/prisma.module';
 
 import { AnalyticsComputationService } from './analytics-computation.service';
-import { AnalyticsController } from './analytics.controller';
 import { AnalyticsQueryService } from './analytics-query.service';
 import { AnalyticsSnapshotService } from './analytics-snapshot.service';
 import { AnalyticsSnapshotWorker } from './analytics-snapshot.worker';
+import { AnalyticsController } from './analytics.controller';
+import { PrismaModule } from '../prisma/prisma.module';
 
 /**
  * Fase 33a — Analytics module.

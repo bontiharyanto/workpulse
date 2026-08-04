@@ -4,8 +4,8 @@ import type { AuthenticatedUser } from '@workpulse/shared-types';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 
-import { authStore, computeExpiryEpoch } from '@/lib/auth-store';
 import { authApi } from '@/lib/api-client';
+import { authStore, computeExpiryEpoch } from '@/lib/auth-store';
 
 interface LoginResult {
   /**

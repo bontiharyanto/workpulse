@@ -1,8 +1,6 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
-
 import type {
   ReportDeliveryResponse,
   ReportFrequency,
@@ -10,6 +8,8 @@ import type {
   ReportScheduleResponse,
   ScheduledReportType,
 } from '@workpulse/shared-types';
+import { useState } from 'react';
+
 
 import { ApiError, reportScheduleAdminApi } from '@/lib/api-client';
 
@@ -60,7 +60,12 @@ export function ReportSchedulesPanel(): JSX.Element {
   });
   const deliveries = useQuery<ReportDeliveryResponse[]>({
     queryKey: ['report-schedule', 'deliveries', selectedId],
-    queryFn: () => reportScheduleAdminApi.deliveries(selectedId!),
+    queryFn: () => {
+      if (!selectedId) {
+        throw new Error('deliveries queryFn should not run without a selectedId');
+      }
+      return reportScheduleAdminApi.deliveries(selectedId);
+    },
     enabled: !!selectedId,
     staleTime: 15_000,
   });
@@ -187,7 +192,7 @@ export function ReportSchedulesPanel(): JSX.Element {
             {list.data && list.data.length === 0 && (
               <tr>
                 <td className="text-muted-foreground px-2 py-6 text-center text-sm" colSpan={7}>
-                  Belum ada jadwal. Klik "+ Jadwal baru".
+                  Belum ada jadwal. Klik &quot;+ Jadwal baru&quot;.
                 </td>
               </tr>
             )}

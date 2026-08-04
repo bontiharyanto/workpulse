@@ -1,9 +1,9 @@
 import { BadRequestException, ServiceUnavailableException } from '@nestjs/common';
 
+import { AttachmentService } from './attachment.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import type { StorageProvider } from '../storage/storage.provider';
 
-import { AttachmentService } from './attachment.service';
 
 const actor: AuthenticatedUser = {
   id: 'u-1',

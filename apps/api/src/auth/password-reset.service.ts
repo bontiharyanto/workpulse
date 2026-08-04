@@ -7,7 +7,6 @@ import { passwordResetSucceeded } from '../notification/domain/templates';
 import { EMAIL_ADAPTER, type EmailAdapter } from '../notification/email/email-adapter';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
-
 import { buildResetLinkEmail } from './domain/reset-email';
 import {
   generateResetToken,

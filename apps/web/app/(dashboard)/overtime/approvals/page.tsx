@@ -8,7 +8,7 @@ export default function OvertimeApprovalsPage(): JSX.Element {
         <h1 className="text-2xl font-semibold tracking-tight">Approval Lembur</h1>
         <p className="text-muted-foreground text-sm">
           Supervisor melihat pengajuan dari tim langsung; HR Manager &amp; Super Admin melihat
-          seluruh pengajuan tenant. Klik "Putuskan" untuk menyetujui atau menolak.
+          seluruh pengajuan tenant. Klik &quot;Putuskan&quot; untuk menyetujui atau menolak.
         </p>
       </header>
 

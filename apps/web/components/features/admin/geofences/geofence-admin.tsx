@@ -1,8 +1,8 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
 import type { CreateGeofenceInput, Geofence } from '@workpulse/shared-types';
+import { useState } from 'react';
 
 import { ApiError, geofencesAdminApi } from '@/lib/api-client';
 

@@ -1,6 +1,6 @@
+import { renderCsv } from './csv-renderer';
 import type { PayrollColumn, PayrollRow } from '../domain/payroll-rows';
 
-import { renderCsv } from './csv-renderer';
 
 const cols: PayrollColumn[] = [
   { key: 'employeeId', header: 'employee_id', width: 20 },

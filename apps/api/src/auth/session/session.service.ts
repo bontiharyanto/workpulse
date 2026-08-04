@@ -3,7 +3,6 @@ import type { Prisma, RefreshToken } from '@prisma/client';
 import { RefreshTokenStatus } from '@prisma/client';
 
 import { PrismaService } from '../../prisma/prisma.service';
-
 import { hashRefreshSecret } from '../domain/token-hash';
 
 export interface SessionSummary {

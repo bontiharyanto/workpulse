@@ -3,13 +3,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  ropaLegalBasisSchema,
   updateRopaVersionInputSchema,
+  type ropaLegalBasisSchema,
   type RopaVersionResponse,
   type UpdateRopaVersionInput,
 } from '@workpulse/shared-types';
-import Link from 'next/link';
 import type { Route } from 'next';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 

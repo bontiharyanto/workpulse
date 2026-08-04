@@ -1,9 +1,8 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { createDepartmentSchema, type Department, type CreateDepartmentInput } from '@workpulse/shared-types';
 import { useForm } from 'react-hook-form';
-import type { Department } from '@workpulse/shared-types';
-import { createDepartmentSchema, type CreateDepartmentInput } from '@workpulse/shared-types';
 
 interface Props {
   parents: Department[];

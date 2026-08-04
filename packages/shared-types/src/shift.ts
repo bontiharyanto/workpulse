@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { calendarDateSchema } from './leave.js';
 import { isoDateTimeSchema } from './common.js';
+import { calendarDateSchema } from './leave.js';
 
 export const shiftTypeSchema = z.enum(['STATIC', 'FLEXIBLE', 'ROTATING']);
 export type ShiftType = z.infer<typeof shiftTypeSchema>;

@@ -1,4 +1,4 @@
-import { BreachStatus } from '@prisma/client';
+import type { BreachStatus } from '@prisma/client';
 
 import { isDeadlineActive } from './state-machine';
 

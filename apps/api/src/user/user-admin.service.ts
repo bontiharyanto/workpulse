@@ -13,7 +13,6 @@ import { TokenService } from '../auth/token.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import type { UserRole } from '../common/types/user-role';
 import { PrismaService } from '../prisma/prisma.service';
-
 import { canAssignRole, canManageUser } from './domain/role-hierarchy';
 import { generateTempPassword } from './domain/temp-password';
 import type { AdminUserDto, UserCredentialResponseDto } from './dto/user-response.dto';

@@ -6,7 +6,6 @@ import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
 import { PrismaService } from '../prisma/prisma.service';
-
 import { hashRefreshSecret } from './domain/token-hash';
 import { TokenService } from './token.service';
 

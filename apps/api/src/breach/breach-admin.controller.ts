@@ -2,12 +2,8 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post } from 
 import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
-
-import { BreachService } from './breach.service';
 import { toDetailDto, toListItemDto } from './breach.mapper';
+import { BreachService } from './breach.service';
 import {
   AppendBreachNoteDto,
   BreachIncidentListItemDto,
@@ -18,6 +14,10 @@ import {
   NotifySubjectsDto,
   UpdateBreachIncidentDto,
 } from './dto/breach.dto';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
+
 
 /**
  * Fase 31g — Breach Notification Ledger admin controller.

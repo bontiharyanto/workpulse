@@ -1,6 +1,7 @@
 import { PassThrough } from 'node:stream';
 
-import { DpiaAssessment, DpiaRiskItem, DpiaRiskLevel } from '@prisma/client';
+import type { DpiaAssessment, DpiaRiskItem} from '@prisma/client';
+import { DpiaRiskLevel } from '@prisma/client';
 import PDFDocument from 'pdfkit';
 
 import { scoreOf, summariseResidual } from '../domain/risk-scoring';

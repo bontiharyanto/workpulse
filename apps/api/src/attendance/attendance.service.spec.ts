@@ -8,11 +8,11 @@ import { Prisma } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { AttendanceService } from './attendance.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { AttendanceService } from './attendance.service';
 
 type PrismaMock = DeepMockProxy<PrismaService>;
 type NotificationsMock = DeepMockProxy<NotificationService>;

@@ -1,9 +1,9 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import type { CreateCompanyInput } from '@workpulse/shared-types';
 import { createCompanyInputSchema } from '@workpulse/shared-types';
+import { useForm } from 'react-hook-form';
 
 interface Props {
   submitting?: boolean;
@@ -68,7 +68,7 @@ export function CompanyForm({ submitting, onSubmit, onCancel }: Props): JSX.Elem
           className="border-input bg-background w-full rounded-md border px-3 py-2 font-mono text-sm"
         />
         <p className="text-muted-foreground text-xs">
-          Huruf kecil, angka, atau tanda "-". Dibuat otomatis dari nama jika dikosongkan.
+          Huruf kecil, angka, atau tanda &quot;-&quot;. Dibuat otomatis dari nama jika dikosongkan.
         </p>
         {errors.slug && <p className="text-destructive text-xs">{errors.slug.message}</p>}
       </div>

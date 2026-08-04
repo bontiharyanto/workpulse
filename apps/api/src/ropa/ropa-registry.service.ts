@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -16,9 +15,8 @@ import type {
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
-import { IllegalRopaTransitionError, isEditable, transition } from './domain/version-state-machine';
 import { ROPA_SEED_BLUEPRINTS } from './domain/seed-catalogue';
+import { IllegalRopaTransitionError, isEditable, transition } from './domain/version-state-machine';
 
 /**
  * The Art. 30 GDPR / Pasal 31 UU PDP fields a caller may set on a

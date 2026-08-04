@@ -4,12 +4,12 @@ import { TimesheetPeriodType, TimesheetStatus } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { TimesheetSubmissionService } from './timesheet-submission.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { WebhookDispatcher } from '../webhook/webhook-dispatcher.service';
 
-import { TimesheetSubmissionService } from './timesheet-submission.service';
 
 interface Kit {
   service: TimesheetSubmissionService;

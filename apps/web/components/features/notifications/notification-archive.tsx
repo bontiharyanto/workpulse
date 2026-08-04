@@ -1,12 +1,12 @@
 'use client';
 
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { Notification } from '@workpulse/shared-types';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 import { ApiError, notificationsApi } from '@/lib/api-client';
-import type { Notification } from '@workpulse/shared-types';
 
 type Tab = 'all' | 'unread';
 

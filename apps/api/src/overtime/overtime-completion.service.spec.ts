@@ -1,9 +1,9 @@
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { OvertimeCompletionService } from './overtime-completion.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { OvertimeCompletionService } from './overtime-completion.service';
 
 function setup(): {
   service: OvertimeCompletionService;

@@ -24,7 +24,6 @@ export function generateBackupCode(): string {
   for (let i = 0; i < CODE_LENGTH; i += 1) {
     // `randomInt` uses a rejection-sampling CSPRNG under the hood, so
     // there's no modulo bias like `randomBytes()[0] % 32` would have.
-    // eslint-disable-next-line security/detect-object-injection
     chars.push(ALPHABET[randomInt(0, ALPHABET.length)]!);
   }
   return chars.join('');

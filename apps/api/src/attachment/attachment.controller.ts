@@ -2,11 +2,11 @@ import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
+import { AttachmentService } from './attachment.service';
+import { PresignPutRequestDto, type PresignPutResponseDto } from './dto/presign.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-import { AttachmentService } from './attachment.service';
-import { PresignPutRequestDto, type PresignPutResponseDto } from './dto/presign.dto';
 
 @ApiTags('attachments')
 @Controller('attachments')

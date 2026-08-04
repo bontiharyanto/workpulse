@@ -1,14 +1,14 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
-
 import type {
   DpiaAssessmentListItem,
   DpiaAssessmentResponse,
   DpiaRiskLevel,
   DpiaStatus,
 } from '@workpulse/shared-types';
+import { useState } from 'react';
+
 
 import { ApiError, dpiaAdminApi, ropaAdminApi, saveBlob } from '@/lib/api-client';
 
@@ -69,7 +69,12 @@ export function DpiaRegistryPanel(): JSX.Element {
 
   const detail = useQuery<DpiaAssessmentResponse>({
     queryKey: ['dpia', 'detail', selectedId],
-    queryFn: () => dpiaAdminApi.detail(selectedId!),
+    queryFn: () => {
+      if (!selectedId) {
+        throw new Error('detail queryFn should not run without a selectedId');
+      }
+      return dpiaAdminApi.detail(selectedId);
+    },
     enabled: !!selectedId,
     staleTime: 15_000,
   });
@@ -152,7 +157,7 @@ export function DpiaRegistryPanel(): JSX.Element {
           ))}
           {list.data && list.data.length === 0 && !showCreate && (
             <li className="text-muted-foreground text-sm">
-              Belum ada DPIA. Klik "+ DPIA baru" untuk memulai.
+              Belum ada DPIA. Klik &quot;+ DPIA baru&quot; untuk memulai.
             </li>
           )}
         </ul>

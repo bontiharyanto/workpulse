@@ -1,6 +1,7 @@
 import { PassThrough } from 'node:stream';
 
-import { BreachIncident, BreachSeverity, BreachTimelineEvent } from '@prisma/client';
+import type { BreachIncident, BreachTimelineEvent } from '@prisma/client';
+import { BreachSeverity } from '@prisma/client';
 import PDFDocument from 'pdfkit';
 
 import { snapshot } from '../domain/deadline';

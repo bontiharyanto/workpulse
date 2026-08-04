@@ -14,10 +14,10 @@ import {
   WeekStartDay,
 } from '@prisma/client';
 
-import { NotificationService } from '../notification/notification.service';
-import { timesheetRegenerated } from '../notification/domain/templates';
-import { PrismaService } from '../prisma/prisma.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
+import { timesheetRegenerated } from '../notification/domain/templates';
+import { NotificationService } from '../notification/notification.service';
+import { PrismaService } from '../prisma/prisma.service';
 import {
   BuildEntryInput,
   BuiltEntry,

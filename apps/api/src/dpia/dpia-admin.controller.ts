@@ -12,12 +12,8 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
-
-import { DpiaService } from './dpia.service';
 import { toAssessmentDto, toListItemDto } from './dpia-mapper';
+import { DpiaService } from './dpia.service';
 import {
   CreateDpiaAssessmentDto,
   CreateDpiaRiskItemDto,
@@ -26,6 +22,10 @@ import {
   UpdateDpiaAssessmentDto,
   UpdateDpiaRiskItemDto,
 } from './dto/dpia.dto';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
+
 
 /**
  * Fase 31e — HR / Super Admin DPIA controller.

@@ -3,12 +3,12 @@ import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import type { RetentionAuditReport } from '@prisma/client';
 
+import { RetentionAuditService } from './retention-audit.service';
+import { RetentionService } from './retention.service';
 import { retentionAuditGap } from '../notification/domain/templates';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { RetentionAuditService } from './retention-audit.service';
-import { RetentionService } from './retention.service';
 
 const MONTH_LABELS = [
   'Januari',

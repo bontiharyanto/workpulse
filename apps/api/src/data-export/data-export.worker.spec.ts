@@ -4,11 +4,11 @@ import { DataExportStatus } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import type { DataExportService } from './data-export.service';
+import { DataExportWorker } from './data-export.worker';
 import { PrismaService } from '../prisma/prisma.service';
 import type { StorageProvider } from '../storage/storage.provider';
 
-import type { DataExportService } from './data-export.service';
-import { DataExportWorker } from './data-export.worker';
 
 // Mock the assembler so the worker specs don't depend on the ZIP
 // implementation — that has its own suite. Deliberately returns a

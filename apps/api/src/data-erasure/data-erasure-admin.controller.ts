@@ -3,12 +3,11 @@ import { ApiBearerAuth, ApiConflictResponse, ApiOkResponse, ApiTags } from '@nes
 import { Throttle } from '@nestjs/throttler';
 import type { DataErasureRequest, User } from '@prisma/client';
 
+import { DataErasureService } from './data-erasure.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
-import { DataErasureService } from './data-erasure.service';
 import {
   DataErasureAdminListResponseDto,
   DataErasureAdminRequestDto,

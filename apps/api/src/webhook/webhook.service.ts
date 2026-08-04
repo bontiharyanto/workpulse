@@ -15,7 +15,6 @@ import type { Prisma, WebhookEventType } from '@prisma/client';
 import { decodeEncryptionKey, decryptString, encryptString } from '../auth/mfa/domain/crypto';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
 import { validateUrl } from './domain/url-guard';
 
 export interface CreateEndpointInput {

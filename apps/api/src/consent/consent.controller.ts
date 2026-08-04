@@ -3,10 +3,6 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 
-import { AllowPendingConsent } from '../auth/decorators/allow-pending-consent.decorator';
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
-
 import { ConsentService } from './consent.service';
 import {
   AcceptConsentDto,
@@ -14,6 +10,10 @@ import {
   UserConsentDto,
   UserConsentListResponseDto,
 } from './dto/consent.dto';
+import { AllowPendingConsent } from '../auth/decorators/allow-pending-consent.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
+
 
 /**
  * Self-service consent endpoints (Fase 31c). Both live under `/me`

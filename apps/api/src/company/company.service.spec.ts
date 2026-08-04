@@ -3,10 +3,10 @@ import { Prisma } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { CompanyService } from './company.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { CompanyService } from './company.service';
 
 const hr: AuthenticatedUser = {
   id: 'u-1',

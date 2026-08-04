@@ -3,9 +3,9 @@ import { Prisma as PrismaNs } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { BacklogService } from './backlog.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { BacklogService } from './backlog.service';
 
 const NOW = new Date('2026-08-02T12:00:00Z');
 

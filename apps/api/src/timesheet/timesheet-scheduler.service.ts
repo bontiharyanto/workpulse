@@ -7,7 +7,6 @@ import {
 } from '../notification/domain/templates';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
-
 import {
   decideApprovalReminder,
   decideAutoGenerate,

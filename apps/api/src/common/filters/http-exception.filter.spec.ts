@@ -1,6 +1,6 @@
 import { ConflictException, HttpException, HttpStatus } from '@nestjs/common';
 import type { ArgumentsHost } from '@nestjs/common';
-import type { Request, Response } from 'express';
+import type { Request } from 'express';
 
 import { HttpExceptionFilter } from './http-exception.filter';
 

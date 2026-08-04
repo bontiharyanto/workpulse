@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import type { Prisma, User } from '@prisma/client';
 
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
-import { PrismaService } from '../prisma/prisma.service';
 
 import { PasswordService } from './password.service';
 import type { IssuedTokenPair, TokenContext } from './token.service';
 import { TokenService } from './token.service';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
+import { PrismaService } from '../prisma/prisma.service';
 
 export interface LoginInput {
   email: string;

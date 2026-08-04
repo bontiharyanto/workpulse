@@ -2,8 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { RetentionAuditReportDto, RetentionAuditStatus } from '@workpulse/shared-types';
-import Link from 'next/link';
 import type { Route } from 'next';
+import Link from 'next/link';
 import React, { useState } from 'react';
 
 import { ApiError, retentionAuditApi } from '@/lib/api-client';

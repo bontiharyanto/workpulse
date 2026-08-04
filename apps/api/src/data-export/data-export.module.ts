@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 
-import { PrismaModule } from '../prisma/prisma.module';
-import { StorageModule } from '../storage/storage.module';
 
 import { DataExportController } from './data-export.controller';
 import { DataExportService } from './data-export.service';
 import { DataExportWorker } from './data-export.worker';
+import { PrismaModule } from '../prisma/prisma.module';
+import { StorageModule } from '../storage/storage.module';
 
 /**
  * Wires the DSAR surface: HTTP controller for user-facing endpoints,

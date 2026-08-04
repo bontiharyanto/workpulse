@@ -8,12 +8,13 @@ import {
   vendorCategorySchema,
   vendorDataVolumeSchema,
 } from '@workpulse/shared-types';
-import Link from 'next/link';
 import type { Route } from 'next';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 
-import { ApiError, vendorProcessorApi } from '@/lib/api-client';
+import type { ApiError} from '@/lib/api-client';
+import { vendorProcessorApi } from '@/lib/api-client';
 
 const ERROR_COPY: Record<string, string> = {
   VENDOR_SLUG_TAKEN: 'Slug ini sudah dipakai vendor lain di tenant.',

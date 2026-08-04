@@ -1,5 +1,9 @@
-import * as archiverPkg from 'archiver';
 import type { Readable } from 'node:stream';
+
+import * as archiverPkg from 'archiver';
+import type { Archiver } from 'archiver';
+
+import type { PrismaService } from '../../prisma/prisma.service';
 
 // `archiver`'s CJS default export is the callable factory; the ESM
 // interop shape is `.default`. `esModuleInterop=true` at the tsconfig
@@ -8,9 +12,7 @@ import type { Readable } from 'node:stream';
 const archiver = ((archiverPkg as unknown as { default?: unknown }).default ?? archiverPkg) as (
   format: 'zip',
   opts?: unknown,
-) => import('archiver').Archiver;
-
-import type { PrismaService } from '../../prisma/prisma.service';
+) => Archiver;
 
 /**
  * Assemble the DSAR archive for a single user. Every collection we

@@ -3,15 +3,14 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { LeaveBalance, LeaveType } from '@prisma/client';
 
 import { AttachmentService } from '../attachment/attachment.service';
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
-
 import { DecideLeaveDto } from './dto/decide-leave.dto';
 import { LeaveBalanceDto, LeaveRequestDto } from './dto/leave-response.dto';
 import { SubmitLeaveDto } from './dto/submit-leave.dto';
 import type { HydratedLeaveRequest } from './leave.service';
 import { LeaveService } from './leave.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 @ApiTags('leave')
 @ApiBearerAuth()

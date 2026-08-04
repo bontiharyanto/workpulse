@@ -11,14 +11,14 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 import { CreateGeofenceDto } from './dto/create-geofence.dto';
 import type { GeofenceResponseDto } from './dto/geofence-response.dto';
 import { UpdateGeofenceDto } from './dto/update-geofence.dto';
 import { GeofenceService } from './geofence.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 @ApiTags('admin · geofences')
 @Controller('admin/geofences')

@@ -1,9 +1,9 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import type { AdminUser, Department, UpdateUserInput, UserRole } from '@workpulse/shared-types';
 import { updateUserSchema } from '@workpulse/shared-types';
+import { useForm } from 'react-hook-form';
 
 const ROLE_LABELS: Record<UserRole, string> = {
   EMPLOYEE: 'Employee',

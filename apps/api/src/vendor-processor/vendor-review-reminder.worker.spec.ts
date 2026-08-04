@@ -3,10 +3,10 @@ import type { VendorProcessor } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { VendorReviewReminderWorker } from './vendor-review-reminder.worker';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { VendorReviewReminderWorker } from './vendor-review-reminder.worker';
 
 const COMPANY = 'company-1';
 

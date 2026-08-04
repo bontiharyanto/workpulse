@@ -4,15 +4,14 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
-import { authenticator } from 'otplib';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
+import { authenticator } from 'otplib';
 
 import { PrismaService } from '../../prisma/prisma.service';
 import { PasswordService } from '../password.service';
 import type { IssuedTokenPair } from '../token.service';
 import { TokenService } from '../token.service';
-
 import { hashBackupCode, normalizeBackupCode } from './domain/backup-codes';
 import { decodeEncryptionKey, encryptString } from './domain/crypto';
 import { MfaService } from './mfa.service';

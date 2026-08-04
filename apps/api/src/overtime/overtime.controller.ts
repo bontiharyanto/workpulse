@@ -1,15 +1,15 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 import { DecideOvertimeDto } from './dto/decide-overtime.dto';
 import { OvertimeRequestDto } from './dto/overtime-response.dto';
 import { SubmitOvertimeDto } from './dto/submit-overtime.dto';
 import type { HydratedOvertime } from './overtime.service';
 import { OvertimeService } from './overtime.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 @ApiTags('overtime')
 @ApiBearerAuth()

@@ -4,7 +4,6 @@ import { LeaveStatus } from '@prisma/client';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
 import type { LeaveKindLiteral } from './dto/create-leave-type.dto';
 import type { AdminLeaveTypeDto } from './dto/leave-type-response.dto';
 

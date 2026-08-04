@@ -3,12 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import type { Prisma } from '@prisma/client';
 
-import { anonymizeUser } from '../data-erasure/domain/anonymize-user';
 import { DataErasureService } from '../data-erasure/data-erasure.service';
 import { PrismaService } from '../prisma/prisma.service';
-
 import { listAutoErasureCandidates, pruneNotifications } from './domain/retention-actions';
 import { RetentionService } from './retention.service';
+import { anonymizeUser } from '../data-erasure/domain/anonymize-user';
 
 /**
  * Retention worker (Fase 31c). Runs once per day at 02:00 UTC and

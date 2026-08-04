@@ -1,9 +1,9 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import type { AdminLeaveType, CreateLeaveTypeInput, LeaveKind } from '@workpulse/shared-types';
 import { createLeaveTypeSchema } from '@workpulse/shared-types';
+import { useForm } from 'react-hook-form';
 
 const LEAVE_KIND_LABELS: Record<LeaveKind, string> = {
   ANNUAL: 'Cuti Tahunan',

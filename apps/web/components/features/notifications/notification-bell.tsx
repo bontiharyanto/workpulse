@@ -1,10 +1,10 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { Notification } from '@workpulse/shared-types';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import type { Notification } from '@workpulse/shared-types';
 
 import { notificationsApi } from '@/lib/api-client';
 

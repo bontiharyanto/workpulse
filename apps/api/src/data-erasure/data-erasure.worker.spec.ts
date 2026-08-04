@@ -4,11 +4,11 @@ import { DataErasureStatus } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import type { DataErasureService } from './data-erasure.service';
+import { DataErasureWorker } from './data-erasure.worker';
 import type { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-import type { DataErasureService } from './data-erasure.service';
-import { DataErasureWorker } from './data-erasure.worker';
 
 // The worker delegates the destructive DB work to `anonymizeUser`. We
 // mock that entire module so the worker test focuses on the tick

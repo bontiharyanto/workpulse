@@ -2,10 +2,10 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { HolidayService } from './holiday.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { HolidayService } from './holiday.service';
 
 const hr: AuthenticatedUser = {
   id: 'user-hr',

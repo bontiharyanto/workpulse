@@ -1,13 +1,13 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Patch } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
+import { CompanyService } from './company.service';
+import { CompanyConfigDto } from './dto/company-config.dto';
+import { UpdateCompanyConfigDto } from './dto/update-company-config.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-import { CompanyService } from './company.service';
-import { CompanyConfigDto } from './dto/company-config.dto';
-import { UpdateCompanyConfigDto } from './dto/update-company-config.dto';
 
 /**
  * All routes here are tenant-scoped via `actor.companyId` — there is no

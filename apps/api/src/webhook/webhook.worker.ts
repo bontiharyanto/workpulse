@@ -4,7 +4,6 @@ import { Cron } from '@nestjs/schedule';
 import type { Prisma, WebhookDelivery, WebhookEndpoint } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
-
 import { planNextAttempt } from './domain/retry-schedule';
 import { validateResolvedHost, validateUrlSyntax } from './domain/url-guard';
 import { sign } from './domain/webhook-signature';

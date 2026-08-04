@@ -1,7 +1,7 @@
-import { DpiaAssessment, DpiaRiskItem } from '@prisma/client';
+import type { DpiaAssessment, DpiaRiskItem } from '@prisma/client';
 
 import { scoreOf, summariseResidual } from './domain/risk-scoring';
-import {
+import type {
   DpiaAssessmentListItemDto,
   DpiaAssessmentResponseDto,
   DpiaRiskItemResponseDto,

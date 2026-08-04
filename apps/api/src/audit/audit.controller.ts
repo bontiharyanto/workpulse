@@ -3,13 +3,13 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 
+import { AuditService } from './audit.service';
+import { AuditLogQueryDto } from './dto/audit-log-query.dto';
+import { AuditLogPageDto, AuditLogRowDto } from './dto/audit-log-response.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-import { AuditService } from './audit.service';
-import { AuditLogQueryDto } from './dto/audit-log-query.dto';
-import { AuditLogPageDto, AuditLogRowDto } from './dto/audit-log-response.dto';
 
 /**
  * Read-only audit log surface for HR / compliance. Writers are scattered

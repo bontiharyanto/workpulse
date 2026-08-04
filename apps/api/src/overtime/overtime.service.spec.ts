@@ -3,10 +3,10 @@ import { Prisma as PrismaNs } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { OvertimeService } from './overtime.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { OvertimeService } from './overtime.service';
 
 const employee: AuthenticatedUser = {
   id: 'user-emp',

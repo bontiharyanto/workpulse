@@ -1,8 +1,8 @@
 import PDFDocument from 'pdfkit';
 
+import type { RendererStream } from './render-context';
 import type { OvertimeReportRow, OvertimeReportTotals } from '../domain/overtime-report';
 
-import type { RendererStream } from './render-context';
 
 interface Column {
   key: keyof OvertimeReportRow;

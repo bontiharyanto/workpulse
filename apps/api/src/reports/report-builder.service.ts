@@ -2,14 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
-
 import {
   CUSTOM_REPORT_DIMENSIONS,
   CUSTOM_REPORT_METRICS,
   CUSTOM_REPORT_WINDOWS,
   CustomReportDefinition,
   CustomReportDimension,
-  CustomReportMetric,
   metricDescriptor,
 } from './domain/custom-report-definition';
 

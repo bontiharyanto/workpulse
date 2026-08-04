@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 
-import { PrismaModule } from '../prisma/prisma.module';
 
 import { RopaAdminController } from './ropa-admin.controller';
 import { RopaExportController } from './ropa-export.controller';
 import { RopaExportService } from './ropa-export.service';
 import { RopaRegistryService } from './ropa-registry.service';
+import { PrismaModule } from '../prisma/prisma.module';
 
 /**
  * Fase 31d — ROPA (Record of Processing Activities) registry.

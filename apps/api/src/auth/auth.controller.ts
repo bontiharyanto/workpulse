@@ -14,15 +14,12 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { CookieOptions, Request, Response } from 'express';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
-
-import { ConsentService } from '../consent/consent.service';
-
 import { AuthService } from './auth.service';
-import { Public } from './decorators/public.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
+import { ConsentService } from '../consent/consent.service';
 import { AllowMustChangePassword } from './decorators/allow-must-change-password.decorator';
 import { AllowPendingConsent } from './decorators/allow-pending-consent.decorator';
+import { Public } from './decorators/public.decorator';
 import {
   AuthenticatedUserDto,
   LoginResponseDto,
@@ -33,6 +30,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { PasswordResetService } from './password-reset.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 const REFRESH_COOKIE_NAME = 'wp_refresh';
 

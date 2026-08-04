@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
+import { ExecutiveDashboard } from '@/components/features/analytics/executive-dashboard';
 import { RequireAuth } from '@/components/features/auth/require-auth';
 import { RequireRole } from '@/components/features/auth/require-role';
-import { ExecutiveDashboard } from '@/components/features/analytics/executive-dashboard';
 
 export const metadata: Metadata = {
   title: 'Analytics — Workpulse',

@@ -151,7 +151,10 @@ function localTimeToUtcIso(workDate: string, hhmm: string): string {
   const h = parts[0] ?? 0;
   const m = parts[1] ?? 0;
   const [yy, mm, dd] = workDate.split('-').map(Number);
-  const local = new Date(yy!, (mm ?? 1) - 1, dd ?? 1, h, m, 0, 0);
+  // `workDate` upstream comes from a validated `YYYY-MM-DD` input,
+  // so `yy` is guaranteed to be a number; fall through to `NaN` if it
+  // ever isn't (Date treats NaN as Invalid Date, which propagates).
+  const local = new Date(yy ?? Number.NaN, (mm ?? 1) - 1, dd ?? 1, h, m, 0, 0);
   return local.toISOString();
 }
 

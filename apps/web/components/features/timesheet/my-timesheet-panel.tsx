@@ -1,12 +1,12 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
 import type {
   TimesheetStatus,
   TimesheetSummaryDto,
   TimesheetViewDto,
 } from '@workpulse/shared-types';
+import { useState } from 'react';
 
 import { timesheetSelfApi } from '@/lib/api-client';
 
@@ -83,6 +83,11 @@ function CurrentPeriodCard({
   submitPending: boolean;
   submitError: string | null;
 }): JSX.Element {
+  // Hooks must be called in the same order on every render — declare
+  // `useState` at the top before any conditional early-return branches
+  // (rules-of-hooks).
+  const [confirming, setConfirming] = useState(false);
+
   if (loading) {
     return (
       <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm">
@@ -112,7 +117,6 @@ function CurrentPeriodCard({
   const now = new Date();
   const periodEnded = new Date(data.periodEnd + 'T23:59:59Z') <= now;
   const submitDisabled = !canSubmit || !periodEnded || submitPending;
-  const [confirming, setConfirming] = useState(false);
   const handleSubmitClick = (): void => {
     if (confirming) {
       onSubmit(data.id);

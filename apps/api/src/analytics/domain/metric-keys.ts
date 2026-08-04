@@ -1,4 +1,4 @@
-import { AnalyticsMetricKey } from '@prisma/client';
+import type { AnalyticsMetricKey } from '@prisma/client';
 
 /**
  * Fase 33a — canonical KPI catalogue.

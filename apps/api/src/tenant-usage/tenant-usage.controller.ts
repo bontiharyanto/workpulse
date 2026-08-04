@@ -12,10 +12,6 @@ import {
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { TenantUsageSnapshot } from '@prisma/client';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
-
 import {
   ListTenantUsageQueryDto,
   ListTenantUsageResponseDto,
@@ -23,6 +19,10 @@ import {
   TenantUsageSnapshotDto,
 } from './dto/tenant-usage.dto';
 import { TenantUsageService } from './tenant-usage.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
+
 
 /**
  * OPS-7 — Tenant usage snapshot admin surface.

@@ -2,12 +2,11 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { NotificationPreferenceService } from './notification-preference.service';
+import { NotificationService } from './notification.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
-import { NotificationService } from './notification.service';
-import { NotificationPreferenceService } from './notification-preference.service';
-import { EMAIL_ADAPTER, type EmailAdapter } from './email/email-adapter';
+import { type EmailAdapter } from './email/email-adapter';
 
 const actor: AuthenticatedUser = {
   id: 'u-1',

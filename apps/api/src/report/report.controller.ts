@@ -3,14 +3,14 @@ import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 import { AttendanceReportRequestDto } from './dto/attendance-report.dto';
 import { LeaveSummaryReportRequestDto } from './dto/leave-summary-report.dto';
 import { OvertimeReportRequestDto } from './dto/overtime-report.dto';
 import { ReportService } from './report.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 @ApiTags('reports')
 @Controller('reports')

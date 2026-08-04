@@ -1,6 +1,6 @@
+import type { EmploymentStatus } from './update-user.dto';
 import type { UserRole } from '../../common/types/user-role';
 
-import type { EmploymentStatus } from './update-user.dto';
 
 export interface AdminUserDto {
   id: string;

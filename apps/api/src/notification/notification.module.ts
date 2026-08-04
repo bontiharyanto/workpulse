@@ -2,13 +2,12 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { PrismaModule } from '../prisma/prisma.module';
-
 import { ConsoleEmailAdapter, DisabledEmailAdapter } from './email/console-email-adapter';
 import { EMAIL_ADAPTER, type EmailAdapter } from './email/email-adapter';
 import { pickEmailAdapter } from './email/pick-email-adapter';
 import { SmtpEmailAdapter } from './email/smtp-email-adapter';
-import { NotificationController } from './notification.controller';
 import { NotificationPreferenceService } from './notification-preference.service';
+import { NotificationController } from './notification.controller';
 import { NotificationService } from './notification.service';
 
 /**

@@ -1,14 +1,13 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
 import type { CompanyAdmin, CreateCompanyInput, UpdateCompanyInput } from '@workpulse/shared-types';
+import { useState } from 'react';
 
 import { useAuth } from '@/components/providers/auth-provider';
 import { ApiError, companiesAdminApi } from '@/lib/api-client';
 
 import { CredentialReveal } from '../credential-reveal';
-
 import { CompanyEditPanel } from './company-edit-panel';
 import { CompanyForm } from './company-form';
 

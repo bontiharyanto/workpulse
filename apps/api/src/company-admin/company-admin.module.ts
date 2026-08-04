@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 
+import { CompanyAdminController } from './company-admin.controller';
+import { CompanyAdminService } from './company-admin.service';
 import { AuthModule } from '../auth/auth.module';
 import { PrismaModule } from '../prisma/prisma.module';
 
-import { CompanyAdminController } from './company-admin.controller';
-import { CompanyAdminService } from './company-admin.service';
 
 @Module({
   imports: [PrismaModule, AuthModule],

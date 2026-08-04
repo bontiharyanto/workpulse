@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 
-import { StorageModule } from '../storage/storage.module';
 
 import { AttachmentController } from './attachment.controller';
 import { AttachmentService } from './attachment.service';
+import { StorageModule } from '../storage/storage.module';
 
 @Module({
   imports: [StorageModule],

@@ -1,7 +1,7 @@
-import { BreachIncident, BreachTimelineEvent } from '@prisma/client';
+import type { BreachIncident, BreachTimelineEvent } from '@prisma/client';
 
 import { snapshot } from './domain/deadline';
-import {
+import type {
   BreachIncidentListItemDto,
   BreachIncidentResponseDto,
   BreachTimelineEventDto,

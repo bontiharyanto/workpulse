@@ -1,7 +1,6 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-
 import type { AttendanceCorrection } from '@workpulse/shared-types';
 
 import { ApiError, attendanceCorrectionsApi } from '@/lib/api-client';

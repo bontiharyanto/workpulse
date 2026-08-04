@@ -2,10 +2,10 @@ import { Controller, Get, HttpCode, Res } from '@nestjs/common';
 import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 
+import { HealthDeepService } from './health-deep.service';
 import { Public } from '../auth/decorators/public.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { HealthDeepService } from './health-deep.service';
 
 /**
  * Public health endpoints.

@@ -9,11 +9,10 @@ import { ConfigService } from '@nestjs/config';
 import type { User } from '@prisma/client';
 import * as QRCode from 'qrcode';
 
-import { PasswordService } from '../password.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { PasswordService } from '../password.service';
 import { TokenService } from '../token.service';
-
-import { generateBackupCodes, hashBackupCode, normalizeBackupCode } from './domain/backup-codes';
+import { generateBackupCodes, hashBackupCode } from './domain/backup-codes';
 import { decodeEncryptionKey, decryptString, encryptString } from './domain/crypto';
 import { generateTotpEnrollment, verifyTotp } from './domain/totp';
 

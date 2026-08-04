@@ -7,7 +7,6 @@ import { mockDeep, mockReset } from 'jest-mock-extended';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 import type { WebhookDispatcher } from '../webhook/webhook-dispatcher.service';
-
 import { sign } from './domain/share-signature';
 import { TimesheetExportShareService } from './timesheet-export-share.service';
 import type { ExportResult, TimesheetExportService } from './timesheet-export.service';

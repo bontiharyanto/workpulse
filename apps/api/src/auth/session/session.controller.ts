@@ -3,15 +3,15 @@ import { ApiBearerAuth, ApiNoContentResponse, ApiOkResponse, ApiTags } from '@ne
 import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../../common/types/authenticated-user';
-
 import {
   SessionDto,
   SessionListResponseDto,
   SessionRevokeOthersResponseDto,
 } from './dto/session.dto';
 import { SessionService, type SessionSummary } from './session.service';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../../common/types/authenticated-user';
+
 
 const REFRESH_COOKIE_NAME = 'wp_refresh';
 

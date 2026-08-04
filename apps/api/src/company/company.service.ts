@@ -3,11 +3,10 @@ import type { Company, Prisma } from '@prisma/client';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
-import type { CompanyConfigDto } from './dto/company-config.dto';
-import type { UpdateCompanyConfigDto } from './dto/update-company-config.dto';
 import { diffChangedKeys } from './domain/config-diff';
 import { InvalidTimezoneError, assertValidTimezone } from './domain/timezone';
+import type { CompanyConfigDto } from './dto/company-config.dto';
+import type { UpdateCompanyConfigDto } from './dto/update-company-config.dto';
 
 type CompanyConfigColumns = Pick<
   Company,

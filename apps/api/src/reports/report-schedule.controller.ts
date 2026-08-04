@@ -12,18 +12,18 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
-
+import { REPORT_REGISTRY } from './domain/report-registry';
 import {
   CreateReportScheduleDto,
   ReportDeliveryResponseDto,
   ReportScheduleResponseDto,
   UpdateReportScheduleDto,
 } from './dto/report-schedule.dto';
-import { REPORT_REGISTRY } from './domain/report-registry';
 import { ReportScheduleService } from './report-schedule.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
+
 
 /**
  * Fase 33c — HR / super-admin controller for report scheduling.

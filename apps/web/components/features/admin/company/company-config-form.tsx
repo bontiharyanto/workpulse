@@ -1,10 +1,10 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Controller, useForm, useWatch } from 'react-hook-form';
-import type { Control } from 'react-hook-form';
 import type { CompanyConfig, CompanyConfigUpdateInput } from '@workpulse/shared-types';
 import { companyConfigUpdateInputSchema } from '@workpulse/shared-types';
+import { Controller, useForm, useWatch } from 'react-hook-form';
+import type { Control } from 'react-hook-form';
 
 interface Props {
   initial: CompanyConfig;

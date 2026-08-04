@@ -1,4 +1,4 @@
-import { ScheduledReportType } from '@prisma/client';
+import type { ScheduledReportType } from '@prisma/client';
 
 /**
  * Fase 33c — registry entry for a "runnable report".

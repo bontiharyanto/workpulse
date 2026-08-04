@@ -17,7 +17,6 @@ import {
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 import { WebhookDispatcher } from '../webhook/webhook-dispatcher.service';
-
 import {
   buildDetailRows,
   buildSummaryRow,
@@ -230,7 +229,6 @@ export class TimesheetExportService {
     }
 
     let payload: Buffer;
-    let filename: string;
     let contentType: string;
     if (input.format === TimesheetExportFormat.CSV) {
       payload = renderCsv(columns, flatRows);
@@ -258,7 +256,7 @@ export class TimesheetExportService {
 
     const ext = input.format === TimesheetExportFormat.CSV ? 'csv' : 'xlsx';
     const slug = slugify(period.label);
-    filename = `payroll-${slug}-${input.mode.toLowerCase()}.${ext}`;
+    const filename = `payroll-${slug}-${input.mode.toLowerCase()}.${ext}`;
 
     const payloadSha256 = createHash('sha256').update(payload).digest('hex');
 

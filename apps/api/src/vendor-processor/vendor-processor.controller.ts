@@ -13,10 +13,6 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
-
 import {
   CreateVendorDto,
   LinkRopaDto,
@@ -26,6 +22,10 @@ import {
   UpdateVendorDto,
 } from './dto/vendor.dto';
 import { VendorProcessorService, VendorWithLinks } from './vendor-processor.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
+
 
 /**
  * Fase 31f — HR / Super Admin Vendor / Processor Register controller.

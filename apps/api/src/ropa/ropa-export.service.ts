@@ -4,7 +4,6 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
 import type { RopaExportHeader, RopaExportRow } from './renderers/ropa-export-types';
 import { renderRopaPdf } from './renderers/ropa-pdf-renderer';
 import { renderRopaXlsx } from './renderers/ropa-xlsx-renderer';

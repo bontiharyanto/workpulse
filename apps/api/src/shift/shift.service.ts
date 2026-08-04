@@ -8,7 +8,6 @@ import type { Prisma, Shift, UserShiftAssignment } from '@prisma/client';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
 import { shiftDurationMinutes } from './domain/hh-mm';
 import { hasOverlappingAssignment } from './domain/shift-assignment-range';
 import type { ShiftTypeLiteral } from './dto/create-shift.dto';

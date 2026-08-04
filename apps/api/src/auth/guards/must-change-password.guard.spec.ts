@@ -2,11 +2,11 @@ import type { ExecutionContext } from '@nestjs/common';
 import { ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
+import { MustChangePasswordGuard } from './must-change-password.guard';
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
 import { ALLOW_MUST_CHANGE_PASSWORD_KEY } from '../decorators/allow-must-change-password.decorator';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
-import { MustChangePasswordGuard } from './must-change-password.guard';
 
 /**
  * Build a minimal `ExecutionContext` stub whose `switchToHttp().getRequest()`

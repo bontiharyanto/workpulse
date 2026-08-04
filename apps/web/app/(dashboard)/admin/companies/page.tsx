@@ -1,5 +1,5 @@
-import { RequireRole } from '@/components/features/auth/require-role';
 import { CompanyAdmin } from '@/components/features/admin/companies/company-admin';
+import { RequireRole } from '@/components/features/auth/require-role';
 
 export const metadata = { title: 'Admin · Tenant' };
 

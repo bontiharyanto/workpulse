@@ -8,7 +8,6 @@ import { Prisma } from '@prisma/client';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
 import {
   CustomReportDefinition,
   InvalidReportDefinitionError,

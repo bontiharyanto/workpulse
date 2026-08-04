@@ -2,7 +2,6 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import type { Prisma, RetentionAuditReport, RetentionAuditStatus } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
-
 import {
   deriveRetentionAudit,
   previousUtcMonth,

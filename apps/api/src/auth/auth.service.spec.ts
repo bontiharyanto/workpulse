@@ -2,11 +2,11 @@ import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
-import { PrismaService } from '../prisma/prisma.service';
 
 import { AuthService } from './auth.service';
 import { PasswordService } from './password.service';
 import { TokenService } from './token.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 const baseUser = {
   id: 'user-1',

@@ -2,10 +2,6 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from 
 import { ApiBearerAuth, ApiNoContentResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { TimesheetStatus } from '@prisma/client';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
-
 import {
   DecideTimesheetDto,
   GenerateTimesheetDto,
@@ -18,6 +14,10 @@ import {
 } from './dto/timesheet.dto';
 import { TimesheetSubmissionService } from './timesheet-submission.service';
 import { TimesheetService } from './timesheet.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
+
 
 /**
  * `/admin/timesheet` — HR-Manager / Super-Admin queue view + generate

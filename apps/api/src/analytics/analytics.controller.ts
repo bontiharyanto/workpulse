@@ -2,10 +2,6 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
-
 import { AnalyticsQueryService } from './analytics-query.service';
 import {
   DashboardQueryDto,
@@ -13,6 +9,10 @@ import {
   TimeseriesQueryDto,
   TimeseriesResponseDto,
 } from './dto/analytics.dto';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
+
 
 /**
  * Fase 33a — executive-KPI dashboard read API.

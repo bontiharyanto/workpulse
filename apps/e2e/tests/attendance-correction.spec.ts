@@ -1,7 +1,7 @@
 import { expect, test, type APIRequestContext } from '@playwright/test';
 
 import { authenticateApi } from './helpers/api';
-import { daysFromToday, nearestPastWeekday } from './helpers/dates';
+import { nearestPastWeekday } from './helpers/dates';
 
 /**
  * End-to-end coverage for the AttendanceCorrection module (Phase 19).

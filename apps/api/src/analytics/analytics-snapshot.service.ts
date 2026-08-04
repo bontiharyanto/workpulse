@@ -1,9 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AnalyticsMetricKey, Prisma } from '@prisma/client';
 
-import { PrismaService } from '../prisma/prisma.service';
-
 import { AnalyticsComputationService } from './analytics-computation.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { METRIC_KEYS } from './domain/metric-keys';
 import { Ymd, daysBefore, enumerateDays, todayInTz } from './domain/period';
 

@@ -6,7 +6,6 @@ import { RefreshTokenStatus } from '@prisma/client';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
 import { generateRefreshSecret, hashRefreshSecret } from './domain/token-hash';
 
 export interface IssuedTokenPair {

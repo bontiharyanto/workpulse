@@ -15,7 +15,6 @@ import type {
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
 import {
   canBeActive,
   canTransition,

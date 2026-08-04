@@ -20,16 +20,16 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 import { CompanyAdminService } from './company-admin.service';
 import { CompanyAdminDto, CompanyBootstrapDto } from './dto/company-admin.dto';
 import { CreateCompanyDto } from './dto/create-company.dto';
-import { ListCompaniesQuery } from './dto/list-companies.query';
 import { ListCompaniesResponseDto } from './dto/list-companies-response.dto';
+import { ListCompaniesQuery } from './dto/list-companies.query';
 import { UpdateCompanyDto } from './dto/update-company.dto';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 /**
  * Cross-tenant company management for platform operators (SUPER_ADMIN).

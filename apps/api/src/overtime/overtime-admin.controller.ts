@@ -2,11 +2,11 @@ import { Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
+import { OvertimeCompletionService, type CompletionRunResult } from './overtime-completion.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-import { OvertimeCompletionService, type CompletionRunResult } from './overtime-completion.service';
 
 @ApiTags('overtime-admin')
 @ApiBearerAuth()

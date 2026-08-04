@@ -2,10 +2,10 @@ import { Prisma } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
-import { PrismaService } from '../prisma/prisma.service';
 
 import { AnalyticsComputationService } from './analytics-computation.service';
 import { AnalyticsSnapshotService } from './analytics-snapshot.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { METRIC_KEYS } from './domain/metric-keys';
 import { asYmd } from './domain/period';
 

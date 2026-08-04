@@ -1,5 +1,6 @@
-import { defineConfig, devices } from '@playwright/test';
 import { resolve } from 'node:path';
+
+import { defineConfig, devices } from '@playwright/test';
 
 /**
  * Playwright configuration for the Workpulse E2E suite.

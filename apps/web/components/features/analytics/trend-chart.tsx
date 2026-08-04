@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
 import type { MetricFormatKind, TimeseriesPoint } from '@workpulse/shared-types';
+import { useMemo, useState } from 'react';
 
 import { formatValue } from './format-metric';
 
@@ -58,10 +58,17 @@ export function TrendChart({
       .map((c, i) => `${i === 0 ? 'M' : 'L'} ${c.x.toFixed(2)} ${c.y.toFixed(2)}`)
       .join(' ');
 
+    const firstCoord = coords[0];
+    const lastCoord = coords[coords.length - 1];
+    // TypeScript can't narrow through `useMemo`, but we established
+    // `points.length > 0` on the guard above so both must be defined.
+    if (!firstCoord || !lastCoord) {
+      return null;
+    }
     const areaD =
       pathD +
-      ` L ${coords[coords.length - 1]!.x.toFixed(2)} ${height - PADDING_Y_BOTTOM}` +
-      ` L ${coords[0]!.x.toFixed(2)} ${height - PADDING_Y_BOTTOM} Z`;
+      ` L ${lastCoord.x.toFixed(2)} ${height - PADDING_Y_BOTTOM}` +
+      ` L ${firstCoord.x.toFixed(2)} ${height - PADDING_Y_BOTTOM} Z`;
 
     return { coords, pathD, areaD, min, max, innerH };
   }, [points, height]);
@@ -77,8 +84,11 @@ export function TrendChart({
     );
   }
 
-  const firstLabel = points[0]!.date;
-  const lastLabel = points[points.length - 1]!.date;
+  // `view` is null when `points` is empty (see useMemo guard above), so
+  // by this point both endpoints are guaranteed to exist. Read them
+  // through `.at()` to keep TypeScript happy without a non-null bang.
+  const firstLabel = points.at(0)?.date ?? '';
+  const lastLabel = points.at(-1)?.date ?? '';
   const hover = hoverIdx != null ? view.coords[hoverIdx] : null;
 
   return (

@@ -3,7 +3,6 @@ import type { NotificationType, Prisma, PrismaClient } from '@prisma/client';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
 import {
   mandatoryNotificationTypes,
   resolveEffective,

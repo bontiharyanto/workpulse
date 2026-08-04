@@ -1,11 +1,11 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
 import type {
   CompanyDashboardSnapshot,
   DepartmentDashboardSnapshot,
 } from '@workpulse/shared-types';
+import { useState } from 'react';
 
 import { useAuth } from '@/components/providers/auth-provider';
 import { attendanceApi } from '@/lib/api-client';

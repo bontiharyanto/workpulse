@@ -1,12 +1,12 @@
 'use client';
 
 import { useInfiniteQuery, useMutation } from '@tanstack/react-query';
+import type { AuditLogFilters, AuditLogRow } from '@workpulse/shared-types';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { Fragment, useMemo, useState } from 'react';
 
 import { ApiError, auditAdminApi, saveBlob } from '@/lib/api-client';
-import type { AuditLogFilters, AuditLogRow } from '@workpulse/shared-types';
 
 import { KNOWN_AUDIT_ACTIONS, KNOWN_AUDIT_ENTITY_TYPES, externalRouteFor } from './audit-catalog';
 import { AuditDiff } from './audit-diff';

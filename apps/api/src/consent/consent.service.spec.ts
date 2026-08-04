@@ -3,9 +3,9 @@ import type { PrivacyPolicy, UserConsent } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { ConsentService } from './consent.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { ConsentService } from './consent.service';
 
 interface Kit {
   service: ConsentService;

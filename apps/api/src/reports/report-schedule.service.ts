@@ -3,7 +3,6 @@ import { Prisma, ReportFrequency, ScheduledReportType } from '@prisma/client';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
 import { InvalidCadenceError, advance, initialNextRun } from './domain/next-run';
 
 interface CreateInput {

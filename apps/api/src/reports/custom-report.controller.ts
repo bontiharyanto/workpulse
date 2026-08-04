@@ -20,10 +20,11 @@ import { Throttle } from '@nestjs/throttler';
 import { Prisma } from '@prisma/client';
 import type { Response } from 'express';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
-
+import {
+  InvalidReportDefinitionError,
+  metricDescriptor,
+  validateDefinition,
+} from './domain/custom-report-definition';
 import {
   CreateSavedReportDto,
   CustomReportResultDto,
@@ -31,13 +32,11 @@ import {
   SavedReportResponseDto,
   UpdateSavedReportDto,
 } from './dto/custom-report.dto';
-import {
-  InvalidReportDefinitionError,
-  metricDescriptor,
-  validateDefinition,
-} from './domain/custom-report-definition';
 import { ReportBuilderService, customReportCatalogue } from './report-builder.service';
 import { SavedReportService } from './saved-report.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
 /**

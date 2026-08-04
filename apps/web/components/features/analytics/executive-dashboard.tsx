@@ -1,9 +1,9 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
 import type { AnalyticsMetricKey, AnalyticsWindowDays } from '@workpulse/shared-types';
 import { ANALYTICS_WINDOW_OPTIONS } from '@workpulse/shared-types';
+import { useState } from 'react';
 
 import { analyticsAdminApi } from '@/lib/api-client';
 
@@ -43,11 +43,15 @@ export function ExecutiveDashboard(): JSX.Element {
 
   const trend = useQuery({
     queryKey: ['analytics-timeseries', activeMetric, windowDays],
-    queryFn: () =>
-      analyticsAdminApi.timeseries({
-        metricKey: activeMetric!,
+    queryFn: () => {
+      if (activeMetric == null) {
+        throw new Error('trend queryFn should not run without an activeMetric');
+      }
+      return analyticsAdminApi.timeseries({
+        metricKey: activeMetric,
         windowDays,
-      }),
+      });
+    },
     enabled: activeMetric != null,
     staleTime: 60_000,
   });

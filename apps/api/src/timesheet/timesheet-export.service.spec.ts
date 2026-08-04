@@ -8,11 +8,11 @@ import {
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { TimesheetExportService } from './timesheet-export.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 import type { WebhookDispatcher } from '../webhook/webhook-dispatcher.service';
 
-import { TimesheetExportService } from './timesheet-export.service';
 
 interface Kit {
   service: TimesheetExportService;

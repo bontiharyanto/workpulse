@@ -10,7 +10,6 @@ import {
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import type { StorageProvider } from '../storage/storage.provider';
 import { STORAGE_PROVIDER } from '../storage/storage.provider';
-
 import type { AttachmentPurpose } from './domain/attachment-key';
 import { buildAttachmentKey } from './domain/attachment-key';
 import {

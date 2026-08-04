@@ -3,10 +3,10 @@ import type { VendorProcessor } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { VendorProcessorService } from './vendor-processor.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { VendorProcessorService } from './vendor-processor.service';
 
 /**
  * Fase 31f — service-level tests. Focus on the state-machine

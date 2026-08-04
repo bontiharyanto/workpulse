@@ -4,11 +4,10 @@ import { Cron } from '@nestjs/schedule';
 import type { DataErasureRequest, Prisma } from '@prisma/client';
 import { DataErasureStatus } from '@prisma/client';
 
-import { NotificationService } from '../notification/notification.service';
-import { dataErasureExecuted } from '../notification/domain/templates';
-import { PrismaService } from '../prisma/prisma.service';
-
 import { DataErasureService } from './data-erasure.service';
+import { dataErasureExecuted } from '../notification/domain/templates';
+import { NotificationService } from '../notification/notification.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { anonymizeUser } from './domain/anonymize-user';
 
 /**

@@ -14,7 +14,6 @@ import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { attendanceAbsentMarked } from '../notification/domain/templates';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
-
 import {
   summarizeAttendance,
   type AttendanceMonthlySummary,

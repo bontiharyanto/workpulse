@@ -2,11 +2,12 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { VendorCategory, VendorDetailDto, VendorStatus } from '@workpulse/shared-types';
-import Link from 'next/link';
 import type { Route } from 'next';
+import Link from 'next/link';
 import { useState } from 'react';
 
-import { ApiError, vendorProcessorApi } from '@/lib/api-client';
+import type { ApiError} from '@/lib/api-client';
+import { vendorProcessorApi } from '@/lib/api-client';
 
 const STATUS_LABEL: Record<VendorStatus, string> = {
   UNDER_REVIEW: 'Under review',

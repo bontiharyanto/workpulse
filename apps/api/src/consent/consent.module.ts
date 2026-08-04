@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 
-import { PrismaModule } from '../prisma/prisma.module';
 
 import { ConsentAdminController } from './consent-admin.controller';
 import { ConsentController } from './consent.controller';
 import { ConsentService } from './consent.service';
+import { PrismaModule } from '../prisma/prisma.module';
 
 /**
  * Privacy-policy + user-consent surface (Fase 31c). The service is

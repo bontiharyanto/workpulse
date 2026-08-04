@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 
-import { PrismaModule } from '../prisma/prisma.module';
 
-import { WebhookController } from './webhook.controller';
 import { WebhookDispatcher } from './webhook-dispatcher.service';
+import { WebhookController } from './webhook.controller';
 import { WebhookService } from './webhook.service';
 import { WebhookWorker } from './webhook.worker';
+import { PrismaModule } from '../prisma/prisma.module';
 
 /**
  * Fase 32e — outbound webhooks. Exposes:

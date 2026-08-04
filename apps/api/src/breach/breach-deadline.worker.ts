@@ -3,11 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { BreachStatus, BreachTimelineEventType, User } from '@prisma/client';
 
-import { NotificationService } from '../notification/notification.service';
-import { breachDeadlineWarning } from '../notification/domain/templates';
-import { PrismaService } from '../prisma/prisma.service';
-
 import { BreachService } from './breach.service';
+import { breachDeadlineWarning } from '../notification/domain/templates';
+import { NotificationService } from '../notification/notification.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { DEADLINE_REMINDER_BUCKETS, DeadlineBucket, snapshot } from './domain/deadline';
 
 /**

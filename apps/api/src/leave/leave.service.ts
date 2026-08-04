@@ -20,7 +20,6 @@ import {
 } from '../notification/domain/templates';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
-
 import { countBusinessDays } from './domain/business-days';
 import type { CalendarDate } from './domain/calendar-date';
 import { assertCalendarDate } from './domain/calendar-date';

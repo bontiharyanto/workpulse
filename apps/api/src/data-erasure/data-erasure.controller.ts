@@ -9,15 +9,15 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import type { DataErasureRequest } from '@prisma/client';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
-
 import { DataErasureService } from './data-erasure.service';
 import {
   CreateErasureRequestDto,
   DataErasureListResponseDto,
   DataErasureRequestDto,
 } from './dto/data-erasure.dto';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
+
 
 /**
  * Self-service right-to-erasure surface (Fase 31b). Every route is

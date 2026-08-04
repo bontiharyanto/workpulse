@@ -1,8 +1,8 @@
 import PDFDocument from 'pdfkit';
 
+import type { RendererStream } from './render-context';
 import type { AttendanceReportRow, AttendanceReportSummary } from '../domain/attendance-report';
 
-import type { RendererStream } from './render-context';
 
 interface Column {
   key: keyof AttendanceReportRow;

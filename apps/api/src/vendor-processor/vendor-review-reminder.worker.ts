@@ -6,7 +6,6 @@ import type { VendorProcessor, VendorReminderKind } from '@prisma/client';
 import { vendorContractExpiring, vendorReviewDue } from '../notification/domain/templates';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
-
 import { computeDueReminders } from './domain/vendor-review-cadence';
 
 /**

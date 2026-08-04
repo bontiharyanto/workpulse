@@ -1,8 +1,8 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
 import type { WebhookEndpointRow, WebhookEventType } from '@workpulse/shared-types';
+import { useMemo, useState } from 'react';
 
 import { ApiError, webhookApi } from '@/lib/api-client';
 

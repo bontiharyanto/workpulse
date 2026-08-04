@@ -3,11 +3,11 @@ import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 
+import { RopaExportService } from './ropa-export.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-import { RopaExportService } from './ropa-export.service';
 
 /**
  * Fase 31d — ROPA export endpoints. Bytes are audited before being

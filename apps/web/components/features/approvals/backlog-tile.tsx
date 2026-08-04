@@ -1,10 +1,10 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import type { ModuleBacklog } from '@workpulse/shared-types';
 import type { Route } from 'next';
 import Link from 'next/link';
 
-import type { ModuleBacklog } from '@workpulse/shared-types';
 
 import { backlogAdminApi } from '@/lib/api-client';
 

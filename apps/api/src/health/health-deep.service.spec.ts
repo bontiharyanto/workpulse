@@ -1,10 +1,10 @@
 import { ConfigService } from '@nestjs/config';
 
+import { HealthDeepService } from './health-deep.service';
 import type { EnvConfig } from '../config/env.validation';
 import { PrismaService } from '../prisma/prisma.service';
 import type { StorageProvider } from '../storage/storage.provider';
 
-import { HealthDeepService } from './health-deep.service';
 
 type ConfigServiceT = ConfigService<EnvConfig, true>;
 

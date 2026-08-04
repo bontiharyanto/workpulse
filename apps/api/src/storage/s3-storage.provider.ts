@@ -10,8 +10,6 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import type { EnvConfig } from '../config/env.validation';
-
 import type {
   PresignGetInput,
   PresignPutInput,
@@ -19,6 +17,8 @@ import type {
   PutObjectInput,
   StorageProvider,
 } from './storage.provider';
+import type { EnvConfig } from '../config/env.validation';
+
 
 @Injectable()
 export class S3StorageProvider implements StorageProvider {

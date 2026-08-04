@@ -1,12 +1,12 @@
 import { Controller, Get, HttpCode, Param, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiNoContentResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 import { TimesheetSummaryDto, TimesheetViewDto } from './dto/timesheet.dto';
 import { TimesheetSubmissionService } from './timesheet-submission.service';
 import { TimesheetService } from './timesheet.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 /**
  * `/me/timesheet` — self-service surface for the currently authenticated

@@ -1,13 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AbsenceSource } from '@prisma/client';
 
-import { isPayrollLocked } from '../common/domain/payroll-lock';
-import { attendanceAbsentMarked } from '../notification/domain/templates';
-import { NotificationService } from '../notification/notification.service';
-import { PrismaService } from '../prisma/prisma.service';
-
-import type { CalendarDate } from '../leave/domain/calendar-date';
-
 import {
   classifyAbsence,
   isWeekendDate,
@@ -15,6 +8,13 @@ import {
   resolveTargetDate,
   type AbsenceSkipReason,
 } from './domain/absence-scanner';
+import { isPayrollLocked } from '../common/domain/payroll-lock';
+import type { CalendarDate } from '../leave/domain/calendar-date';
+import { attendanceAbsentMarked } from '../notification/domain/templates';
+import { NotificationService } from '../notification/notification.service';
+import { PrismaService } from '../prisma/prisma.service';
+
+
 
 /** Maximum number of past days a single scanner run will backfill per tenant. */
 export const MAX_BACKFILL_DAYS = 30;

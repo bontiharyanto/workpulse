@@ -9,17 +9,17 @@ import type { Company, LeaveType, Prisma } from '@prisma/client';
 import { EmploymentStatus, LeaveKind } from '@prisma/client';
 
 import { PasswordService } from '../auth/password.service';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
-import { PrismaService } from '../prisma/prisma.service';
-import { generateTempPassword } from '../user/domain/temp-password';
-import { InvalidTimezoneError, assertValidTimezone } from '../company/domain/timezone';
-
+import { derivateSlug, isValidSlug, uniqueSlug } from './domain/slug';
 import type { CompanyAdminDto, CompanyBootstrapDto } from './dto/company-admin.dto';
 import type { CreateCompanyDto } from './dto/create-company.dto';
-import type { ListCompaniesQuery } from './dto/list-companies.query';
 import type { ListCompaniesResponseDto } from './dto/list-companies-response.dto';
+import type { ListCompaniesQuery } from './dto/list-companies.query';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
+import { InvalidTimezoneError, assertValidTimezone } from '../company/domain/timezone';
+import { PrismaService } from '../prisma/prisma.service';
 import type { UpdateCompanyDto } from './dto/update-company.dto';
-import { derivateSlug, isValidSlug, uniqueSlug } from './domain/slug';
+import { generateTempPassword } from '../user/domain/temp-password';
+
 
 /**
  * Default LeaveType templates seeded on tenant creation. Keeps a new tenant

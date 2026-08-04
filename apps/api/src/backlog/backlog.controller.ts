@@ -1,13 +1,13 @@
 import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
+import { BacklogService } from './backlog.service';
+import type { BacklogItem, BacklogSummary, ModuleBacklog } from './backlog.service';
+import { BacklogSummaryDto } from './dto/backlog.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-import { BacklogService } from './backlog.service';
-import type { BacklogItem, BacklogSummary, ModuleBacklog } from './backlog.service';
-import { BacklogSummaryDto } from './dto/backlog.dto';
 
 @ApiTags('admin-backlog')
 @ApiBearerAuth()

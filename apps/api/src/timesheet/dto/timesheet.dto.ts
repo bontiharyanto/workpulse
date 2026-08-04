@@ -1,4 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
+import {
+  TimesheetEntryKind,
+  TimesheetExportFormat,
+  TimesheetExportMode,
+  TimesheetPeriodType,
+  TimesheetStatus,
+  WeekStartDay,
+} from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -13,14 +21,6 @@ import {
   Min,
   ValidateIf,
 } from 'class-validator';
-import {
-  TimesheetEntryKind,
-  TimesheetExportFormat,
-  TimesheetExportMode,
-  TimesheetPeriodType,
-  TimesheetStatus,
-  WeekStartDay,
-} from '@prisma/client';
 
 import { TIMESHEET_CONFIG_BOUNDS } from '../timesheet-config.service';
 

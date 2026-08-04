@@ -10,11 +10,11 @@ import { DataErasureStatus } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { DataErasureService } from './data-erasure.service';
 import type { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 import type { StorageProvider } from '../storage/storage.provider';
 
-import { DataErasureService } from './data-erasure.service';
 
 interface Kit {
   service: DataErasureService;

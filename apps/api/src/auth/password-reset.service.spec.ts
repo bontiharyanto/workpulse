@@ -5,10 +5,9 @@ import { mockDeep, mockReset } from 'jest-mock-extended';
 
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
-
 import { hashResetToken } from './domain/reset-token';
-import { PasswordService } from './password.service';
 import { PasswordResetService } from './password-reset.service';
+import { PasswordService } from './password.service';
 
 type EmailAdapterMock = {
   send: jest.Mock;

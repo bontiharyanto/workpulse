@@ -4,11 +4,11 @@ import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { useAuth } from '@/components/providers/auth-provider';
 import {
   MfaBackupCodesReveal,
   MfaEnrollmentPanel,
 } from '@/components/features/mfa/mfa-enrollment-panel';
+import { useAuth } from '@/components/providers/auth-provider';
 
 export default function SetupMfaPage(): JSX.Element {
   const { user, status } = useAuth();

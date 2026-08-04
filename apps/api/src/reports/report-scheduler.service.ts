@@ -5,7 +5,6 @@ import { Prisma, ReportSchedule } from '@prisma/client';
 
 import { EMAIL_ADAPTER, type EmailAdapter } from '../notification/email/email-adapter';
 import { PrismaService } from '../prisma/prisma.service';
-
 import { labelFor } from './domain/report-registry';
 import { ReportRendererService } from './renderers/report-renderer.service';
 import { ReportScheduleService } from './report-schedule.service';

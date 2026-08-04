@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
+import { TenantUsagePanel } from '@/components/features/admin/tenant-usage-panel';
 import { RequireAuth } from '@/components/features/auth/require-auth';
 import { RequireRole } from '@/components/features/auth/require-role';
-import { TenantUsagePanel } from '@/components/features/admin/tenant-usage-panel';
 
 export const metadata: Metadata = {
   title: 'Penggunaan tenant — Workpulse',

@@ -1,8 +1,8 @@
+import type { IncomingMessage, ServerResponse } from 'http';
 import { randomUUID } from 'node:crypto';
 
 import type { ConfigService } from '@nestjs/config';
 import * as Sentry from '@sentry/nestjs';
-import type { IncomingMessage, ServerResponse } from 'http';
 import type { Params } from 'nestjs-pino';
 import type { LoggerOptions } from 'pino';
 

@@ -8,12 +8,12 @@ import { EmploymentStatus } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { UserAdminService } from './user-admin.service';
 import { PasswordService } from '../auth/password.service';
 import { TokenService } from '../auth/token.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { UserAdminService } from './user-admin.service';
 
 const hr: AuthenticatedUser = {
   id: 'user-hr',

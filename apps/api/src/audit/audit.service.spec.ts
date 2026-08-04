@@ -2,10 +2,10 @@ import { BadRequestException } from '@nestjs/common';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { AuditService } from './audit.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { AuditService } from './audit.service';
 
 function setup(): {
   service: AuditService;

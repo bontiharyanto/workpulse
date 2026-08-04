@@ -1,8 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import { SEED_USERS } from './fixtures/users';
 import { loginAs } from './helpers/login';
 import { disableMfaViaApi, enrollMfaViaApi, generateTotp } from './helpers/mfa';
-import { SEED_USERS } from './fixtures/users';
 
 /**
  * Fase 30a — MFA UI flows.

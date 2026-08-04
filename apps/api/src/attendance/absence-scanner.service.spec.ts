@@ -1,10 +1,10 @@
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { AbsenceScannerService } from './absence-scanner.service';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { AbsenceScannerService } from './absence-scanner.service';
 
 function setup(): {
   service: AbsenceScannerService;

@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { authenticator } from 'otplib';
 
-import { authenticateApi } from './helpers/api';
 import { SEED_USERS } from './fixtures/users';
+import { authenticateApi } from './helpers/api';
 
 /**
  * MFA API-level flows. This file is deliberately narrow — it does not

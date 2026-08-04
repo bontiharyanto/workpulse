@@ -11,9 +11,6 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 import { AbsenceScannerService } from './absence-scanner.service';
 import type { CompanyDashboardResponse } from './attendance.service';
@@ -28,6 +25,9 @@ import {
   ResetScannerCursorDto,
   ResetScannerCursorResponseDto,
 } from './dto/reset-scanner-cursor.dto';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 @ApiTags('attendance')
 @ApiBearerAuth()

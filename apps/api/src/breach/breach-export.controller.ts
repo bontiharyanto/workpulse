@@ -3,11 +3,11 @@ import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 
+import { BreachExportService } from './breach-export.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-import { BreachExportService } from './breach-export.service';
 
 /**
  * Fase 31g — regulator PDF download endpoint.

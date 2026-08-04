@@ -4,18 +4,17 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ScheduledReportType } from '@prisma/client';
 import PDFDocument from 'pdfkit';
 
-import { DpiaService } from '../../dpia/dpia.service';
-import { PrismaService } from '../../prisma/prisma.service';
 import { AnalyticsSnapshotService } from '../../analytics/analytics-snapshot.service';
+import { DpiaService } from '../../dpia/dpia.service';
+import { renderDpiaPdf } from '../../dpia/renderers/dpia-pdf-renderer';
+import { PrismaService } from '../../prisma/prisma.service';
 import { renderRopaPdf } from '../../ropa/renderers/ropa-pdf-renderer';
 import { RopaExportService } from '../../ropa/ropa-export.service';
-import { renderDpiaPdf } from '../../dpia/renderers/dpia-pdf-renderer';
-
 import { metricDescriptor, validateDefinition } from '../domain/custom-report-definition';
+import type { RenderedReport } from '../domain/report-registry';
 import { ReportBuilderService } from '../report-builder.service';
 import { SavedReportService } from '../saved-report.service';
 
-import type { RenderedReport } from '../domain/report-registry';
 
 /**
  * Fase 33c — resolves a `ScheduledReportType` to a rendered `Buffer`.

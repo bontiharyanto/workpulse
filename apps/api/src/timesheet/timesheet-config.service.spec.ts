@@ -3,9 +3,9 @@ import { TimesheetConfig, TimesheetPeriodType, WeekStartDay } from '@prisma/clie
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { TimesheetConfigService } from './timesheet-config.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { TimesheetConfigService } from './timesheet-config.service';
 
 interface Kit {
   service: TimesheetConfigService;

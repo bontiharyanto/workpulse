@@ -5,8 +5,8 @@ import type { Request } from 'express';
 
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
 import { ConsentService } from '../../consent/consent.service';
-import { ALLOW_PENDING_CONSENT_KEY } from '../decorators/allow-pending-consent.decorator';
 import { ALLOW_MUST_CHANGE_PASSWORD_KEY } from '../decorators/allow-must-change-password.decorator';
+import { ALLOW_PENDING_CONSENT_KEY } from '../decorators/allow-pending-consent.decorator';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 /**

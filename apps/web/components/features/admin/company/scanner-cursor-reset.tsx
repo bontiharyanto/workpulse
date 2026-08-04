@@ -1,11 +1,11 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
+import type { ResetScannerCursorResponse } from '@workpulse/shared-types';
 import { useState } from 'react';
 
 import { useAuth } from '@/components/providers/auth-provider';
 import { ApiError, attendanceApi } from '@/lib/api-client';
-import type { ResetScannerCursorResponse } from '@workpulse/shared-types';
 
 /**
  * SUPER_ADMIN-only tile that resets `Company.lastAbsentScanDate` and

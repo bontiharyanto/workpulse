@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { Company, OvertimeRequest, Prisma } from '@prisma/client';
+import type { OvertimeRequest, Prisma } from '@prisma/client';
 import { Prisma as PrismaNs } from '@prisma/client';
 
 import { PayrollLockedError, assertPayrollNotLocked } from '../common/domain/payroll-lock';
@@ -16,7 +16,6 @@ import {
 } from '../notification/domain/templates';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
-
 import { assertOvertimeHours, roundHours } from './domain/overtime-hours';
 import {
   OvertimeRateError,

@@ -1,8 +1,8 @@
 import PDFDocument from 'pdfkit';
 
+import type { RendererStream } from './render-context';
 import type { LeaveSummaryReportRow, LeaveSummaryTotals } from '../domain/leave-summary-report';
 
-import type { RendererStream } from './render-context';
 
 interface Column {
   key: keyof LeaveSummaryReportRow;

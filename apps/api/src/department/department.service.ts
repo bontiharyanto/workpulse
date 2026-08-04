@@ -8,7 +8,6 @@ import type { Department, Prisma } from '@prisma/client';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
-
 import type { DepartmentResponseDto } from './dto/department-response.dto';
 
 export interface CreateDepartmentInput {

@@ -2,11 +2,11 @@ import type { TimesheetConfig, TimesheetPeriod } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { TimesheetSchedulerService } from './timesheet-scheduler.service';
+import { TimesheetService } from './timesheet.service';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { TimesheetSchedulerService } from './timesheet-scheduler.service';
-import { TimesheetService } from './timesheet.service';
 
 interface Kit {
   service: TimesheetSchedulerService;

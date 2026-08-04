@@ -10,8 +10,8 @@ import {
   RawBodyRequest,
   Req,
 } from '@nestjs/common';
-import { ApiExcludeController } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import { ApiExcludeController } from '@nestjs/swagger';
 import type { Request } from 'express';
 
 import { Public } from '../auth/decorators/public.decorator';

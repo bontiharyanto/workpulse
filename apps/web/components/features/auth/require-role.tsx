@@ -1,9 +1,9 @@
 'use client';
 
+import type { UserRole } from '@workpulse/shared-types';
 import type { ReactNode } from 'react';
 
 import { useAuth } from '@/components/providers/auth-provider';
-import type { UserRole } from '@workpulse/shared-types';
 
 interface Props {
   roles: readonly UserRole[];

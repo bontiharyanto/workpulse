@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 
-import { NotificationModule } from '../notification/notification.module';
 
 import { AbsenceScannerService } from './absence-scanner.service';
-import { AttendanceController } from './attendance.controller';
 import { AttendanceSchedulerService } from './attendance-scheduler.service';
+import { AttendanceController } from './attendance.controller';
 import { AttendanceService } from './attendance.service';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [NotificationModule],

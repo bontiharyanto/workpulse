@@ -2,12 +2,12 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Put } from '@nestjs/common
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { RetentionPolicy } from '@prisma/client';
 
+import { RetentionPolicyDto, UpdateRetentionPolicyDto } from './dto/retention.dto';
+import { RetentionService } from './retention.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-import { RetentionPolicyDto, UpdateRetentionPolicyDto } from './dto/retention.dto';
-import { RetentionService } from './retention.service';
 
 /**
  * `/admin/privacy/retention` — HR / Super Admin surface for

@@ -9,7 +9,6 @@ import {
 import { Prisma, TimesheetStatus } from '@prisma/client';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
-import { NotificationService } from '../notification/notification.service';
 import {
   timesheetApprovedByHr,
   timesheetApprovedBySupervisor,
@@ -18,9 +17,9 @@ import {
   timesheetSubmitted,
   type TimesheetEventInput,
 } from '../notification/domain/templates';
+import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { WebhookDispatcher } from '../webhook/webhook-dispatcher.service';
-
 import { validateReopen } from './domain/reopen-validation';
 import {
   ForbiddenTimesheetTransitionError,

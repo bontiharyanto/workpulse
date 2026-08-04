@@ -8,10 +8,10 @@ import { LeaveKind, LeaveStatus } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { LeaveService } from './leave.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { LeaveService } from './leave.service';
 
 const employee: AuthenticatedUser = {
   id: 'user-emp',

@@ -1,12 +1,12 @@
 import ExcelJS from 'exceljs';
 
+import { renderXlsx } from './xlsx-renderer';
 import {
   SUMMARY_COLUMNS,
   buildSummaryRow,
   type PayrollSourceTimesheet,
 } from '../domain/payroll-rows';
 
-import { renderXlsx } from './xlsx-renderer';
 
 function makeSource(overrides: Partial<PayrollSourceTimesheet> = {}): PayrollSourceTimesheet {
   return {

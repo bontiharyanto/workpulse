@@ -1,9 +1,9 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import type { CreateGeofenceInput, Geofence } from '@workpulse/shared-types';
 import { createGeofenceSchema } from '@workpulse/shared-types';
+import { useForm } from 'react-hook-form';
 
 interface Props {
   initial?: Geofence | null;

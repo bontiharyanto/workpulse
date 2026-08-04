@@ -2,10 +2,10 @@ import { BadRequestException, ConflictException, NotFoundException } from '@nest
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
+import { ShiftService } from './shift.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { ShiftService } from './shift.service';
 
 const hr: AuthenticatedUser = {
   id: 'user-hr',

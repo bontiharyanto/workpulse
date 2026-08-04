@@ -1,8 +1,8 @@
 import ExcelJS from 'exceljs';
 
+import type { RendererStream } from './render-context';
 import type { LeaveSummaryReportRow, LeaveSummaryTotals } from '../domain/leave-summary-report';
 
-import type { RendererStream } from './render-context';
 
 const COLUMNS = [
   { key: 'userFullName', header: 'Karyawan', width: 25 },

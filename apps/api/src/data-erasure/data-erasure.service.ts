@@ -11,12 +11,12 @@ import { ConfigService } from '@nestjs/config';
 import type { DataErasureRequest, Prisma } from '@prisma/client';
 import { DataErasureStatus } from '@prisma/client';
 
-import { NotificationService } from '../notification/notification.service';
 import {
   dataErasureApproved,
   dataErasureRejected,
   dataErasureRequested,
 } from '../notification/domain/templates';
+import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { STORAGE_PROVIDER, type StorageProvider } from '../storage/storage.provider';
 

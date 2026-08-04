@@ -11,15 +11,15 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 import { CreateShiftAssignmentDto, EndShiftAssignmentDto } from './dto/assignment.dto';
 import { CreateShiftDto } from './dto/create-shift.dto';
 import type { ShiftAssignmentResponseDto, ShiftResponseDto } from './dto/shift-response.dto';
 import { UpdateShiftDto } from './dto/update-shift.dto';
 import { ShiftService } from './shift.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 @ApiTags('admin · shifts')
 @Controller('admin')

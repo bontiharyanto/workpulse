@@ -3,19 +3,18 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 
-import { ConsentModule } from '../consent/consent.module';
-import { NotificationModule } from '../notification/notification.module';
-
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { ConsentModule } from '../consent/consent.module';
+import { NotificationModule } from '../notification/notification.module';
 import { MfaController } from './mfa/mfa.controller';
 import { MfaService } from './mfa/mfa.service';
 import { PasswordResetService } from './password-reset.service';
 import { PasswordService } from './password.service';
 import { SessionController } from './session/session.controller';
 import { SessionService } from './session/session.service';
-import { TokenService } from './token.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { TokenService } from './token.service';
 
 @Module({
   imports: [

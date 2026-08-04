@@ -1,9 +1,9 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import type { CompanyAdmin, UpdateCompanyInput } from '@workpulse/shared-types';
 import { updateCompanyInputSchema } from '@workpulse/shared-types';
+import { useForm } from 'react-hook-form';
 
 interface Props {
   target: CompanyAdmin;
