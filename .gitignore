@@ -29,6 +29,7 @@ apps/load-test/summary.html
 .DS_Store
 .idea/
 .vscode/*
+!.vscode/settings.json
 !.vscode/settings.example.json
 !.vscode/extensions.json
 

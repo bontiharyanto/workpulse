@@ -1,0 +1,44 @@
+{
+  "//": "Workpulse uses pnpm workspaces. The built-in VS Code / Cursor npm task detector calls out to the plain `npm` binary which does not understand pnpm's `workspace:*` version specifier, producing spurious 'failed to parse the file' errors on every `apps/*/package.json` and `packages/*/package.json`. Turn detection off — developers run tasks through pnpm scripts (`pnpm -r <task>`, `pnpm --filter @workpulse/api dev`, ...) not through the Tasks: Run picker.",
+  "npm.autoDetect": "off",
+  "npm.packageManager": "pnpm",
+  "npm.exclude": "**/node_modules/**",
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "eslint.workingDirectories": [
+    { "pattern": "apps/*" },
+    { "pattern": "packages/*" }
+  ],
+  "prettier.requireConfig": true,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "files.exclude": {
+    "**/.turbo": true,
+    "**/dist": true,
+    "**/.next": true,
+    "**/*.tsbuildinfo": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.next": true,
+    "**/.turbo": true,
+    "**/coverage": true,
+    "pnpm-lock.yaml": true
+  }
+}
