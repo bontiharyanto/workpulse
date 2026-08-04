@@ -17,7 +17,7 @@ const TooltipContent = forwardRef<
     ref={ref}
     sideOffset={sideOffset}
     className={cn(
-      'bg-foreground text-background z-50 overflow-hidden rounded-md px-3 py-1.5 text-xs shadow-md',
+      'bg-foreground text-background shadow-popover z-50 overflow-hidden rounded-md px-3 py-1.5 text-xs',
       'data-[state=delayed-open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=delayed-open]:fade-in-0',
       'data-[state=closed]:zoom-out-95 data-[state=delayed-open]:zoom-in-95',
       className,
