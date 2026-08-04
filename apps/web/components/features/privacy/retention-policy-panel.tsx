@@ -7,7 +7,7 @@ import {
   updateRetentionPolicyInputSchema,
   type UpdateRetentionPolicyInput,
 } from '@workpulse/shared-types';
-import React, { useEffect, useState } from 'react';
+import { forwardRef, useEffect, useState, type InputHTMLAttributes } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { ApiError, retentionApi } from '@/lib/api-client';
@@ -170,14 +170,14 @@ export function RetentionPolicyPanel(): JSX.Element {
   );
 }
 
-interface NumberFieldProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+interface NumberFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   id: string;
   label: string;
   hint: string;
   error?: string;
 }
 
-const NumberField = React.forwardRef<HTMLInputElement, NumberFieldProps>(function NumberField(
+const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(function NumberField(
   { id, label, hint, error, ...rest },
   ref,
 ): JSX.Element {

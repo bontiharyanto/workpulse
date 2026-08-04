@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { JSX } from 'react';
 
 import { RequireAuth } from '@/components/features/auth/require-auth';
 import { RequireRole } from '@/components/features/auth/require-role';
@@ -18,9 +19,9 @@ export default async function AdminRopaActivityPage({ params }: PageProps): Prom
   return (
     <RequireAuth>
       <RequireRole roles={['HR_MANAGER', 'SUPER_ADMIN']}>
-        <main className="mx-auto max-w-4xl space-y-6 px-4 py-8">
+        <div className="mx-auto max-w-4xl">
           <RopaActivityDetailPanel activityId={activityId} />
-        </main>
+        </div>
       </RequireRole>
     </RequireAuth>
   );

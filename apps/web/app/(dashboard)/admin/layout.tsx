@@ -15,9 +15,9 @@ import { RequireRole } from '@/components/features/auth/require-role';
  * `RolesGuard` on every controller stays as the source of truth for
  * authorization (this UI guard is defence-in-depth).
  *
- * The stale file at `_components/admin-subnav.tsx` is retained on
+ * The stale file at `_components/admin-subnav.tsx` was retained on
  * disk during Fase 2 to avoid a large deletion diff mid-migration;
- * Fase 3 removes it once the E2E suite is green against the new
+ * Fase 7 removes it now that the E2E suite is green against the new
  * sidebar-driven nav.
  */
 export default function AdminSectionLayout({ children }: { children: ReactNode }): JSX.Element {
