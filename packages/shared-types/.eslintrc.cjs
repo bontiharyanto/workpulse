@@ -1,4 +1,4 @@
 module.exports = {
   root: true,
-  extends: ['@workpulse/config/eslint'],
+  extends: [require.resolve('@workpulse/config/eslint')],
 };

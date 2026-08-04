@@ -1,0 +1,6 @@
+{
+  "//": "TypeScript project used ONLY for typed ESLint rules. The production `tsconfig.json` excludes `**/*.spec.ts` (they're not part of the shipped dist), but ESLint's typed rules require every linted file to belong to a project. Include the world here.",
+  "extends": "./tsconfig.json",
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
