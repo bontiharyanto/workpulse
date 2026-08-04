@@ -66,8 +66,15 @@ test('HR edits the tenant retention policy through /admin/privacy/retention', as
   const notifField = page.getByLabel(/retensi notifikasi/i);
   await expect(notifField).toBeVisible();
 
-  // Pick a non-default value the test can verify was persisted.
-  await notifField.fill('45');
+  // Pick a value that is guaranteed to differ from whatever is
+  // currently persisted, so react-hook-form flips `isDirty` to true
+  // and enables the submit button. Retries of this test would
+  // otherwise re-encounter the value they just wrote in the previous
+  // attempt (identity assignment does not dirty the form).
+  const currentValue = (await notifField.inputValue()).trim();
+  const targetValue = currentValue === '45' ? '30' : '45';
+
+  await notifField.fill(targetValue);
 
   const submit = page.getByRole('button', { name: /simpan kebijakan/i });
   await expect(submit).toBeEnabled();
@@ -79,7 +86,7 @@ test('HR edits the tenant retention policy through /admin/privacy/retention', as
 
   // Reloading the page should show the same value — proves the write hit the API.
   await page.reload();
-  await expect(page.getByLabel(/retensi notifikasi/i)).toHaveValue('45');
+  await expect(page.getByLabel(/retensi notifikasi/i)).toHaveValue(targetValue);
 });
 
 test('HR publishes a new privacy policy version through /admin/privacy/policies', async ({
@@ -162,7 +169,13 @@ test('employee is force-routed to /consent when a new policy is pending', async 
   await apiCtx.dispose();
 
   await loginViaUi(page, SEED_USERS.employee.email, SEED_USERS.employee.password);
-  await expect(page).toHaveURL(/\/consent$/, { timeout: 5_000 });
+  // In dev mode Next.js compiles `/consent` lazily on the very first
+  // navigation of the run (~10–15s on this repo); until it is ready
+  // the redirect from `RequireAuth` stays queued and the URL still
+  // reads `/attendance`. 30s covers a cold compile with headroom. In
+  // CI (production build) the compile step doesn't exist so the
+  // assertion resolves in a few ms regardless.
+  await expect(page).toHaveURL(/\/consent$/, { timeout: 30_000 });
   await expect(page.getByText(/kebijakan wajib/i)).toBeVisible();
 
   // Ticking the checkbox enables the CTA, clicking it walks the

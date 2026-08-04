@@ -23,7 +23,7 @@ export default async function LoginPage({
       description="Gunakan email perusahaan dan kata sandi."
     >
       {justChanged ? (
-        <Alert variant="success">
+        <Alert variant="success" role="status">
           <CheckCircle2 aria-hidden />
           <AlertTitle>Password berhasil diubah</AlertTitle>
           <AlertDescription>

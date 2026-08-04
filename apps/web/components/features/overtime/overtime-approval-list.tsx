@@ -123,7 +123,7 @@ export function OvertimeApprovalList(): JSX.Element {
         const busy = decide.isPending && decide.variables?.id === r.id;
         const rowNote = notes[r.id] ?? '';
         return (
-          <Card key={r.id}>
+          <Card key={r.id} data-testid="overtime-approval-row" data-request-id={r.id}>
             <CardContent className="space-y-4 p-6">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex items-start gap-3">

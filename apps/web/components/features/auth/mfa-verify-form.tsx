@@ -73,14 +73,13 @@ export function MfaVerifyForm({ redirectTo }: { redirectTo: string }): JSX.Eleme
   return (
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
       <div
-        role="tablist"
+        role="group"
         aria-label="Metode verifikasi"
         className="border-border grid grid-cols-2 rounded-md border p-1"
       >
         <button
           type="button"
-          role="tab"
-          aria-selected={mode === 'totp'}
+          aria-pressed={mode === 'totp'}
           onClick={() => {
             setMode('totp');
             form.clearErrors();
@@ -97,8 +96,7 @@ export function MfaVerifyForm({ redirectTo }: { redirectTo: string }): JSX.Eleme
         </button>
         <button
           type="button"
-          role="tab"
-          aria-selected={mode === 'backup'}
+          aria-pressed={mode === 'backup'}
           onClick={() => {
             setMode('backup');
             form.clearErrors();
