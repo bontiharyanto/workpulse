@@ -36,7 +36,7 @@
     "@nestjs/schedule": "^4.1.1",
     "@nestjs/swagger": "^7.4.2",
     "@nestjs/throttler": "^6.2.1",
-    "@prisma/client": "^5.20.0",
+    "@prisma/client": "^7.9.1",
     "@sentry/nestjs": "^10.69.0",
     "@sentry/node": "^10.69.0",
     "@workpulse/shared-types": "workspace:*",
