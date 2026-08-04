@@ -1,0 +1,131 @@
+name: Load Test
+
+# On-demand k6 run against a live target (staging by default, prod
+# blocked unless the operator explicitly types PROD_YES_I_MEAN_IT). Not
+# scheduled — we don't want a load probe running while an incident is
+# active. Ops triggers it manually from the Actions tab after each
+# release.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Environment target — `staging` (default) or `prod`.'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - prod
+      scenario:
+        description: 'k6 scenario to run.'
+        required: true
+        default: 'smoke'
+        type: choice
+        options:
+          - smoke
+          - baseline
+          - clock-in-burst
+          - dashboard-read
+          - timesheet-export
+      confirm_prod:
+        description: 'Type PROD_YES_I_MEAN_IT to unlock the prod target.'
+        required: false
+        default: ''
+        type: string
+
+concurrency:
+  group: load-test-${{ inputs.target }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    name: k6 · ${{ inputs.scenario }} → ${{ inputs.target }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # `API_URL` is consumed by `apps/load-test/lib/config.js`. We resolve
+      # it from an environment secret so URLs never leak into the workflow
+      # file.
+      API_URL: ${{ inputs.target == 'prod' && secrets.LOAD_TEST_PROD_URL || secrets.LOAD_TEST_STAGING_URL }}
+      EMPLOYEE_JWT: ${{ inputs.target == 'prod' && secrets.LOAD_TEST_PROD_EMPLOYEE_JWT || secrets.LOAD_TEST_STAGING_EMPLOYEE_JWT }}
+      HR_JWT: ${{ inputs.target == 'prod' && secrets.LOAD_TEST_PROD_HR_JWT || secrets.LOAD_TEST_STAGING_HR_JWT }}
+      # Tenant scope the load traffic to a synthetic company so real
+      # tenants never see the probe rows.
+      TEST_TENANT_ID: ${{ inputs.target == 'prod' && secrets.LOAD_TEST_PROD_TENANT_ID || secrets.LOAD_TEST_STAGING_TENANT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Guard prod target
+        if: inputs.target == 'prod'
+        run: |
+          if [[ "${{ inputs.confirm_prod }}" != "PROD_YES_I_MEAN_IT" ]]; then
+            echo "::error::Prod target requires typing PROD_YES_I_MEAN_IT in the confirm_prod input." >&2
+            exit 1
+          fi
+          if [[ -z "${API_URL}" ]]; then
+            echo "::error::Missing LOAD_TEST_PROD_URL secret." >&2
+            exit 1
+          fi
+          echo "Prod probe confirmed. Proceeding with reduced traffic budget."
+
+      - name: Sanity check target
+        run: |
+          if [[ -z "${API_URL}" ]]; then
+            echo "::error::API_URL secret is empty for target=${{ inputs.target }}." >&2
+            exit 1
+          fi
+          echo "Target: $API_URL"
+          curl -fsS --max-time 10 "$API_URL/api/v1/health" >/dev/null
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
+            --keyserver hkp://keyserver.ubuntu.com:80 \
+            --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" \
+            | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update -qq
+          sudo apt-get install -y k6
+
+      - name: Run k6 scenario
+        run: |
+          k6 run \
+            --summary-export=summary.json \
+            "apps/load-test/scenarios/${{ inputs.scenario }}.js"
+
+      - name: Upload summary artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-summary-${{ inputs.scenario }}-${{ inputs.target }}
+          path: summary.json
+          retention-days: 30
+
+      - name: Compose step summary
+        if: always()
+        run: |
+          {
+            echo "## k6 · ${{ inputs.scenario }} → ${{ inputs.target }}"
+            echo
+            if [[ -f summary.json ]]; then
+              echo "\`summary.json\` archived under the workflow artifacts."
+              echo
+              # Extract the two SLO fields we actually watch, silent on missing keys.
+              node -e "
+                const s = require('./summary.json');
+                const m = s.metrics ?? {};
+                const p95 = (k) => m[k]?.values?.['p(95)']?.toFixed?.(1);
+                const rate = (k) => m[k]?.values?.rate?.toFixed?.(4);
+                console.log('* http_req_duration p95:', p95('http_req_duration') ?? 'n/a', 'ms');
+                console.log('* http_req_failed rate:', rate('http_req_failed') ?? 'n/a');
+                console.log('* checks rate:         ', rate('checks') ?? 'n/a');
+              " >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "*(no summary.json produced — likely a k6 crash before completion)*"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

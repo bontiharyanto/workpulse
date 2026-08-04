@@ -1,0 +1,261 @@
+# ==============================================================================
+# Workpulse — Production Docker Compose (single-VPS Beta topology)
+# ==============================================================================
+#
+# Target: 1 VPS (Hetzner CX32 / DO 4GB / IDCloudHost / Lightsail), 1–10 tenants,
+# ~200–2000 daily active users. Everything runs on one host behind Caddy which
+# terminates TLS via Let's Encrypt.
+#
+# Bring the stack up (from repo root, after `.env.production` is in place):
+#   $ docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+#
+# Rolling deploy of a new image tag (blue/green style — see scripts/deploy.sh):
+#   $ IMAGE_TAG=v2026.08.03 ./scripts/deploy.sh
+#
+# Rollback to the previous tag:
+#   $ ./scripts/rollback.sh
+#
+# NEVER edit this file to sneak in secrets. All secrets flow through
+# `.env.production` which lives on the server with chmod 600.
+# ==============================================================================
+
+name: workpulse-prod
+
+# ------------------------------------------------------------------------------
+# Networks — API + Postgres are on an internal network. Only Caddy has ports
+# exposed to the public internet.
+# ------------------------------------------------------------------------------
+networks:
+  internal:
+    driver: bridge
+    internal: false # api needs egress for S3 + email + webhooks
+  edge:
+    driver: bridge
+
+# ------------------------------------------------------------------------------
+# Volumes — durable state. Back these up regularly (see scripts/backup.sh).
+# ------------------------------------------------------------------------------
+volumes:
+  postgres_data:
+    driver: local
+  caddy_data: # ACME state — losing this triggers cert re-issue (rate-limited!)
+    driver: local
+  caddy_config:
+    driver: local
+  backup_state: # rclone config + last-run markers
+    driver: local
+
+# ------------------------------------------------------------------------------
+# Shared logging + resource defaults. Keep containers from OOM-killing the VPS.
+# ------------------------------------------------------------------------------
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+x-restart: &default-restart
+  restart: unless-stopped
+
+services:
+  # ---------------------------------------------------------------------------
+  # Postgres 16 — self-hosted on the same host. Keeps latency low for a small
+  # pilot and cost near-zero. Migrate to managed (Neon/Supabase/RDS) when the
+  # tenant count crosses ~15 or the DB grows past ~20 GB.
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    <<: *default-restart
+    logging: *default-logging
+    networks:
+      - internal
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      # Force md5 (not trust) — even though the port isn't exposed, defence in depth.
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_buffers=512MB"
+      - "-c"
+      - "effective_cache_size=1536MB"
+      - "-c"
+      - "maintenance_work_mem=128MB"
+      - "-c"
+      - "work_mem=8MB"
+      - "-c"
+      - "max_connections=100"
+      - "-c"
+      - "log_min_duration_statement=1000" # slow query >1s → server log
+      - "-c"
+      - "log_statement=ddl"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+
+  # ---------------------------------------------------------------------------
+  # API (NestJS) — runs `prisma migrate deploy` at boot then serves Nest.
+  # ---------------------------------------------------------------------------
+  api:
+    image: ${API_IMAGE:-ghcr.io/workpulse/api}:${IMAGE_TAG:-latest}
+    <<: *default-restart
+    logging: *default-logging
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal
+      - edge
+    env_file:
+      - .env.production
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public&connection_limit=20"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "wget -qO- http://127.0.0.1:4000/api/v1/health >/dev/null 2>&1 || exit 1"
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 45s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  # ---------------------------------------------------------------------------
+  # Web (Next.js standalone) — behind Caddy. Only reachable through the
+  # `edge` network via the reverse proxy.
+  # ---------------------------------------------------------------------------
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/workpulse/web}:${IMAGE_TAG:-latest}
+    <<: *default-restart
+    logging: *default-logging
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - edge
+    environment:
+      NODE_ENV: production
+      # These are baked into the frontend at build time BUT next.js reads a few
+      # at runtime (e.g. `NEXT_PUBLIC_API_URL` if referenced through `next.config`).
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # ---------------------------------------------------------------------------
+  # Caddy — reverse proxy + auto TLS via Let's Encrypt. Only container with
+  # ports exposed to the internet.
+  # ---------------------------------------------------------------------------
+  caddy:
+    image: caddy:2.8-alpine
+    <<: *default-restart
+    logging: *default-logging
+    depends_on:
+      - api
+      - web
+    networks:
+      - edge
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    environment:
+      # Consumed inside Caddyfile via `{env.APP_DOMAIN}` and `{env.API_DOMAIN}`.
+      APP_DOMAIN: ${APP_DOMAIN}
+      API_DOMAIN: ${API_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:2019/config/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
+  # Backup — thin sidecar with `pg_dump` + `rclone` + `age` (encryption).
+  # Nightly cron dumps Postgres and pushes to Cloudflare R2 (encrypted).
+  # See scripts/backup.sh for the ad-hoc / restore commands.
+  # ---------------------------------------------------------------------------
+  backup:
+    build:
+      context: docker/backup
+    image: workpulse/backup:local
+    <<: *default-restart
+    logging: *default-logging
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - internal
+    environment:
+      # Postgres — MUST match the postgres service.
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      # R2 / S3 destination.
+      RCLONE_S3_PROVIDER: ${BACKUP_S3_PROVIDER:-Cloudflare}
+      RCLONE_S3_ENDPOINT: ${BACKUP_S3_ENDPOINT}
+      RCLONE_S3_ACCESS_KEY_ID: ${BACKUP_S3_ACCESS_KEY_ID}
+      RCLONE_S3_SECRET_ACCESS_KEY: ${BACKUP_S3_SECRET_ACCESS_KEY}
+      RCLONE_S3_REGION: ${BACKUP_S3_REGION:-auto}
+      BACKUP_BUCKET: ${BACKUP_BUCKET}
+      BACKUP_PREFIX: ${BACKUP_PREFIX:-workpulse}
+      # Encryption. age recipient (public key). Generate with `age-keygen`.
+      # Store the matching identity (private key) OFFLINE — never on this VPS.
+      BACKUP_AGE_RECIPIENT: ${BACKUP_AGE_RECIPIENT}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+      # Cron schedule. Default: 02:15 WIB daily → 19:15 UTC previous day.
+      BACKUP_CRON: ${BACKUP_CRON:-15 19 * * *}
+      TZ: UTC
+    volumes:
+      - backup_state:/var/lib/workpulse-backup
+
+  # ---------------------------------------------------------------------------
+  # Watchtower — OPTIONAL. Auto-pulls new tags from GHCR and rolls containers.
+  # Disable in prod deploys where you want deterministic control via
+  # `scripts/deploy.sh`. Enable only if the team is small and prefers push-to-deploy.
+  # Toggle via profile: `--profile autoupdate`.
+  # ---------------------------------------------------------------------------
+  watchtower:
+    profiles: ["autoupdate"]
+    image: containrrr/watchtower:1.7.1
+    <<: *default-restart
+    logging: *default-logging
+    networks:
+      - internal
+    environment:
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_LABEL_ENABLE: "true" # only touches containers with `com.centurylinklabs.watchtower.enable=true`
+      WATCHTOWER_POLL_INTERVAL: "300"
+      WATCHTOWER_ROLLING_RESTART: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro

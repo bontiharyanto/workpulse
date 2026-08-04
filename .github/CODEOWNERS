@@ -1,0 +1,28 @@
+# CODEOWNERS — every PR needs at least one review from the listed owner(s).
+# Update this file as the team grows. Order matters (most specific wins).
+
+# Global fallback
+*                                @haryanto
+
+# Rules & docs — architectural
+/.cursor/rules/                  @haryanto
+/docs/                           @haryanto
+/docs/ADR/                       @haryanto
+
+# CI, Docker, infra
+/.github/                        @haryanto
+/docker/                         @haryanto
+Dockerfile                       @haryanto
+docker-compose*.yml              @haryanto
+turbo.json                       @haryanto
+pnpm-workspace.yaml              @haryanto
+
+# Backend
+/apps/api/                       @haryanto
+/apps/api/prisma/                @haryanto
+
+# Frontend
+/apps/web/                       @haryanto
+
+# Shared packages
+/packages/                       @haryanto

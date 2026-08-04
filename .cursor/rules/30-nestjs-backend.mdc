@@ -1,0 +1,64 @@
+---
+description: NestJS backend conventions — modular architecture, DTOs, guards, error handling
+globs: apps/api/**/*.ts
+alwaysApply: false
+---
+
+# NestJS Backend Standards
+
+## Modular Structure (feature-first, DDD-aligned)
+```
+apps/api/src/
+├── attendance/
+│   ├── attendance.module.ts
+│   ├── attendance.controller.ts
+│   ├── attendance.service.ts
+│   ├── dto/clock-in.dto.ts
+│   └── domain/geofence.ts        # pure domain (no NestJS/Prisma imports)
+├── leave/
+├── overtime/
+├── user/
+├── auth/
+├── common/                       # filters, interceptors, decorators, guards
+└── prisma/                       # PrismaService, transaction helpers
+```
+
+Domain logic (calculations, invariants) lives in `domain/*.ts` and is framework-agnostic → trivial to unit test.
+
+## Controllers
+- Thin. Only: parse DTO → call service → return DTO. No business logic, no `PrismaService` injection.
+- Every route has an explicit HTTP verb, path, and response DTO type.
+
+## Services
+- All mutations that touch >1 aggregate go through `prisma.$transaction`.
+- Inject `PrismaService`, other services, and domain helpers — nothing else from the request scope.
+- Return domain/DTO shapes, never raw Prisma models to the controller.
+
+## DTOs & Validation
+- Every incoming payload is a class with `class-validator` decorators.
+- Enable a global `ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true })`.
+
+```ts
+// apps/api/src/attendance/dto/clock-in.dto.ts
+import { IsLatitude, IsLongitude, IsNumber, IsOptional, Min } from 'class-validator';
+
+export class ClockInDto {
+  @IsLatitude() latitude!: number;
+  @IsLongitude() longitude!: number;
+  @IsNumber() @Min(0) accuracyMeters!: number;
+  @IsOptional() note?: string;
+}
+```
+
+## Guards & Decorators
+- `JwtAuthGuard` → `RolesGuard` → `TenantGuard` (order matters).
+- Custom decorators: `@CurrentUser()`, `@Roles(...)`, `@Tenant()`.
+
+## Error Handling
+- Throw NestJS exceptions with **stable, machine-readable codes** as messages (`'INSUFFICIENT_BALANCE'`, `'OUTSIDE_GEOFENCE'`).
+- A global `AllExceptionsFilter` maps unknown errors to `500 INTERNAL_ERROR` and logs the original.
+
+## Testing (Jest)
+- Unit test every `domain/*.ts` file — pure functions, no mocks needed.
+- Service tests mock `PrismaService` via `DeepMockProxy<PrismaClient>` from `jest-mock-extended`.
+- Cover: shift overlap, geofence radius edge cases, leave carry-over, overtime rate tiers, approval state transitions.

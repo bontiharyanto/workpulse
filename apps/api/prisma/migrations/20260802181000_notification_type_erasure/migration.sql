@@ -1,0 +1,5 @@
+-- AlterEnum: notification categories for right-to-erasure events (Fase 31b)
+ALTER TYPE "NotificationType" ADD VALUE IF NOT EXISTS 'DATA_ERASURE_REQUESTED';
+ALTER TYPE "NotificationType" ADD VALUE IF NOT EXISTS 'DATA_ERASURE_APPROVED';
+ALTER TYPE "NotificationType" ADD VALUE IF NOT EXISTS 'DATA_ERASURE_REJECTED';
+ALTER TYPE "NotificationType" ADD VALUE IF NOT EXISTS 'DATA_ERASURE_EXECUTED';

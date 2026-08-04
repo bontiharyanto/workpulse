@@ -1,0 +1,116 @@
+# ==============================================================================
+# Workpulse — Caddyfile (production edge)
+# ==============================================================================
+#
+# Caddy handles:
+#   - Automatic TLS via Let's Encrypt (uses ACME_EMAIL for renewal warnings).
+#   - HTTP → HTTPS redirect.
+#   - HTTP/2 + HTTP/3.
+#   - Reverse-proxy to `api:4000` and `web:3000` inside the `edge` docker network.
+#   - Security headers on top of what the API already sets (defence in depth).
+#
+# Two host blocks:
+#   - {$APP_DOMAIN}  → Next.js frontend
+#   - {$API_DOMAIN}  → NestJS API (path is prefixed with /api on the app side)
+#
+# NEVER hard-code the domains here. They come from `.env.production`.
+# ==============================================================================
+
+{
+	# Global options
+	email {$ACME_EMAIL}
+	# Enable admin API on localhost so `docker healthcheck` and `caddy reload`
+	# work. NOT exposed to the internet — only reachable inside the container.
+	admin :2019
+
+	# Logs go to stdout as JSON — captured by docker json-file driver.
+	log {
+		output stdout
+		format json
+		level INFO
+	}
+
+	# HTTP/3 (QUIC) is enabled by default in Caddy 2.6+.
+	servers {
+		protocols h1 h2 h3
+	}
+}
+
+# ------------------------------------------------------------------------------
+# Frontend — Next.js
+# ------------------------------------------------------------------------------
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	# Health probe for external uptime monitors. Doesn't hit the app.
+	respond /caddy-health 200 {
+		body "ok"
+		close
+	}
+
+	# Reverse proxy to the web container.
+	reverse_proxy web:3000 {
+		# Preserve real client info so Next.js middleware can inspect it.
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		# Fail fast — if `web` is stuck, don't hang the connection forever.
+		transport http {
+			dial_timeout 5s
+			response_header_timeout 30s
+		}
+	}
+
+	# Defence-in-depth headers. Note: the API already sets its own headers via
+	# Helmet — these apply to the frontend host only.
+	header {
+		# HSTS — one year. Enable preload only after verifying every subdomain
+		# has valid TLS (see HSTS_PRELOAD env var in the API for the deep story).
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(self), interest-cohort=()"
+		# Do not leak the server banner.
+		-Server
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}
+
+# ------------------------------------------------------------------------------
+# API — NestJS
+# ------------------------------------------------------------------------------
+{$API_DOMAIN} {
+	encode zstd gzip
+
+	# CORS preflights are handled by Nest — we just forward everything.
+	reverse_proxy api:4000 {
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		transport http {
+			dial_timeout 5s
+			# Long-running requests (report export, DSAR zip) can legitimately
+			# take 60+ seconds. Set generously but still bounded.
+			response_header_timeout 120s
+			read_timeout 180s
+			write_timeout 180s
+		}
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

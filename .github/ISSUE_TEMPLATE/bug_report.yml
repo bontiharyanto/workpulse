@@ -1,0 +1,85 @@
+name: 🐞 Bug report
+description: Report a defect in Workpulse (API, Web, docs, tooling, or infra).
+title: 'bug: <short summary>'
+labels: ['bug', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing! Please provide the fields below so the on-call
+        can reproduce and triage without a back-and-forth. **Never paste
+        real personal data, tenant IDs, or JWTs.** Use synthetic samples.
+
+  - type: input
+    id: version
+    attributes:
+      label: Workpulse version
+      placeholder: 'v1.2.3'
+      description: 'From the deploy log or `docker inspect` output.'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - Local dev
+        - Staging
+        - Beta / Pilot (SMB Indonesia)
+        - Production
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity (per docs/OPS/ON-CALL.md)
+      options:
+        - P0 — outage / data corruption
+        - P1 — critical feature broken, no workaround
+        - P2 — feature degraded or has workaround
+        - P3 — cosmetic / minor
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      placeholder: |
+        1. Clock-in as EMPLOYEE with valid geofence.
+        2. Response arrives with 500.
+        3. Sentry shows `TypeError: Cannot read properties of undefined`.
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence (logs / screenshots / Sentry link)
+      description: |
+        Redact any PII. Prefer Sentry issue URLs over pasted stack traces.
+      placeholder: |
+        - Sentry: <link>
+        - `docker compose logs api` snippet:
+          ```
+          <redacted>
+          ```
+    validations:
+      required: false
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimum reproduction
+      description: 'Curl / step list / test file, whichever is shortest.'
+    validations:
+      required: false

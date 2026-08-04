@@ -1,0 +1,58 @@
+---
+description: Critical, non-negotiable security and business invariants (geofencing, leave concurrency, tenant isolation, RBAC)
+alwaysApply: true
+---
+
+# Core Security & Business Invariants
+
+These rules OVERRIDE convenience. Never compromise on them.
+
+## 1. Geofencing — Server-Side Only
+Distance / inside-radius validation **must** run in the NestJS service layer (Haversine formula or PostGIS spatial query). The client submits raw `{ latitude, longitude, accuracy, timestamp }` only. Never trust a client-computed "isInsideGeofence" boolean.
+
+```ts
+// apps/api/src/attendance/attendance.service.ts
+const meters = haversineDistance(user.coords, shift.geofence.center);
+if (meters > shift.geofence.radiusMeters) {
+  throw new ForbiddenException('OUTSIDE_GEOFENCE');
+}
+```
+
+## 2. Leave Balance — Atomic & Race-Safe
+Verify AND deduct balance inside a single `prisma.$transaction`. Use `SELECT ... FOR UPDATE` (via `$queryRaw`) or optimistic locking with a `version` column to prevent double-spending under concurrent approvals.
+
+```ts
+await prisma.$transaction(async (tx) => {
+  const balance = await tx.$queryRaw<LeaveBalance[]>`
+    SELECT * FROM "LeaveBalance"
+    WHERE "userId" = ${userId} AND "leaveTypeId" = ${leaveTypeId}
+    FOR UPDATE
+  `;
+  if (balance[0].remaining < requestedDays) {
+    throw new BadRequestException('INSUFFICIENT_BALANCE');
+  }
+  await tx.leaveBalance.update({
+    where: { id: balance[0].id },
+    data: { remaining: { decrement: requestedDays } },
+  });
+  await tx.leaveRequest.create({ data: { /* ... */ } });
+  await tx.auditLog.create({ data: { /* ... */ } });
+});
+```
+
+## 3. Tenant & Row-Level Data Isolation
+Every query MUST filter by `companyId` (and further by `departmentId` / `userId` per role). Enforce it in a reusable Prisma extension or repository base class — never rely on controller-level filtering alone.
+
+- Employee scope → own records only.
+- Supervisor scope → own team.
+- HR Manager scope → whole company.
+- Super Admin scope → cross-tenant (audited).
+
+## 4. RBAC via Guards + Decorators
+Authenticated requests pass a JWT guard, then a `RolesGuard` reading `@Roles('HR_MANAGER', 'SUPERVISOR')`. Never check roles by reading the JWT payload inside a service.
+
+## 5. Error Surface
+Use standard NestJS exceptions (`BadRequestException`, `ForbiddenException`, `NotFoundException`, `ConflictException`). Never leak stack traces, raw Prisma errors, or SQL fragments to API responses. Map errors in an `HttpExceptionFilter`.
+
+## 6. Audit Log Immutability
+Sensitive events (balance override, approval, admin edit, geofence bypass) MUST append to `audit_logs` inside the same transaction as the mutating write. No UPDATE or DELETE on `audit_logs` — enforce at DB level (`REVOKE UPDATE, DELETE ...`).

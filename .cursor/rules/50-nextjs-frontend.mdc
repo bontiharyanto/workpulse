@@ -1,0 +1,68 @@
+---
+description: Next.js frontend conventions — App Router, RSC vs Client Components, forms, data fetching
+globs: apps/web/**/*.ts,apps/web/**/*.tsx
+alwaysApply: false
+---
+
+# Next.js Frontend Standards
+
+## App Router Layout
+```
+apps/web/app/
+├── (auth)/login/page.tsx
+├── (dashboard)/
+│   ├── layout.tsx
+│   ├── attendance/page.tsx        # Server Component: initial fetch
+│   ├── attendance/clock/          # Client Component: geolocation UI
+│   ├── leave/page.tsx
+│   └── admin/reports/page.tsx
+├── api/                           # only for BFF/edge helpers, not domain APIs
+components/
+├── ui/                            # Shadcn primitives
+└── features/<domain>/             # feature-scoped components
+lib/
+├── api-client.ts                  # typed fetch wrapper for NestJS backend
+├── auth.ts
+└── utils.ts
+```
+
+## Server vs Client Components
+- **Default = Server Component.** Fetch data server-side via `fetch(..., { next: { revalidate, tags } })` or a typed API client.
+- Add `"use client"` **only** when you need: state, effects, browser APIs (geolocation), event handlers, TanStack Query hooks, RHF.
+- Keep client bundles small: move data-fetching parents to RSC and pass typed props down.
+
+## Data Fetching & Cache
+- **Read** in RSC via server-side `fetch` with `next: { tags: ['leave-balance'] }`.
+- **Write** via server actions or a mutation call that ends with `revalidateTag(...)`.
+- **Client-side interactive data** (dashboards, live filters) → **TanStack Query**, never `useEffect(fetch)`.
+
+## Forms
+- Every form: **React Hook Form + Zod resolver**. Zod schema is the single source of truth for FE validation.
+- Where possible, import the Zod schema from `packages/shared-types` so BE (`class-validator`) and FE stay aligned.
+
+```tsx
+// apps/web/components/features/leave/leave-request-form.tsx
+"use client";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { leaveRequestSchema, LeaveRequestInput } from "@workpulse/shared-types";
+
+export function LeaveRequestForm() {
+  const form = useForm<LeaveRequestInput>({ resolver: zodResolver(leaveRequestSchema) });
+  // ...
+}
+```
+
+## UI
+- Compose with **Shadcn UI / Radix** primitives; extend, don't fork.
+- Tailwind: use tokens (`bg-primary`, `text-muted-foreground`) rather than raw palette classes.
+- Accessibility is non-optional: labels, `aria-*`, focus states, keyboard navigation.
+
+## Auth & Session
+- JWT in `HttpOnly` Secure cookie set by NestJS. FE never reads token from JS.
+- Protect route segments in `layout.tsx` via server-side session check + redirect.
+
+## Anti-patterns
+- Fetching in `useEffect` for initial data (use RSC or TanStack Query).
+- Business logic (approval math, geofence check) in components.
+- Storing tokens in `localStorage`.

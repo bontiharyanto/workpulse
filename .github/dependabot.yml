@@ -1,0 +1,65 @@
+version: 2
+updates:
+  # Root workspace + all workspace packages via pnpm.
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '02:00'
+      timezone: 'Asia/Jakarta'
+    open-pull-requests-limit: 10
+    labels:
+      - 'dependencies'
+    groups:
+      dev-dependencies:
+        dependency-type: 'development'
+      types:
+        patterns:
+          - '@types/*'
+      nestjs:
+        patterns:
+          - '@nestjs/*'
+      prisma:
+        patterns:
+          - 'prisma'
+          - '@prisma/*'
+      next:
+        patterns:
+          - 'next'
+          - 'eslint-config-next'
+
+  # GitHub Actions
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '02:00'
+      timezone: 'Asia/Jakarta'
+    labels:
+      - 'dependencies'
+      - 'ci'
+
+  # Docker base images
+  - package-ecosystem: 'docker'
+    directory: '/apps/api'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '02:00'
+      timezone: 'Asia/Jakarta'
+    labels:
+      - 'dependencies'
+      - 'docker'
+
+  - package-ecosystem: 'docker'
+    directory: '/apps/web'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '02:00'
+      timezone: 'Asia/Jakarta'
+    labels:
+      - 'dependencies'
+      - 'docker'

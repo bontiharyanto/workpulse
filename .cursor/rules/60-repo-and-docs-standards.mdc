@@ -1,0 +1,37 @@
+---
+description: Repository structure, documentation, and contribution standards
+alwaysApply: true
+---
+
+# Repository & Documentation Standards
+
+## Required Root Files
+| File | Purpose |
+|---|---|
+| `.cursor/rules/*.mdc` | AI rules (this directory) |
+| `README.md` | Overview, quick start, tech stack, env vars, scripts |
+| `CONTRIBUTING.md` | Coding standards, branching, commit convention, PR checklist |
+| `docs/ARCHITECTURE.md` | System design, ERD, module boundaries, transaction rules |
+| `docs/WORKFLOW.md` | Business workflows: Attendance, Leave, Overtime, Approvals |
+| `docs/ADR/` | Architecture Decision Records (ADR-0001-…, one per significant decision) |
+| `.env.example` | Every required env var documented, no secrets |
+
+When generating a new module, **also update** the relevant doc (`WORKFLOW.md` for a business flow, `ARCHITECTURE.md` for a structural change) — do not silently drift.
+
+## Branching & Commits
+- Branches: `feat/<scope>`, `fix/<scope>`, `chore/<scope>`, `refactor/<scope>`.
+- Commits: **Conventional Commits** (`feat(leave): add carry-over rule`).
+- No commits directly to `main` — always PR + review.
+
+## PR Checklist (generated PRs must satisfy)
+- [ ] DTOs / Zod schemas added or updated
+- [ ] Prisma migration included (if schema changed) and reviewed
+- [ ] Unit tests for new domain logic
+- [ ] Audit log emitted for sensitive mutations
+- [ ] Tenant / RBAC scoping verified
+- [ ] Docs updated (`WORKFLOW.md` / `ARCHITECTURE.md`) when behavior changes
+- [ ] No `any`, no `TODO`, no leaked secrets, no `console.log`
+
+## Environment
+- `NODE_ENV`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `S3_*` (attachments), `APP_TIMEZONE` default `Asia/Jakarta`.
+- Never commit `.env` — only `.env.example`.

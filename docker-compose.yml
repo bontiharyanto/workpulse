@@ -1,0 +1,147 @@
+# Workpulse — local Docker orchestration
+#
+# Default (no profile): starts Postgres + Adminer + MinIO. Run api/web locally via `pnpm dev`.
+#   $ docker compose up -d
+#
+# Full stack (build images, run everything in containers):
+#   $ docker compose --profile full up --build
+#
+# Services available:
+#   - Postgres:  localhost:5432
+#   - Adminer:   http://localhost:8080         (DB inspector)
+#   - MinIO S3:  http://localhost:9000         (attachments store — S3-compatible)
+#   - MinIO UI:  http://localhost:9001         (login: workpulse / workpulse-secret)
+#
+# Note: this compose file is for LOCAL development and CI verification. Production
+# deployments should use the same Dockerfiles but a hardened orchestrator (Kubernetes,
+# ECS, etc.) with proper secrets and volumes.
+
+name: workpulse
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: workpulse
+      POSTGRES_PASSWORD: workpulse
+      POSTGRES_DB: workpulse
+      # Faster boot for dev; do NOT use in production
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U workpulse -d workpulse"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+
+  adminer:
+    image: adminer:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: nette
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # MinIO — S3-compatible object storage for local dev (attachments, reports).
+  # Console UI on :9001, S3 API on :9000. Credentials MUST match .env S3_* vars.
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web console
+    environment:
+      MINIO_ROOT_USER: workpulse
+      MINIO_ROOT_PASSWORD: workpulse-secret
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+  # One-shot bucket bootstrapper. Creates the `workpulse` bucket + sets it private.
+  # Idempotent — safe to re-run on every `docker compose up`.
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 workpulse workpulse-secret &&
+      mc mb --ignore-existing local/workpulse &&
+      mc anonymous set none local/workpulse &&
+      echo 'MinIO bucket ready: workpulse'
+      "
+    restart: "no"
+
+  # ---------------------------------------------------------------
+  # Full stack — opt-in via `--profile full`
+  # ---------------------------------------------------------------
+  api:
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: runtime
+    image: workpulse/api:local
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://workpulse:workpulse@postgres:5432/workpulse?schema=public
+      CORS_ORIGIN: http://localhost:3000
+      S3_ENDPOINT: http://minio:9000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    ports:
+      - "4000:4000"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "wget -qO- http://localhost:4000/api/v1/health >/dev/null 2>&1 || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+
+  web:
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: runtime
+    image: workpulse/web:local
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
+    driver: local
+  minio_data:
+    driver: local

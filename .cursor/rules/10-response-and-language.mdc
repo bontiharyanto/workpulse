@@ -1,0 +1,24 @@
+---
+description: Response format, code-generation discipline, and language preferences
+alwaysApply: true
+---
+
+# Response & Code Generation Guidelines
+
+## Communication Language
+- **Talk to the user in clear, professional Indonesian.**
+- **Write code, comments, commit messages, DTO descriptions, API docs, and technical documentation in English.**
+
+## Response Structure
+1. **Explain First, Code Second.** Start each non-trivial code answer with a short architectural rationale (design pattern, DDD boundary, why this approach). Keep it concise.
+2. **Complete Implementations.** No placeholders such as `// TODO: implement logic here`, no ellipsis stubs, no "left as an exercise". Deliver working, typed code.
+3. **Explicit File Paths.** Every code block MUST reference a concrete file path, e.g. `apps/api/src/leave/leave.service.ts` or `apps/web/app/(dashboard)/attendance/page.tsx`.
+4. **Ship DTOs & Schemas Together.** New API endpoints ship with their NestJS DTO (`class-validator`) AND matching Zod schema for the frontend. Share types via `packages/shared-types` where feasible.
+5. **Unit Tests for Domain Logic.** Provide Jest tests for non-trivial rules: shift overlap, geofence radius, leave accrual/carry-over, overtime rate math, approval state machines.
+6. **Strong Types Everywhere.** No `any`, no non-null assertions (`!`) unless justified by a comment. Prefer discriminated unions for state.
+
+## Anti-patterns to Reject
+- Client-side trust for security-sensitive computations (geofence distance, permission checks, balance math).
+- Business logic inside controllers or React components.
+- Silent `catch (e) {}` blocks.
+- Ad-hoc SQL that bypasses Prisma without justification.

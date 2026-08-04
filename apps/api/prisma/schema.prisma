@@ -1,0 +1,2521 @@
+// ============================================================
+// Workpulse — Enterprise Attendance System
+// Prisma schema (PostgreSQL)
+// ------------------------------------------------------------
+// Conventions:
+//  * All domain tables include createdAt / updatedAt / deletedAt (soft delete)
+//  * Multi-tenant boundary: `companyId`
+//  * Money → Decimal, Coordinates → Decimal(10,7)
+//  * Enums for finite state machines
+//  * All timestamps stored in UTC (see docs/ARCHITECTURE.md § Timezone)
+// ============================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgcrypto]
+}
+
+// ---------- Enums ----------
+
+enum UserRole {
+  EMPLOYEE
+  SUPERVISOR
+  HR_MANAGER
+  SUPER_ADMIN
+}
+
+enum EmploymentStatus {
+  ACTIVE
+  ON_LEAVE
+  SUSPENDED
+  TERMINATED
+}
+
+enum ShiftType {
+  STATIC
+  FLEXIBLE
+  ROTATING
+}
+
+enum AttendanceStatus {
+  ON_TIME
+  LATE
+  EARLY_LEAVE
+  ABSENT
+  ON_LEAVE
+}
+
+enum AttendanceEventType {
+  CLOCK_IN
+  CLOCK_OUT
+}
+
+/// Provenance of an AbsenceRecord row. Distinguishes machine-set
+/// classifications (auto-absent cron) from HR overrides — payroll and
+/// dispute workflows may treat these differently.
+enum AbsenceSource {
+  AUTO_SCHEDULER
+  MANUAL_HR
+}
+
+enum LeaveStatus {
+  DRAFT
+  PENDING_SUPERVISOR
+  PENDING_HR
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum LeaveKind {
+  ANNUAL
+  SICK
+  PERSONAL
+  MATERNITY
+  PATERNITY
+  UNPAID
+  OTHER
+}
+
+enum OvertimeStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+/// AttendanceCorrection lifecycle. Single-level approval (supervisor OR HR)
+/// unlike Leave which is two-level — a punch correction is a low-risk
+/// operation that shouldn't require HR gating for supervisor-approvable
+/// team-scoped changes, and requiring both would create bureaucratic drag
+/// for the most common HR ticket (an employee forgot to clock in/out).
+enum AttendanceCorrectionStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum RefreshTokenStatus {
+  ACTIVE
+  ROTATED // superseded by a new token in the same family
+  REVOKED // logged out, expired, or reuse detected
+}
+
+/// Lifecycle for `DataExportRequest` (self-service DSAR, Fase 31a).
+enum DataExportStatus {
+  PENDING // enqueued, awaiting worker pick-up
+  PROCESSING // worker is assembling the archive
+  READY // ZIP uploaded to S3, download URL available until `expiresAt`
+  FAILED // worker error — retries exhausted
+  EXPIRED // past `expiresAt`; S3 object has been deleted by the retention sweep
+}
+
+/// Lifecycle for `DataErasureRequest` (self-service right-to-erasure,
+/// Fase 31b). Requires HR_MANAGER or SUPER_ADMIN approval before
+/// execution; a mandatory grace window between approval and
+/// execution lets the user cancel if they change their mind.
+enum DataErasureStatus {
+  PENDING_APPROVAL // user submitted, awaits HR / admin decision
+  APPROVED_SCHEDULED // approved; worker will execute after `scheduledFor`
+  EXECUTED // anonymised; the row survives as an audit anchor
+  REJECTED // HR / admin declined
+  CANCELLED // user withdrew after approval, before `scheduledFor`
+  FAILED // worker error during anonymisation
+}
+
+/// Categories are stable identifiers used both for querying ("show me only
+/// OT-related notifications") and for choosing an email template. Add new
+/// enum values freely — old rows will simply carry the historical value.
+enum NotificationType {
+  LEAVE_SUBMITTED
+  LEAVE_APPROVED_SUPERVISOR
+  LEAVE_APPROVED_HR
+  LEAVE_REJECTED
+  LEAVE_CANCELLED
+  OVERTIME_SUBMITTED
+  OVERTIME_APPROVED
+  OVERTIME_REJECTED
+  OVERTIME_CANCELLED
+  OVERTIME_COMPLETED
+  PASSWORD_RESET
+  ATTENDANCE_ABSENT_MARKED
+  ATTENDANCE_CORRECTION_SUBMITTED
+  ATTENDANCE_CORRECTION_APPROVED
+  ATTENDANCE_CORRECTION_REJECTED
+  DATA_ERASURE_REQUESTED
+  DATA_ERASURE_APPROVED
+  DATA_ERASURE_REJECTED
+  DATA_ERASURE_EXECUTED
+  TIMESHEET_SUBMITTED
+  TIMESHEET_APPROVED_SUPERVISOR
+  TIMESHEET_APPROVED_HR
+  TIMESHEET_REJECTED
+  TIMESHEET_REGENERATED
+  /// Fase 32f — scheduler nudge for employees who haven't submitted
+  /// a closed period's timesheet yet.
+  TIMESHEET_SUBMIT_REMINDER
+  /// Fase 32f — scheduler nudge for approvers (supervisor or HR) with
+  /// timesheets waiting on their queue.
+  TIMESHEET_APPROVAL_REMINDER
+  /// Fase 32g — HR-initiated post-approval unlock. Sent to the
+  /// timesheet owner + supervisor when HR reopens an APPROVED row
+  /// for correction.
+  TIMESHEET_REOPENED
+  /// Fase 31g — deadline reminder from BreachDeadlineWorker fired
+  /// when a breach incident approaches or exceeds the 72-hour UU PDP
+  /// / GDPR Art. 33 notification window.
+  BREACH_DEADLINE_WARNING
+  /// OPS-6 — DPO alert emitted when the monthly retention audit
+  /// discovers a gap (rows past retention still on disk) or that
+  /// the RetentionWorker did not tick during the audit period.
+  RETENTION_AUDIT_GAP_DETECTED
+  /// Fase 31f — DPO nudge that a vendor / processor is approaching
+  /// its next review cutoff (default T-30d). Prompts HR to reopen
+  /// the vendor page and mark it reviewed (or renew the DPA).
+  VENDOR_REVIEW_DUE
+  /// Fase 31f — DPO alert emitted when a vendor's contract end
+  /// date is approaching (default T-60d) or has passed with the
+  /// vendor still `ACTIVE`. Signals urgent renewal negotiation.
+  VENDOR_CONTRACT_EXPIRING
+}
+
+// ---------- Tenant & Identity ----------
+
+model Company {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  timezone  String    @default("Asia/Jakarta")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  // ---- Overtime policy (per-tenant). Users may override the base rate
+  // ---- via `User.overtimeHourlyRate`; multipliers are company-wide.
+  // ---- If `overtimeHourlyRate` is null AND the user has no override,
+  // ---- submit() throws `OVERTIME_RATE_NOT_CONFIGURED`.
+  overtimeHourlyRate        Decimal? @db.Decimal(12, 2)
+  overtimeWeekdayMultiplier Decimal  @default(1.5) @db.Decimal(4, 2)
+  overtimeWeekendMultiplier Decimal  @default(2.0) @db.Decimal(4, 2)
+  overtimeHolidayMultiplier Decimal  @default(3.0) @db.Decimal(4, 2)
+  overtimeMaxHoursPerDay    Decimal  @default(4.0) @db.Decimal(4, 2)
+  overtimeSubmitWindowDays  Int      @default(14)
+  /// Grace period after `workDate` before the completion scheduler is allowed
+  /// to promote APPROVED → COMPLETED. Accommodates late manual timesheet entry
+  /// (e.g. a supervisor logging attendance on Monday for the previous Friday).
+  overtimeCompleteGraceDays Int      @default(2)
+
+  // ---- Auto-absent policy ---------------------------------------------------
+  /// Hours after tenant-local midnight before the scanner is allowed to classify
+  /// a working day as absent. Buffer for late timesheet correction / mobile
+  /// coverage gaps. Default 6h → scan at ~06:00 tenant-local next day.
+  absentScanGraceHours Int       @default(6)
+  /// Marker updated by the scanner every time it processes a date. Prevents
+  /// double-scanning + provides a "last known good" for ops dashboards.
+  /// Stored as UTC — the target date is `workDate` (a calendar day, not a
+  /// point in time) but Postgres @db.Date needs a DateTime column.
+  lastAbsentScanDate   DateTime? @db.Date
+
+  // ---- Payroll cutoff ------------------------------------------------------
+  /// Inclusive payroll freeze cutoff (UTC calendar date). Attendance-affecting
+  /// mutations (mark absent, delete absence, and the auto-scanner) refuse to
+  /// touch `workDate <= payrollLockedUntil` unless the actor is SUPER_ADMIN.
+  /// NULL means no cutoff (default for new tenants).
+  ///
+  /// Kept as @db.Date because payroll periods close on calendar days, not
+  /// timestamps — comparing DateTime here would be a subtle correctness bug
+  /// across tenant timezones.
+  payrollLockedUntil DateTime? @db.Date
+
+  departments             Department[]
+  users                   User[]
+  shifts                  Shift[]
+  geofences               Geofence[]
+  leaveTypes              LeaveType[]
+  attendances             AttendanceRecord[]
+  leaveRequests           LeaveRequest[]
+  overtimes               OvertimeRequest[]
+  holidays                Holiday[]
+  auditLogs               AuditLog[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
+  absences                AbsenceRecord[]
+  attendanceCorrections   AttendanceCorrection[]
+  retentionPolicy         RetentionPolicy?
+  privacyPolicies         PrivacyPolicy[]
+  ropaActivities          RopaActivity[]
+  ropaActivityVersions    RopaActivityVersion[]
+  timesheetConfig         TimesheetConfig?
+  timesheetPeriods        TimesheetPeriod[]
+  timesheets              Timesheet[]              @relation("TimesheetsByCompany")
+  timesheetExports        TimesheetExport[]        @relation("TimesheetExportsByCompany")
+  timesheetExportShares   TimesheetExportShare[]   @relation("TimesheetExportSharesByCompany")
+  webhookEndpoints        WebhookEndpoint[]
+  webhookDeliveries       WebhookDelivery[]
+  timesheetReminderLogs   TimesheetReminderLog[]
+  analyticsSnapshots      AnalyticsSnapshot[]
+  dpiaAssessments         DpiaAssessment[]
+  dpiaRiskItems           DpiaRiskItem[]
+  reportSchedules         ReportSchedule[]
+  reportDeliveries        ReportDelivery[]
+  savedReports            SavedReport[]
+  breachIncidents         BreachIncident[]
+  breachTimelineEvents    BreachTimelineEvent[]
+  retentionAuditReports   RetentionAuditReport[]
+  tenantUsageSnapshots    TenantUsageSnapshot[]
+  vendorProcessors        VendorProcessor[]
+
+  @@index([deletedAt])
+}
+
+model Department {
+  id        String    @id @default(cuid())
+  companyId String
+  name      String
+  parentId  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  company          Company           @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  parent           Department?       @relation("DepartmentTree", fields: [parentId], references: [id])
+  children         Department[]      @relation("DepartmentTree")
+  users            User[]
+  timesheetExports TimesheetExport[]
+
+  @@unique([companyId, name])
+  @@index([companyId, deletedAt])
+}
+
+model User {
+  id                 String           @id @default(cuid())
+  companyId          String
+  departmentId       String?
+  email              String
+  passwordHash       String
+  /// True when the user must change their password before accessing any
+  /// non-`/auth/*` endpoint. Set on admin-issued temporary passwords
+  /// (create + reset). Cleared when the user picks their own password
+  /// (self-service change or email-based reset).
+  mustChangePassword Boolean          @default(false)
+  /// TOTP secret (base32) encrypted at rest with AES-256-GCM keyed by
+  /// env `MFA_SECRET_ENCRYPTION_KEY`. Only present when MFA is enrolled.
+  /// The plaintext secret NEVER leaves this row — verification loads it,
+  /// decrypts in-process, checks the code, and discards.
+  mfaSecret          String?
+  /// Non-null iff MFA is active for this user. Used both as a boolean
+  /// gate ("is MFA on?") and as an audit datum ("when was it enabled?").
+  mfaEnabledAt       DateTime?
+  fullName           String
+  role               UserRole         @default(EMPLOYEE)
+  employmentStatus   EmploymentStatus @default(ACTIVE)
+  hiredAt            DateTime
+  supervisorId       String?
+  timezone           String? // fallback → company.timezone
+  /// Overrides `Company.overtimeHourlyRate` for this specific user. Kept null for defaults.
+  overtimeHourlyRate Decimal?         @db.Decimal(12, 2)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  deletedAt          DateTime?
+
+  company                      Company                  @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  department                   Department?              @relation(fields: [departmentId], references: [id])
+  supervisor                   User?                    @relation("Subordinates", fields: [supervisorId], references: [id])
+  subordinates                 User[]                   @relation("Subordinates")
+  shiftAssignments             UserShiftAssignment[]
+  attendances                  AttendanceRecord[]
+  leaveBalances                LeaveBalance[]
+  leaveRequests                LeaveRequest[]
+  overtimes                    OvertimeRequest[]
+  auditLogs                    AuditLog[]               @relation("AuditActor")
+  refreshTokens                RefreshToken[]
+  notifications                Notification[]
+  notificationPreferences      NotificationPreference[]
+  passwordResetTokens          PasswordResetToken[]
+  absences                     AbsenceRecord[]
+  absencesMarked               AbsenceRecord[]          @relation("AbsenceMarker")
+  attendanceCorrections        AttendanceCorrection[]
+  attendanceCorrectionsDecided AttendanceCorrection[]   @relation("AttendanceCorrectionDecider")
+  mfaBackupCodes               MfaBackupCode[]
+  dataExportRequests           DataExportRequest[]
+  dataErasureRequests          DataErasureRequest[]     @relation("EraseTarget")
+  dataErasureDecisions         DataErasureRequest[]     @relation("EraseDecider")
+  retentionPolicyUpdates       RetentionPolicy[]        @relation("RetentionPolicyUpdater")
+  publishedPolicies            PrivacyPolicy[]          @relation("PolicyPublisher")
+  consents                     UserConsent[]
+  ropaVersionsCreated          RopaActivityVersion[]    @relation("RopaVersionCreator")
+  ropaVersionsReviewed         RopaActivityVersion[]    @relation("RopaVersionReviewer")
+  ropaVersionsPublished        RopaActivityVersion[]    @relation("RopaVersionPublisher")
+  dpiaAssessmentsCreated       DpiaAssessment[]         @relation("DpiaCreator")
+  dpiaAssessmentsReviewed      DpiaAssessment[]         @relation("DpiaReviewer")
+  dpiaAssessmentsApproved      DpiaAssessment[]         @relation("DpiaApprover")
+  reportSchedulesCreated       ReportSchedule[]         @relation("ReportScheduleCreator")
+  savedReportsCreated          SavedReport[]            @relation("SavedReportCreator")
+  timesheetConfigUpdates       TimesheetConfig[]        @relation("TimesheetConfigUpdater")
+  timesheets                   Timesheet[]              @relation("TimesheetsByUser")
+  timesheetsAsSupervisor       Timesheet[]              @relation("TimesheetSupervisor")
+  timesheetsAsHrManager        Timesheet[]              @relation("TimesheetHrManager")
+  timesheetsAsRejector         Timesheet[]              @relation("TimesheetRejector")
+  timesheetsAsReopener         Timesheet[]              @relation("TimesheetReopener")
+  timesheetExportsRequested    TimesheetExport[]        @relation("TimesheetExportRequester")
+  timesheetExportSharesCreated TimesheetExportShare[]   @relation("TimesheetExportShareCreator")
+  timesheetExportSharesRevoked TimesheetExportShare[]   @relation("TimesheetExportShareRevoker")
+  webhookEndpointsCreated      WebhookEndpoint[]        @relation("WebhookEndpointCreator")
+  timesheetReminderLogs        TimesheetReminderLog[]   @relation("TimesheetReminderRecipient")
+  breachIncidentsReported      BreachIncident[]         @relation("BreachReporter")
+  breachIncidentsAssigned      BreachIncident[]         @relation("BreachAssignee")
+  breachTimelineEvents         BreachTimelineEvent[]    @relation("BreachTimelineActor")
+  vendorProcessorsCreated      VendorProcessor[]        @relation("VendorProcessorCreator")
+  vendorProcessorsUpdated      VendorProcessor[]        @relation("VendorProcessorUpdater")
+  vendorProcessorsTerminated   VendorProcessor[]        @relation("VendorProcessorTerminator")
+
+  @@unique([companyId, email])
+  @@index([companyId, departmentId, deletedAt])
+  @@index([supervisorId])
+}
+
+// ---------- Shift & Geofence ----------
+
+model Geofence {
+  id           String    @id @default(cuid())
+  companyId    String
+  name         String
+  latitude     Decimal   @db.Decimal(10, 7)
+  longitude    Decimal   @db.Decimal(10, 7)
+  radiusMeters Int
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  shifts  Shift[]
+
+  @@index([companyId, deletedAt])
+}
+
+model Shift {
+  id           String    @id @default(cuid())
+  companyId    String
+  geofenceId   String?
+  name         String
+  type         ShiftType @default(STATIC)
+  startTime    String // "HH:mm" (company local time)
+  endTime      String // "HH:mm"
+  graceMinutes Int       @default(0)
+  /// Unpaid break within the shift (e.g. lunch). Deducted from
+  /// `regularHours` at timesheet-generate time (Fase 32b). Range
+  /// enforced in service layer, not DB, so past rows survive a
+  /// policy tightening.
+  breakMinutes Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  company     Company               @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  geofence    Geofence?             @relation(fields: [geofenceId], references: [id])
+  assignments UserShiftAssignment[]
+  attendances AttendanceRecord[]
+
+  @@unique([companyId, name])
+  @@index([companyId, deletedAt])
+}
+
+model UserShiftAssignment {
+  id            String    @id @default(cuid())
+  userId        String
+  shiftId       String
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shift Shift @relation(fields: [shiftId], references: [id], onDelete: Restrict)
+
+  @@index([userId, effectiveFrom, effectiveTo])
+  @@index([shiftId])
+}
+
+// ---------- Attendance ----------
+
+model AttendanceRecord {
+  id                String           @id @default(cuid())
+  companyId         String
+  userId            String
+  shiftId           String
+  workDate          DateTime         @db.Date
+  clockInAt         DateTime
+  clockOutAt        DateTime?
+  clockInLatitude   Decimal          @db.Decimal(10, 7)
+  clockInLongitude  Decimal          @db.Decimal(10, 7)
+  clockInAccuracyM  Int
+  clockOutLatitude  Decimal?         @db.Decimal(10, 7)
+  clockOutLongitude Decimal?         @db.Decimal(10, 7)
+  clockOutAccuracyM Int?
+  status            AttendanceStatus @default(ON_TIME)
+  lateMinutes       Int              @default(0)
+  earlyLeaveMinutes Int              @default(0)
+  note              String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  deletedAt         DateTime?
+
+  company Company           @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  user    User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shift   Shift             @relation(fields: [shiftId], references: [id], onDelete: Restrict)
+  events  AttendanceEvent[]
+
+  @@unique([userId, workDate])
+  @@index([companyId, workDate])
+  @@index([companyId, userId, workDate])
+}
+
+/// Append-only trail of raw clock events. Never mutated after insert.
+/// The aggregated view lives on AttendanceRecord.
+model AttendanceEvent {
+  id             String              @id @default(cuid())
+  attendanceId   String
+  type           AttendanceEventType
+  occurredAt     DateTime
+  latitude       Decimal             @db.Decimal(10, 7)
+  longitude      Decimal             @db.Decimal(10, 7)
+  accuracyMeters Int
+  distanceMeters Int // computed distance from geofence center
+  createdAt      DateTime            @default(now())
+
+  attendance AttendanceRecord @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+
+  @@index([attendanceId, occurredAt])
+}
+
+/// Canonical "user was absent on this working day" marker.
+///
+/// Written by the auto-absent scheduler (source=AUTO_SCHEDULER) or by HR
+/// via a manual override endpoint (source=MANUAL_HR). Kept in a separate
+/// table (not as a null-clock-in AttendanceRecord) so:
+///   * Clock coordinates + times stay non-null in AttendanceRecord.
+///   * The provenance (who classified this) is first-class.
+///   * Payroll / audit queries have a single, small table to consult
+///     when counting deductible days.
+///
+/// Uniqueness on (userId, workDate) means an ABSENT day can only be
+/// registered once — the scanner's idempotency guarantee bottoms out
+/// here. If HR later disputes / removes the classification, a hard
+/// delete is fine (audit log will remember).
+model AbsenceRecord {
+  id         String        @id @default(cuid())
+  companyId  String
+  userId     String
+  workDate   DateTime      @db.Date
+  source     AbsenceSource
+  reason     String?
+  markedById String?
+  createdAt  DateTime      @default(now())
+
+  company  Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  markedBy User?   @relation("AbsenceMarker", fields: [markedById], references: [id])
+
+  @@unique([userId, workDate])
+  @@index([companyId, workDate])
+  @@index([companyId, createdAt])
+}
+
+// ---------- Leave ----------
+
+model LeaveType {
+  id                 String    @id @default(cuid())
+  companyId          String
+  code               String // e.g. 'ANNUAL', 'SICK'
+  name               String
+  kind               LeaveKind
+  defaultAnnualQuota Int       @default(12)
+  carryOverMax       Int       @default(0)
+  requiresAttachment Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  deletedAt          DateTime?
+
+  company  Company        @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  balances LeaveBalance[]
+  requests LeaveRequest[]
+
+  @@unique([companyId, code])
+  @@index([companyId, deletedAt])
+}
+
+/// Invariant (must hold after every mutation):
+///   remaining == quota + carriedOver - used - reserved
+///
+/// Transitions (all inside prisma.$transaction with SELECT ... FOR UPDATE):
+///   submit LeaveRequest        → reserved += days,  remaining -= days
+///   reject / cancel from PENDING → reserved -= days,  remaining += days
+///   HR approve                 → reserved -= days,  used      += days   (remaining unchanged)
+model LeaveBalance {
+  id          String   @id @default(cuid())
+  userId      String
+  leaveTypeId String
+  year        Int
+  quota       Int
+  used        Int      @default(0) // approved & consumed
+  reserved    Int      @default(0) // pending approval — soft-hold on the pool
+  carriedOver Int      @default(0)
+  remaining   Int // maintained inside a transaction; see docs/ARCHITECTURE.md § Concurrency
+  version     Int      @default(0) // optimistic locking companion to FOR UPDATE
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, leaveTypeId, year])
+  @@index([leaveTypeId, year])
+}
+
+model LeaveRequest {
+  id             String      @id @default(cuid())
+  companyId      String
+  userId         String
+  leaveTypeId    String
+  status         LeaveStatus @default(PENDING_SUPERVISOR)
+  startDate      DateTime    @db.Date
+  endDate        DateTime    @db.Date
+  days           Int
+  reason         String
+  attachmentUrl  String?
+  supervisorId   String?
+  hrManagerId    String?
+  supervisorAt   DateTime?
+  hrManagerAt    DateTime?
+  supervisorNote String?
+  hrManagerNote  String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  deletedAt      DateTime?
+
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Restrict)
+
+  @@index([companyId, status])
+  @@index([userId, startDate, endDate])
+}
+
+// ---------- Overtime & Holidays ----------
+
+model OvertimeRequest {
+  id             String         @id @default(cuid())
+  companyId      String
+  userId         String
+  workDate       DateTime       @db.Date
+  hours          Decimal        @db.Decimal(5, 2)
+  reason         String
+  status         OvertimeStatus @default(PENDING_APPROVAL)
+  /// Base user/company hourly rate at submission time (snapshot for audit).
+  baseRate       Decimal        @db.Decimal(12, 2)
+  /// Multiplier applied for weekday/weekend/holiday classification.
+  rateMultiplier Decimal        @db.Decimal(4, 2)
+  /// Effective rate = baseRate × rateMultiplier (denormalized for report queries).
+  ratePerHour    Decimal        @db.Decimal(12, 2)
+  /// Denormalized totalAmount = hours × ratePerHour.
+  totalAmount    Decimal        @db.Decimal(14, 2)
+  /// Set on APPROVE or REJECT — the user who decided.
+  approvedById   String?
+  approvedAt     DateTime?
+  rejectedAt     DateTime?
+  /// Set when the completion scheduler promotes APPROVED → COMPLETED.
+  completedAt    DateTime?
+  decisionNote   String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // NOTE: A partial unique index on (userId, workDate) restricted to *active*
+  // rows (PENDING_APPROVAL / APPROVED / COMPLETED) is added by raw SQL in
+  // migration `20260801190000_add_overtime_indexes_and_partial_unique` —
+  // Prisma does not model partial unique indexes yet, but the constraint is
+  // enforced at the DB level to protect against concurrent submit races.
+  // `OvertimeService.submit()` still performs the app-level check to return
+  // a friendly 409 `DUPLICATE_WORK_DATE`; the partial unique is the
+  // defense-in-depth backstop.
+  @@index([companyId, status])
+  @@index([userId, workDate])
+  // Supports the completion scheduler's linear scan:
+  //   WHERE status = 'APPROVED' AND workDate >= now - 90d
+  @@index([status, workDate])
+}
+
+model Holiday {
+  id        String   @id @default(cuid())
+  companyId String
+  date      DateTime @db.Date
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, date])
+  @@index([companyId, date])
+}
+
+/// Employee-initiated attendance correction request.
+///
+/// Complements the HR-initiated `AbsenceRecord` override lane: an employee
+/// who forgot to punch in/out on a given day (the #1 real-world attendance
+/// ticket) files a correction with an optional attachment. Once approved,
+/// the request materializes as create-or-patch on the target
+/// `AttendanceRecord` for `(userId, workDate)` — non-null existing fields
+/// are NEVER silently overwritten (§ ADR-0011).
+///
+/// Payroll-cutoff aware: submit/decide/cancel refuse `workDate <= cutoff`
+/// for non-SUPER_ADMIN actors, mirroring leave/overtime (Phase 18).
+model AttendanceCorrection {
+  id                  String                     @id @default(cuid())
+  companyId           String
+  userId              String
+  /// Calendar date the correction applies to. Stored as DATE so timezone
+  /// drift doesn't accidentally cross a day boundary during comparison.
+  workDate            DateTime                   @db.Date
+  /// Requested clock-in time (UTC ISO). NULL means "don't set/change".
+  /// At least one of requestedClockInAt/OutAt MUST be present at the
+  /// service layer (validated in DTO, defense-in-depth in service).
+  requestedClockInAt  DateTime?
+  requestedClockOutAt DateTime?
+  reason              String
+  /// S3 object key (see AttachmentService). Column name mirrors LeaveRequest.
+  attachmentUrl       String?
+  status              AttendanceCorrectionStatus @default(PENDING_APPROVAL)
+
+  /// Cached supervisor at submission time. Used for the "my team" queue
+  /// filter; a supervisor change after submission does NOT re-route the
+  /// request — this keeps the approval queue stable for the original
+  /// approver (same pattern as LeaveRequest.supervisorId).
+  supervisorId String?
+  /// The user who APPROVED / REJECTED. Distinct from supervisorId because
+  /// HR / SUPER_ADMIN can decide too.
+  decidedById  String?
+  decidedAt    DateTime?
+  decisionNote String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  decidedBy User?   @relation("AttendanceCorrectionDecider", fields: [decidedById], references: [id])
+
+  /// Common queue: "give me all my company's pending corrections".
+  @@index([companyId, status])
+  /// Owner list + latest-first — "/attendance/corrections/mine".
+  @@index([userId, createdAt])
+  /// Reverse lookup for conflict detection when applying a correction.
+  @@index([userId, workDate])
+}
+
+// ---------- Auth ----------
+
+/// RefreshToken — one row per issued refresh token. Rotation:
+///   1. On login: create ACTIVE token, familyId = its own id
+///   2. On refresh:
+///      - Look up by tokenHash. If not ACTIVE → REVOKE entire familyId (reuse detected).
+///      - Else: mark current row ROTATED, create new ACTIVE row with same familyId, replacedById link.
+///   3. On logout: mark ACTIVE token REVOKED.
+///
+/// `tokenHash` is a SHA-256 of the opaque secret we hand to the client via HttpOnly cookie.
+/// The raw secret is never stored.
+model RefreshToken {
+  id           String             @id @default(cuid())
+  userId       String
+  familyId     String
+  tokenHash    String             @unique
+  status       RefreshTokenStatus @default(ACTIVE)
+  replacedById String?            @unique
+  userAgent    String?
+  ip           String?
+  expiresAt    DateTime
+  /// True once this refresh family has passed the MFA second factor.
+  /// Login sets it to `true` immediately for accounts without MFA
+  /// enrolled; sessions with MFA enrolled start `false` and flip to
+  /// `true` after `POST /auth/mfa/verify` rotates the token. Rotation
+  /// preserves the flag so subsequent `/auth/refresh` calls in the
+  /// same chain keep issuing `mfaPassed=true` access tokens.
+  mfaVerified  Boolean            @default(false)
+  createdAt    DateTime           @default(now())
+  revokedAt    DateTime?
+
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replacedBy RefreshToken? @relation("RefreshTokenChain", fields: [replacedById], references: [id])
+  replaces   RefreshToken? @relation("RefreshTokenChain")
+
+  @@index([userId, status])
+  @@index([familyId, status])
+}
+
+/// Single-use password-reset tokens.
+///
+/// The raw token is 48 bytes of `crypto.randomBytes` encoded as
+/// base64url and delivered via email; the DB stores only its SHA-256
+/// hash. On successful reset:
+///   - `usedAt` is set (prevents replay).
+///   - Every ACTIVE RefreshToken for the user is REVOKED (forces
+///     logout on every device).
+///
+/// `requestedIp`/`userAgent` are captured for audit — helpful if the
+/// user reports a suspicious reset email.
+model PasswordResetToken {
+  id                 String    @id @default(cuid())
+  userId             String
+  tokenHash          String    @unique
+  expiresAt          DateTime
+  usedAt             DateTime?
+  requestedIp        String?
+  requestedUserAgent String?
+  createdAt          DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, usedAt])
+  @@index([expiresAt])
+}
+
+/// One-time backup code for MFA recovery. Generated in batches of
+/// `MFA_BACKUP_CODES_COUNT` (default 8) when the user enrolls or
+/// regenerates. Codes are stored as SHA-256 hashes — the plaintext is
+/// shown to the user ONCE at generation time. Individual codes flip to
+/// `usedAt = now()` on successful verification; the row is never
+/// deleted so we retain the audit trail. Regenerating produces a fresh
+/// batch and marks all prior unused codes as revoked (same shape as
+/// PasswordResetToken invalidation).
+model MfaBackupCode {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String    @unique
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, usedAt])
+}
+
+// ---------- Data Subject Access Request (DSAR) ----------
+
+/// One row per self-service "download my data" request (Fase 31a,
+/// UU PDP / GDPR data-portability right). The pipeline is:
+///
+///   1. User POSTs `/me/data-export`. We create a row with
+///      `status = PENDING` and audit `DATA_EXPORT_REQUESTED`.
+///   2. `DataExportWorker` (background @Cron) claims one PENDING row
+///      per company using `SELECT ... FOR UPDATE SKIP LOCKED` and
+///      flips it to `PROCESSING`.
+///   3. The worker assembles a ZIP with every table joined on
+///      `userId` and uploads it to
+///      `data-exports/{companyId}/{userId}/{requestId}.zip`.
+///   4. On success → `status=READY`, `fileKey`, `fileSize`,
+///      `expiresAt = completedAt + 24h`. Audit `DATA_EXPORT_COMPLETED`.
+///   5. On failure (retries exhausted) → `status=FAILED`,
+///      `failureReason`. Audit `DATA_EXPORT_FAILED`.
+///   6. A daily retention sweep flips `READY → EXPIRED` after
+///      `expiresAt` and deletes the S3 object.
+///
+/// Rate limit: one active PENDING/PROCESSING request at a time PLUS
+/// a 24-hour cooldown from the last `requestedAt` — enforced in the
+/// service layer, not the DB.
+model DataExportRequest {
+  id            String           @id @default(cuid())
+  userId        String
+  companyId     String
+  status        DataExportStatus @default(PENDING)
+  requestedAt   DateTime         @default(now())
+  startedAt     DateTime?
+  completedAt   DateTime?
+  failedAt      DateTime?
+  failureReason String?
+  /// S3 object key. Set when `status=READY`. Wiped when
+  /// `status=EXPIRED` (so `fileKey IS NOT NULL` implies the object
+  /// still exists).
+  fileKey       String?
+  fileSize      Int?
+  /// Cutoff after which `fileKey` is deleted from S3 and the row
+  /// flips to `EXPIRED`. Set together with `completedAt`.
+  expiresAt     DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, requestedAt])
+  @@index([status, requestedAt])
+  @@index([companyId, status])
+}
+
+/// One row per right-to-erasure request (Fase 31b). Requires an
+/// HR / admin decision AND a grace window before execution.
+///
+/// The pipeline:
+///
+///   1. User POSTs `/me/data-erasure` → PENDING_APPROVAL, notify
+///      every HR_MANAGER and SUPER_ADMIN of the tenant.
+///   2. HR / admin calls POST `/admin/data-erasure/:id/approve` →
+///      APPROVED_SCHEDULED, `scheduledFor = now + gracePeriod`,
+///      notify the user.
+///   3. Either the user cancels (`CANCELLED`) OR the grace period
+///      elapses and the worker executes anonymisation → `EXECUTED`.
+///
+/// We keep the row FOREVER even after execution. It serves as an
+/// audit anchor connecting the audit log (`DATA_ERASURE_EXECUTED`)
+/// to the decision trail. The row is also the reason the
+/// FK on `userId` is `Restrict`, not `Cascade`: if we ever purged
+/// the User row entirely (we don't — we anonymise), we would still
+/// want the erasure decision surviving as compliance evidence.
+model DataErasureRequest {
+  id            String            @id @default(cuid())
+  userId        String
+  companyId     String
+  status        DataErasureStatus @default(PENDING_APPROVAL)
+  reason        String?
+  requestedAt   DateTime          @default(now())
+  /// HR_MANAGER or SUPER_ADMIN who accepted / rejected the request.
+  decidedById   String?
+  decidedAt     DateTime?
+  decisionNote  String?
+  /// When the worker is allowed to execute the erasure. Set on
+  /// approve as `decidedAt + DATA_ERASURE_GRACE_DAYS`.
+  scheduledFor  DateTime?
+  executedAt    DateTime?
+  cancelledAt   DateTime?
+  failedAt      DateTime?
+  failureReason String?
+
+  user      User  @relation("EraseTarget", fields: [userId], references: [id], onDelete: Restrict)
+  decidedBy User? @relation("EraseDecider", fields: [decidedById], references: [id], onDelete: SetNull)
+
+  @@index([userId, requestedAt])
+  @@index([companyId, status])
+  @@index([status, scheduledFor])
+}
+
+/// Per-tenant data-lifecycle configuration (Fase 31c). Exactly one
+/// row per Company (enforced by `companyId @unique`); missing rows
+/// are transparently created with sensible fallback defaults on
+/// first read.
+///
+/// Every field is optional-with-default so admins can dial policies
+/// independently, and every field carries a MEANINGFUL zero:
+///
+///   `notificationRetentionDays = 0`        → retention disabled
+///   `terminatedUserAnonymizeDays = 0`      → auto-erasure disabled
+///   `dataExportArchiveRetentionHours`      → cannot be zero (min 1)
+///
+/// The retention worker refuses to run if any value is out of the
+/// hard-coded safety bounds; see `RetentionService.validate`.
+model RetentionPolicy {
+  id                              String   @id @default(cuid())
+  companyId                       String   @unique
+  /// Delete `Notification` rows older than this. `0` = keep forever.
+  /// Range 0–730 (2 years).
+  notificationRetentionDays       Int      @default(90)
+  /// Override the environment default for how long a completed data
+  /// export archive lives before the DSAR retention sweep purges it.
+  /// Range 1–168 (7 days).
+  dataExportArchiveRetentionHours Int      @default(24)
+  /// Auto-anonymise users whose employment ended more than this many
+  /// days ago. `0` disables auto-erasure — data-erasure requests
+  /// remain the only path. Range 0–3650 (10 years).
+  terminatedUserAnonymizeDays     Int      @default(0)
+  updatedAt                       DateTime @updatedAt
+  updatedById                     String?
+
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  updatedBy User?   @relation("RetentionPolicyUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+}
+
+/// A versioned privacy policy the tenant asks its users to accept.
+/// Multiple versions live side-by-side; the "latest" for a tenant
+/// is the row with the largest `effectiveAt <= NOW()`.
+///
+/// The body is stored as raw markdown-ish text — the FE renders it
+/// with a whitelist of tags. Do NOT embed HTML here; the CSP will
+/// refuse it anyway.
+model PrivacyPolicy {
+  id            String   @id @default(cuid())
+  companyId     String
+  /// Human-facing version label (e.g. "1.0", "2026-08"). Unique per
+  /// tenant so admins cannot accidentally publish two "1.0"s.
+  version       String
+  title         String
+  body          String
+  effectiveAt   DateTime @default(now())
+  publishedById String?
+  createdAt     DateTime @default(now())
+
+  company     Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  publishedBy User?         @relation("PolicyPublisher", fields: [publishedById], references: [id], onDelete: SetNull)
+  consents    UserConsent[]
+
+  @@unique([companyId, version])
+  @@index([companyId, effectiveAt])
+}
+
+/// One row per (user, policy) acceptance. Historic — never updated
+/// or deleted (a new policy version produces a new row). Used to
+/// prove GDPR / UU PDP consent at the exact timestamp of the
+/// interaction.
+model UserConsent {
+  id         String   @id @default(cuid())
+  userId     String
+  policyId   String
+  companyId  String
+  acceptedAt DateTime @default(now())
+  ip         String?
+  userAgent  String?
+
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  policy PrivacyPolicy @relation(fields: [policyId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, policyId])
+  @@index([companyId, acceptedAt])
+}
+
+// ---------- ROPA Registry (Fase 31d) ----------
+//
+// Record of Processing Activities per GDPR Art. 30 and UU PDP Pasal 31.
+// Every activity has one row in `RopaActivity` plus 1..N immutable
+// `RopaActivityVersion` snapshots. `currentVersionId` points at the
+// active PUBLISHED version (nullable while all versions are still DRAFT/REVIEW).
+
+/// Lifecycle of a `RopaActivityVersion`.
+///
+///   DRAFT     — Editable by HR/Super Admin; not part of the regulator export.
+///   REVIEW    — Submitted for review; frozen against edits (must return-to-draft to modify).
+///   PUBLISHED — Immutable. At most one PUBLISHED per RopaActivity at any time.
+///               Publishing a new version auto-archives the previous PUBLISHED.
+///   ARCHIVED  — Historical; retained forever for audit but no longer current.
+enum RopaVersionStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+/// Legal basis enumeration per Pasal 20 UU PDP (aligned with GDPR Art. 6).
+///
+///   CONTRACT            — Pelaksanaan perjanjian (kerja / layanan).
+///   CONSENT             — Persetujuan subjek data.
+///   LEGAL_OBLIGATION    — Kewajiban hukum controller.
+///   LEGITIMATE_INTEREST — Kepentingan sah controller, tidak melebihi hak subjek.
+///   VITAL_INTEREST      — Melindungi kepentingan vital subjek data.
+///   PUBLIC_TASK         — Pelaksanaan tugas kepentingan publik.
+enum RopaLegalBasis {
+  CONTRACT
+  CONSENT
+  LEGAL_OBLIGATION
+  LEGITIMATE_INTEREST
+  VITAL_INTEREST
+  PUBLIC_TASK
+}
+
+/// One row per named processing activity in the tenant. Stable across
+/// versions — versioning lives on `RopaActivityVersion`.
+model RopaActivity {
+  id               String   @id @default(cuid())
+  companyId        String
+  /// Stable slug for seed matching (e.g. `attendance-tracking`). Unique per
+  /// tenant so re-running the seed helper is idempotent.
+  slug             String
+  /// Cache pointer to the PUBLISHED version so the read hot-path can skip
+  /// the "find latest" scan. Kept @unique so we never accidentally point at
+  /// a version belonging to a different activity.
+  currentVersionId String?  @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  company         Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  currentVersion  RopaActivityVersion?  @relation("RopaCurrentVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  versions        RopaActivityVersion[] @relation("RopaActivityVersions")
+  dpiaAssessments DpiaAssessment[]
+  vendorLinks     RopaActivityVendor[]
+
+  @@unique([companyId, slug])
+  @@index([companyId])
+}
+
+/// Immutable snapshot of an activity at a point in time. Once PUBLISHED
+/// nothing on this row may change — a correction requires creating a
+/// new version. This is what regulators actually read.
+model RopaActivityVersion {
+  id         String            @id @default(cuid())
+  activityId String
+  companyId  String // denorm for tenant-scoped queries
+  version    Int
+  status     RopaVersionStatus @default(DRAFT)
+
+  // --- Art. 30 GDPR / Pasal 31 UU PDP fields ---
+  name                String
+  purpose             String
+  legalBasis          RopaLegalBasis
+  /// Free-text detail elaborating the legal basis, e.g. "UU 13/2003 Pasal 78".
+  legalBasisDetail    String?
+  /// Categories of personal data, e.g. `BASIC_IDENTITY`, `CONTACT`, `HEALTH`,
+  /// `BIOMETRIC`, `LOCATION`, `FINANCIAL`, `EMPLOYMENT`. Stored as free-form
+  /// string tags for now — a formal enum can come later if needed.
+  dataCategories      String[]
+  /// Categories of data subjects, e.g. `EMPLOYEE`, `DEPENDENT`, `CANDIDATE`.
+  subjectCategories   String[]
+  /// Data recipients (internal teams, external processors), e.g.
+  /// ["Payroll vendor (via webhook)", "S3 backup (AWS)"].
+  recipients          String[]
+  retentionPeriod     String
+  crossBorderTransfer Boolean        @default(false)
+  crossBorderDetail   String?
+  securityMeasures    String
+  notes               String?
+
+  // --- Provenance ---
+  createdById   String?
+  createdAt     DateTime  @default(now())
+  reviewedById  String?
+  reviewedAt    DateTime?
+  publishedById String?
+  publishedAt   DateTime?
+  archivedAt    DateTime?
+
+  activity    RopaActivity  @relation("RopaActivityVersions", fields: [activityId], references: [id], onDelete: Cascade)
+  company     Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  activeFor   RopaActivity? @relation("RopaCurrentVersion")
+  createdBy   User?         @relation("RopaVersionCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  reviewedBy  User?         @relation("RopaVersionReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  publishedBy User?         @relation("RopaVersionPublisher", fields: [publishedById], references: [id], onDelete: SetNull)
+
+  @@unique([activityId, version])
+  @@index([companyId, status])
+  @@index([companyId, publishedAt])
+}
+
+// ---------- DPIA (Fase 31e) ----------
+//
+// Data Protection Impact Assessment per **GDPR Art. 35** & **UU 27/2022 PDP
+// Pasal 34**. Every high-risk `RopaActivity` should carry at least one
+// APPROVED DPIA before the tenant relies on the associated data flow in
+// production. Unlike ROPA (register), DPIA is a *risk assessment*: for
+// every identified risk we record likelihood, impact, mitigations, and
+// the residual score after mitigation.
+
+/// Lifecycle of a DPIA assessment. Parallel to `RopaVersionStatus` so
+/// DPOs deal with one mental model across compliance surfaces.
+///
+///   DRAFT     — Editable; risks + mitigations mutable.
+///   REVIEW    — Submitted; frozen against edits (must return-to-draft).
+///   APPROVED  — Immutable; the "current" DPIA for the activity.
+///   ARCHIVED  — Historical; retained for audit but superseded.
+enum DpiaStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+  ARCHIVED
+}
+
+/// Bucketed risk level derived from `likelihood × impact` (or the
+/// residual variant). Boundaries: LOW <8, MEDIUM 8..14, HIGH 15..19,
+/// CRITICAL 20..25 on a 1..5 × 1..5 grid. The domain module is the
+/// sole source of truth for bucketing — do NOT read the DB column and
+/// re-bucket in FE code.
+enum DpiaRiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+/// One DPIA snapshot per `RopaActivity`. Multiple assessments can exist
+/// per activity (versioned by createdAt) but at most ONE APPROVED at a
+/// time — enforced by a partial unique index in the migration.
+model DpiaAssessment {
+  id             String     @id @default(cuid())
+  companyId      String
+  ropaActivityId String
+  status         DpiaStatus @default(DRAFT)
+
+  /// Human-facing label — e.g. "Attendance geofence — 2026-Q3 review".
+  title      String
+  /// Free-form narrative describing the scope of THIS assessment.
+  /// Distinct from the ROPA `purpose` (which describes the *activity*).
+  scope      String
+  /// Necessity + proportionality justification (Art. 35(7)(b)).
+  necessity  String
+  /// DPO consultation outcome. Optional at DRAFT; recommended before REVIEW.
+  dpoOpinion String?
+  /// Summary conclusion written when the assessor moves to REVIEW.
+  conclusion String?
+
+  // --- Provenance ---
+  createdById  String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  reviewedById String?
+  reviewedAt   DateTime?
+  approvedById String?
+  approvedAt   DateTime?
+  archivedAt   DateTime?
+
+  company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  ropaActivity RopaActivity   @relation(fields: [ropaActivityId], references: [id], onDelete: Restrict)
+  createdBy    User?          @relation("DpiaCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  reviewedBy   User?          @relation("DpiaReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  approvedBy   User?          @relation("DpiaApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  riskItems    DpiaRiskItem[]
+
+  @@index([companyId, status])
+  @@index([ropaActivityId, createdAt])
+}
+
+/// A single identified risk on a DPIA. `inherentLevel` reflects
+/// likelihood × impact BEFORE mitigation; `residualLevel` reflects the
+/// score AFTER mitigations are in place. Both are computed by the
+/// service on every write — the DB stores the bucket for cheap reads
+/// but the raw (likelihood, impact) columns remain the source of truth.
+model DpiaRiskItem {
+  id           String @id @default(cuid())
+  assessmentId String
+  companyId    String
+  /// Stable ordering key so the risk register renders consistently
+  /// across re-fetches. Service assigns monotonically increasing values;
+  /// deletion leaves gaps rather than renumbering (audit-friendliness).
+  ordinal      Int
+
+  /// Short handle — e.g. "Kebocoran koordinat GPS via log verbose".
+  title       String
+  /// Free-form description of the threat scenario.
+  description String
+
+  // --- Inherent (pre-mitigation) ---
+  likelihood    Int
+  impact        Int
+  inherentLevel DpiaRiskLevel
+
+  /// Mitigation controls. Free-form; DPO writes what they have deployed
+  /// and/or plan to deploy.
+  mitigations        String
+  /// Residual likelihood / impact / bucket. Assessor evaluates AFTER
+  /// mitigations. `residual*` must be ≤ `inherent*` (service-enforced).
+  residualLikelihood Int
+  residualImpact     Int
+  residualLevel      DpiaRiskLevel
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assessment DpiaAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  company    Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([assessmentId, ordinal])
+  @@index([companyId, residualLevel])
+}
+
+// ---------- Timesheet (Fase 32a) ----------
+
+/// How a tenant carves working time into review periods. Each tenant
+/// picks exactly one; the FE generator dashboards use this to shape
+/// their period-picker widget.
+///
+///   WEEKLY   — 7-day windows anchored to `TimesheetConfig.weekStartDay`.
+///   BIWEEKLY — 14-day windows anchored to `TimesheetConfig.biweeklyAnchor`.
+///   MONTHLY  — calendar month (1..N in tenant timezone).
+///   CUTOFF   — day-of-month cutoff (e.g. 25 → periods run 26 → 25).
+enum TimesheetPeriodType {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  CUTOFF
+}
+
+enum WeekStartDay {
+  SUNDAY
+  MONDAY
+}
+
+/// Per-tenant timesheet configuration (Fase 32a). Exactly one row per
+/// Company (enforced by `companyId @unique`). Missing rows are lazily
+/// created with fallback defaults on first read.
+model TimesheetConfig {
+  id               String              @id @default(cuid())
+  companyId        String              @unique
+  periodType       TimesheetPeriodType @default(MONTHLY)
+  /// Only meaningful when `periodType = WEEKLY`.
+  weekStartDay     WeekStartDay        @default(MONDAY)
+  /// Only meaningful when `periodType = BIWEEKLY`. Every 14-day window
+  /// starts on this calendar date + N × 14. Stored as a calendar date
+  /// so DST + timezone shifts don't drift the anchor.
+  biweeklyAnchor   DateTime?           @db.Date
+  /// Only meaningful when `periodType = CUTOFF`. Day-of-month the
+  /// period ends on (e.g. 25 → period runs prev-26 to this-25). Range 1–28
+  /// because Feb has 28 days and we refuse to encode "last day of month".
+  cutoffDayOfMonth Int?
+  /// Timezone used to interpret calendar days when building periods.
+  /// Defaults to the Company timezone but can be pinned per tenant if
+  /// they run offices in a different zone from HQ.
+  timezone         String              @default("Asia/Jakarta")
+
+  // ---- Fase 32f: auto-generation + reminder scheduler ----
+  /// Master switch — when `false` the scheduler skips this tenant entirely.
+  autoGenerateEnabled       Boolean @default(true)
+  /// Master switch — when `false` no reminder notifications fire even
+  /// if `autoGenerateEnabled` is on. Employees still see their DRAFT
+  /// timesheets in the UI; they just don't get poked about them.
+  reminderEnabled           Boolean @default(true)
+  /// Days after `periodEnd` before the FIRST submit reminder fires to
+  /// an employee whose row is still DRAFT. Range 0..14. 0 means fire
+  /// on the same day the period closes.
+  submitReminderStartDays   Int     @default(1)
+  /// Absolute cap on days after `periodEnd`. Past this we stop nagging
+  /// — HR should intervene manually rather than let the queue spam.
+  /// Range 1..30. Must be >= submitReminderStartDays.
+  submitReminderMaxDays     Int     @default(7)
+  /// Same idea for approver reminders (supervisor + HR queues).
+  approvalReminderStartDays Int     @default(2)
+  approvalReminderMaxDays   Int     @default(14)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  updatedById String?
+
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  updatedBy User?   @relation("TimesheetConfigUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+}
+
+/// Fase 32f — one row per reminder actually fired. Enforces "at most
+/// one nudge per (timesheet, type) per calendar day" via the unique
+/// index on `sentDate`. Serves as the audit trail for the scheduler
+/// and lets the FE render "you were reminded 3 times".
+///
+/// Append-only: worker inserts, retention worker deletes rows older
+/// than the tenant's notification retention window.
+model TimesheetReminderLog {
+  id          String           @id @default(cuid())
+  timesheetId String
+  companyId   String
+  /// Which reminder type this row records (submit vs. approval).
+  type        NotificationType
+  /// The USER we notified (employee for submit; supervisor / HR for
+  /// approval). Stored explicitly so a supervisor reassignment
+  /// doesn't lose the audit trail.
+  recipientId String
+  /// `sentAt` truncated to the tenant TZ's calendar date — used in the
+  /// unique index to enforce daily de-dupe without a race between
+  /// concurrent workers.
+  sentDate    DateTime         @db.Date
+  sentAt      DateTime         @default(now())
+
+  timesheet Timesheet @relation(fields: [timesheetId], references: [id], onDelete: Cascade)
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  recipient User      @relation("TimesheetReminderRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  /// At-most-once-per-(timesheet, type, day). A concurrent worker on
+  /// another replica will hit P2002 and silently no-op.
+  @@unique([timesheetId, type, sentDate])
+  @@index([companyId, sentDate])
+  @@index([recipientId, sentDate])
+}
+
+/// A single review window in a tenant's timeline. Created by the
+/// generator (`TimesheetService.generateForPeriod`) — never by hand.
+/// The window is closed at both ends (`periodStart <= workDate <=
+/// periodEnd`).
+model TimesheetPeriod {
+  id          String              @id @default(cuid())
+  companyId   String
+  /// Denormalised so the generator can idempotently upsert without
+  /// reading the config each tick.
+  periodType  TimesheetPeriodType
+  periodStart DateTime            @db.Date
+  periodEnd   DateTime            @db.Date
+  /// Human-facing label, e.g. "Aug 2026", "W32 2026", "26 Jul – 25 Aug".
+  /// Computed at generation time from (periodType, start, end).
+  label       String
+  generatedAt DateTime            @default(now())
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  company    Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  timesheets Timesheet[]
+  exports    TimesheetExport[]
+
+  @@unique([companyId, periodStart, periodEnd])
+  @@index([companyId, periodEnd])
+}
+
+/// One timesheet per (user, period). Header + rollup for the daily
+/// entries; workflow status placeholder (submit/approve/reject lands
+/// in Fase 32b).
+model Timesheet {
+  id                     String          @id @default(cuid())
+  companyId              String
+  userId                 String
+  periodId               String
+  /// Rollup — sum of `regularHours` across every entry.
+  totalRegularHours      Decimal         @default(0) @db.Decimal(7, 2)
+  /// Rollup — sum of `overtimeHours`.
+  totalOvertimeHours     Decimal         @default(0) @db.Decimal(7, 2)
+  /// Number of calendar days the user was ON_LEAVE (any type).
+  totalLeaveDays         Int             @default(0)
+  /// Number of calendar days flagged as ABSENT (auto-scanner or manual).
+  totalAbsentDays        Int             @default(0)
+  totalHolidays          Int             @default(0)
+  totalWorkingDays       Int             @default(0)
+  totalLateMinutes       Int             @default(0)
+  totalEarlyLeaveMinutes Int             @default(0)
+  generatedAt            DateTime        @default(now())
+  /// Fase 32b — review lifecycle. Defaults to DRAFT on first generate
+  /// and after a REJECT decision. See `TimesheetStatus` for semantics.
+  status                 TimesheetStatus @default(DRAFT)
+  submittedAt            DateTime?
+  supervisorId           String?
+  supervisorAt           DateTime?
+  supervisorNote         String?
+  hrManagerId            String?
+  hrManagerAt            DateTime?
+  hrManagerNote          String?
+  rejectedById           String?
+  rejectedAt             DateTime?
+  rejectionReason        String?
+  /// Fase 32g — how many times HR has reopened this timesheet after
+  /// it was APPROVED. Bumped every successful reopen; never resets.
+  /// A tenant querying `reopenCount > 3` can surface data-quality
+  /// signals ("this row keeps being reopened; look at root cause").
+  reopenCount            Int             @default(0)
+  /// Fase 32g — audit metadata for the LATEST reopen. Full history
+  /// lives in `AuditLog` (append-only); these columns are the
+  /// hot-path denorm so the queue view can render a badge without
+  /// joining audit rows.
+  lastReopenedAt         DateTime?
+  lastReopenedById       String?
+  lastReopenReason       String?
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+
+  company        Company                @relation("TimesheetsByCompany", fields: [companyId], references: [id], onDelete: Cascade)
+  user           User                   @relation("TimesheetsByUser", fields: [userId], references: [id], onDelete: Cascade)
+  period         TimesheetPeriod        @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  supervisor     User?                  @relation("TimesheetSupervisor", fields: [supervisorId], references: [id], onDelete: SetNull)
+  hrManager      User?                  @relation("TimesheetHrManager", fields: [hrManagerId], references: [id], onDelete: SetNull)
+  rejectedBy     User?                  @relation("TimesheetRejector", fields: [rejectedById], references: [id], onDelete: SetNull)
+  lastReopenedBy User?                  @relation("TimesheetReopener", fields: [lastReopenedById], references: [id], onDelete: SetNull)
+  entries        TimesheetEntry[]
+  reminderLogs   TimesheetReminderLog[]
+
+  @@unique([userId, periodId])
+  @@index([companyId, periodId])
+  @@index([userId, periodId])
+}
+
+/// Kind of a workDate row inside a Timesheet. A single day can only
+/// map to ONE kind — the entry-builder resolves conflicts (e.g. a
+/// user with both an approved leave and a clock-in on the same day
+/// → LEAVE takes precedence, the clock-in is treated as noise).
+enum TimesheetEntryKind {
+  WORKING // regular working day (with or without clock-in)
+  HOLIDAY // public holiday from `Holiday` table
+  WEEKEND // Sat/Sun outside shift assignment
+  LEAVE // approved LeaveRequest covers the day
+  ABSENT // AbsenceRecord present, no clock-in
+}
+
+/// Fase 32b — timesheet review lifecycle. Mirrors the leave workflow
+/// (`LeaveStatus`) so HR muscle-memory transfers.
+///
+///   DRAFT               — auto-generated. Employee owns the row; can
+///                          submit or wait for HR to regenerate.
+///   PENDING_SUPERVISOR  — employee submitted; waiting on their
+///                          supervisor. Employee cannot regenerate.
+///   PENDING_HR          — supervisor approved; waiting on HR Manager.
+///                          Locked to the employee.
+///   APPROVED            — HR Manager approved. **Locked** — no
+///                          regenerate, no source-row mutation via
+///                          AttendanceCorrection.
+///   REJECTED            — either approver rejected. Employee can
+///                          re-edit sources (correction) then
+///                          re-submit; on re-submit the row transitions
+///                          back to PENDING_SUPERVISOR.
+enum TimesheetStatus {
+  DRAFT
+  PENDING_SUPERVISOR
+  PENDING_HR
+  APPROVED
+  REJECTED
+}
+
+/// Per-workDate row inside a `Timesheet`. Materialised — the generator
+/// reads AttendanceRecord + OvertimeRequest + LeaveRequest +
+/// AbsenceRecord + Holiday + UserShiftAssignment and freezes them into
+/// this row. That means a later correction lands as a distinct
+/// generation pass (or, in 32b, as an `AttendanceCorrection` that
+/// forces a re-generate).
+model TimesheetEntry {
+  id                String             @id @default(cuid())
+  timesheetId       String
+  workDate          DateTime           @db.Date
+  kind              TimesheetEntryKind @default(WORKING)
+  /// Expected working hours per the user's shift assignment on that
+  /// day. Null if the user had no shift (rare — should only happen
+  /// for admin-role users without a shift).
+  expectedHours     Decimal?           @db.Decimal(5, 2)
+  regularHours      Decimal            @default(0) @db.Decimal(5, 2)
+  overtimeHours     Decimal            @default(0) @db.Decimal(5, 2)
+  leaveHours        Decimal            @default(0) @db.Decimal(5, 2)
+  lateMinutes       Int                @default(0)
+  earlyLeaveMinutes Int                @default(0)
+  /// Snapshot of the source records that fed this row. Never joined
+  /// to at read-time — the FE just displays them for provenance.
+  /// Shape: { attendanceId?, overtimeId?, leaveId?, absenceId?, holidayId? }
+  sourceRefs        Json?
+  /// Short human-readable status (e.g. "Late 12min", "Cuti Tahunan").
+  /// Rendered in the timesheet grid without any client-side lookup.
+  note              String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  timesheet Timesheet @relation(fields: [timesheetId], references: [id], onDelete: Cascade)
+
+  @@unique([timesheetId, workDate])
+  @@index([workDate])
+}
+
+/// Fase 32c — payroll export audit trail. Every download of a timesheet
+/// export (CSV / XLSX, summary / detail) writes a row here BEFORE the
+/// bytes leave the server, so an operator can always reconstruct "who
+/// exported which period, when, at what shape". The `payloadSha256`
+/// covers the exact byte sequence written to the client — pair it with
+/// the audit log and you have proof of what the payroll team received.
+///
+/// Rows are append-only: no UPDATE / DELETE ever. See ADR-0025 for the
+/// full rationale (immutable seal on payroll cutoff decisions).
+enum TimesheetExportFormat {
+  CSV
+  XLSX
+}
+
+enum TimesheetExportMode {
+  SUMMARY // one row per user × period (rollup)
+  DETAIL // one row per user × period × workDate (entry-level)
+}
+
+model TimesheetExport {
+  id            String                @id @default(cuid())
+  companyId     String
+  periodId      String
+  requestedById String
+  format        TimesheetExportFormat
+  mode          TimesheetExportMode
+  /// Optional department filter — null means "whole tenant".
+  departmentId  String?
+  /// Number of Timesheet rows the export covered (both modes).
+  rowCount      Int
+  /// Number of TimesheetEntry rows written (SUMMARY = 0).
+  entryCount    Int                   @default(0)
+  /// Byte length of the streamed payload — cross-check with the hash.
+  bytes         Int
+  /// SHA-256 of the payload (hex). Fixed 64 chars but stored TEXT so we
+  /// can rotate to a stronger hash without a schema migration.
+  payloadSha256 String
+  /// The exact byte-string that was streamed to the client at export
+  /// time (Fase 32d). Persisted so a signed download URL can serve the
+  /// same bytes byte-identically — no re-render, no XLSX determinism
+  /// tax. Nullable for rows created before the migration; the share
+  /// endpoint refuses those with 410 GONE. Size is bounded by tenant
+  /// user count × entries-per-period (~10 MB worst case).
+  payload       Bytes?
+  /// Optional freeform label so HR can annotate the export
+  /// ("Payroll batch A", "Rerun after correction").
+  note          String?
+  createdAt     DateTime              @default(now())
+
+  company     Company                @relation("TimesheetExportsByCompany", fields: [companyId], references: [id], onDelete: Cascade)
+  period      TimesheetPeriod        @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  requestedBy User                   @relation("TimesheetExportRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+  department  Department?            @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  shares      TimesheetExportShare[]
+
+  @@index([companyId, createdAt])
+  @@index([periodId])
+}
+
+/// Fase 32d — a signed download link for a `TimesheetExport`.
+///
+/// Rows encode HR's *intent* to share a specific export externally
+/// with a payroll vendor. The URL that leaves the app carries an
+/// HMAC-SHA256 signature over `${id}:${expiresAt}` and is verified
+/// against `TIMESHEET_EXPORT_SIGNING_SECRET` server-side. No JWT is
+/// required on the public download endpoint; the signature IS the
+/// authorisation.
+///
+/// The row is append-only for `createdAt` / `createdById` / `expiresAt`.
+/// `downloadCount` / `lastDownloadedAt` are the only fields ever
+/// updated, and only by the public download handler itself. Revocation
+/// sets `revokedAt` (soft) so an issued URL becomes 403 immediately.
+model TimesheetExportShare {
+  id               String    @id @default(cuid())
+  exportId         String
+  companyId        String
+  createdById      String
+  expiresAt        DateTime
+  /// Set when HR revokes the link. Public endpoint checks `revokedAt IS NULL`.
+  revokedAt        DateTime?
+  revokedById      String?
+  downloadCount    Int       @default(0)
+  lastDownloadedAt DateTime?
+  /// Optional label so HR can distinguish "shared with Vendor A" from
+  /// "shared with Vendor B" in the audit trail.
+  note             String?
+  createdAt        DateTime  @default(now())
+
+  export    TimesheetExport @relation(fields: [exportId], references: [id], onDelete: Cascade)
+  company   Company         @relation("TimesheetExportSharesByCompany", fields: [companyId], references: [id], onDelete: Cascade)
+  createdBy User            @relation("TimesheetExportShareCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  revokedBy User?           @relation("TimesheetExportShareRevoker", fields: [revokedById], references: [id], onDelete: SetNull)
+
+  @@index([companyId, createdAt])
+  @@index([exportId, revokedAt])
+}
+
+// ---------- Notifications ----------
+
+/// Per-recipient notification row. Persisted (not fire-and-forget) so that a
+/// user who is offline when an event happens can still see it on next login,
+/// and so that HR can audit "who was told what".
+///
+/// `data` is a small JSON blob with references the frontend uses to build
+/// deep links (e.g. `{ "leaveRequestId": "..." }`). The service NEVER
+/// stringifies user-controlled content here — bodies are built server-side
+/// from typed templates.
+///
+/// `readAt` doubles as the "seen" mark. Deletion is discouraged; the read
+/// flag + a TTL (out of MVP scope) is the intended retention story.
+model Notification {
+  id          String           @id @default(cuid())
+  companyId   String
+  recipientId String
+  type        NotificationType
+  title       String
+  body        String
+  data        Json?
+  readAt      DateTime?
+  createdAt   DateTime         @default(now())
+
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  recipient User    @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  // Primary access pattern: "unread notifications for this user, newest first"
+  @@index([recipientId, readAt, createdAt])
+  // Secondary: "all notifications for this tenant" (admin audit exploration)
+  @@index([companyId, createdAt])
+}
+
+/// Per-user opt-out for notification delivery, one row per (user, type).
+///
+/// # Storage semantics
+///
+/// This table stores OVERRIDES only. Absence of a row = "both channels
+/// enabled" (the default is opt-out, not opt-in — new users start
+/// subscribed to everything). Rationale: default subscription is the
+/// safer choice for a workforce app (missing a rejected leave request
+/// because you forgot to opt in is worse than a slightly noisy inbox),
+/// and storing overrides only keeps this table small (~1 row per user
+/// per opted-out type) rather than exploding to |users| × |types|.
+///
+/// # Cascade
+///
+/// `onDelete: Cascade` on `userId` — when a user is deleted, wipe their
+/// preferences. Preferences carry no business meaning outside the user.
+///
+/// # Mandatory types
+///
+/// Some `NotificationType` values (e.g. `PASSWORD_RESET`) are security
+/// critical and cannot be opted out. The `mandatoryNotificationTypes`
+/// domain helper enforces this at the service edge; the DB happily
+/// accepts a row for a mandatory type but the effective-lookup ignores
+/// it. See ADR-0012.
+model NotificationPreference {
+  id           String           @id @default(cuid())
+  companyId    String
+  userId       String
+  type         NotificationType
+  emailEnabled Boolean          @default(true)
+  inAppEnabled Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Prevents duplicate preference rows per (user, type). Also the
+  /// primary lookup key used at fanout time — makes the effective
+  /// preference check a single-row seek.
+  @@unique([userId, type])
+  /// Backup index for tenant-wide reads (e.g. admin analytics: "how
+  /// many users opted out of leave rejection emails?"). Not used at
+  /// fanout time.
+  @@index([companyId, type])
+}
+
+// ---------- Audit ----------
+
+/// Immutable. UPDATE / DELETE must be revoked at the DB role level:
+///   REVOKE UPDATE, DELETE ON "AuditLog" FROM workpulse_app;
+model AuditLog {
+  id         String   @id @default(cuid())
+  companyId  String
+  /// Nullable — retention sweeps, cron-driven anonymisations, and
+  /// other system-actor mutations have no human on the loop and MUST
+  /// still generate an audit row. The reader UI renders `NULL`
+  /// as "System". Human-triggered writes never leave this null.
+  actorId    String?
+  action     String
+  entityType String
+  entityId   String
+  beforeJson Json?
+  afterJson  Json?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  actor   User?   @relation("AuditActor", fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([companyId, entityType, entityId])
+  @@index([actorId, createdAt])
+}
+
+// ---------- Webhooks (Fase 32e) ----------
+
+/// Which lifecycle events a webhook endpoint subscribes to. The wire
+/// value on the delivery payload is a lowercase dotted string
+/// (`timesheet.export.created`) — this enum is DB-side book-keeping
+/// only. Extending the enum requires a migration + a code release
+/// (services fan out from a hard-coded switch, not reflection).
+enum WebhookEventType {
+  TIMESHEET_EXPORT_CREATED
+  TIMESHEET_EXPORT_SHARE_CREATED
+  /// Fase 32g — an APPROVED timesheet was reopened by HR. Downstream
+  /// payroll systems that already ingested a paid row should mark it
+  /// pending re-verification.
+  TIMESHEET_REOPENED
+}
+
+enum WebhookDeliveryStatus {
+  /// Newly enqueued or being retried. Worker will pick it up when
+  /// `nextAttemptAt <= now()`.
+  PENDING
+  /// 2xx observed within the timeout. Terminal.
+  SUCCEEDED
+  /// Retries exhausted (attemptCount >= WEBHOOK_MAX_ATTEMPTS). Terminal.
+  FAILED
+}
+
+/// Per-tenant webhook subscription. Vendors (payroll systems, BI
+/// pipelines) point us at their URL, we push events. Secret is
+/// AES-256-GCM-encrypted at rest — the plaintext is only surfaced ONCE
+/// in the create response, then rotated on demand. HR is expected to
+/// paste that plaintext into the vendor's config.
+model WebhookEndpoint {
+  id                  String             @id @default(cuid())
+  companyId           String
+  createdById         String
+  url                 String
+  description         String?
+  /// Base64 AES-256-GCM ciphertext of the HMAC-SHA256 secret. Wire
+  /// format identical to `User.mfaSecret` — see MFA `crypto.ts`.
+  secretCipher        String
+  events              WebhookEventType[]
+  active              Boolean            @default(true)
+  /// Consecutive-failure counter used for auto-disable (Fase 32e keeps
+  /// it as observability; auto-disable is a follow-up phase).
+  consecutiveFailures Int                @default(0)
+  lastSuccessAt       DateTime?
+  lastFailureAt       DateTime?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  company    Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdBy  User              @relation("WebhookEndpointCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  deliveries WebhookDelivery[]
+
+  @@index([companyId, active])
+}
+
+/// Append-only delivery log. One row per event-per-endpoint. Retry
+/// attempts mutate `attemptCount`, `status`, `nextAttemptAt`,
+/// `lastResponseStatus`, `lastResponseBodySnippet`, `lastError`,
+/// `lastAttemptAt`, `deliveredAt` — the payload + signature never
+/// change so replays can prove exactly what we sent.
+model WebhookDelivery {
+  id                      String                @id @default(cuid())
+  endpointId              String
+  companyId               String
+  eventType               WebhookEventType
+  /// Foreign key of the source entity (export id, share id). Enables
+  /// idempotent enqueue — dispatcher upserts on `(endpointId, eventType, sourceId)`.
+  sourceId                String
+  /// Full JSON body we sent (or plan to send). Frozen at enqueue-time
+  /// so retries are byte-identical.
+  payloadJson             Json
+  /// The `X-Workpulse-Signature` header value (`t=<ts>,v1=<hex>`) we
+  /// stamped at enqueue-time. Frozen with the payload.
+  signatureHeader         String
+  status                  WebhookDeliveryStatus @default(PENDING)
+  attemptCount            Int                   @default(0)
+  nextAttemptAt           DateTime              @default(now())
+  lastAttemptAt           DateTime?
+  lastResponseStatus      Int?
+  /// First 512 bytes of the vendor's response body — enough for
+  /// debugging without persisting arbitrary payloads.
+  lastResponseBodySnippet String?
+  lastError               String?
+  deliveredAt             DateTime?
+  createdAt               DateTime              @default(now())
+
+  endpoint WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  company  Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  /// Guarantees at-most-one delivery row per (endpoint, event, source).
+  /// A duplicate enqueue is a no-op instead of a duplicate HTTP push.
+  @@unique([endpointId, eventType, sourceId])
+  /// Worker pull index — cheapest to plan when scanning "next PENDING".
+  @@index([status, nextAttemptAt])
+  @@index([companyId, createdAt])
+}
+
+// ---------- Analytics — Executive KPI Snapshots (Fase 33a) ----------
+//
+// Materialised per-day KPI values so the executive dashboard renders in
+// O(rows_returned) instead of O(rows_scanned). The nightly worker
+// upserts one row per `(companyId, date, metricKey)` — idempotent so
+// re-runs and backfills are safe.
+//
+// Design rules:
+//   1. `date` is a tenant-local calendar day, NOT a timestamp. Snapshot
+//      writes always resolve "yesterday in Company.timezone".
+//   2. Rows are append/upsert only. History is never mutated; a "fix"
+//      re-runs the compute and lets the upsert overwrite that row.
+//   3. `value` is `Decimal(18,4)` — enough headroom for cost metrics in
+//      IDR (up to ~9 999 999 999 999.9999) while retaining 4 dp for
+//      ratios stored as fractions (0.9834 = 98.34% on-time).
+//   4. `dimension` is optional JSON for future slicing (department,
+//      leaveTypeId, shiftId). Callers MUST populate a null dimension for
+//      company-wide roll-ups so `@@unique` stays deterministic.
+
+/// Enum of all headline KPIs computed by the snapshot worker. The
+/// string values are the wire format across API + FE — do NOT rename
+/// without a migration + shared-types bump.
+///
+///   ATTENDANCE_ON_TIME_RATE — fraction 0..1 (late excluded from numer.)
+///   ATTENDANCE_LATE_COUNT   — absolute count of late clock-ins
+///   ATTENDANCE_ABSENT_COUNT — absolute count of headless working days
+///   LEAVE_PENDING_COUNT     — pending leave requests as of `date`
+///   LEAVE_DAYS_APPROVED     — leave days approved with start ≤ date
+///   OVERTIME_HOURS          — approved OT hours logged on `date`
+///   OVERTIME_COST_IDR       — approved OT cost logged on `date` (IDR)
+///   HEADCOUNT_ACTIVE        — snapshot of active employees on `date`
+///   HEADCOUNT_TERMINATED    — users terminated on `date`
+enum AnalyticsMetricKey {
+  ATTENDANCE_ON_TIME_RATE
+  ATTENDANCE_LATE_COUNT
+  ATTENDANCE_ABSENT_COUNT
+  LEAVE_PENDING_COUNT
+  LEAVE_DAYS_APPROVED
+  OVERTIME_HOURS
+  OVERTIME_COST_IDR
+  HEADCOUNT_ACTIVE
+  HEADCOUNT_TERMINATED
+}
+
+/// One row per `(company, date, metricKey)` — the physical table backing
+/// every executive dashboard read. `dimension` is null for company-wide
+/// roll-ups; future phases can start populating it for department cuts.
+model AnalyticsSnapshot {
+  id         String             @id @default(cuid())
+  companyId  String
+  /// Tenant-local calendar day (no time component). Stored via `@db.Date`.
+  date       DateTime           @db.Date
+  metricKey  AnalyticsMetricKey
+  /// Numeric value. Ratios as fractions (0.98 = 98%), counts as integers
+  /// with zero fractional digits, currency in IDR whole rupiah.
+  value      Decimal            @db.Decimal(18, 4)
+  /// Optional slice, e.g. `{ "departmentId": "..." }`. Null for company-
+  /// wide roll-ups (the current Fase-33a shape). Deterministic so the
+  /// unique constraint holds even when dimensions are added later.
+  dimension  Json?
+  computedAt DateTime           @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  /// Idempotency backbone: nightly worker upserts on this key. When a
+  /// dimensional roll-up is added, the caller must feed the same
+  /// canonicalised JSON blob so the unique still discriminates.
+  @@unique([companyId, date, metricKey])
+  /// Read path index — dashboard queries scan by (tenant, metric) then
+  /// bounded date range.
+  @@index([companyId, metricKey, date])
+}
+
+// ---------- Report Schedules (Fase 33c) ----------
+//
+// Scheduled email dispatch of PDF reports to a per-tenant recipient list.
+// Every schedule has a bound `reportType` (built-in report enum), a
+// cadence (`ReportFrequency`), and a `nextRunAt` cursor advanced after
+// each successful dispatch. The cron worker claims `nextRunAt ≤ now`
+// via `SELECT ... FOR UPDATE SKIP LOCKED` so multi-replica deployments
+// stay safe.
+
+/// Which built-in report to render. New reports register here + in the
+/// `report-registry.ts` handler map. Fase 33b adds `CUSTOM` which reads
+/// the referenced `SavedReport.id` (out of scope for 33c).
+enum ScheduledReportType {
+  TIMESHEET_SUMMARY
+  ROPA
+  DPIA
+  ANALYTICS_SNAPSHOT
+  CUSTOM
+}
+
+enum ReportFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum ReportDeliveryStatus {
+  PENDING
+  DISPATCHING
+  DELIVERED
+  FAILED
+}
+
+model ReportSchedule {
+  id            String              @id @default(cuid())
+  companyId     String
+  reportType    ScheduledReportType
+  /// Optional handle to a `SavedReport` when `reportType = CUSTOM`.
+  /// Deliberately not a FK so a saved-report delete can preserve the
+  /// schedule row (which then fails at dispatch — visible in the delivery
+  /// log so the DPO can prune manually).
+  savedReportId String?
+
+  /// Human label — shown in the FE list ("Timesheet mingguan payroll").
+  name        String
+  frequency   ReportFrequency
+  /// For WEEKLY: 0..6 (Monday = 1, Sunday = 0 per Postgres extract).
+  /// For MONTHLY: 1..28 (avoid month-length ambiguity).
+  /// For DAILY: ignored.
+  cadenceDay  Int?
+  /// Hour-of-day (0..23) in `Company.timezone` when the dispatch fires.
+  cadenceHour Int             @default(6)
+  active      Boolean         @default(true)
+
+  /// Comma-less recipient list — max 20 addresses enforced by DTO.
+  recipients String[]
+
+  /// Cron cursor. Worker claims schedules with `nextRunAt ≤ now`.
+  /// Advanced after each successful dispatch via `next-run` domain fn.
+  nextRunAt DateTime
+  /// Last observed dispatch time — nullable until the first delivery.
+  lastRunAt DateTime?
+
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company    Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdBy  User?            @relation("ReportScheduleCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  deliveries ReportDelivery[]
+
+  @@index([companyId, active, nextRunAt])
+  @@index([nextRunAt])
+}
+
+/// Append-only delivery log. Every worker attempt writes one row —
+/// tampering blocked at the DB level via REVOKE UPDATE, DELETE in a
+/// follow-up migration (mirrors the audit-log hardening).
+model ReportDelivery {
+  id         String               @id @default(cuid())
+  scheduleId String
+  companyId  String
+  status     ReportDeliveryStatus @default(PENDING)
+  /// Recipient list at the moment of dispatch — snapshotted so later
+  /// edits to the schedule do not rewrite history.
+  recipients String[]
+
+  /// SHA-256 hex of the report payload. Same audit-before-stream idiom
+  /// we use for timesheet + ROPA + DPIA exports.
+  payloadSha256      String?
+  payloadBytes       Int?
+  attachmentFilename String?
+
+  /// Structured attempt bookkeeping.
+  attempts      Int       @default(0)
+  lastAttemptAt DateTime?
+  deliveredAt   DateTime?
+  errorSnippet  String?
+
+  createdAt DateTime @default(now())
+
+  schedule ReportSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  company  Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, createdAt])
+  @@index([scheduleId, createdAt])
+  @@index([status, createdAt])
+}
+
+// ---------- Custom Report Builder (Fase 33b) ----------
+//
+// A `SavedReport` is a per-tenant, DPO-defined query recipe — a pinned
+// combination of **dimension × metric × filter**. It is deliberately
+// declarative (no SQL fragments stored) so we can validate the entire
+// blob against the domain catalogue before executing.
+//
+// The `definition` JSONB payload is the source of truth; every FE
+// picker (dimension dropdown, metric list, date filter) round-trips
+// through it. The domain layer (`apps/api/src/reports/domain/
+// custom-report-definition.ts`) is the single validator.
+
+model SavedReport {
+  id          String  @id @default(cuid())
+  companyId   String
+  name        String
+  description String?
+
+  /// Frozen recipe blob. The domain-layer `validateDefinition()`
+  /// function is the sole authority on legal contents; the DB accepts
+  /// any JSON but every read path re-validates before executing.
+  ///
+  /// Example (see `custom-report-definition.ts` for the exhaustive
+  /// discriminated union):
+  ///
+  ///   {
+  ///     "dimension": "DAY",
+  ///     "metric": "ATTENDANCE_ON_TIME_RATE",
+  ///     "filter": { "days": 30 }
+  ///   }
+  definition Json
+
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdBy User?   @relation("SavedReportCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([companyId, name])
+  @@index([companyId, updatedAt])
+}
+
+// ============================================================
+// Breach Notification Ledger (Fase 31g)
+// ------------------------------------------------------------
+// UU 27/2022 Pelindungan Data Pribadi Pasal 46 ayat (3):
+//   "Pengendali Data Pribadi wajib memberitahukan pelanggaran
+//    pelindungan Data Pribadi paling lambat 3 x 24 (tiga kali dua
+//    puluh empat) jam kepada Subjek Data Pribadi dan Lembaga."
+//
+// GDPR Art. 33-34 aligns (72-hour window to supervisory authority
+// + undue-delay notification to data subjects on high risk).
+//
+// The ledger provides a **regulator-friendly audit trail** —
+// every state change is captured on an append-only timeline,
+// deadline math ticks against `detectedAt`, and every mutation
+// writes an `AuditLog` row inside the same $transaction. PDF
+// export follows the same audit-before-stream idiom as ROPA/DPIA.
+
+enum BreachSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum BreachCategory {
+  CONFIDENTIALITY
+  INTEGRITY
+  AVAILABILITY
+  MIXED
+}
+
+/// Lifecycle. Forward-only — an incident may skip stages (e.g.
+/// authority-notified before containment is 100% complete) but may
+/// never rewind. `CLOSED` is terminal.
+enum BreachStatus {
+  DETECTED
+  CONTAINED
+  NOTIFIED_AUTHORITY
+  NOTIFIED_SUBJECTS
+  CLOSED
+}
+
+/// Discrete timeline event type. Every mutation to a
+/// `BreachIncident` produces at least one row here. Timeline is
+/// append-only; UPDATE/DELETE will be revoked at DB level in the
+/// same migration.
+enum BreachTimelineEventType {
+  CREATED
+  UPDATED
+  STATUS_ADVANCED
+  AUTHORITY_NOTIFIED
+  SUBJECTS_NOTIFIED
+  NOTE_ADDED
+  DEADLINE_WARNED
+  EXPORTED
+  CLOSED
+}
+
+model BreachIncident {
+  id        String @id @default(cuid())
+  companyId String
+
+  title       String
+  description String
+  severity    BreachSeverity
+  category    BreachCategory
+  status      BreachStatus   @default(DETECTED)
+
+  /// When the incident was discovered by the org. Deadline math
+  /// (`detectedAt + 72h`) is anchored here per UU PDP Pasal 46
+  /// and GDPR Art. 33. Immutable after creation.
+  detectedAt DateTime
+  /// When the breach actually occurred, if known. May differ from
+  /// `detectedAt` (e.g. logs show 5-day lag).
+  occurredAt DateTime?
+
+  containedAt         DateTime?
+  authorityNotifiedAt DateTime?
+  subjectsNotifiedAt  DateTime?
+  closedAt            DateTime?
+
+  /// Approximate number of unique data subjects potentially
+  /// affected. Zero-default; refined during investigation.
+  affectedUserCount      Int      @default(0)
+  /// Free-form data-category strings, e.g. ["email","phone",
+  /// "attendance","salary"]. Prefer canonical taxonomy from
+  /// ROPA `dataCategories` when possible.
+  affectedDataCategories String[] @default([])
+  /// Systems / services touched, e.g. ["auth","attendance","s3"].
+  affectedSystems        String[] @default([])
+
+  /// Mandatory once status advances past DETECTED — what actions
+  /// have been taken to contain the breach.
+  containmentActions String  @default("")
+  /// Optional post-mortem fields.
+  rootCause          String?
+  remediation        String?
+
+  /// Reference number returned by the regulator, e.g. Kominfo
+  /// case ID. Blank until authority-notified.
+  authorityNotificationRef    String?
+  /// Verbatim template sent to affected data subjects (kept for
+  /// audit + court exhibits). Blank until subjects-notified.
+  subjectNotificationTemplate String?
+
+  reportedById String
+  assignedToId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  company    Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  reportedBy User                  @relation("BreachReporter", fields: [reportedById], references: [id], onDelete: Restrict)
+  assignedTo User?                 @relation("BreachAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  timeline   BreachTimelineEvent[]
+
+  @@index([companyId, status])
+  @@index([companyId, detectedAt])
+  @@index([companyId, severity])
+}
+
+/// Append-only timeline. Every insertion is a factual event; there
+/// is no UPDATE or DELETE path. The migration revokes those at DB
+/// level so a compromised app cannot rewrite history.
+model BreachTimelineEvent {
+  id         String                  @id @default(cuid())
+  incidentId String
+  companyId  String
+  eventType  BreachTimelineEventType
+  /// Human-readable narrative. For STATUS_ADVANCED events this is
+  /// typically auto-generated (e.g. "DETECTED → CONTAINED"); for
+  /// NOTE_ADDED it is user-provided.
+  note       String
+  /// Structured context — e.g. `{ "fromStatus": "DETECTED",
+  /// "toStatus": "CONTAINED" }` or `{ "authorityRef": "KM/..." }`.
+  metadata   Json?
+  actorId    String?
+
+  occurredAt DateTime @default(now())
+
+  incident BreachIncident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  actor    User?          @relation("BreachTimelineActor", fields: [actorId], references: [id], onDelete: SetNull)
+  company  Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([incidentId, occurredAt])
+  @@index([companyId, occurredAt])
+}
+
+// ---------- OPS-6: Retention Enforcement Audit ----------
+//
+// Monthly append-only report attesting that the `RetentionWorker`
+// actually performed the pruning promised by `RetentionPolicy`.
+//
+// The report is derived — every counter can be reconstructed from
+// `AuditLog` + the raw tables — but we materialise it because:
+//   1. DPO / auditor wants "give me the March 2026 report" without
+//      running SQL by hand.
+//   2. Snapshots protect against forensic drift if a table shrinks
+//      due to a different operation (backup restore, tenant purge).
+//
+// UPDATE + DELETE are revoked at the DB level (see migration) so
+// even a compromised app cannot rewrite past attestations.
+
+enum RetentionAuditStatus {
+  /// Every retention promise met — no gaps.
+  SUCCESS
+  /// Worker ticked during the period, but at least one gap remains
+  /// (e.g. rows past their retention window still on disk). Common
+  /// after a policy tightening — the next daily sweep will resolve it.
+  GAP_DETECTED
+  /// Worker did NOT tick even once during the period. Either the
+  /// kill switch was off or a deployment held it back. Escalate.
+  WORKER_INACTIVE
+}
+
+model RetentionAuditReport {
+  id          String               @id @default(cuid())
+  companyId   String
+  /// Inclusive UTC start of the audit period (typically first of the month).
+  periodStart DateTime
+  /// Exclusive UTC end of the audit period (first of the following month).
+  periodEnd   DateTime
+  generatedAt DateTime             @default(now())
+  status      RetentionAuditStatus
+
+  // ----- What the worker actually did (from AuditLog aggregates) -----
+  /// Sum of `RETENTION_NOTIFICATIONS_PRUNED` deletedCount for the period.
+  notificationsPruned Int @default(0)
+  /// Sum of `RETENTION_USER_AUTO_ANONYMIZED` events for the period.
+  usersAutoAnonymised Int @default(0)
+  /// Sum of DSAR archive expiries (`DATA_EXPORT_EXPIRED`) for the period.
+  dsarArchivesExpired Int @default(0)
+
+  // ----- Gap detection at report-generation time -----
+  /// Rows that should have been pruned by now but still exist.
+  notificationsPastRetention   Int @default(0)
+  /// Ready DSAR archives whose `expiresAt` has passed but `fileKey`
+  /// is still populated (i.e. the sweep failed to unlink the object).
+  dsarArchivesPastRetention    Int @default(0)
+  /// Terminated users past `terminatedUserAnonymizeDays` who are
+  /// still non-anonymised (email does not match the erasure pattern).
+  terminatedUsersPastRetention Int @default(0)
+
+  /// Snapshot of the `RetentionPolicy` values used to derive gap counts.
+  /// Freezes the policy at generation time so re-runs are reproducible
+  /// even after the policy changes.
+  policySnapshot Json
+
+  /// Latest `AuditLog.createdAt` for retention-related actions during
+  /// the period. `null` = worker never ticked → `WORKER_INACTIVE`.
+  workerLastRunAt DateTime?
+
+  /// Machine-readable findings so the UI can render coloured chips
+  /// without re-deriving. `RetentionAuditFinding[]` shape enforced
+  /// by the domain layer, not the DB.
+  findings Json
+
+  /// Optional freeform note (e.g. incident cross-reference).
+  notes String?
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  /// One report per tenant per period. The worker upsert-by-unique
+  /// makes cron re-runs idempotent.
+  @@unique([companyId, periodStart], name: "one_report_per_tenant_per_period")
+  @@index([companyId, generatedAt])
+  @@index([status, generatedAt])
+}
+
+// ---------- OPS-7: Cost Instrumentation / Tenant Usage ----------
+//
+// Monthly snapshot of tenant footprint — storage, DB rows, email +
+// webhook volume, active users. Purpose:
+//   - Basis for future billing tier (pricing per-user vs per-attempt).
+//   - Ops capacity planning (which tenant is the elephant?).
+//   - Sanity check before onboarding tenant N+1.
+//
+// Scope:
+//   - Storage counts DERIVED from DB (`TimesheetExport.bytes` +
+//     `DataExportRequest.fileSize`). Attachment file sizes are NOT
+//     tracked in DB today; we accept the gap for Beta and flag it
+//     in `attachmentBytesTracked=false`. Post-Beta upgrade will add
+//     a proper `Attachment` model that records `contentLength`.
+
+model TenantUsageSnapshot {
+  id          String   @id @default(cuid())
+  companyId   String
+  /// Inclusive UTC start of the snapshot period (typically first of the month).
+  periodStart DateTime
+  /// Exclusive UTC end of the snapshot period.
+  periodEnd   DateTime
+  generatedAt DateTime @default(now())
+
+  // ----- Storage (bytes) -----
+  /// Bytes stored across `TimesheetExport.payload` for exports
+  /// COMMITTED during the period.
+  storageExportBytes     BigInt  @default(0)
+  /// Bytes stored across READY `DataExportRequest.fileSize` for
+  /// DSAR archives COMPLETED during the period.
+  storageDsarBytes       BigInt  @default(0)
+  /// Convenience sum of the two above. Attachments (leave notes,
+  /// permit files, correction evidence) are NOT included — see
+  /// `attachmentBytesTracked` for the honest gap flag.
+  storageTotalBytes      BigInt  @default(0)
+  /// `false` until a proper attachment-size model lands post-Beta.
+  attachmentBytesTracked Boolean @default(false)
+
+  // ----- DB row counts (at snapshot time, not period-scoped) -----
+  dbRowsUser            Int    @default(0)
+  dbRowsAttendance      Int    @default(0)
+  dbRowsLeave           Int    @default(0)
+  dbRowsOvertime        Int    @default(0)
+  dbRowsTimesheetEntry  Int    @default(0)
+  dbRowsAuditLog        Int    @default(0)
+  dbRowsNotification    Int    @default(0)
+  dbRowsTimesheetExport Int    @default(0)
+  dbRowsWebhookDelivery Int    @default(0)
+  dbRowsTotal           BigInt @default(0)
+
+  // ----- Communication volume during the period -----
+  /// `Notification` rows created during the period. Every notification
+  /// row corresponds to at most one in-app entry + optionally one
+  /// email (governed by `NotificationPreference`). Beta-honest name —
+  /// we don't materialise an `emailedAt` timestamp yet, so we can't
+  /// split in-app vs email cleanly.
+  notificationsCreated Int @default(0)
+  /// `WebhookDelivery` rows created during the period (all statuses).
+  webhookDeliveries    Int @default(0)
+
+  // ----- Population -----
+  /// Distinct users with any Attendance / LeaveRequest / Overtime /
+  /// login event during the period. Cheap proxy for MAU.
+  activeUsers Int @default(0)
+  /// Non-deleted users at snapshot time.
+  totalUsers  Int @default(0)
+
+  notes String?
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, periodStart], name: "one_snapshot_per_tenant_per_period")
+  @@index([companyId, generatedAt])
+  @@index([generatedAt])
+}
+
+// ---------- Fase 31f: Vendor / Processor Register ----------
+//
+// Per-tenant registry of every third-party data processor per UU
+// 27/2022 Pelindungan Data Pribadi Pasal 45 (Data Processor
+// Agreement) + GDPR Art. 28. Sister feature to `RopaActivity`
+// (Fase 31d) — ROPA answers "what data does the tenant process";
+// this table answers "who else touches that data on the tenant's
+// behalf, and under what agreement".
+//
+// Not an append-only ledger because a vendor's DPA cycle IS about
+// lifecycle mutations (renewals, subprocessor changes, termination).
+// Provenance lives in `AuditLog` (`VENDOR_PROCESSOR_*` actions).
+
+enum VendorCategory {
+  /// Payroll processor (payslip issuance, tax filing, bank transfer).
+  PAYROLL
+  /// Object storage / backup destination.
+  STORAGE
+  /// SMTP / transactional email provider.
+  EMAIL
+  /// Observability / monitoring / crash reporting vendor.
+  MONITORING
+  /// Payment gateway (e.g. subscription billing).
+  PAYMENT
+  /// Full HR / talent management suite where Workpulse is the
+  /// tenant of another product (rare — usually the other way).
+  HR_SUITE
+  /// Communication tools (chat, video conference).
+  COMMUNICATION
+  /// Everything else — force a category so the register stays
+  /// filterable.
+  OTHER
+}
+
+enum VendorStatus {
+  /// New vendor, DPA under negotiation. Not yet cleared for use.
+  UNDER_REVIEW
+  /// DPA signed, contract in force. May process personal data.
+  ACTIVE
+  /// Vendor was live but is now being wound down. Data migration
+  /// in progress; new usage forbidden.
+  DEPRECATED
+  /// Contract terminated. Personal data must have been returned
+  /// or deleted (see `terminatedAt` + `terminatedReason`).
+  TERMINATED
+}
+
+enum VendorDataVolume {
+  /// < 100 subjects (single project, pilot vendor).
+  LOW
+  /// 100 – 1,000 subjects (single-tenant scope).
+  MEDIUM
+  /// 1,000 – 10,000 subjects (whole workforce of a mid-market tenant).
+  HIGH
+  /// > 10,000 subjects. Triggers heightened due diligence + DPIA.
+  MASSIVE
+}
+
+model VendorProcessor {
+  id          String         @id @default(cuid())
+  companyId   String
+  /// Stable slug for admin URL + optional seed matching. Unique per tenant.
+  slug        String
+  /// Vendor display name, e.g. "PT Payroll Nusantara" or "Amazon S3".
+  name        String
+  category    VendorCategory
+  status      VendorStatus   @default(UNDER_REVIEW)
+  description String
+
+  // --- What data goes to this vendor ---
+  /// Free-form data-category tags (mirror `RopaActivityVersion.dataCategories`).
+  /// e.g. ["BASIC_IDENTITY", "CONTACT", "EMPLOYMENT"].
+  dataCategories     String[]
+  personalDataVolume VendorDataVolume @default(LOW)
+  /// Where the personal data physically resides at the vendor's
+  /// infrastructure. Free-form string ("Indonesia", "Singapore",
+  /// "AWS us-east-1", "Google europe-west3", …) so an ops person
+  /// can annotate without waiting for an enum PR.
+  dataResidency      String?
+
+  // --- Contract & DPA ---
+  /// Primary technical / legal contact at the vendor.
+  contactName            String?
+  contactEmail           String?
+  contactPhone           String?
+  /// Optional S3 key pointing to the signed contract PDF.
+  contractDocumentUrl    String?
+  /// When the current contract took effect. Null = pre-Workpulse
+  /// legacy vendor whose start date is lost.
+  contractStartAt        DateTime?
+  /// Contract renewal / expiry cutoff. Null = perpetual /
+  /// month-to-month. Drives the T-60d expiry reminder.
+  contractEndAt          DateTime?
+  /// Date the tenant countersigned the DPA. Non-null is a hard
+  /// prerequisite for the app-level guard "may this vendor
+  /// process personal data".
+  dpaSignedAt            DateTime?
+  /// Vendor's own list of subprocessors is allowed?
+  subprocessorsAllowed   Boolean   @default(false)
+  /// ISO / SOC2 / etc. certificates supplied by the vendor. Free-form
+  /// tags for now — e.g. ["ISO27001", "SOC2_TYPE_II", "PCI_DSS"].
+  securityCertifications String[]
+
+  // --- Review lifecycle ---
+  /// When the vendor must next be re-reviewed. Default 1 year from
+  /// creation. Drives the T-30d review-due reminder.
+  nextReviewAt   DateTime
+  /// Timestamp of the most recent formal review (null until the
+  /// first review is filed).
+  lastReviewedAt DateTime?
+  /// Optional narrative attached at review time (e.g. "SOC2 renewed
+  /// 2026-05, subprocessor list unchanged"). Not the full audit trail
+  /// — that lives in `AuditLog`.
+  lastReviewNote String?
+
+  // --- Termination ---
+  terminatedAt     DateTime?
+  terminatedReason String?
+  terminatedById   String?
+
+  // --- Provenance ---
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdById String?
+  updatedById String?
+  /// Soft-delete flag. `TERMINATED` vendors stay visible for audit;
+  /// `deletedAt` is reserved for "created by mistake" cleanup only.
+  deletedAt   DateTime?
+
+  company    Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdBy  User?                @relation("VendorProcessorCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy  User?                @relation("VendorProcessorUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+  terminator User?                @relation("VendorProcessorTerminator", fields: [terminatedById], references: [id], onDelete: SetNull)
+  ropaLinks  RopaActivityVendor[]
+  reminders  VendorReminderLog[]
+
+  @@unique([companyId, slug])
+  @@index([companyId, status])
+  @@index([companyId, nextReviewAt])
+  @@index([companyId, contractEndAt])
+}
+
+/// Join table linking a ROPA activity to the vendor(s) that
+/// process the data on the tenant's behalf. Many-to-many:
+///   - one ROPA activity can have multiple processors (payroll +
+///     bank + email);
+///   - one vendor can appear across multiple activities.
+model RopaActivityVendor {
+  id             String   @id @default(cuid())
+  ropaActivityId String
+  vendorId       String
+  companyId      String
+  /// Optional per-link note ("processes salary field only", "backup
+  /// snapshots at 03:00 UTC daily").
+  note           String?
+  createdAt      DateTime @default(now())
+  createdById    String?
+
+  ropaActivity RopaActivity    @relation(fields: [ropaActivityId], references: [id], onDelete: Cascade)
+  vendor       VendorProcessor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@unique([ropaActivityId, vendorId], name: "one_link_per_activity_per_vendor")
+  @@index([vendorId])
+  @@index([companyId])
+}
+
+enum VendorReminderKind {
+  /// nextReviewAt in <= 30 days.
+  REVIEW_DUE
+  /// contractEndAt in <= 60 days (or already past).
+  CONTRACT_EXPIRING
+}
+
+/// Append-only log of reminders the worker fired. Keys the dedup —
+/// one reminder per (vendor, kind, review-cycle). A new
+/// `nextReviewAt` (or new `contractEndAt`) resets the dedup because
+/// the `expectedFor` timestamp changes.
+model VendorReminderLog {
+  id          String             @id @default(cuid())
+  vendorId    String
+  companyId   String
+  kind        VendorReminderKind
+  /// The `nextReviewAt` or `contractEndAt` value that triggered this
+  /// reminder. Used as part of the dedup key so a rescheduled review
+  /// can fire again.
+  expectedFor DateTime
+  firedAt     DateTime           @default(now())
+
+  vendor VendorProcessor @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@unique([vendorId, kind, expectedFor], name: "one_reminder_per_cycle")
+  @@index([companyId, firedAt])
+}

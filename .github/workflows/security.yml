@@ -1,0 +1,178 @@
+name: Security
+
+# Weekly comprehensive scan + on-demand from the Actions tab, plus one
+# lightweight fast-lane on every PR to keep the feedback loop short.
+#
+# Three complementary probes:
+#   1. Trivy filesystem scan   — CVEs in npm + system packages, at repo state.
+#   2. `pnpm audit --prod`     — cross-checks the production dep graph, no lock drift.
+#   3. Gitleaks                — secret-string detection in HEAD + full history on the weekly.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Sunday 22:00 UTC = Monday 05:00 WIB. Runs before the weekly
+    # dependabot batch lands so maintainers see current state first.
+    - cron: '0 22 * * 0'
+  workflow_dispatch:
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  # Trivy SARIF upload lands in the Security tab under this permission.
+  security-events: write
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Trivy — filesystem scan (repo state, no images required). Fast enough to
+  # run on every PR; failures block merge only for `CRITICAL` findings so a
+  # transitive `HIGH` doesn't stall a compliance patch.
+  # ---------------------------------------------------------------------------
+  trivy-fs:
+    name: Trivy · Filesystem
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-fs.sarif
+          severity: HIGH,CRITICAL
+          # Fail the job on CRITICAL only. HIGH is reported to the Security
+          # tab but does not block the pipeline — keeps the on-call queue sane.
+          exit-code: '0'
+          ignore-unfixed: true
+          skip-dirs: 'node_modules,**/dist,**/.next,**/.turbo'
+
+      - name: Upload SARIF to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-fs.sarif
+          category: trivy-fs
+
+      # Second pass — same tool, this time in gating mode. Two passes let us
+      # (a) always publish SARIF, and (b) still fail on CRITICAL without
+      # short-circuiting the upload.
+      - name: Trivy CRITICAL gate
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          severity: CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
+          skip-dirs: 'node_modules,**/dist,**/.next,**/.turbo'
+
+  # ---------------------------------------------------------------------------
+  # Production dep audit. Only PROD deps (dev deps skipped) because a HIGH
+  # advisory in `jest` doesn't ship to customers. Threshold `high` mirrors
+  # the Trivy gate philosophy.
+  # ---------------------------------------------------------------------------
+  pnpm-audit:
+    name: pnpm audit (prod deps)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '9.12.0'
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: pnpm
+
+      - name: Install (no scripts, no store hydration side-effects)
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Audit — prod-only, fail on HIGH+
+        run: pnpm audit --prod --audit-level high
+
+  # ---------------------------------------------------------------------------
+  # Gitleaks — HEAD scan is cheap and runs on every event. The scheduled
+  # weekly run additionally sweeps the full history so a stale committed
+  # secret from months back gets flagged instead of forgotten.
+  # ---------------------------------------------------------------------------
+  gitleaks:
+    name: Gitleaks · Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Weekly job needs full history; PR/push can use a shallow clone.
+          fetch-depth: ${{ github.event_name == 'schedule' && 0 || 1 }}
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No cloud license required for this OSS project.
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: 'true'
+          GITLEAKS_ENABLE_SUMMARY: 'true'
+
+  # ---------------------------------------------------------------------------
+  # Image scan — only on tag pushes to avoid pinging GHCR from every PR.
+  # Complements the release workflow, which publishes the images this job
+  # then pulls back and inspects.
+  # ---------------------------------------------------------------------------
+  trivy-image:
+    name: Trivy · Image ${{ matrix.name }}
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: api
+            image: ghcr.io/${{ github.repository }}/api:latest
+          - name: web
+            image: ghcr.io/${{ github.repository }}/web:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ matrix.image }}
+          format: sarif
+          output: trivy-image-${{ matrix.name }}.sarif
+          severity: HIGH,CRITICAL
+          exit-code: '0'
+          ignore-unfixed: true
+
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-image-${{ matrix.name }}.sarif
+          category: trivy-image-${{ matrix.name }}

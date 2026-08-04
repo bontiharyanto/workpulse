@@ -1,0 +1,25 @@
+{
+  "name": "@workpulse/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Workpulse end-to-end test suite (Playwright)",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:debug": "PWDEBUG=1 playwright test",
+    "report": "playwright show-report",
+    "install:browsers": "playwright install --with-deps chromium",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"tests/**/*.ts\" \"*.ts\""
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^20.11.30",
+    "eslint": "^8.57.0",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "otplib": "^12.0.1"
+  }
+}

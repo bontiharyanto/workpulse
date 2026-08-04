@@ -1,0 +1,19 @@
+{
+  "name": "@workpulse/config",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "files": ["eslint-preset.cjs", "tsconfig.base.json"],
+  "exports": {
+    "./eslint": "./eslint-preset.cjs",
+    "./tsconfig": "./tsconfig.base.json"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.8.0",
+    "@typescript-eslint/parser": "^8.8.0",
+    "eslint": "^9.11.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.30.0",
+    "eslint-plugin-unused-imports": "^4.1.4"
+  }
+}

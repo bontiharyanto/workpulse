@@ -1,0 +1,72 @@
+name: CodeQL
+
+# Semantic security scanning — catches SQL-injection-adjacent patterns,
+# unsafe deserialization, hardcoded credentials, and dozens of other rules
+# that plain unit tests won't spot. Complements Trivy (dep-CVE) and
+# gitleaks (secret-string): CodeQL looks at what the code *does*.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Sunday 20:00 UTC (Monday 03:00 WIB). Aligned with the Security
+    # workflow so all three weekly scans hit the Security tab together.
+    - cron: '0 20 * * 0'
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+  # Required by `github/codeql-action/init@v3` on private repos.
+  actions: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        # TypeScript is the whole surface — API (NestJS) + Web (Next.js) +
+        # shared-types. `javascript-typescript` covers both dialects with
+        # the same query pack.
+        language: [javascript-typescript]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # No pnpm/build step needed — CodeQL for JS/TS runs on source, not
+      # transpiled output. We still init pnpm so the `security-and-quality`
+      # rule pack can resolve module boundaries when needed.
+      - name: Init CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # `security-and-quality` is heavier than the default `security`
+          # pack but adds maintainability findings we actually want on
+          # this codebase (unused imports, complex conditionals, etc.).
+          queries: security-and-quality
+          # Skip vendored / generated code so the queue stays fast.
+          config: |
+            paths-ignore:
+              - "**/node_modules/**"
+              - "**/dist/**"
+              - "**/.next/**"
+              - "**/.turbo/**"
+              - "**/prisma/migrations/**"
+              - "**/*.min.js"
+              - "packages/shared-types/dist/**"
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:${{ matrix.language }}'

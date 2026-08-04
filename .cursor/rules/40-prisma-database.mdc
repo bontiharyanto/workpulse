@@ -1,0 +1,64 @@
+---
+description: Prisma ORM and PostgreSQL conventions — transactions, concurrency, soft delete, timezone, audit
+globs: apps/api/prisma/**/*,apps/api/src/**/*.service.ts,apps/api/src/**/prisma*.ts,**/*.prisma
+alwaysApply: false
+---
+
+# Prisma & PostgreSQL Standards
+
+## Schema Conventions
+- Table names: `PascalCase` singular (Prisma default). Column names: `camelCase`.
+- Every domain table has: `id` (cuid or uuid), `createdAt`, `updatedAt`, `deletedAt DateTime?` for soft delete.
+- Multi-tenant tables have `companyId String` with an index; add composite indexes on `(companyId, ...)` for hot query paths.
+- Use enums for finite states: `LeaveStatus`, `AttendanceType`, `ApprovalStage`.
+- Money-like values → `Decimal` (never `Float`). Coordinates → `Decimal(10, 7)` or PostGIS `geography(Point, 4326)`.
+
+## Timezone
+- Always store timestamps in **UTC** (`DateTime` in Prisma serializes to ISO 8601). Persist the user's / company's IANA timezone (e.g. `Asia/Jakarta`) separately and convert **only** in the presentation layer.
+
+## Transactions & Concurrency
+- Wrap any multi-step mutation (`create + decrement`, `update + audit`, approval flows) in `prisma.$transaction`.
+- For balance-style decrements, lock the row: `SELECT ... FOR UPDATE` via `tx.$queryRaw`.
+- Consider `prisma.$transaction([...], { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })` for approval workflows to prevent phantom reads.
+
+## Soft Delete Pattern
+Never physically delete production data. Use a Prisma client extension so `.findMany()` etc. auto-filter `deletedAt: null` unless explicitly overridden.
+
+```ts
+prisma.$extends({
+  query: {
+    $allModels: {
+      async findMany({ args, query }) {
+        args.where = { deletedAt: null, ...args.where };
+        return query(args);
+      },
+    },
+  },
+});
+```
+
+## Audit Log
+```prisma
+model AuditLog {
+  id         String   @id @default(cuid())
+  companyId  String
+  actorId    String
+  action     String   // 'LEAVE_APPROVED', 'BALANCE_OVERRIDE', ...
+  entityType String
+  entityId   String
+  beforeJson Json?
+  afterJson  Json?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([companyId, entityType, entityId])
+  @@index([actorId, createdAt])
+}
+```
+Revoke UPDATE/DELETE on this table at the DB role level.
+
+## Migrations
+- One migration per logical change; never edit an applied migration.
+- Never `prisma db push` against staging/production — use `prisma migrate deploy`.
+- Destructive changes (drop column, rename) require an explicit two-phase migration (add → backfill → cutover → drop).

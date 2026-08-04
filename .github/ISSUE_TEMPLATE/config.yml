@@ -1,0 +1,13 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔥 Production incident (P0 / P1)
+    url: https://github.com/haryanto/workpulse/blob/main/docs/OPS/INCIDENT-RESPONSE.md
+    about: |
+      DO NOT open a GitHub issue during an active outage. Follow the
+      incident-response runbook, then file a post-mortem issue after
+      recovery.
+  - name: 🔒 Security vulnerability
+    url: https://github.com/haryanto/workpulse/security/advisories/new
+    about: |
+      Report a vulnerability privately via GitHub Security Advisories —
+      never in a public issue. See SECURITY.md for the disclosure policy.

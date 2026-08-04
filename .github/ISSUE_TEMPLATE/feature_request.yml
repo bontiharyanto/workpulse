@@ -1,0 +1,69 @@
+name: ✨ Feature request
+description: Propose a new feature or capability for Workpulse.
+title: 'feat: <short summary>'
+labels: ['enhancement', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Product decisions live in `docs/ROADMAP.md`. Non-trivial features
+        should also get an ADR under `docs/ADR/` before implementation.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: 'Who feels it? When? What is the current workaround?'
+      placeholder: |
+        HR managers export payroll manually every 25th of the month, which
+        takes ~2 hours per tenant. The current tool is a copy-paste from
+        the timesheet report.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: 'At least one, even if you already have a preferred design.'
+    validations:
+      required: false
+
+  - type: dropdown
+    id: rollout
+    attributes:
+      label: Rollout constraints
+      options:
+        - Backward compatible (no migration)
+        - Backward compatible with additive migration
+        - Breaking (contract or DB migration)
+      default: 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: 'Bullet list. Each bullet must be observable by an outside party (log line, UI element, API response).'
+      placeholder: |
+        - [ ] `GET /admin/reports/payroll/:period` returns 200 with `{ total, byDepartment, byUser }`
+        - [ ] HR sees a "Download payroll" button on `/admin/timesheet/exports`
+        - [ ] Audit log row `PAYROLL_EXPORTED` written per export
+    validations:
+      required: true
+
+  - type: input
+    id: milestone
+    attributes:
+      label: Target milestone (roadmap ID)
+      placeholder: '34a / 33d / OPS-9 / …'
+    validations:
+      required: false
