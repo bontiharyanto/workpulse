@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { JSX } from 'react';
 
 import { RequireAuth } from '@/components/features/auth/require-auth';
 import { MfaManagementPanel } from '@/components/features/mfa/mfa-management-panel';
@@ -12,16 +13,16 @@ export const metadata: Metadata = {
 export default function SecuritySettingsPage(): JSX.Element {
   return (
     <RequireAuth>
-      <main className="mx-auto max-w-2xl space-y-8 px-4 py-8">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Keamanan akun</h1>
-          <p className="text-muted-foreground text-sm">
+      <div className="space-y-6">
+        <header className="space-y-1">
+          <h2 className="text-h4 text-foreground tracking-tight">Keamanan akun</h2>
+          <p className="text-muted-foreground text-body">
             Kelola verifikasi 2 langkah (MFA), backup codes, dan sesi login aktif.
           </p>
-        </div>
+        </header>
         <MfaManagementPanel />
         <SessionsPanel />
-      </main>
+      </div>
     </RequireAuth>
   );
 }

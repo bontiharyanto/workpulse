@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
+import type { JSX } from 'react';
 
 import { RequireAuth } from '@/components/features/auth/require-auth';
 import { ConsentHistoryPanel } from '@/components/features/privacy/consent-history-panel';
 import { DataExportPanel } from '@/components/features/privacy/data-export-panel';
 import { PrivacyErasurePanel } from '@/components/features/privacy/privacy-erasure-panel';
+import { Separator } from '@/components/ui/separator';
 
 export const metadata: Metadata = {
   title: 'Privasi — Workpulse',
@@ -12,26 +14,26 @@ export const metadata: Metadata = {
 
 /**
  * `/settings/privacy` — self-service data-portability landing page.
- * Fase 31b (right-to-erasure) and 31c (retention + consent) will
- * add their own panels to this same route.
+ * Fase 31b (right-to-erasure) and 31c (retention + consent) contribute
+ * their own panels to this same route.
  */
 export default function PrivacySettingsPage(): JSX.Element {
   return (
     <RequireAuth>
-      <main className="mx-auto max-w-2xl space-y-6 px-4 py-8">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Privasi data</h1>
-          <p className="text-muted-foreground text-sm">
+      <div className="space-y-6">
+        <header className="space-y-1">
+          <h2 className="text-h4 text-foreground tracking-tight">Privasi data</h2>
+          <p className="text-muted-foreground text-body">
             Kelola hak akses data pribadi Anda sesuai UU Perlindungan Data Pribadi (UU PDP) dan
             praktik GDPR.
           </p>
-        </div>
+        </header>
         <DataExportPanel />
-        <div className="border-input border-t" />
+        <Separator />
         <PrivacyErasurePanel />
-        <div className="border-input border-t" />
+        <Separator />
         <ConsentHistoryPanel />
-      </main>
+      </div>
     </RequireAuth>
   );
 }
