@@ -12,7 +12,6 @@ import { LeaveService } from './leave.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 const employee: AuthenticatedUser = {
   id: 'user-emp',
   email: 'emp@a.test',

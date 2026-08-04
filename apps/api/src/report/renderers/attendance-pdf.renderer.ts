@@ -3,7 +3,6 @@ import PDFDocument from 'pdfkit';
 import type { RendererStream } from './render-context';
 import type { AttendanceReportRow, AttendanceReportSummary } from '../domain/attendance-report';
 
-
 interface Column {
   key: keyof AttendanceReportRow;
   label: string;

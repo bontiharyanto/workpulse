@@ -13,7 +13,6 @@ import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 import type { WebhookDispatcher } from '../webhook/webhook-dispatcher.service';
 
-
 interface Kit {
   service: TimesheetExportService;
   prisma: DeepMockProxy<PrismaService>;

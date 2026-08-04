@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 
-
 import { DpiaAdminController } from './dpia-admin.controller';
 import { DpiaExportController } from './dpia-export.controller';
 import { DpiaExportService } from './dpia-export.service';

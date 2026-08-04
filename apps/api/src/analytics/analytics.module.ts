@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 
-
 import { AnalyticsComputationService } from './analytics-computation.service';
 import { AnalyticsQueryService } from './analytics-query.service';
 import { AnalyticsSnapshotService } from './analytics-snapshot.service';

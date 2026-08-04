@@ -5,7 +5,6 @@ import { LeaveService } from './leave.service';
 import { AttachmentModule } from '../attachment/attachment.module';
 import { NotificationModule } from '../notification/notification.module';
 
-
 @Module({
   imports: [AttachmentModule, NotificationModule],
   controllers: [LeaveController],

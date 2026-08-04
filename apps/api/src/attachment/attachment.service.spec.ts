@@ -4,7 +4,6 @@ import { AttachmentService } from './attachment.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import type { StorageProvider } from '../storage/storage.provider';
 
-
 const actor: AuthenticatedUser = {
   id: 'u-1',
   email: 'u@x.test',

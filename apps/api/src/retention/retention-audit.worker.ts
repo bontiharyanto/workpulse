@@ -9,7 +9,6 @@ import { retentionAuditGap } from '../notification/domain/templates';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 const MONTH_LABELS = [
   'Januari',
   'Februari',

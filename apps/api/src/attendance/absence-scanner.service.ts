@@ -14,8 +14,6 @@ import { attendanceAbsentMarked } from '../notification/domain/templates';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-
-
 /** Maximum number of past days a single scanner run will backfill per tenant. */
 export const MAX_BACKFILL_DAYS = 30;
 

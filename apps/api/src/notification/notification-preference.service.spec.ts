@@ -5,7 +5,6 @@ import { NotificationPreferenceService } from './notification-preference.service
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 function setup(): {
   service: NotificationPreferenceService;
   prisma: DeepMockProxy<PrismaService>;

@@ -7,7 +7,6 @@ import { VendorReviewReminderWorker } from './vendor-review-reminder.worker';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 const COMPANY = 'company-1';
 
 function vendor(overrides: Partial<VendorProcessor> = {}): VendorProcessor {

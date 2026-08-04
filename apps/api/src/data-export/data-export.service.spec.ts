@@ -9,7 +9,6 @@ import { DataExportService } from './data-export.service';
 import { PrismaService } from '../prisma/prisma.service';
 import type { StorageProvider } from '../storage/storage.provider';
 
-
 interface Kit {
   service: DataExportService;
   prisma: DeepMockProxy<PrismaService>;

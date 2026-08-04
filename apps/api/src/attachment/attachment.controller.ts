@@ -7,7 +7,6 @@ import { PresignPutRequestDto, type PresignPutResponseDto } from './dto/presign.
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-
 @ApiTags('attachments')
 @Controller('attachments')
 // Presign is cheap for us but generates S3 signing overhead + can be abused by a

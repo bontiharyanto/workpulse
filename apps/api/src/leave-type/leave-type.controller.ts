@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-
 import { CreateLeaveTypeDto } from './dto/create-leave-type.dto';
 import type { AdminLeaveTypeDto } from './dto/leave-type-response.dto';
 import { UpdateLeaveTypeDto } from './dto/update-leave-type.dto';

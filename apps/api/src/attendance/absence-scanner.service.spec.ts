@@ -5,7 +5,6 @@ import { AbsenceScannerService } from './absence-scanner.service';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 function setup(): {
   service: AbsenceScannerService;
   prisma: DeepMockProxy<PrismaService>;

@@ -8,7 +8,6 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-
 /**
  * `/admin/privacy/retention` — HR / Super Admin surface for
  * configuring the tenant's data-retention policy (Fase 31c).

@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-
 import { CreateGeofenceDto } from './dto/create-geofence.dto';
 import type { GeofenceResponseDto } from './dto/geofence-response.dto';
 import { UpdateGeofenceDto } from './dto/update-geofence.dto';

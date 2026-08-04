@@ -8,7 +8,6 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-
 /**
  * All routes here are tenant-scoped via `actor.companyId` — there is no
  * `/admin/companies/:id` variant by design, so a compromised token cannot

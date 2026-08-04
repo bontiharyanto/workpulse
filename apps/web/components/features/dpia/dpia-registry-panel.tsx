@@ -9,7 +9,6 @@ import type {
 } from '@workpulse/shared-types';
 import { useState } from 'react';
 
-
 import { ApiError, dpiaAdminApi, ropaAdminApi, saveBlob } from '@/lib/api-client';
 
 const STATUS_BADGE: Record<DpiaStatus, { label: string; className: string }> = {

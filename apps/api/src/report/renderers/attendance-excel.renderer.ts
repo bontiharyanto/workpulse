@@ -3,7 +3,6 @@ import ExcelJS from 'exceljs';
 import type { RendererStream } from './render-context';
 import type { AttendanceReportRow, AttendanceReportSummary } from '../domain/attendance-report';
 
-
 const COLUMNS: Array<{
   key: keyof AttendanceReportRow | 'no';
   header: string;

@@ -5,7 +5,6 @@ import { Cron } from '@nestjs/schedule';
 import { TenantUsageService } from './tenant-usage.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 /**
  * OPS-7 — Tenant usage snapshot worker.
  *

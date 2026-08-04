@@ -20,7 +20,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-
 import { CompanyAdminService } from './company-admin.service';
 import { CompanyAdminDto, CompanyBootstrapDto } from './dto/company-admin.dto';
 import { CreateCompanyDto } from './dto/create-company.dto';

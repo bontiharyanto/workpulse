@@ -6,7 +6,6 @@ import { mockDeep, mockReset } from 'jest-mock-extended';
 import { RetentionService } from './retention.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 interface Kit {
   service: RetentionService;
   prisma: DeepMockProxy<PrismaService>;

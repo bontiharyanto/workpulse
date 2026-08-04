@@ -13,7 +13,6 @@ import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 type PrismaMock = DeepMockProxy<PrismaService>;
 type NotificationsMock = DeepMockProxy<NotificationService>;
 

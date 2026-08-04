@@ -3,7 +3,6 @@ import PDFDocument from 'pdfkit';
 import type { RendererStream } from './render-context';
 import type { LeaveSummaryReportRow, LeaveSummaryTotals } from '../domain/leave-summary-report';
 
-
 interface Column {
   key: keyof LeaveSummaryReportRow;
   label: string;

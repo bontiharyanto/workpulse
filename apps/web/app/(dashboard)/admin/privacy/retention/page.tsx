@@ -1,4 +1,4 @@
-import type { Metadata , Route } from 'next';
+import type { Metadata, Route } from 'next';
 import Link from 'next/link';
 
 import { RequireAuth } from '@/components/features/auth/require-auth';

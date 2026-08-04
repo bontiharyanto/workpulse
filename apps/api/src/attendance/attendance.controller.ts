@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
-
 import { AbsenceScannerService } from './absence-scanner.service';
 import type { CompanyDashboardResponse } from './attendance.service';
 import { AttendanceService } from './attendance.service';

@@ -6,7 +6,6 @@ import { AuditService } from './audit.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 function setup(): {
   service: AuditService;
   prisma: DeepMockProxy<PrismaService>;

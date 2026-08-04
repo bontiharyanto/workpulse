@@ -6,7 +6,6 @@ import { mockDeep, mockReset } from 'jest-mock-extended';
 import { ConsentService } from './consent.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 interface Kit {
   service: ConsentService;
   prisma: DeepMockProxy<PrismaService>;

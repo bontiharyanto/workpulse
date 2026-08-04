@@ -7,7 +7,6 @@ import { VendorProcessorService } from './vendor-processor.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 /**
  * Fase 31f — service-level tests. Focus on the state-machine
  * invariants and the DPA precondition; the cadence math itself is

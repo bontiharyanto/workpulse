@@ -6,7 +6,7 @@ import type { Route } from 'next';
 import Link from 'next/link';
 import { useState } from 'react';
 
-import type { ApiError} from '@/lib/api-client';
+import type { ApiError } from '@/lib/api-client';
 import { vendorProcessorApi } from '@/lib/api-client';
 
 const STATUS_LABEL: Record<VendorStatus, string> = {

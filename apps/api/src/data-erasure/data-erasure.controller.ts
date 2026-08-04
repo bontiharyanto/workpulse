@@ -18,7 +18,6 @@ import {
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-
 /**
  * Self-service right-to-erasure surface (Fase 31b). Every route is
  * scoped to the caller — there is intentionally no admin variant

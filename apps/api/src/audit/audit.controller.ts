@@ -10,7 +10,6 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-
 /**
  * Read-only audit log surface for HR / compliance. Writers are scattered
  * across the codebase (leave decisions, overtime, manual absence, config

@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import type { Prisma, User } from '@prisma/client';
 
-
 import { PasswordService } from './password.service';
 import type { IssuedTokenPair, TokenContext } from './token.service';
 import { TokenService } from './token.service';

@@ -15,7 +15,6 @@ import type { RenderedReport } from '../domain/report-registry';
 import { ReportBuilderService } from '../report-builder.service';
 import { SavedReportService } from '../saved-report.service';
 
-
 /**
  * Fase 33c — resolves a `ScheduledReportType` to a rendered `Buffer`.
  *

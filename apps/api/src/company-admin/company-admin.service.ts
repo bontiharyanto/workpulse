@@ -20,7 +20,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import type { UpdateCompanyDto } from './dto/update-company.dto';
 import { generateTempPassword } from '../user/domain/temp-password';
 
-
 /**
  * Default LeaveType templates seeded on tenant creation. Keeps a new tenant
  * usable end-to-end without a follow-up config API call. Quotas are safe

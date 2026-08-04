@@ -14,7 +14,6 @@ import { AllowPendingConsent } from '../auth/decorators/allow-pending-consent.de
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-
 /**
  * Self-service consent endpoints (Fase 31c). Both live under `/me`
  * so the FE's existing per-user API prefix rules apply.

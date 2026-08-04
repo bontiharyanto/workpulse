@@ -16,7 +16,6 @@ import type { Response } from 'express';
 import { TimesheetExportShareService } from './timesheet-export-share.service';
 import { Public } from '../auth/decorators/public.decorator';
 
-
 /**
  * Fase 32d — unauthenticated download endpoint for signed timesheet
  * export links. The signature IS the authorisation; the route is

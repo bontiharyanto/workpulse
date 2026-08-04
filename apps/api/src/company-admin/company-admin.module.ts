@@ -5,7 +5,6 @@ import { CompanyAdminService } from './company-admin.service';
 import { AuthModule } from '../auth/auth.module';
 import { PrismaModule } from '../prisma/prisma.module';
 
-
 @Module({
   imports: [PrismaModule, AuthModule],
   controllers: [CompanyAdminController],

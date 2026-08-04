@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 
-
 import { DataErasureAdminController } from './data-erasure-admin.controller';
 import { DataErasureController } from './data-erasure.controller';
 import { DataErasureService } from './data-erasure.service';

@@ -7,7 +7,6 @@ import {
   type PayrollSourceTimesheet,
 } from '../domain/payroll-rows';
 
-
 function makeSource(overrides: Partial<PayrollSourceTimesheet> = {}): PayrollSourceTimesheet {
   return {
     userId: 'u1',

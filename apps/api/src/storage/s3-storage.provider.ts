@@ -19,7 +19,6 @@ import type {
 } from './storage.provider';
 import type { EnvConfig } from '../config/env.validation';
 
-
 @Injectable()
 export class S3StorageProvider implements StorageProvider {
   private readonly logger = new Logger(S3StorageProvider.name);

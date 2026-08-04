@@ -7,7 +7,6 @@ import { CompanyService } from './company.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 const hr: AuthenticatedUser = {
   id: 'u-1',
   email: 'hr@acme.test',

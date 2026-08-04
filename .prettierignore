@@ -5,3 +5,8 @@ build
 coverage
 .turbo
 pnpm-lock.yaml
+
+# VS Code / Cursor JSONC settings — Prettier formats them fine, but
+# they are effectively write-only for the editor and don't need to
+# participate in the workspace format:check gate.
+.vscode/

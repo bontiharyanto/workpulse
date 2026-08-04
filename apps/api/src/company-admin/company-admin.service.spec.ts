@@ -12,7 +12,6 @@ import type { PasswordService } from '../auth/password.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 const superAdmin: AuthenticatedUser = {
   id: 'root',
   email: 'root@workpulse.local',

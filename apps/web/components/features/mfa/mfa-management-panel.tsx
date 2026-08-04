@@ -20,7 +20,6 @@ import { useAuth } from '@/components/providers/auth-provider';
 import { ApiError, mfaApi } from '@/lib/api-client';
 import { authStore } from '@/lib/auth-store';
 
-
 const ERROR_COPY: Record<string, string> = {
   MFA_INVALID_CODE: 'Kode MFA tidak sesuai.',
   MFA_NOT_ENABLED: 'MFA belum aktif.',

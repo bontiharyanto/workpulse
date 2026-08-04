@@ -3,7 +3,6 @@ import ExcelJS from 'exceljs';
 import type { RendererStream } from './render-context';
 import type { OvertimeReportRow, OvertimeReportTotals } from '../domain/overtime-report';
 
-
 const CURRENCY_FMT = '#,##0';
 const NUMBER_FMT = '#,##0.00';
 

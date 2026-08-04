@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 
-
 import { VendorProcessorController } from './vendor-processor.controller';
 import { VendorProcessorService } from './vendor-processor.service';
 import { VendorReviewReminderWorker } from './vendor-review-reminder.worker';

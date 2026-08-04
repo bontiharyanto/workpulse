@@ -6,7 +6,6 @@ import { mockDeep, mockReset } from 'jest-mock-extended';
 import { TimesheetConfigService } from './timesheet-config.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 interface Kit {
   service: TimesheetConfigService;
   prisma: DeepMockProxy<PrismaService>;

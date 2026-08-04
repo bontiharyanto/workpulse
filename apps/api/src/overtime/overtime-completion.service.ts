@@ -5,9 +5,7 @@ import { isPayrollLocked } from '../common/domain/payroll-lock';
 import { overtimeCompleted } from '../notification/domain/templates';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  decideOvertimeCompletion,
-} from './domain/overtime-completion';
+import { decideOvertimeCompletion } from './domain/overtime-completion';
 import { transition } from './domain/overtime-state';
 
 export interface CompletionRunResult {

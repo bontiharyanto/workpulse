@@ -3,7 +3,6 @@ import PDFDocument from 'pdfkit';
 import type { RendererStream } from './render-context';
 import type { OvertimeReportRow, OvertimeReportTotals } from '../domain/overtime-report';
 
-
 interface Column {
   key: keyof OvertimeReportRow;
   label: string;

@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 
-
 import { CustomReportController } from './custom-report.controller';
 import { ReportRendererService } from './renderers/report-renderer.service';
 import { ReportBuilderService } from './report-builder.service';

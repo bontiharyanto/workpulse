@@ -18,7 +18,6 @@ import type {
   UnreadCountResponse,
 } from '@workpulse/shared-types';
 
-
 import {
   NotificationArchivePageDto,
   NotificationArchiveQueryDto,

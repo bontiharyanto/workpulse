@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 
-
 import { AbsenceScannerService } from './absence-scanner.service';
 import { AttendanceSchedulerService } from './attendance-scheduler.service';
 import { AttendanceController } from './attendance.controller';

@@ -18,7 +18,6 @@ import {
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-
 /**
  * Fase 31a — Data Subject Access Request (DSAR / data-portability).
  *

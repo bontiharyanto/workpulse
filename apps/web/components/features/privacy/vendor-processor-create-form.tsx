@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 
-import type { ApiError} from '@/lib/api-client';
+import type { ApiError } from '@/lib/api-client';
 import { vendorProcessorApi } from '@/lib/api-client';
 
 const ERROR_COPY: Record<string, string> = {

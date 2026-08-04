@@ -9,7 +9,6 @@ import { DataExportWorker } from './data-export.worker';
 import { PrismaService } from '../prisma/prisma.service';
 import type { StorageProvider } from '../storage/storage.provider';
 
-
 // Mock the assembler so the worker specs don't depend on the ZIP
 // implementation — that has its own suite. Deliberately returns a
 // stable 3-byte buffer so we can assert size + upload wiring.

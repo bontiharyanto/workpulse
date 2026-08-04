@@ -15,7 +15,6 @@ import type { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 import type { StorageProvider } from '../storage/storage.provider';
 
-
 interface Kit {
   service: DataErasureService;
   prisma: DeepMockProxy<PrismaService>;

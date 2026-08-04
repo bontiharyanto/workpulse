@@ -13,7 +13,6 @@ import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 const employee: AuthenticatedUser = {
   id: 'user-emp',
   email: 'emp@a.test',

@@ -7,7 +7,6 @@ import { TimesheetService } from './timesheet.service';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 interface Kit {
   service: TimesheetSchedulerService;
   prisma: DeepMockProxy<PrismaService>;

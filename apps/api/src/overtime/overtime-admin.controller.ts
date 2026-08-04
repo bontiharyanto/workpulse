@@ -7,7 +7,6 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-
 @ApiTags('overtime-admin')
 @ApiBearerAuth()
 @Controller({ path: 'admin/overtime', version: '1' })

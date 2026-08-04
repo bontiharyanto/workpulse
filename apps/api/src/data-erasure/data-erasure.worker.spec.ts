@@ -9,7 +9,6 @@ import { DataErasureWorker } from './data-erasure.worker';
 import type { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 // The worker delegates the destructive DB work to `anonymizeUser`. We
 // mock that entire module so the worker test focuses on the tick
 // state-machine, not the anonymisation semantics (which are covered by

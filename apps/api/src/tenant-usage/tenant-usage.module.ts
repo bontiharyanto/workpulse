@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 
-
 import { TenantUsageController } from './tenant-usage.controller';
 import { TenantUsageService } from './tenant-usage.service';
 import { TenantUsageWorker } from './tenant-usage.worker';

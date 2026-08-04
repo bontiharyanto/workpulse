@@ -1,7 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
-
 import type { HydratedCorrection } from './attendance-correction.service';
 import { AttendanceCorrectionService } from './attendance-correction.service';
 import { CorrectionResponseDto } from './dto/correction-response.dto';

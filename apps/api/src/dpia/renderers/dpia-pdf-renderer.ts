@@ -1,6 +1,6 @@
 import { PassThrough } from 'node:stream';
 
-import type { DpiaAssessment, DpiaRiskItem} from '@prisma/client';
+import type { DpiaAssessment, DpiaRiskItem } from '@prisma/client';
 import { DpiaRiskLevel } from '@prisma/client';
 import PDFDocument from 'pdfkit';
 

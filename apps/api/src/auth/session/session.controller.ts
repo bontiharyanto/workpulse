@@ -12,7 +12,6 @@ import { SessionService, type SessionSummary } from './session.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
 
-
 const REFRESH_COOKIE_NAME = 'wp_refresh';
 
 /**

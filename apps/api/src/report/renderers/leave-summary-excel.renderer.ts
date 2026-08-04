@@ -3,7 +3,6 @@ import ExcelJS from 'exceljs';
 import type { RendererStream } from './render-context';
 import type { LeaveSummaryReportRow, LeaveSummaryTotals } from '../domain/leave-summary-report';
 
-
 const COLUMNS = [
   { key: 'userFullName', header: 'Karyawan', width: 25 },
   { key: 'userEmail', header: 'Email', width: 28 },

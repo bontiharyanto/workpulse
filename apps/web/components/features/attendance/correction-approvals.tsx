@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AttendanceCorrection } from '@workpulse/shared-types';
 import { useState } from 'react';
 
-
 import { ApiError, attendanceCorrectionsApi } from '@/lib/api-client';
 
 /**

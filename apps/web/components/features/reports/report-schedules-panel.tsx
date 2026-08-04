@@ -10,7 +10,6 @@ import type {
 } from '@workpulse/shared-types';
 import { useState } from 'react';
 
-
 import { ApiError, reportScheduleAdminApi } from '@/lib/api-client';
 
 const STATUS_BADGE: Record<ReportDeliveryResponse['status'], { label: string; className: string }> =

@@ -11,7 +11,6 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-
 /**
  * Admin surface for tenant-wide privacy-policy versions (Fase 31c).
  * Publish a new version → next login prompts every non-consenting

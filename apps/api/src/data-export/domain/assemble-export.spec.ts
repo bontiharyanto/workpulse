@@ -7,7 +7,6 @@ import { mockDeep, mockReset } from 'jest-mock-extended';
 import { __testables, assembleExportArchive } from './assemble-export';
 import { PrismaService } from '../../prisma/prisma.service';
 
-
 // Prisma methods are numerous — auto-mock everything and only stub the
 // specific `findMany` / `findUnique` returns we care about.
 describe('assembleExportArchive', () => {

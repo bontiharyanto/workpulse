@@ -10,7 +10,6 @@ import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { WebhookDispatcher } from '../webhook/webhook-dispatcher.service';
 
-
 interface Kit {
   service: TimesheetSubmissionService;
   prisma: DeepMockProxy<PrismaService>;

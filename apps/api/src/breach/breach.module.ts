@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 
-
 import { BreachAdminController } from './breach-admin.controller';
 import { BreachDeadlineWorker } from './breach-deadline.worker';
 import { BreachExportController } from './breach-export.controller';

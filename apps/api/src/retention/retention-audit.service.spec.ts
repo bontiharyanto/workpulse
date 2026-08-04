@@ -2,7 +2,6 @@ import type { RetentionAuditReport, RetentionPolicy } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
-
 import { RetentionAuditService } from './retention-audit.service';
 import { RetentionService } from './retention.service';
 import { PrismaService } from '../prisma/prisma.service';

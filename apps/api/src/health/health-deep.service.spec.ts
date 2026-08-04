@@ -5,7 +5,6 @@ import type { EnvConfig } from '../config/env.validation';
 import { PrismaService } from '../prisma/prisma.service';
 import type { StorageProvider } from '../storage/storage.provider';
 
-
 type ConfigServiceT = ConfigService<EnvConfig, true>;
 
 describe('HealthDeepService', () => {

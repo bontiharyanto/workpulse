@@ -6,7 +6,6 @@ import { mockDeep, mockReset } from 'jest-mock-extended';
 import { BacklogService } from './backlog.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 const NOW = new Date('2026-08-02T12:00:00Z');
 
 function daysAgo(n: number): Date {

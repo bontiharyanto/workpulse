@@ -6,7 +6,6 @@ import { HealthDeepService } from './health-deep.service';
 import { Public } from '../auth/decorators/public.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 /**
  * Public health endpoints.
  *

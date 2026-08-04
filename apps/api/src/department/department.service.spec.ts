@@ -6,7 +6,6 @@ import { DepartmentService } from './department.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-
 const hr: AuthenticatedUser = {
   id: 'user-hr',
   email: 'hr@a.test',

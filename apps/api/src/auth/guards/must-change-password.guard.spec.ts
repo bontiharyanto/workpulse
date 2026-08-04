@@ -7,7 +7,6 @@ import type { AuthenticatedUser } from '../../common/types/authenticated-user';
 import { ALLOW_MUST_CHANGE_PASSWORD_KEY } from '../decorators/allow-must-change-password.decorator';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
-
 /**
  * Build a minimal `ExecutionContext` stub whose `switchToHttp().getRequest()`
  * returns the provided `user`. Handler + class are dummy references — the

@@ -8,7 +8,6 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-
 @ApiTags('admin-backlog')
 @ApiBearerAuth()
 @Controller({ path: 'admin/approvals', version: '1' })
