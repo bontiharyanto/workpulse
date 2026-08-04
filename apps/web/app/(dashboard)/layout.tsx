@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { RequireAuth } from '@/components/features/auth/require-auth';
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { AppTopbar } from '@/components/layout/app-topbar';
+import { DashboardMain } from '@/components/layout/dashboard-main';
 
 /**
  * Application shell for every authenticated route.
@@ -20,6 +21,10 @@ import { AppTopbar } from '@/components/layout/app-topbar';
  * inside the topbar replaces it. Content column stretches to the
  * viewport height so pages can implement their own inner scrolling
  * without stacked scrollbars.
+ *
+ * `DashboardMain` is a thin client component that owns the page
+ * transition motion — kept separate so this layout can stay a pure
+ * server component (better streaming, cheaper hydration).
  */
 export default function DashboardLayout({ children }: { children: ReactNode }): JSX.Element {
   return (
@@ -31,9 +36,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }): 
 
         <div className="flex min-h-svh flex-1 flex-col">
           <AppTopbar />
-          <main className="flex-1 px-4 py-6 lg:px-8 lg:py-8">
-            <div className="mx-auto w-full max-w-7xl">{children}</div>
-          </main>
+          <DashboardMain>{children}</DashboardMain>
         </div>
       </div>
     </RequireAuth>
