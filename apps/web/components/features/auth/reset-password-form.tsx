@@ -2,12 +2,17 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { resetPasswordInputSchema, type ResetPasswordInput } from '@workpulse/shared-types';
+import { AlertTriangle, CheckCircle2, Lock, LogIn } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { ApiError, authApi } from '@/lib/api-client';
 
 /**
@@ -46,18 +51,14 @@ export function ResetPasswordForm({ token }: { token: string | null }): JSX.Elem
   if (!token) {
     return (
       <div className="space-y-4">
-        <div
-          role="alert"
-          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-4 py-3 text-sm"
-        >
-          Link reset tidak lengkap. Silakan minta link baru.
-        </div>
-        <Link
-          href="/forgot-password"
-          className="text-primary inline-block text-sm font-medium underline underline-offset-4"
-        >
-          Minta link reset baru
-        </Link>
+        <Alert variant="destructive">
+          <AlertTriangle aria-hidden />
+          <AlertTitle>Link reset tidak lengkap</AlertTitle>
+          <AlertDescription>Silakan minta link baru dari halaman lupa password.</AlertDescription>
+        </Alert>
+        <Button asChild variant="outline" size="sm" className="w-full">
+          <Link href="/forgot-password">Minta link reset baru</Link>
+        </Button>
       </div>
     );
   }
@@ -85,91 +86,81 @@ export function ResetPasswordForm({ token }: { token: string | null }): JSX.Elem
   if (submitted) {
     return (
       <div className="space-y-4">
-        <div
-          role="status"
-          className="rounded-md border border-emerald-300/60 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"
-        >
-          Password Anda berhasil diubah. Silakan masuk kembali menggunakan password baru.
-        </div>
-        <button
+        <Alert variant="success">
+          <CheckCircle2 aria-hidden />
+          <AlertTitle>Password berhasil diubah</AlertTitle>
+          <AlertDescription>Silakan masuk kembali menggunakan password baru.</AlertDescription>
+        </Alert>
+        <Button
           type="button"
           onClick={() => router.replace('/login')}
-          className="bg-primary text-primary-foreground w-full rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90"
+          className="w-full"
+          size="lg"
         >
+          <LogIn className="h-4 w-4" aria-hidden />
           Masuk sekarang
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
-      <div className="space-y-1">
-        <label htmlFor="password" className="text-sm font-medium">
-          Password baru
-        </label>
-        <input
+      <div className="space-y-1.5">
+        <Label htmlFor="password">Password baru</Label>
+        <Input
           id="password"
           type="password"
           autoComplete="new-password"
           autoFocus
           minLength={8}
           aria-invalid={Boolean(form.formState.errors.password) || undefined}
-          className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2"
           {...form.register('password')}
         />
-        {form.formState.errors.password && (
-          <p role="alert" className="text-destructive text-xs">
+        {form.formState.errors.password ? (
+          <p role="alert" className="text-destructive text-caption">
             {form.formState.errors.password.message}
           </p>
-        )}
-        <p className="text-muted-foreground text-xs">
+        ) : null}
+        <p className="text-muted-foreground text-caption">
           Minimal 8 karakter. Gunakan kombinasi huruf besar, kecil, angka, dan simbol.
         </p>
       </div>
 
-      <div className="space-y-1">
-        <label htmlFor="passwordConfirm" className="text-sm font-medium">
-          Konfirmasi password baru
-        </label>
-        <input
+      <div className="space-y-1.5">
+        <Label htmlFor="passwordConfirm">Konfirmasi password baru</Label>
+        <Input
           id="passwordConfirm"
           type="password"
           autoComplete="new-password"
           minLength={8}
           aria-invalid={Boolean(form.formState.errors.passwordConfirm) || undefined}
-          className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2"
           {...form.register('passwordConfirm')}
         />
-        {form.formState.errors.passwordConfirm && (
-          <p role="alert" className="text-destructive text-xs">
+        {form.formState.errors.passwordConfirm ? (
+          <p role="alert" className="text-destructive text-caption">
             {form.formState.errors.passwordConfirm.message}
           </p>
-        )}
+        ) : null}
       </div>
 
-      {submitError && (
-        <p
-          role="alert"
-          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
-        >
-          {submitError}
-        </p>
-      )}
+      {submitError ? (
+        <Alert variant="destructive">
+          <AlertTriangle aria-hidden />
+          <AlertTitle>Tidak dapat menyimpan password</AlertTitle>
+          <AlertDescription>{submitError}</AlertDescription>
+        </Alert>
+      ) : null}
 
-      <button
+      <Button
         type="submit"
+        className="w-full"
+        size="lg"
         disabled={form.formState.isSubmitting}
-        className="bg-primary text-primary-foreground w-full rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90 disabled:opacity-50"
       >
-        {form.formState.isSubmitting ? 'Menyimpan...' : 'Simpan password baru'}
-      </button>
-
-      <p className="text-muted-foreground text-center text-xs">
-        <Link href="/login" className="underline underline-offset-4">
-          Kembali ke halaman masuk
-        </Link>
-      </p>
+        <Lock className="h-4 w-4" aria-hidden />
+        {form.formState.isSubmitting ? 'Menyimpan…' : 'Simpan password baru'}
+      </Button>
     </form>
   );
 }

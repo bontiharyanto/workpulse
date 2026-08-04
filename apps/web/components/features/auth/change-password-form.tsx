@@ -2,12 +2,17 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { changePasswordInputSchema, type ChangePasswordInput } from '@workpulse/shared-types';
+import { AlertTriangle, Info, Lock } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { useAuth } from '@/components/providers/auth-provider';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { ApiError, authApi } from '@/lib/api-client';
 import { authStore } from '@/lib/auth-store';
 
@@ -54,14 +59,8 @@ export function ChangePasswordForm(): JSX.Element {
       };
       await authApi.changePassword(payload);
       // The API revoked every refresh token — including this device's
-      // cookie. We use a full-page navigation (not `router.replace`)
-      // because the surrounding `RequireAuth` wrapper subscribes to the
-      // auth store: the moment we call `authStore.clear()`, a competing
-      // `router.replace('/login')` fires from RequireAuth's useEffect
-      // and strips our `?changed=1` query. `window.location.assign`
-      // wins that race cleanly and also drops any client state that
-      // still expected to be authenticated. `?changed=1` triggers the
-      // "berhasil diubah" toast on the login page.
+      // cookie. Full-page navigation because RequireAuth would otherwise
+      // strip our `?changed=1` query in a competing router.replace.
       authStore.clear();
       window.location.assign('/login?changed=1');
     } catch (err) {
@@ -77,103 +76,96 @@ export function ChangePasswordForm(): JSX.Element {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
-      {isForced && (
-        <div
-          role="status"
-          className="rounded-md border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900"
-        >
-          Password Anda saat ini adalah password sementara. Silakan pilih password baru untuk
-          melanjutkan.
-        </div>
-      )}
+      {isForced ? (
+        <Alert variant="warning">
+          <Info aria-hidden />
+          <AlertTitle>Password sementara terdeteksi</AlertTitle>
+          <AlertDescription>
+            Password Anda saat ini adalah password sementara. Silakan pilih password baru untuk
+            melanjutkan.
+          </AlertDescription>
+        </Alert>
+      ) : null}
 
-      <div className="space-y-1">
-        <label htmlFor="currentPassword" className="text-sm font-medium">
-          Password saat ini
-        </label>
-        <input
+      <div className="space-y-1.5">
+        <Label htmlFor="currentPassword">Password saat ini</Label>
+        <Input
           id="currentPassword"
           type="password"
           autoComplete="current-password"
           autoFocus
           aria-invalid={Boolean(form.formState.errors.currentPassword) || undefined}
-          className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2"
           {...form.register('currentPassword')}
         />
-        {form.formState.errors.currentPassword && (
-          <p role="alert" className="text-destructive text-xs">
+        {form.formState.errors.currentPassword ? (
+          <p role="alert" className="text-destructive text-caption">
             {form.formState.errors.currentPassword.message}
           </p>
-        )}
+        ) : null}
       </div>
 
-      <div className="space-y-1">
-        <label htmlFor="newPassword" className="text-sm font-medium">
-          Password baru
-        </label>
-        <input
+      <div className="space-y-1.5">
+        <Label htmlFor="newPassword">Password baru</Label>
+        <Input
           id="newPassword"
           type="password"
           autoComplete="new-password"
           minLength={8}
           aria-invalid={Boolean(form.formState.errors.newPassword) || undefined}
-          className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2"
           {...form.register('newPassword')}
         />
-        {form.formState.errors.newPassword && (
-          <p role="alert" className="text-destructive text-xs">
+        {form.formState.errors.newPassword ? (
+          <p role="alert" className="text-destructive text-caption">
             {form.formState.errors.newPassword.message}
           </p>
-        )}
-        <p className="text-muted-foreground text-xs">
+        ) : null}
+        <p className="text-muted-foreground text-caption">
           Minimal 8 karakter. Gunakan kombinasi huruf besar, kecil, angka, dan simbol.
         </p>
       </div>
 
-      <div className="space-y-1">
-        <label htmlFor="passwordConfirm" className="text-sm font-medium">
-          Konfirmasi password baru
-        </label>
-        <input
+      <div className="space-y-1.5">
+        <Label htmlFor="passwordConfirm">Konfirmasi password baru</Label>
+        <Input
           id="passwordConfirm"
           type="password"
           autoComplete="new-password"
           minLength={8}
           aria-invalid={Boolean(form.formState.errors.passwordConfirm) || undefined}
-          className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2"
           {...form.register('passwordConfirm')}
         />
-        {form.formState.errors.passwordConfirm && (
-          <p role="alert" className="text-destructive text-xs">
+        {form.formState.errors.passwordConfirm ? (
+          <p role="alert" className="text-destructive text-caption">
             {form.formState.errors.passwordConfirm.message}
           </p>
-        )}
+        ) : null}
       </div>
 
-      {submitError && (
-        <p
-          role="alert"
-          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
-        >
-          {submitError}
-        </p>
-      )}
+      {submitError ? (
+        <Alert variant="destructive">
+          <AlertTriangle aria-hidden />
+          <AlertTitle>Tidak dapat menyimpan password</AlertTitle>
+          <AlertDescription>{submitError}</AlertDescription>
+        </Alert>
+      ) : null}
 
-      <button
+      <Button
         type="submit"
+        className="w-full"
+        size="lg"
         disabled={form.formState.isSubmitting}
-        className="bg-primary text-primary-foreground w-full rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90 disabled:opacity-50"
       >
-        {form.formState.isSubmitting ? 'Menyimpan...' : 'Simpan password baru'}
-      </button>
+        <Lock className="h-4 w-4" aria-hidden />
+        {form.formState.isSubmitting ? 'Menyimpan…' : 'Simpan password baru'}
+      </Button>
 
-      {!isForced && (
-        <p className="text-muted-foreground text-center text-xs">
+      {!isForced ? (
+        <p className="text-muted-foreground text-center text-caption">
           <Link href="/settings/notifications" className="underline underline-offset-4">
             Batal
           </Link>
         </p>
-      )}
+      ) : null}
     </form>
   );
 }

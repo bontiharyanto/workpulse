@@ -1,6 +1,10 @@
+import { CheckCircle2 } from 'lucide-react';
 import type { Metadata } from 'next';
+import type { JSX } from 'react';
 
+import { AuthShell } from '@/components/features/auth/auth-shell';
 import { LoginForm } from '@/components/features/auth/login-form';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export const metadata: Metadata = {
   title: 'Masuk — Workpulse',
@@ -9,33 +13,25 @@ export const metadata: Metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  // Next.js 15 turned this into an async property. `next` carries the
-  // post-login redirect target; `changed=1` is set by the change-password
-  // flow to surface a success toast.
   searchParams: Promise<{ next?: string; changed?: string }>;
 }): Promise<JSX.Element> {
   const params = await searchParams;
   const justChanged = params.changed === '1';
   return (
-    <main className="bg-muted/30 flex min-h-screen items-center justify-center px-4">
-      <div className="bg-background w-full max-w-sm rounded-lg border p-6 shadow-sm">
-        <div className="mb-6 space-y-1">
-          <p className="text-muted-foreground text-xs font-medium uppercase tracking-widest">
-            Workpulse
-          </p>
-          <h1 className="text-2xl font-semibold tracking-tight">Masuk ke akun Anda</h1>
-          <p className="text-muted-foreground text-sm">Gunakan email perusahaan dan kata sandi.</p>
-        </div>
-        {justChanged && (
-          <div
-            role="status"
-            className="mb-4 rounded-md border border-emerald-300/60 bg-emerald-50 px-3 py-2 text-sm text-emerald-900"
-          >
-            Password berhasil diubah. Silakan masuk kembali dengan password baru Anda.
-          </div>
-        )}
-        <LoginForm redirectTo={params.next ?? '/attendance'} />
-      </div>
-    </main>
+    <AuthShell
+      title="Masuk ke akun Anda"
+      description="Gunakan email perusahaan dan kata sandi."
+    >
+      {justChanged ? (
+        <Alert variant="success">
+          <CheckCircle2 aria-hidden />
+          <AlertTitle>Password berhasil diubah</AlertTitle>
+          <AlertDescription>
+            Silakan masuk kembali dengan password baru Anda.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+      <LoginForm redirectTo={params.next ?? '/attendance'} />
+    </AuthShell>
   );
 }
