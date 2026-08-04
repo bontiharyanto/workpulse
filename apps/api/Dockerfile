@@ -12,7 +12,7 @@
 #   runtime — slim image, non-root user, runs `prisma migrate deploy` then Nest
 # ==============================================================================
 
-FROM node:20-alpine AS base
+FROM node:26-alpine AS base
 RUN apk add --no-cache libc6-compat openssl tini
 RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
 WORKDIR /workspace
@@ -41,7 +41,7 @@ RUN pnpm --filter @workpulse/shared-types build \
 RUN pnpm --filter @workpulse/api --prod deploy /pruned
 
 # ---- runtime ----------------------------------------------------------------
-FROM node:20-alpine AS runtime
+FROM node:26-alpine AS runtime
 RUN apk add --no-cache libc6-compat openssl tini \
  && addgroup -S nodejs -g 1001 \
  && adduser -S -G nodejs -u 1001 workpulse
