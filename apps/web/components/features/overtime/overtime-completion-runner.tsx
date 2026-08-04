@@ -1,16 +1,23 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
-import { useState } from 'react';
+import { AlertTriangle, CheckCircle2, Clock, Play, Search, SkipForward } from 'lucide-react';
+import { useState, type JSX } from 'react';
 
 import { useAuth } from '@/components/providers/auth-provider';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ApiError, overtimeApi, type OvertimeCompletionRunResult } from '@/lib/api-client';
 
 /**
- * Manual trigger for the daily overtime completion scheduler. Rendered only
- * for HR_MANAGER / SUPER_ADMIN. The cron itself runs at 02:00 server time
- * every day; this button gives HR an escape hatch (e.g. after backfilling
- * attendance manually).
+ * Manual trigger for the daily overtime completion scheduler. Rendered
+ * only for HR_MANAGER / SUPER_ADMIN. The cron itself runs at 02:00
+ * server time every day; this button gives HR an escape hatch (e.g.
+ * after backfilling attendance manually).
+ *
+ * INVARIANT (rules/20 §3): the FE role check is UX only — the API
+ * endpoint `/admin/overtime/run-completion` enforces the same role.
  */
 export function OvertimeCompletionRunner(): JSX.Element | null {
   const { user } = useAuth();
@@ -34,52 +41,85 @@ export function OvertimeCompletionRunner(): JSX.Element | null {
   }
 
   return (
-    <section className="rounded-lg border border-dashed p-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <Card className="border-dashed">
+      <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
         <div className="max-w-xl">
-          <h3 className="text-sm font-semibold">Penyelesaian Otomatis (Scheduler)</h3>
-          <p className="text-muted-foreground text-xs">
-            Scheduler harian akan mempromote pengajuan lembur berstatus{' '}
-            <span className="font-medium">Disetujui</span> menjadi{' '}
-            <span className="font-medium">Selesai</span> setelah masa tenggang lewat dan kehadiran
-            pada tanggal tersebut terverifikasi (clock-in &amp; clock-out lengkap). Klik tombol di
-            samping untuk menjalankannya sekarang — cocok setelah menambahkan timesheet manual atau
-            backfill kehadiran.
+          <CardTitle className="text-h6">Penyelesaian otomatis (scheduler)</CardTitle>
+          <p className="text-muted-foreground text-caption mt-1">
+            Promote pengajuan berstatus <b>Disetujui</b> → <b>Selesai</b> setelah masa tenggang
+            lewat dan kehadiran pada tanggal tersebut terverifikasi. Cocok setelah backfill
+            manual.
           </p>
         </div>
-        <button
-          type="button"
-          disabled={run.isPending}
-          onClick={() => run.mutate()}
-          className="bg-foreground text-background whitespace-nowrap rounded-md px-3 py-2 text-xs font-medium shadow disabled:opacity-50"
-        >
+        <Button size="sm" disabled={run.isPending} onClick={() => run.mutate()}>
+          <Play className="h-4 w-4" aria-hidden />
           {run.isPending ? 'Menjalankan…' : 'Jalankan sekarang'}
-        </button>
-      </div>
+        </Button>
+      </CardHeader>
 
-      {error && (
-        <p role="alert" className="text-destructive mt-2 text-xs">
-          {error}
-        </p>
-      )}
+      {(error || lastResult) && (
+        <CardContent className="space-y-3">
+          {error ? (
+            <Alert variant="destructive">
+              <AlertTriangle aria-hidden />
+              <AlertTitle>Gagal menjalankan penyelesaian</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : null}
 
-      {lastResult && (
-        <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-4">
-          <Metric label="Diperiksa" value={lastResult.scanned} />
-          <Metric label="Diselesaikan" value={lastResult.completed} />
-          <Metric label="Durasi" value={`${lastResult.durationMs} ms`} />
-          <SkippedMetric skipped={lastResult.skipped} />
-        </dl>
+          {lastResult ? (
+            <div className="grid gap-3 sm:grid-cols-4">
+              <Metric
+                icon={<Search className="h-3.5 w-3.5" aria-hidden />}
+                label="Diperiksa"
+                value={lastResult.scanned}
+              />
+              <Metric
+                icon={<CheckCircle2 className="text-success h-3.5 w-3.5" aria-hidden />}
+                label="Diselesaikan"
+                value={lastResult.completed}
+                tone="success"
+              />
+              <Metric
+                icon={<Clock className="h-3.5 w-3.5" aria-hidden />}
+                label="Durasi"
+                value={`${lastResult.durationMs} ms`}
+              />
+              <SkippedMetric skipped={lastResult.skipped} />
+            </div>
+          ) : null}
+        </CardContent>
       )}
-    </section>
+    </Card>
   );
 }
 
-function Metric({ label, value }: { label: string; value: string | number }): JSX.Element {
+function Metric({
+  icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  tone?: 'success';
+}): JSX.Element {
   return (
-    <div className="bg-muted/40 rounded-md border px-3 py-2">
-      <dt className="text-muted-foreground text-[10px] uppercase tracking-widest">{label}</dt>
-      <dd className="font-medium">{value}</dd>
+    <div className="bg-muted/30 border-border rounded-md border p-3">
+      <div className="text-muted-foreground text-overline inline-flex items-center gap-1.5 uppercase">
+        {icon}
+        {label}
+      </div>
+      <p
+        className={
+          tone === 'success'
+            ? 'text-success text-h5 tabular-nums font-semibold'
+            : 'text-foreground text-h5 tabular-nums font-semibold'
+        }
+      >
+        {value}
+      </p>
     </div>
   );
 }
@@ -96,19 +136,28 @@ const SKIP_LABEL: Record<string, string> = {
 function SkippedMetric({ skipped }: { skipped: Record<string, number> }): JSX.Element {
   const entries = Object.entries(skipped);
   if (entries.length === 0) {
-    return <Metric label="Dilewati" value="—" />;
+    return (
+      <Metric
+        icon={<SkipForward className="h-3.5 w-3.5" aria-hidden />}
+        label="Dilewati"
+        value="—"
+      />
+    );
   }
   return (
-    <div className="bg-muted/40 rounded-md border px-3 py-2 sm:col-span-1">
-      <dt className="text-muted-foreground text-[10px] uppercase tracking-widest">Dilewati</dt>
-      <dd className="mt-1 space-y-0.5">
+    <div className="bg-muted/30 border-border rounded-md border p-3">
+      <div className="text-muted-foreground text-overline inline-flex items-center gap-1.5 uppercase">
+        <SkipForward className="h-3.5 w-3.5" aria-hidden />
+        Dilewati
+      </div>
+      <dl className="mt-1.5 space-y-0.5 text-caption">
         {entries.map(([reason, count]) => (
           <div key={reason} className="flex items-center justify-between gap-2">
-            <span className="text-muted-foreground">{SKIP_LABEL[reason] ?? reason}</span>
-            <span className="font-medium tabular-nums">{count}</span>
+            <dt className="text-muted-foreground">{SKIP_LABEL[reason] ?? reason}</dt>
+            <dd className="text-foreground font-medium tabular-nums">{count}</dd>
           </div>
         ))}
-      </dd>
+      </dl>
     </div>
   );
 }

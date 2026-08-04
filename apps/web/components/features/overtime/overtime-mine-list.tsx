@@ -1,37 +1,40 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { OvertimeRequest, OvertimeStatus } from '@workpulse/shared-types';
-import { useState } from 'react';
+import type { OvertimeRequest } from '@workpulse/shared-types';
+import { AlertTriangle, Ban, Calendar, Inbox } from 'lucide-react';
+import { useState, type JSX } from 'react';
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ApiError, overtimeApi } from '@/lib/api-client';
+import { formatCalendarDate, formatIDR } from '@/lib/format';
 
-const STATUS_LABEL: Record<OvertimeStatus, string> = {
-  PENDING_APPROVAL: 'Menunggu Approval',
-  APPROVED: 'Disetujui',
-  REJECTED: 'Ditolak',
-  COMPLETED: 'Selesai',
-  CANCELLED: 'Dibatalkan',
-};
+import { OvertimeStatusBadge } from './overtime-status-badge';
 
-const STATUS_BADGE: Record<OvertimeStatus, string> = {
-  PENDING_APPROVAL: 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
-  APPROVED: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
-  REJECTED: 'bg-destructive/10 text-destructive',
-  COMPLETED: 'bg-sky-500/10 text-sky-700 dark:text-sky-400',
-  CANCELLED: 'bg-muted text-muted-foreground',
-};
-
-const currency = new Intl.NumberFormat('id-ID', {
-  style: 'currency',
-  currency: 'IDR',
-  maximumFractionDigits: 0,
-});
-
+/**
+ * Employee-visible list of own overtime requests, scoped by year.
+ *
+ * INVARIANT (rules/20 §4): renders `r.totalAmount` and `r.ratePerHour`
+ * directly — never `r.ratePerHour * r.hours`. All rate math is
+ * server-computed. Cancel is UX-gated to `PENDING_APPROVAL`; the
+ * server enforces `ILLEGAL_TRANSITION` if state has moved on.
+ */
 export function OvertimeMineList(): JSX.Element {
   const qc = useQueryClient();
   const [cancelError, setCancelError] = useState<string | null>(null);
-  const [year, setYear] = useState(new Date().getFullYear());
+  const currentYear = new Date().getFullYear();
+  const [year, setYear] = useState(currentYear);
 
   const list = useQuery({
     queryKey: ['overtime', 'mine', year],
@@ -50,98 +53,136 @@ export function OvertimeMineList(): JSX.Element {
     },
   });
 
-  if (list.isLoading) return <p className="text-muted-foreground text-sm">Memuat…</p>;
-  if (list.error) {
-    return <p className="text-destructive text-sm">Gagal memuat pengajuan lembur.</p>;
-  }
-  const rows = list.data ?? [];
+  const years = [currentYear + 1, currentYear, currentYear - 1, currentYear - 2];
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 text-xs">
-        <label htmlFor="ot-year" className="text-muted-foreground">
-          Tahun:
-        </label>
-        <select
-          id="ot-year"
-          value={year}
-          onChange={(e) => setYear(Number(e.target.value))}
-          className="border-input bg-background rounded-md border px-2 py-1"
-        >
-          {[year + 1, year, year - 1, year - 2].map((y) => (
-            <option key={y} value={y}>
-              {y}
-            </option>
-          ))}
-        </select>
-      </div>
+    <Card>
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 space-y-0">
+        <div>
+          <CardTitle>Pengajuan lembur saya</CardTitle>
+          <p className="text-muted-foreground text-caption">
+            Riwayat pengajuan berdasarkan tahun kerja.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Calendar className="text-muted-foreground h-4 w-4" aria-hidden />
+          <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
+            <SelectTrigger className="h-8 w-24 text-caption">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((y) => (
+                <SelectItem key={y} value={String(y)}>
+                  {y}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </CardHeader>
 
-      {cancelError && (
-        <p role="alert" className="text-destructive text-xs">
-          {cancelError}
-        </p>
-      )}
+      <CardContent className="space-y-3">
+        {cancelError ? (
+          <Alert variant="destructive">
+            <AlertTriangle aria-hidden />
+            <AlertTitle>Tidak dapat dibatalkan</AlertTitle>
+            <AlertDescription>{cancelError}</AlertDescription>
+          </Alert>
+        ) : null}
 
-      {rows.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
-          Belum ada pengajuan lembur untuk tahun {year}.
-        </p>
-      ) : (
-        <ul className="space-y-2">
-          {rows.map((r) => (
-            <Row
-              key={r.id}
-              r={r}
-              onCancel={() => cancel.mutate(r.id)}
-              cancelPending={cancel.isPending}
-            />
-          ))}
-        </ul>
-      )}
-    </div>
+        {list.isLoading ? (
+          <>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full rounded-lg" />
+            ))}
+          </>
+        ) : list.error ? (
+          <Alert variant="destructive">
+            <AlertTriangle aria-hidden />
+            <AlertTitle>Gagal memuat pengajuan lembur</AlertTitle>
+            <AlertDescription>Coba muat ulang halaman.</AlertDescription>
+          </Alert>
+        ) : (list.data ?? []).length === 0 ? (
+          <div className="text-muted-foreground border-border flex flex-col items-center gap-2 rounded-lg border border-dashed py-10">
+            <Inbox className="h-6 w-6" aria-hidden />
+            <p className="text-body text-foreground">Belum ada pengajuan lembur</p>
+            <p className="text-caption">Untuk tahun {year}</p>
+          </div>
+        ) : (
+          <ul className="space-y-2.5">
+            {list.data?.map((r) => {
+              const busy = cancel.isPending && cancel.variables === r.id;
+              return (
+                <li key={r.id}>
+                  <Row r={r} busy={busy} onCancel={() => cancel.mutate(r.id)} />
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
 function Row({
   r,
+  busy,
   onCancel,
-  cancelPending,
 }: {
   r: OvertimeRequest;
+  busy: boolean;
   onCancel: () => void;
-  cancelPending: boolean;
 }): JSX.Element {
   return (
-    <li className="rounded-md border p-3 text-sm">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="font-medium">
-          {r.workDate} · {r.hours} jam
-          <span className="text-muted-foreground ml-2 text-xs">({r.dayKind})</span>
+    <div className="border-border rounded-lg border p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-body font-semibold">{formatCalendarDate(r.workDate)}</span>
+            <Badge variant="muted" className="tabular-nums">
+              {r.hours} jam
+            </Badge>
+            <Badge variant="outline">{r.dayKind}</Badge>
+          </div>
+          <p className="text-muted-foreground text-caption">
+            <span className="font-medium">Alasan:</span> {r.reason}
+          </p>
         </div>
-        <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_BADGE[r.status]}`}>
-          {STATUS_LABEL[r.status]}
-        </span>
+        <OvertimeStatusBadge status={r.status} />
       </div>
-      <p className="text-muted-foreground mt-1">Alasan: {r.reason}</p>
-      <p className="text-muted-foreground mt-1 text-xs">
-        Tarif: {currency.format(r.ratePerHour)} / jam (×{r.rateMultiplier}) · Total{' '}
-        <span className="text-foreground font-medium">{currency.format(r.totalAmount)}</span>
-      </p>
-      {r.decisionNote && (
-        <p className="text-muted-foreground mt-1 text-xs italic">
+
+      <div className="text-caption text-muted-foreground mt-3 grid gap-2 sm:grid-cols-3">
+        <div>
+          <p className="text-overline uppercase">Tarif / jam</p>
+          <p className="text-foreground tabular-nums font-medium">{formatIDR(r.ratePerHour)}</p>
+        </div>
+        <div>
+          <p className="text-overline uppercase">Pengali</p>
+          <p className="text-foreground tabular-nums font-medium">×{r.rateMultiplier}</p>
+        </div>
+        <div>
+          <p className="text-overline uppercase">Total</p>
+          <p className="text-foreground tabular-nums font-semibold">
+            {formatIDR(r.totalAmount)}
+          </p>
+        </div>
+      </div>
+
+      {r.decisionNote ? (
+        <p className="text-muted-foreground border-border mt-3 border-l-2 pl-3 text-caption italic">
           Catatan approver: {r.decisionNote}
         </p>
-      )}
-      {r.status === 'PENDING_APPROVAL' && (
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={cancelPending}
-          className="text-destructive mt-2 text-xs underline-offset-2 hover:underline disabled:opacity-50"
-        >
-          Batalkan
-        </button>
-      )}
-    </li>
+      ) : null}
+
+      {r.status === 'PENDING_APPROVAL' ? (
+        <div className="mt-3">
+          <Button variant="outline" size="sm" onClick={onCancel} disabled={busy}>
+            <Ban className="h-3.5 w-3.5" aria-hidden />
+            {busy ? 'Membatalkan…' : 'Batalkan'}
+          </Button>
+        </div>
+      ) : null}
+    </div>
   );
 }

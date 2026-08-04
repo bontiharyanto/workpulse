@@ -1,16 +1,37 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Inbox,
+  User2,
+  XCircle,
+} from 'lucide-react';
+import { useState, type JSX } from 'react';
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import { ApiError, overtimeApi } from '@/lib/api-client';
+import { formatCalendarDate, formatIDR } from '@/lib/format';
 
-const currency = new Intl.NumberFormat('id-ID', {
-  style: 'currency',
-  currency: 'IDR',
-  maximumFractionDigits: 0,
-});
+import { OvertimeStatusBadge } from './overtime-status-badge';
 
+/**
+ * Approver queue for overtime requests.
+ *
+ * INVARIANT (rules/20 §4): renders server-computed
+ * `ratePerHour × rateMultiplier` + `totalAmount` directly, never
+ * client-derived. Individual notes are kept in a `Record<id, string>`
+ * so switching between rows doesn't lose in-flight drafts.
+ */
 const ERROR_COPY: Record<string, string> = {
   ILLEGAL_TRANSITION: 'Status pengajuan sudah berubah. Muat ulang halaman.',
   FORBIDDEN: 'Anda tidak berwenang memutuskan pengajuan ini.',
@@ -20,7 +41,7 @@ const ERROR_COPY: Record<string, string> = {
 export function OvertimeApprovalList(): JSX.Element {
   const qc = useQueryClient();
   const [openId, setOpenId] = useState<string | null>(null);
-  const [note, setNote] = useState('');
+  const [notes, setNotes] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
   const list = useQuery({
@@ -31,10 +52,14 @@ export function OvertimeApprovalList(): JSX.Element {
   const decide = useMutation({
     mutationFn: (args: { id: string; action: 'APPROVE' | 'REJECT'; note?: string }) =>
       overtimeApi.decide(args.id, { action: args.action, note: args.note }),
-    onSuccess: () => {
+    onSuccess: (_, vars) => {
       setError(null);
       setOpenId(null);
-      setNote('');
+      setNotes((prev) => {
+        const next = { ...prev };
+        delete next[vars.id];
+        return next;
+      });
       void qc.invalidateQueries({ queryKey: ['overtime'] });
     },
     onError: (err) => {
@@ -43,116 +68,194 @@ export function OvertimeApprovalList(): JSX.Element {
     },
   });
 
-  if (list.isLoading) return <p className="text-muted-foreground text-sm">Memuat…</p>;
-  if (list.error) {
-    return <p className="text-destructive text-sm">Gagal memuat data.</p>;
+  if (list.isLoading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <Card key={i}>
+            <CardContent className="space-y-3 p-6">
+              <Skeleton className="h-4 w-1/3" />
+              <Skeleton className="h-3 w-1/2" />
+              <Skeleton className="h-16 w-full" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
   }
+
+  if (list.error) {
+    return (
+      <Alert variant="destructive">
+        <AlertTriangle aria-hidden />
+        <AlertTitle>Gagal memuat data</AlertTitle>
+        <AlertDescription>Coba muat ulang halaman.</AlertDescription>
+      </Alert>
+    );
+  }
+
   const rows = list.data ?? [];
+
   if (rows.length === 0) {
     return (
-      <p className="text-muted-foreground rounded-md border p-4 text-sm">
-        Tidak ada pengajuan lembur yang menunggu keputusan Anda.
-      </p>
+      <Card>
+        <CardContent className="text-muted-foreground flex flex-col items-center gap-2 py-12">
+          <Inbox className="h-8 w-8" aria-hidden />
+          <p className="text-h6 text-foreground">Antrian kosong</p>
+          <p className="text-caption">Tidak ada pengajuan lembur menunggu keputusan Anda.</p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-3">
-      {error && (
-        <p role="alert" className="text-destructive text-sm">
-          {error}
-        </p>
-      )}
-      <ul className="space-y-2">
-        {rows.map((r) => {
-          const isOpen = openId === r.id;
-          return (
-            <li key={r.id} className="rounded-md border p-4 text-sm">
-              <header className="flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <div className="font-medium">
-                    {r.userFullName ?? r.userId} · {r.workDate} · {r.hours} jam
+      {error ? (
+        <Alert variant="destructive">
+          <AlertTriangle aria-hidden />
+          <AlertTitle>Keputusan tidak dapat disimpan</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      {rows.map((r) => {
+        const isOpen = openId === r.id;
+        const busy = decide.isPending && decide.variables?.id === r.id;
+        const rowNote = notes[r.id] ?? '';
+        return (
+          <Card key={r.id}>
+            <CardContent className="space-y-4 p-6">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="bg-muted text-muted-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+                    <User2 className="h-5 w-5" aria-hidden />
                   </div>
-                  <div className="text-muted-foreground text-xs">
-                    {r.dayKind} · tarif {currency.format(r.ratePerHour)} / jam · total{' '}
-                    <span className="text-foreground font-medium">
-                      {currency.format(r.totalAmount)}
-                    </span>
+                  <div className="space-y-1">
+                    <p className="text-body font-semibold">{r.userFullName ?? r.userId}</p>
+                    <p className="text-muted-foreground text-caption">
+                      {formatCalendarDate(r.workDate)} ·{' '}
+                      <span className="tabular-nums">{r.hours}</span> jam
+                      <Badge variant="outline" className="ml-2">
+                        {r.dayKind}
+                      </Badge>
+                    </p>
                   </div>
                 </div>
-                <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-xs text-amber-700 dark:text-amber-400">
-                  Menunggu
-                </span>
-              </header>
+                <OvertimeStatusBadge status={r.status} />
+              </div>
 
-              <p className="mt-2">
-                <span className="text-muted-foreground">Alasan: </span>
-                {r.reason}
-              </p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <MetricCell label="Tarif / jam" value={formatIDR(r.ratePerHour)} />
+                <MetricCell label="Pengali" value={`×${r.rateMultiplier}`} />
+                <MetricCell label="Total" value={formatIDR(r.totalAmount)} strong />
+              </div>
+
+              <div className="bg-muted/30 border-border rounded-md border p-3">
+                <p className="text-muted-foreground text-overline mb-1 uppercase">Alasan</p>
+                <p className="text-body">{r.reason}</p>
+              </div>
 
               {!isOpen ? (
-                <div className="mt-3 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOpenId(r.id);
-                      setNote('');
-                    }}
-                    className="hover:bg-accent rounded-md border px-3 py-1.5 text-xs"
-                  >
-                    Putuskan
-                  </button>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setOpenId(r.id);
+                  }}
+                >
+                  <ChevronDown className="h-4 w-4" aria-hidden />
+                  Putuskan
+                </Button>
               ) : (
-                <div className="mt-3 space-y-2">
-                  <label htmlFor={`note-${r.id}`} className="text-muted-foreground text-xs">
-                    Catatan (opsional)
-                  </label>
-                  <textarea
-                    id={`note-${r.id}`}
-                    rows={2}
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    className="border-input bg-background w-full rounded-md border px-3 py-2 text-xs"
-                  />
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor={`overtime-approval-note-${r.id}`}>
+                      Catatan keputusan <Badge variant="muted">opsional</Badge>
+                    </Label>
+                    <Textarea
+                      id={`overtime-approval-note-${r.id}`}
+                      rows={2}
+                      value={rowNote}
+                      onChange={(e) =>
+                        setNotes((prev) => ({ ...prev, [r.id]: e.target.value }))
+                      }
+                      placeholder="Ditampilkan ke pengaju jika ditolak."
+                    />
+                  </div>
                   <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      disabled={decide.isPending}
+                    <Button
+                      variant="success"
+                      size="sm"
+                      disabled={busy}
                       onClick={() =>
-                        decide.mutate({ id: r.id, action: 'APPROVE', note: note || undefined })
+                        decide.mutate({
+                          id: r.id,
+                          action: 'APPROVE',
+                          note: rowNote || undefined,
+                        })
                       }
-                      className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white shadow hover:opacity-90 disabled:opacity-50"
                     >
-                      Setujui
-                    </button>
-                    <button
-                      type="button"
-                      disabled={decide.isPending}
+                      <CheckCircle2 className="h-4 w-4" aria-hidden />
+                      {busy && decide.variables?.action === 'APPROVE'
+                        ? 'Menyetujui…'
+                        : 'Setujui'}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      disabled={busy}
                       onClick={() =>
-                        decide.mutate({ id: r.id, action: 'REJECT', note: note || undefined })
+                        decide.mutate({
+                          id: r.id,
+                          action: 'REJECT',
+                          note: rowNote || undefined,
+                        })
                       }
-                      className="bg-destructive text-destructive-foreground rounded-md px-3 py-1.5 text-xs font-medium shadow hover:opacity-90 disabled:opacity-50"
                     >
-                      Tolak
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOpenId(null);
-                        setNote('');
-                      }}
-                      className="hover:bg-accent rounded-md border px-3 py-1.5 text-xs"
+                      <XCircle className="h-4 w-4" aria-hidden />
+                      {busy && decide.variables?.action === 'REJECT' ? 'Menolak…' : 'Tolak'}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setOpenId(null)}
+                      disabled={busy}
                     >
-                      Batal
-                    </button>
+                      <ChevronUp className="h-4 w-4" aria-hidden />
+                      Tutup
+                    </Button>
                   </div>
                 </div>
               )}
-            </li>
-          );
-        })}
-      </ul>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+function MetricCell({
+  label,
+  value,
+  strong,
+}: {
+  label: string;
+  value: string;
+  strong?: boolean;
+}): JSX.Element {
+  return (
+    <div className="text-caption">
+      <p className="text-muted-foreground text-overline uppercase">{label}</p>
+      <p
+        className={
+          strong
+            ? 'text-foreground tabular-nums text-h6 font-semibold'
+            : 'text-foreground tabular-nums font-medium'
+        }
+      >
+        {value}
+      </p>
     </div>
   );
 }
