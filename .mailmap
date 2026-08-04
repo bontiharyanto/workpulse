@@ -1,0 +1,16 @@
+# Git mailmap — remaps author/committer identities for `git log`,
+# `git blame`, `git shortlog`, and GitHub's web UI without rewriting
+# history.
+#
+# Format (see `git help mailmap`):
+#   <correct-email>                       <bad-email>
+#   Correct Name <correct-email>          Bad Name <bad-email>
+#
+# Add a new entry below whenever a contributor's git identity was
+# misconfigured. Never delete entries — they must keep mapping
+# historical commits forever.
+
+# 2026-08-04 — initial import + v1.0.0-beta.1 release commits were
+# authored with a typo email (missing `l` in `gmail`, extra `m` in
+# `com`). Config fixed globally at the same date.
+Bonti Haryanto <bonti.haryanto@gmail.com> <bonti.haryanto@gmai.comm>
