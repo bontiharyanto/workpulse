@@ -70,7 +70,12 @@ export default defineConfig({
       name: 'api',
       // Production build is faster to iterate on for CI (fewer file watchers).
       // Locally we still use `dev` to get incremental compilation.
-      command: CI ? 'pnpm --filter @workpulse/api start:prod' : 'pnpm --filter @workpulse/api dev',
+      //
+      // Note: use `start` (not `start:prod`) because `start:prod` hard-codes
+      // `NODE_ENV=production` on the shell command line, which overrides any
+      // value passed via `env` below. `start` calls `node dist/main.js`
+      // directly, so our `NODE_ENV=test` in `env` wins.
+      command: CI ? 'pnpm --filter @workpulse/api start' : 'pnpm --filter @workpulse/api dev',
       cwd: REPO_ROOT,
       url: `${API_URL}/api/v1/health`,
       timeout: 120_000,
