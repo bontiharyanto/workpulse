@@ -1,0 +1,5 @@
+# Placeholder so the folder ships in git.
+#
+# Next.js standalone output only references files that actually exist
+# under `public/`, but the Dockerfile still needs the directory to
+# exist so its COPY step can succeed on an image build.

@@ -40,6 +40,9 @@ skills-lock.json
 
 .turbo/
 
+# TypeScript build info
+*.tsbuildinfo
+
 *.log
 npm-debug.log*
 pnpm-debug.log*
