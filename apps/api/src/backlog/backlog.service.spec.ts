@@ -98,9 +98,7 @@ describe('BacklogService.getBacklog', () => {
 
     prisma.leaveRequest.findMany.mockResolvedValue(leaveRows as never);
     prisma.overtimeRequest.findMany.mockResolvedValue(overtimeRows as never);
-    prisma.attendanceCorrection.findMany.mockResolvedValue(
-      correctionRows as never,
-    );
+    prisma.attendanceCorrection.findMany.mockResolvedValue(correctionRows as never);
 
     const summary = await service.getBacklog({
       companyId: 'co-1',

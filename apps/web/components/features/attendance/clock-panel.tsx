@@ -80,7 +80,7 @@ export function ClockPanel(): JSX.Element {
     <section className="space-y-4 rounded-lg border p-6 shadow-sm">
       <header className="flex items-center justify-between">
         <div className="space-y-2">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Status hari ini</p>
+          <p className="text-muted-foreground text-xs uppercase tracking-widest">Status hari ini</p>
           <p className="text-lg font-medium">
             {todayQuery.isLoading
               ? 'Memuat...'
@@ -97,7 +97,7 @@ export function ClockPanel(): JSX.Element {
           type="button"
           disabled={!canClockIn || clockIn.isPending}
           onClick={() => clockIn.mutate()}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+          className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50"
         >
           {clockIn.isPending ? 'Memproses...' : 'Clock In'}
         </button>
@@ -105,7 +105,7 @@ export function ClockPanel(): JSX.Element {
           type="button"
           disabled={!canClockOut || clockOut.isPending}
           onClick={() => clockOut.mutate()}
-          className="rounded-md border border-input px-4 py-2 text-sm font-medium disabled:opacity-50"
+          className="border-input rounded-md border px-4 py-2 text-sm font-medium disabled:opacity-50"
         >
           {clockOut.isPending ? 'Memproses...' : 'Clock Out'}
         </button>
@@ -115,9 +115,7 @@ export function ClockPanel(): JSX.Element {
         <p
           role="status"
           className={
-            message.kind === 'ok'
-              ? 'text-sm text-emerald-600'
-              : 'text-sm text-destructive'
+            message.kind === 'ok' ? 'text-sm text-emerald-600' : 'text-destructive text-sm'
           }
         >
           {message.text}
@@ -170,7 +168,7 @@ function TimingBadges({ record }: TimingBadgesProps): JSX.Element | null {
   return (
     <div className="flex flex-wrap gap-2 text-xs">
       {record.lateMinutes > 0 ? (
-        <span className="rounded-full bg-destructive/10 px-2 py-0.5 font-medium text-destructive">
+        <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 font-medium">
           Terlambat {record.lateMinutes} menit
         </span>
       ) : null}

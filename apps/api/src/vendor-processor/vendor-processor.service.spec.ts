@@ -83,9 +83,9 @@ describe('VendorProcessorService', () => {
         baseVendor({ status: 'UNDER_REVIEW', dpaSignedAt: null }),
       );
 
-      await expect(
-        service.update(actor, 'v-1', { status: 'ACTIVE' }),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(service.update(actor, 'v-1', { status: 'ACTIVE' })).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
     });
 
     it('allows UNDER_REVIEW → ACTIVE once a DPA date is on the wire', async () => {
@@ -112,9 +112,9 @@ describe('VendorProcessorService', () => {
         baseVendor({ status: 'TERMINATED', terminatedAt: new Date() }),
       );
 
-      await expect(
-        service.update(actor, 'v-1', { name: 'New Name' }),
-      ).rejects.toBeInstanceOf(ConflictException);
+      await expect(service.update(actor, 'v-1', { name: 'New Name' })).rejects.toBeInstanceOf(
+        ConflictException,
+      );
     });
 
     it('rejects illegal transitions (ACTIVE → UNDER_REVIEW)', async () => {
@@ -123,9 +123,9 @@ describe('VendorProcessorService', () => {
         baseVendor({ status: 'ACTIVE', dpaSignedAt: new Date() }),
       );
 
-      await expect(
-        service.update(actor, 'v-1', { status: 'UNDER_REVIEW' }),
-      ).rejects.toBeInstanceOf(ConflictException);
+      await expect(service.update(actor, 'v-1', { status: 'UNDER_REVIEW' })).rejects.toBeInstanceOf(
+        ConflictException,
+      );
     });
 
     it('rejects an inverted contract window at update time', async () => {
@@ -192,9 +192,9 @@ describe('VendorProcessorService', () => {
         baseVendor({ status: 'TERMINATED', terminatedAt: new Date() }),
       );
 
-      await expect(
-        service.terminate(actor, 'v-1', 'again'),
-      ).rejects.toBeInstanceOf(ConflictException);
+      await expect(service.terminate(actor, 'v-1', 'again')).rejects.toBeInstanceOf(
+        ConflictException,
+      );
     });
   });
 
@@ -245,9 +245,9 @@ describe('VendorProcessorService', () => {
         baseVendor({ status: 'TERMINATED', terminatedAt: new Date() }),
       );
 
-      await expect(
-        service.markReviewed(actor, 'v-1', null),
-      ).rejects.toBeInstanceOf(ConflictException);
+      await expect(service.markReviewed(actor, 'v-1', null)).rejects.toBeInstanceOf(
+        ConflictException,
+      );
     });
   });
 

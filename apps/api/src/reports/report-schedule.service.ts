@@ -1,23 +1,10 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import {
-  Prisma,
-  ReportFrequency,
-  ScheduledReportType,
-} from '@prisma/client';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Prisma, ReportFrequency, ScheduledReportType } from '@prisma/client';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-import {
-  InvalidCadenceError,
-  advance,
-  initialNextRun,
-} from './domain/next-run';
+import { InvalidCadenceError, advance, initialNextRun } from './domain/next-run';
 
 interface CreateInput {
   name: string;
@@ -88,9 +75,7 @@ export class ReportScheduleService {
       }
       if (input.reportType === 'CUSTOM') {
         if (!input.savedReportId) {
-          throw new BadRequestException(
-            'CUSTOM reportType requires savedReportId',
-          );
+          throw new BadRequestException('CUSTOM reportType requires savedReportId');
         }
         const saved = await tx.savedReport.findFirst({
           where: { id: input.savedReportId, companyId: actor.companyId },
@@ -105,8 +90,7 @@ export class ReportScheduleService {
           companyId: actor.companyId,
           name: input.name,
           reportType: input.reportType,
-          savedReportId:
-            input.reportType === 'CUSTOM' ? input.savedReportId ?? null : null,
+          savedReportId: input.reportType === 'CUSTOM' ? (input.savedReportId ?? null) : null,
           frequency: input.frequency,
           cadenceDay: input.cadenceDay ?? null,
           cadenceHour: input.cadenceHour,
@@ -144,10 +128,8 @@ export class ReportScheduleService {
       if (input.name !== undefined) patch.name = input.name.trim();
       if (input.frequency !== undefined) patch.frequency = input.frequency;
       if (input.cadenceDay !== undefined) patch.cadenceDay = input.cadenceDay;
-      if (input.cadenceHour !== undefined)
-        patch.cadenceHour = input.cadenceHour;
-      if (input.recipients !== undefined)
-        patch.recipients = dedupeEmails(input.recipients);
+      if (input.cadenceHour !== undefined) patch.cadenceHour = input.cadenceHour;
+      if (input.recipients !== undefined) patch.recipients = dedupeEmails(input.recipients);
       if (input.active !== undefined) patch.active = input.active;
 
       // Any cadence-touching edit reschedules `nextRunAt` forward.
@@ -157,14 +139,9 @@ export class ReportScheduleService {
         input.cadenceHour !== undefined
       ) {
         const cfg = {
-          frequency:
-            (input.frequency ?? current.frequency) as ReportFrequency,
-          cadenceDay:
-            input.cadenceDay !== undefined
-              ? input.cadenceDay
-              : current.cadenceDay,
-          cadenceHourUtc:
-            input.cadenceHour ?? current.cadenceHour,
+          frequency: (input.frequency ?? current.frequency) as ReportFrequency,
+          cadenceDay: input.cadenceDay !== undefined ? input.cadenceDay : current.cadenceDay,
+          cadenceHourUtc: input.cadenceHour ?? current.cadenceHour,
         };
         try {
           patch.nextRunAt = initialNextRun(new Date(), cfg);
@@ -221,10 +198,7 @@ export class ReportScheduleService {
    * successful delivery (or when the delivery is marked FAILED and the
    * caller decides not to retry immediately).
    */
-  async advanceCursor(
-    scheduleId: string,
-    lastRunAt: Date,
-  ): Promise<void> {
+  async advanceCursor(scheduleId: string, lastRunAt: Date): Promise<void> {
     const s = await this.prisma.reportSchedule.findUnique({
       where: { id: scheduleId },
     });
@@ -240,9 +214,7 @@ export class ReportScheduleService {
         data: { nextRunAt, lastRunAt },
       });
     } catch (err) {
-      this.logger.warn(
-        `Failed to advance schedule ${scheduleId}: ${(err as Error).message}`,
-      );
+      this.logger.warn(`Failed to advance schedule ${scheduleId}: ${(err as Error).message}`);
     }
   }
 

@@ -52,7 +52,7 @@ function row(overrides: {
     actor:
       overrides.actor === null
         ? null
-        : overrides.actor ?? { fullName: 'HR Test', email: 'hr@example.com' },
+        : (overrides.actor ?? { fullName: 'HR Test', email: 'hr@example.com' }),
   };
 }
 
@@ -66,12 +66,7 @@ describe('AuditService.list — filters + tenancy', () => {
 
   it('applies entityType + entityId filters when present', async () => {
     const s = setup();
-    await s.service.list(
-      actor,
-      { entityType: 'LeaveRequest', entityId: 'lr-1' },
-      undefined,
-      10,
-    );
+    await s.service.list(actor, { entityType: 'LeaveRequest', entityId: 'lr-1' }, undefined, 10);
     const call = s.prisma.auditLog.findMany.mock.calls[0]?.[0];
     expect(call?.where).toMatchObject({
       companyId: 'co-1',
@@ -110,10 +105,7 @@ describe('AuditService.list — filters + tenancy', () => {
     const s = setup();
     await s.service.list(actor, {}, undefined, 10);
     const call = s.prisma.auditLog.findMany.mock.calls[0]?.[0];
-    expect(call?.orderBy).toEqual([
-      { createdAt: 'desc' },
-      { id: 'desc' },
-    ]);
+    expect(call?.orderBy).toEqual([{ createdAt: 'desc' }, { id: 'desc' }]);
   });
 });
 
@@ -167,9 +159,7 @@ describe('AuditService.list — pagination', () => {
     // Decode & verify — the cursor must point at the LAST returned row
     // (a3), not the dropped row (a4). Otherwise the next page would
     // skip a3.
-    const decoded = JSON.parse(
-      Buffer.from(page.nextCursor!, 'base64url').toString('utf8'),
-    );
+    const decoded = JSON.parse(Buffer.from(page.nextCursor!, 'base64url').toString('utf8'));
     expect(decoded.id).toBe('a3');
     expect(decoded.createdAt).toBe('2026-08-01T08:00:00.000Z');
   });
@@ -203,19 +193,15 @@ describe('AuditService.list — pagination', () => {
 
   it('rejects a malformed cursor with 400 INVALID_CURSOR', async () => {
     const s = setup();
-    await expect(
-      s.service.list(actor, {}, 'not-base64-json', 10),
-    ).rejects.toBeInstanceOf(BadRequestException);
+    await expect(s.service.list(actor, {}, 'not-base64-json', 10)).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
   });
 
   it('rejects a cursor with missing/invalid fields', async () => {
     const s = setup();
-    const bad = Buffer.from(JSON.stringify({ id: 'x' }), 'utf8').toString(
-      'base64url',
-    );
-    await expect(s.service.list(actor, {}, bad, 10)).rejects.toBeInstanceOf(
-      BadRequestException,
-    );
+    const bad = Buffer.from(JSON.stringify({ id: 'x' }), 'utf8').toString('base64url');
+    await expect(s.service.list(actor, {}, bad, 10)).rejects.toBeInstanceOf(BadRequestException);
   });
 });
 
@@ -283,10 +269,14 @@ describe('AuditService.iterate — batching + termination', () => {
       ] as never);
 
     const collected: string[] = [];
-    for await (const r of s.service.iterate(actor, {}, {
-      batchSize: 3,
-      maxRows: 5,
-    })) {
+    for await (const r of s.service.iterate(
+      actor,
+      {},
+      {
+        batchSize: 3,
+        maxRows: 5,
+      },
+    )) {
       collected.push((r as { id: string }).id);
     }
     expect(collected).toEqual(['a1', 'a2', 'a3', 'a4', 'a5']);
@@ -344,10 +334,14 @@ describe('AuditService.iterate — batching + termination', () => {
   it('clamps batchSize upper bound to 2000 and maxRows to [1, 1_000_000]', async () => {
     const s = setup();
     s.prisma.auditLog.findMany.mockResolvedValueOnce([] as never);
-    for await (const _ of s.service.iterate(actor, {}, {
-      batchSize: 999_999, // above cap 2000
-      maxRows: 500,
-    })) {
+    for await (const _ of s.service.iterate(
+      actor,
+      {},
+      {
+        batchSize: 999_999, // above cap 2000
+        maxRows: 500,
+      },
+    )) {
       void _;
     }
     // Clamped: min(2000, 500 remaining) = 500.
@@ -358,10 +352,14 @@ describe('AuditService.iterate — batching + termination', () => {
   it('clamps a zero/negative batchSize up to 1 (never asks Postgres for zero rows)', async () => {
     const s = setup();
     s.prisma.auditLog.findMany.mockResolvedValueOnce([] as never);
-    for await (const _ of s.service.iterate(actor, {}, {
-      batchSize: 0,
-      maxRows: 5,
-    })) {
+    for await (const _ of s.service.iterate(
+      actor,
+      {},
+      {
+        batchSize: 0,
+        maxRows: 5,
+      },
+    )) {
       void _;
     }
     const call = s.prisma.auditLog.findMany.mock.calls[0]?.[0];

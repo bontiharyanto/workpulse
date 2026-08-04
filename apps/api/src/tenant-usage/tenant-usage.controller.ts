@@ -85,14 +85,8 @@ export class TenantUsageController {
   @Roles('SUPER_ADMIN')
   @ApiBearerAuth()
   @ApiOkResponse({ type: TenantUsageSnapshotDto })
-  async regenerate(
-    @Body() body: RegenerateTenantUsageDto,
-  ): Promise<TenantUsageSnapshotDto> {
-    const row = await this.service.regenerateMonth(
-      body.companyId,
-      body.year,
-      body.month,
-    );
+  async regenerate(@Body() body: RegenerateTenantUsageDto): Promise<TenantUsageSnapshotDto> {
+    const row = await this.service.regenerateMonth(body.companyId, body.year, body.month);
     return toDto(row);
   }
 

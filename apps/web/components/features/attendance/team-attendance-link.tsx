@@ -18,7 +18,7 @@ export function TeamAttendanceLink(): JSX.Element | null {
   return (
     <Link
       href="/attendance/team"
-      className="whitespace-nowrap rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-muted"
+      className="border-input hover:bg-muted whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium"
     >
       Kehadiran Tim →
     </Link>

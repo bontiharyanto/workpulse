@@ -5,9 +5,10 @@ import type { Readable } from 'node:stream';
 // interop shape is `.default`. `esModuleInterop=true` at the tsconfig
 // level makes both forms work but bundlers occasionally trip on the
 // synthetic default, so we unwrap explicitly.
-const archiver = (
-  (archiverPkg as unknown as { default?: unknown }).default ?? archiverPkg
-) as (format: 'zip', opts?: unknown) => import('archiver').Archiver;
+const archiver = ((archiverPkg as unknown as { default?: unknown }).default ?? archiverPkg) as (
+  format: 'zip',
+  opts?: unknown,
+) => import('archiver').Archiver;
 
 import type { PrismaService } from '../../prisma/prisma.service';
 
@@ -89,10 +90,7 @@ export async function assembleExportArchive(
   return zipFiles(files);
 }
 
-async function loadSnapshot(
-  prisma: PrismaService,
-  { userId, companyId }: AssembleInput,
-) {
+async function loadSnapshot(prisma: PrismaService, { userId, companyId }: AssembleInput) {
   // We fan out with `Promise.all` because each read is independent
   // and hits different tables. The reads are bounded by `userId`, so
   // even a chatty active user tops out around a few hundred rows per
@@ -329,9 +327,7 @@ function renderReadme(
  * Small wrapper that produces a real ZIP blob using `archiver`. We do
  * not stream to S3 directly — see the file header for the rationale.
  */
-function zipFiles(
-  files: Array<{ name: string; body: string }>,
-): Promise<AssembleResult> {
+function zipFiles(files: Array<{ name: string; body: string }>): Promise<AssembleResult> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
     const zip = archiver('zip', { zlib: { level: 9 } });

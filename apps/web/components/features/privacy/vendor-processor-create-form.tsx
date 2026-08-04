@@ -17,8 +17,7 @@ import { ApiError, vendorProcessorApi } from '@/lib/api-client';
 
 const ERROR_COPY: Record<string, string> = {
   VENDOR_SLUG_TAKEN: 'Slug ini sudah dipakai vendor lain di tenant.',
-  VENDOR_CONTRACT_WINDOW_INVALID:
-    'Tanggal berakhir kontrak harus setelah tanggal mulai.',
+  VENDOR_CONTRACT_WINDOW_INVALID: 'Tanggal berakhir kontrak harus setelah tanggal mulai.',
   THROTTLED: 'Terlalu banyak percobaan. Coba lagi sebentar.',
 };
 
@@ -57,7 +56,7 @@ export function VendorProcessorCreateForm() {
   return (
     <form
       onSubmit={handleSubmit((values) => create.mutate(values))}
-      className="space-y-4 rounded-md border border-border bg-card p-6"
+      className="border-border bg-card space-y-4 rounded-md border p-6"
     >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Field
@@ -67,7 +66,7 @@ export function VendorProcessorCreateForm() {
         >
           <input
             {...register('name')}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            className="border-border bg-background w-full rounded-md border px-3 py-2 text-sm"
             placeholder="PT Payroll Nusantara"
           />
         </Field>
@@ -78,7 +77,7 @@ export function VendorProcessorCreateForm() {
         >
           <input
             {...register('slug')}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            className="border-border bg-background w-full rounded-md border px-3 py-2 text-sm"
             placeholder="payroll-nusantara"
           />
         </Field>
@@ -88,7 +87,7 @@ export function VendorProcessorCreateForm() {
         <Field label="Kategori">
           <select
             {...register('category')}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            className="border-border bg-background w-full rounded-md border px-3 py-2 text-sm"
           >
             {vendorCategorySchema.options.map((v) => (
               <option key={v} value={v}>
@@ -100,7 +99,7 @@ export function VendorProcessorCreateForm() {
         <Field label="Volume data pribadi">
           <select
             {...register('personalDataVolume')}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            className="border-border bg-background w-full rounded-md border px-3 py-2 text-sm"
           >
             {vendorDataVolumeSchema.options.map((v) => (
               <option key={v} value={v}>
@@ -119,31 +118,23 @@ export function VendorProcessorCreateForm() {
         <textarea
           {...register('description')}
           rows={4}
-          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+          className="border-border bg-background w-full rounded-md border px-3 py-2 text-sm"
           placeholder="Payroll processor yang menerima gaji, PPh21, dan mutasi karyawan setiap tanggal 25 via SFTP…"
         />
       </Field>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Field
-          label="Kontak — Nama"
-          error={errors.contactName?.message}
-          optional
-        >
+        <Field label="Kontak — Nama" error={errors.contactName?.message} optional>
           <input
             {...register('contactName')}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            className="border-border bg-background w-full rounded-md border px-3 py-2 text-sm"
             placeholder="Andi Wijaya"
           />
         </Field>
-        <Field
-          label="Kontak — Email"
-          error={errors.contactEmail?.message}
-          optional
-        >
+        <Field label="Kontak — Email" error={errors.contactEmail?.message} optional>
           <input
             {...register('contactEmail')}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            className="border-border bg-background w-full rounded-md border px-3 py-2 text-sm"
             placeholder="dpo@vendor.co.id"
             type="email"
           />
@@ -157,7 +148,7 @@ export function VendorProcessorCreateForm() {
             {...register('contractStartAt', {
               setValueAs: (v) => (v ? new Date(v).toISOString() : null),
             })}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            className="border-border bg-background w-full rounded-md border px-3 py-2 text-sm"
           />
         </Field>
         <Field label="Kontrak berakhir" optional>
@@ -166,7 +157,7 @@ export function VendorProcessorCreateForm() {
             {...register('contractEndAt', {
               setValueAs: (v) => (v ? new Date(v).toISOString() : null),
             })}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            className="border-border bg-background w-full rounded-md border px-3 py-2 text-sm"
           />
         </Field>
       </div>
@@ -181,7 +172,7 @@ export function VendorProcessorCreateForm() {
           {...register('dpaSignedAt', {
             setValueAs: (v) => (v ? new Date(v).toISOString() : null),
           })}
-          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+          className="border-border bg-background w-full rounded-md border px-3 py-2 text-sm"
         />
       </Field>
 
@@ -190,7 +181,7 @@ export function VendorProcessorCreateForm() {
           <input
             type="checkbox"
             {...register('subprocessorsAllowed')}
-            className="h-4 w-4 rounded border-border"
+            className="border-border h-4 w-4 rounded"
           />
           Ya
         </label>
@@ -205,14 +196,14 @@ export function VendorProcessorCreateForm() {
       <div className="flex justify-end gap-2">
         <Link
           href={'/admin/privacy/vendors' as unknown as Route}
-          className="rounded-md border border-border bg-card px-3 py-2 text-sm hover:border-primary/60"
+          className="border-border bg-card hover:border-primary/60 rounded-md border px-3 py-2 text-sm"
         >
           Batal
         </Link>
         <button
           type="submit"
           disabled={isSubmitting || create.isPending}
-          className="rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-3 py-2 text-sm disabled:opacity-50"
         >
           {isSubmitting || create.isPending ? 'Menyimpan…' : 'Simpan vendor'}
         </button>
@@ -236,15 +227,13 @@ function Field({
 }) {
   return (
     <div className="space-y-1">
-      <label className="block text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <label className="text-muted-foreground block text-xs font-medium uppercase tracking-wide">
         {label}
-        {optional && <span className="ml-1 normal-case text-muted-foreground/70">(opsional)</span>}
+        {optional && <span className="text-muted-foreground/70 ml-1 normal-case">(opsional)</span>}
       </label>
       {children}
-      {hint && !error && <p className="text-xs text-muted-foreground">{hint}</p>}
-      {error && (
-        <p className="text-xs text-rose-700 dark:text-rose-300">{error}</p>
-      )}
+      {hint && !error && <p className="text-muted-foreground text-xs">{hint}</p>}
+      {error && <p className="text-xs text-rose-700 dark:text-rose-300">{error}</p>}
     </div>
   );
 }

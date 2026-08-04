@@ -81,9 +81,7 @@ export interface OvertimeReportTotals {
   amountByDayKind: Record<OvertimeDayKind, number>;
 }
 
-export function summarizeOvertime(
-  rows: ReadonlyArray<OvertimeReportRow>,
-): OvertimeReportTotals {
+export function summarizeOvertime(rows: ReadonlyArray<OvertimeReportRow>): OvertimeReportTotals {
   const seenUsers = new Set<string>();
   const hoursByDayKind: Record<OvertimeDayKind, number> = {
     WEEKDAY: 0,

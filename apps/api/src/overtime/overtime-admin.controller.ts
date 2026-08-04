@@ -28,9 +28,7 @@ export class OvertimeAdminController {
   @ApiOkResponse({
     description: 'Result counts for the run: scanned, completed, skipped by reason, duration.',
   })
-  async runCompletion(
-    @CurrentUser() actor: AuthenticatedUser,
-  ): Promise<CompletionRunResult> {
+  async runCompletion(@CurrentUser() actor: AuthenticatedUser): Promise<CompletionRunResult> {
     return this.completion.runCompletion({ companyId: actor.companyId });
   }
 }

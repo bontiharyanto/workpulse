@@ -30,9 +30,9 @@ export function BacklogDetail(): JSX.Element {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-3 rounded-md border bg-muted/30 p-3">
+      <div className="bg-muted/30 flex flex-wrap items-center gap-3 rounded-md border p-3">
         <label className="flex items-center gap-2 text-sm">
-          <span className="text-xs uppercase tracking-wider text-muted-foreground">
+          <span className="text-muted-foreground text-xs uppercase tracking-wider">
             Ambang batas &quot;stale&quot;
           </span>
           <input
@@ -46,17 +46,16 @@ export function BacklogDetail(): JSX.Element {
           <span className="font-semibold tabular-nums">{thresholdDays} hari</span>
         </label>
         {backlog.data ? (
-          <p className="ml-auto text-xs text-muted-foreground">
-            Diperbarui{' '}
-            {new Date(backlog.data.generatedAt).toLocaleTimeString('id-ID')}
+          <p className="text-muted-foreground ml-auto text-xs">
+            Diperbarui {new Date(backlog.data.generatedAt).toLocaleTimeString('id-ID')}
           </p>
         ) : null}
       </div>
 
       {backlog.isLoading ? (
-        <p className="text-sm text-muted-foreground">Memuat backlog...</p>
+        <p className="text-muted-foreground text-sm">Memuat backlog...</p>
       ) : backlog.isError || !backlog.data ? (
-        <p className="text-sm text-destructive">Gagal memuat backlog.</p>
+        <p className="text-destructive text-sm">Gagal memuat backlog.</p>
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <ModuleCard
@@ -92,20 +91,12 @@ interface ModuleCardProps {
   queueHref: string;
 }
 
-function ModuleCard({
-  label,
-  module,
-  staleAfterDays,
-  queueHref,
-}: ModuleCardProps): JSX.Element {
+function ModuleCard({ label, module, staleAfterDays, queueHref }: ModuleCardProps): JSX.Element {
   return (
     <article className="space-y-4 rounded-lg border p-5 shadow-sm">
       <header className="flex items-baseline justify-between">
         <h2 className="text-lg font-semibold">{label}</h2>
-        <Link
-          href={queueHref as Route}
-          className="text-xs text-primary underline"
-        >
+        <Link href={queueHref as Route} className="text-primary text-xs underline">
           Buka antrian →
         </Link>
       </header>
@@ -121,7 +112,7 @@ function ModuleCard({
       </div>
 
       <div>
-        <p className="mb-1 text-[11px] uppercase tracking-wider text-muted-foreground">
+        <p className="text-muted-foreground mb-1 text-[11px] uppercase tracking-wider">
           Distribusi umur
         </p>
         <div className="grid grid-cols-4 gap-1 text-center text-xs">
@@ -137,13 +128,11 @@ function ModuleCard({
       </div>
 
       <div>
-        <p className="mb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+        <p className="text-muted-foreground mb-2 text-[11px] uppercase tracking-wider">
           Paling lama menunggu
         </p>
         {module.oldest.length === 0 ? (
-          <p className="text-xs text-muted-foreground">
-            Tidak ada permintaan menunggu.
-          </p>
+          <p className="text-muted-foreground text-xs">Tidak ada permintaan menunggu.</p>
         ) : (
           <ul className="space-y-1.5">
             {module.oldest.map((item) => (
@@ -170,16 +159,10 @@ function SummaryTile({
   tone: 'ok' | 'warn' | 'muted';
 }): JSX.Element {
   const cls =
-    tone === 'warn'
-      ? 'text-destructive'
-      : tone === 'ok'
-        ? 'text-emerald-700'
-        : 'text-foreground';
+    tone === 'warn' ? 'text-destructive' : tone === 'ok' ? 'text-emerald-700' : 'text-foreground';
   return (
-    <div className="rounded-md border bg-muted/20 p-2">
-      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-        {label}
-      </p>
+    <div className="bg-muted/20 rounded-md border p-2">
+      <p className="text-muted-foreground text-[10px] uppercase tracking-wider">{label}</p>
       <p className={`text-xl font-semibold tabular-nums ${cls}`}>{value}</p>
     </div>
   );

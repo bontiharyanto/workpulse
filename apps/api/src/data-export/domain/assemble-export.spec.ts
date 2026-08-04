@@ -104,9 +104,7 @@ describe('assembleExportArchive', () => {
       requestedAt: new Date(),
     });
 
-    expect(prisma.auditLog.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ take: 5000 }),
-    );
+    expect(prisma.auditLog.findMany).toHaveBeenCalledWith(expect.objectContaining({ take: 5000 }));
   });
 });
 

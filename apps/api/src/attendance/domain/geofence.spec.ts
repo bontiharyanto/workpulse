@@ -23,7 +23,11 @@ describe('checkGeofence', () => {
   });
 
   it('rejects zero or negative radius', () => {
-    expect(() => checkGeofence(jakartaHQ, { center: jakartaHQ, radiusMeters: 0 })).toThrow(RangeError);
-    expect(() => checkGeofence(jakartaHQ, { center: jakartaHQ, radiusMeters: -5 })).toThrow(RangeError);
+    expect(() => checkGeofence(jakartaHQ, { center: jakartaHQ, radiusMeters: 0 })).toThrow(
+      RangeError,
+    );
+    expect(() => checkGeofence(jakartaHQ, { center: jakartaHQ, radiusMeters: -5 })).toThrow(
+      RangeError,
+    );
   });
 });

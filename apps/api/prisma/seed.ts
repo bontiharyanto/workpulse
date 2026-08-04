@@ -197,7 +197,12 @@ async function main(): Promise<void> {
   });
 
   // eslint-disable-next-line no-console
-  console.warn('[seed] done', { company: company.slug, hr: hr.email, supervisor: supervisor.email, employee: employee.email });
+  console.warn('[seed] done', {
+    company: company.slug,
+    hr: hr.email,
+    supervisor: supervisor.email,
+    employee: employee.email,
+  });
 }
 
 main()

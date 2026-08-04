@@ -2,12 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import type {
-  AdminUser,
-  Department,
-  UpdateUserInput,
-  UserRole,
-} from '@workpulse/shared-types';
+import type { AdminUser, Department, UpdateUserInput, UserRole } from '@workpulse/shared-types';
 import { updateUserSchema } from '@workpulse/shared-types';
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -71,7 +66,7 @@ export function UserEditPanel({
         <label className="text-xs font-medium uppercase tracking-wider">Nama Lengkap</label>
         <input
           {...form.register('fullName')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         />
       </div>
 
@@ -80,7 +75,7 @@ export function UserEditPanel({
         <input
           value={target.email}
           disabled
-          className="w-full rounded-md border border-input bg-muted/40 px-3 py-2 text-sm text-muted-foreground"
+          className="border-input bg-muted/40 text-muted-foreground w-full rounded-md border px-3 py-2 text-sm"
         />
       </div>
 
@@ -90,7 +85,7 @@ export function UserEditPanel({
           {...form.register('role')}
           disabled={isSelf}
           title={isSelf ? 'Anda tidak dapat mengubah role sendiri' : undefined}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-60"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm disabled:opacity-60"
         >
           {assignableRoles.map((r) => (
             <option key={r} value={r}>
@@ -105,7 +100,7 @@ export function UserEditPanel({
         <select
           {...form.register('employmentStatus')}
           disabled={isSelf}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-60"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm disabled:opacity-60"
         >
           <option value="ACTIVE">Active</option>
           <option value="ON_LEAVE">On Leave</option>
@@ -118,7 +113,7 @@ export function UserEditPanel({
         <label className="text-xs font-medium uppercase tracking-wider">Departemen</label>
         <select
           {...form.register('departmentId')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         >
           <option value="">— tidak ada —</option>
           {departments.map((d) => (
@@ -133,7 +128,7 @@ export function UserEditPanel({
         <label className="text-xs font-medium uppercase tracking-wider">Atasan Langsung</label>
         <select
           {...form.register('supervisorId')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         >
           <option value="">— tidak ada —</option>
           {potentialSupervisors
@@ -147,17 +142,13 @@ export function UserEditPanel({
       </div>
 
       <div className="col-span-full flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border px-3 py-1 text-xs"
-        >
+        <button type="button" onClick={onCancel} className="rounded-md border px-3 py-1 text-xs">
           Batal
         </button>
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-md bg-foreground px-3 py-1 text-xs font-medium text-background disabled:opacity-50"
+          className="bg-foreground text-background rounded-md px-3 py-1 text-xs font-medium disabled:opacity-50"
         >
           {submitting ? 'Menyimpan...' : 'Simpan perubahan'}
         </button>

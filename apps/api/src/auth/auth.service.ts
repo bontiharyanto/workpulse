@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import type { Prisma, User } from '@prisma/client';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
@@ -39,7 +34,10 @@ export class AuthService {
    * Uses a generic UNAUTHORIZED error regardless of whether email or password was wrong
    * (mitigates account-enumeration).
    */
-  async login(input: LoginInput, ctx: TokenContext): Promise<{
+  async login(
+    input: LoginInput,
+    ctx: TokenContext,
+  ): Promise<{
     user: AuthenticatedUser;
     tokens: IssuedTokenPair;
     mfaRequired: boolean;
@@ -187,10 +185,7 @@ export class AuthService {
   }
 }
 
-function toAuthenticatedUser(
-  user: User,
-  opts: { mfaPassed?: boolean } = {},
-): AuthenticatedUser {
+function toAuthenticatedUser(user: User, opts: { mfaPassed?: boolean } = {}): AuthenticatedUser {
   return {
     id: user.id,
     email: user.email,

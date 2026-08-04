@@ -6,19 +6,12 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import type {
-  AttendanceCorrection,
-  AttendanceCorrectionStatus,
-  Prisma,
-} from '@prisma/client';
+import type { AttendanceCorrection, AttendanceCorrectionStatus, Prisma } from '@prisma/client';
 import { Prisma as PrismaNs } from '@prisma/client';
 
 import { AttachmentService } from '../attachment/attachment.service';
 import { isOwnedAttachmentKey } from '../attachment/domain/attachment-key';
-import {
-  PayrollLockedError,
-  assertPayrollNotLocked,
-} from '../common/domain/payroll-lock';
+import { PayrollLockedError, assertPayrollNotLocked } from '../common/domain/payroll-lock';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import {
   attendanceCorrectionApproved,
@@ -86,9 +79,7 @@ export class AttendanceCorrectionService {
       throw new BadRequestException('DATE_IN_FUTURE');
     }
 
-    const requestedClockInAt = input.requestedClockInAt
-      ? new Date(input.requestedClockInAt)
-      : null;
+    const requestedClockInAt = input.requestedClockInAt ? new Date(input.requestedClockInAt) : null;
     const requestedClockOutAt = input.requestedClockOutAt
       ? new Date(input.requestedClockOutAt)
       : null;
@@ -127,20 +118,11 @@ export class AttendanceCorrectionService {
     }
 
     // Payroll cutoff — mirror leave/overtime behavior (Phase 18 refactor).
-    this.assertPayrollNotLocked(
-      actor,
-      workDate,
-      user.company?.payrollLockedUntil ?? null,
-    );
+    this.assertPayrollNotLocked(actor, workDate, user.company?.payrollLockedUntil ?? null);
 
     if (
       input.attachmentKey &&
-      !isOwnedAttachmentKey(
-        input.attachmentKey,
-        actor.companyId,
-        actor.id,
-        'attendance-correction',
-      )
+      !isOwnedAttachmentKey(input.attachmentKey, actor.companyId, actor.id, 'attendance-correction')
     ) {
       throw new BadRequestException('ATTACHMENT_KEY_INVALID');
     }
@@ -206,10 +188,7 @@ export class AttendanceCorrectionService {
               correctionId: row.id,
               requesterName: requester?.fullName ?? actor.email,
               workDate: input.workDate,
-              requestedSummary: summarizeRequestedTimes(
-                requestedClockInAt,
-                requestedClockOutAt,
-              ),
+              requestedSummary: summarizeRequestedTimes(requestedClockInAt, requestedClockOutAt),
             }),
           },
           tx,
@@ -245,11 +224,7 @@ export class AttendanceCorrectionService {
       where: { id: actor.companyId, deletedAt: null },
       select: { payrollLockedUntil: true },
     });
-    this.assertPayrollNotLocked(
-      actor,
-      existing.workDate,
-      company?.payrollLockedUntil ?? null,
-    );
+    this.assertPayrollNotLocked(actor, existing.workDate, company?.payrollLockedUntil ?? null);
 
     let nextStatus: AttendanceCorrectionStatus;
     try {
@@ -391,10 +366,7 @@ export class AttendanceCorrectionService {
   // -------------------------------------------------------------------------
   // Cancel (owner only)
   // -------------------------------------------------------------------------
-  async cancel(
-    actor: AuthenticatedUser,
-    id: string,
-  ): Promise<AttendanceCorrection> {
+  async cancel(actor: AuthenticatedUser, id: string): Promise<AttendanceCorrection> {
     const existing = await this.prisma.attendanceCorrection.findFirst({
       where: { id, companyId: actor.companyId, deletedAt: null },
     });
@@ -407,11 +379,7 @@ export class AttendanceCorrectionService {
       where: { id: actor.companyId, deletedAt: null },
       select: { payrollLockedUntil: true },
     });
-    this.assertPayrollNotLocked(
-      actor,
-      existing.workDate,
-      company?.payrollLockedUntil ?? null,
-    );
+    this.assertPayrollNotLocked(actor, existing.workDate, company?.payrollLockedUntil ?? null);
 
     let nextStatus: AttendanceCorrectionStatus;
     try {
@@ -464,9 +432,7 @@ export class AttendanceCorrectionService {
     });
   }
 
-  async listPendingApprovals(
-    actor: AuthenticatedUser,
-  ): Promise<AttendanceCorrection[]> {
+  async listPendingApprovals(actor: AuthenticatedUser): Promise<AttendanceCorrection[]> {
     if (actor.role === 'EMPLOYEE') {
       throw new ForbiddenException('FORBIDDEN');
     }
@@ -546,9 +512,7 @@ export class AttendanceCorrectionService {
       case 'CONFLICT':
         throw new ConflictException(action.code);
       case 'NO_OP':
-        this.logger.debug(
-          `correction ${correction.id} apply=NO_OP (idempotent replay)`,
-        );
+        this.logger.debug(`correction ${correction.id} apply=NO_OP (idempotent replay)`);
         return;
       case 'CREATE': {
         // Determine which shift applied to (userId, workDate). Preferring
@@ -561,10 +525,7 @@ export class AttendanceCorrectionService {
             userId: correction.userId,
             deletedAt: null,
             effectiveFrom: { lte: correction.workDate },
-            OR: [
-              { effectiveTo: null },
-              { effectiveTo: { gte: correction.workDate } },
-            ],
+            OR: [{ effectiveTo: null }, { effectiveTo: { gte: correction.workDate } }],
           },
           orderBy: { effectiveFrom: 'desc' },
           select: { shiftId: true },
@@ -660,11 +621,7 @@ function parseCalendarDateUtc(iso: string): Date | null {
   if (parts.length !== 3) return null;
   const [y, m, d] = parts as [number, number, number];
   const dt = new Date(Date.UTC(y, m - 1, d));
-  if (
-    dt.getUTCFullYear() !== y ||
-    dt.getUTCMonth() !== m - 1 ||
-    dt.getUTCDate() !== d
-  ) {
+  if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) {
     return null;
   }
   return dt;
@@ -681,14 +638,9 @@ function toIsoDate(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-function summarizeRequestedTimes(
-  clockInAt: Date | null,
-  clockOutAt: Date | null,
-): string {
+function summarizeRequestedTimes(clockInAt: Date | null, clockOutAt: Date | null): string {
   const fmt = (d: Date): string =>
-    `${String(d.getUTCHours()).padStart(2, '0')}:${String(
-      d.getUTCMinutes(),
-    ).padStart(2, '0')}`;
+    `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
   const parts: string[] = [];
   if (clockInAt) parts.push(`in ${fmt(clockInAt)}`);
   if (clockOutAt) parts.push(`out ${fmt(clockOutAt)}`);

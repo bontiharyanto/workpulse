@@ -54,9 +54,7 @@ async function setCutoff(
   expect(res.ok(), await res.text()).toBeTruthy();
 }
 
-async function getLeaveTypeId(
-  api: import('@playwright/test').APIRequestContext,
-): Promise<string> {
+async function getLeaveTypeId(api: import('@playwright/test').APIRequestContext): Promise<string> {
   const res = await api.get('/api/v1/leave/types');
   expect(res.ok(), await res.text()).toBeTruthy();
   const types = (await res.json()) as ReadonlyArray<{
@@ -168,10 +166,9 @@ test('leave: SUPER_ADMIN can APPROVE a request that lands inside the cutoff (byp
   const admin = await authenticateApi('admin');
   // REJECT keeps the balance mostly untouched (reservedDelta = -1, usedDelta = 0)
   // and leaves the row in a terminal state so re-runs stay clean.
-  const decideRes = await admin.api.post(
-    `/api/v1/leave/${created.id}/decision`,
-    { data: { action: 'REJECT', note: 'e2e: super-admin bypass' } },
-  );
+  const decideRes = await admin.api.post(`/api/v1/leave/${created.id}/decision`, {
+    data: { action: 'REJECT', note: 'e2e: super-admin bypass' },
+  });
   expect(decideRes.ok(), await decideRes.text()).toBeTruthy();
   await admin.api.dispose();
 
@@ -214,10 +211,9 @@ test('leave: HR cannot approve a request whose startDate falls inside a later-im
 
   // Cleanup — Super Admin bypass to reject and clear the balance hold.
   const admin = await authenticateApi('admin');
-  const adminDecide = await admin.api.post(
-    `/api/v1/leave/${created.id}/decision`,
-    { data: { action: 'REJECT', note: 'cleanup' } },
-  );
+  const adminDecide = await admin.api.post(`/api/v1/leave/${created.id}/decision`, {
+    data: { action: 'REJECT', note: 'cleanup' },
+  });
   expect(adminDecide.ok()).toBeTruthy();
   await admin.api.dispose();
 
@@ -302,12 +298,7 @@ test('overtime: submit inside a frozen period is rejected with 409 PAYROLL_LOCKE
   await hr.api.dispose();
 
   const employee = await authenticateApi('employee');
-  const res = await submitOvertime(
-    employee.api,
-    LOCKED_DATE,
-    2,
-    'e2e: cutoff-blocked OT submit',
-  );
+  const res = await submitOvertime(employee.api, LOCKED_DATE, 2, 'e2e: cutoff-blocked OT submit');
   expect(res.status()).toBe(409);
   const body = (await res.json()) as { code?: string };
   expect(body.code).toBe('PAYROLL_LOCKED');
@@ -330,12 +321,7 @@ test('overtime: SUPER_ADMIN can DECIDE a request whose workDate falls inside the
 
   const workDate = toIsoDate(offsetWeekday(LOCKED_DATE, -2));
   const employee = await authenticateApi('employee');
-  const submitRes = await submitOvertime(
-    employee.api,
-    workDate,
-    1,
-    'e2e: cutoff-bypass OT decide',
-  );
+  const submitRes = await submitOvertime(employee.api, workDate, 1, 'e2e: cutoff-bypass OT decide');
   expect(submitRes.ok(), await submitRes.text()).toBeTruthy();
   const created = (await submitRes.json()) as { id: string };
   await employee.api.dispose();
@@ -346,10 +332,9 @@ test('overtime: SUPER_ADMIN can DECIDE a request whose workDate falls inside the
   await hr.api.dispose();
 
   const admin = await authenticateApi('admin');
-  const decideRes = await admin.api.post(
-    `/api/v1/overtime/${created.id}/decision`,
-    { data: { action: 'REJECT', note: 'e2e: super-admin bypass' } },
-  );
+  const decideRes = await admin.api.post(`/api/v1/overtime/${created.id}/decision`, {
+    data: { action: 'REJECT', note: 'e2e: super-admin bypass' },
+  });
   expect(decideRes.ok(), await decideRes.text()).toBeTruthy();
   await admin.api.dispose();
 
@@ -379,10 +364,9 @@ test('overtime: HR cannot approve a request whose workDate later falls inside th
   // Close payroll → decision must now fail for HR.
   const hr = await authenticateApi('hr');
   await setCutoff(hr.api, CUTOFF_DATE);
-  const decideRes = await hr.api.post(
-    `/api/v1/overtime/${created.id}/decision`,
-    { data: { action: 'APPROVE' } },
-  );
+  const decideRes = await hr.api.post(`/api/v1/overtime/${created.id}/decision`, {
+    data: { action: 'APPROVE' },
+  });
   expect(decideRes.status()).toBe(409);
   const body = (await decideRes.json()) as { code?: string };
   expect(body.code).toBe('PAYROLL_LOCKED');
@@ -420,9 +404,7 @@ test('overtime: owner cannot cancel a request inside a locked period; SUPER_ADMI
   await setCutoff(hr.api, CUTOFF_DATE);
   await hr.api.dispose();
 
-  const cancelRes = await employee.api.post(
-    `/api/v1/overtime/${created.id}/cancel`,
-  );
+  const cancelRes = await employee.api.post(`/api/v1/overtime/${created.id}/cancel`);
   expect(cancelRes.status()).toBe(409);
   const body = (await cancelRes.json()) as { code?: string };
   expect(body.code).toBe('PAYROLL_LOCKED');

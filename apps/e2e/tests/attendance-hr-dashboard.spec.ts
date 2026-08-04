@@ -29,9 +29,7 @@ test('HR: /attendance/dashboard renders stat cards + department breakdown', asyn
   await loginAs(page, 'hr');
   await page.goto('/attendance/dashboard');
 
-  await expect(
-    page.getByRole('heading', { name: /Dashboard Kehadiran HR/i }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Dashboard Kehadiran HR/i })).toBeVisible();
 
   // Stat cards — assert the labels are present and the total is a
   // non-negative number. We use `Total karyawan` (unique label) as the
@@ -60,8 +58,8 @@ test('HR: date picker on dashboard drives a fresh network fetch', async ({ page 
   await page.goto('/attendance/dashboard');
 
   // Wait for the initial GET to settle.
-  await page.waitForResponse((res) =>
-    res.url().includes('/attendance/dashboard') && res.status() === 200,
+  await page.waitForResponse(
+    (res) => res.url().includes('/attendance/dashboard') && res.status() === 200,
   );
 
   // Pick a date 7 days in the past and assert we see a request go out for it.
@@ -75,14 +73,10 @@ test('HR: date picker on dashboard drives a fresh network fetch', async ({ page 
   const [refetch] = await Promise.all([
     page.waitForResponse(
       (res) =>
-        res.url().includes(`/attendance/dashboard?date=${targetIso}`) &&
-        res.status() === 200,
+        res.url().includes(`/attendance/dashboard?date=${targetIso}`) && res.status() === 200,
       { timeout: 10_000 },
     ),
-    page
-      .locator('input[type="date"]')
-      .first()
-      .fill(targetIso),
+    page.locator('input[type="date"]').first().fill(targetIso),
   ]);
   expect(refetch.ok()).toBe(true);
 });
@@ -106,9 +100,7 @@ test('supervisor: /attendance/dashboard is not linked and shows no HR cards on d
 test('Super Admin also sees the HR dashboard', async ({ page }) => {
   await loginAs(page, 'admin');
   await page.goto('/attendance/dashboard');
-  await expect(
-    page.getByRole('heading', { name: /Dashboard Kehadiran HR/i }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Dashboard Kehadiran HR/i })).toBeVisible();
   await expect(page.getByText('Total karyawan', { exact: true })).toBeVisible({
     timeout: 10_000,
   });

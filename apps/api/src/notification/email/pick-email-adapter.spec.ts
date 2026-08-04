@@ -32,13 +32,7 @@ describe('pickEmailAdapter', () => {
 
   it('falls back to console when EMAIL_TRANSPORT=smtp but the smtp adapter is null', () => {
     const warn = jest.spyOn(silentLogger, 'warn').mockImplementation(() => undefined);
-    const out = pickEmailAdapter(
-      'smtp',
-      consoleAdapter,
-      disabledAdapter,
-      null,
-      silentLogger,
-    );
+    const out = pickEmailAdapter('smtp', consoleAdapter, disabledAdapter, null, silentLogger);
     expect(out.transport).toBe('console');
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('did not initialise'));
   });

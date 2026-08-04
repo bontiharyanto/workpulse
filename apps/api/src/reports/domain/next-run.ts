@@ -56,19 +56,9 @@ export function advance(from: Date, cfg: CadenceConfig): Date {
 function advanceDaily(from: Date, hour: number): Date {
   validateHour(hour);
   const candidate = new Date(
-    Date.UTC(
-      from.getUTCFullYear(),
-      from.getUTCMonth(),
-      from.getUTCDate(),
-      hour,
-      0,
-      0,
-      0,
-    ),
+    Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate(), hour, 0, 0, 0),
   );
-  return candidate.getTime() > from.getTime()
-    ? candidate
-    : new Date(candidate.getTime() + DAY_MS);
+  return candidate.getTime() > from.getTime() ? candidate : new Date(candidate.getTime() + DAY_MS);
 }
 
 function advanceWeekly(from: Date, cfg: CadenceConfig): Date {
@@ -116,21 +106,15 @@ function advanceMonthly(from: Date, cfg: CadenceConfig): Date {
   }
   const year = from.getUTCFullYear();
   const month = from.getUTCMonth();
-  let candidate = new Date(
-    Date.UTC(year, month, cfg.cadenceDay, cfg.cadenceHourUtc, 0, 0, 0),
-  );
+  let candidate = new Date(Date.UTC(year, month, cfg.cadenceDay, cfg.cadenceHourUtc, 0, 0, 0));
   if (candidate.getTime() <= from.getTime()) {
-    candidate = new Date(
-      Date.UTC(year, month + 1, cfg.cadenceDay, cfg.cadenceHourUtc, 0, 0, 0),
-    );
+    candidate = new Date(Date.UTC(year, month + 1, cfg.cadenceDay, cfg.cadenceHourUtc, 0, 0, 0));
   }
   return candidate;
 }
 
 function validateHour(hour: number): void {
   if (!Number.isInteger(hour) || hour < 0 || hour > 23) {
-    throw new InvalidCadenceError(
-      `cadenceHour must be integer in [0..23], got ${hour}`,
-    );
+    throw new InvalidCadenceError(`cadenceHour must be integer in [0..23], got ${hour}`);
   }
 }

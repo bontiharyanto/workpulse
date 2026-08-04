@@ -1,9 +1,9 @@
 # ADR-0004 — Attachment Storage: S3 Presigned URLs
 
-* **Status:** Accepted
-* **Date:** 2026-08-02
-* **Deciders:** Backend + Frontend leads
-* **Supersedes:** —
+- **Status:** Accepted
+- **Date:** 2026-08-02
+- **Deciders:** Backend + Frontend leads
+- **Supersedes:** —
 
 ---
 
@@ -13,9 +13,9 @@ Karyawan yang mengajukan cuti sakit (`SICK`) di Workpulse **wajib** melampirkan
 surat dokter (`LeaveType.requiresAttachment = true`). Ke depan, alur serupa akan
 digunakan untuk:
 
-* Lampiran bukti keperluan cuti khusus (surat kematian, akta lahir, dll.).
-* Foto profil pengguna.
-* Ekspor laporan yang cache di object storage (potensi future work).
+- Lampiran bukti keperluan cuti khusus (surat kematian, akta lahir, dll.).
+- Foto profil pengguna.
+- Ekspor laporan yang cache di object storage (potensi future work).
 
 Berkas berpotensi berisi **informasi medis** (surat dokter) — sensitif secara
 privasi, tidak boleh bocor ke publik / tidak boleh di-scrape lewat URL yang
@@ -71,19 +71,19 @@ Arsitektur:
 
 ### Kunci Keamanan
 
-* **Whitelist MIME**: hanya `image/jpeg`, `image/png`, `image/webp`,
+- **Whitelist MIME**: hanya `image/jpeg`, `image/png`, `image/webp`,
   `application/pdf`. Tidak ada `image/svg+xml` (XSS via inline `<script>`),
   tidak ada tipe eksekusi.
-* **Cap 5 MiB** — ditegakkan lewat `Content-Length` yang termasuk dalam
+- **Cap 5 MiB** — ditegakkan lewat `Content-Length` yang termasuk dalam
   signature. Klien yang mencoba upload > 5 MiB akan ditolak oleh S3.
-* **Prefix ownership check**: kunci S3 selalu berisi `{companyId}/{userId}` di
+- **Prefix ownership check**: kunci S3 selalu berisi `{companyId}/{userId}` di
   path-nya. Saat submit leave, backend verifikasi prefix cocok dengan actor
   → mencegah "steal presign response, submit dengan key user lain".
-* **Ekstensi kanonik**: server yang tentukan ekstensi dari MIME, bukan dari
+- **Ekstensi kanonik**: server yang tentukan ekstensi dari MIME, bukan dari
   `file.name` klien → tidak bisa `virus.exe` disamarkan sebagai `.pdf`.
-* **Bucket private**: seluruh baca hanya lewat presigned GET (TTL 1 jam,
+- **Bucket private**: seluruh baca hanya lewat presigned GET (TTL 1 jam,
   cukup untuk HR membuka lampiran saat review).
-* **Rate limit presign**: 30 req/menit per user → mencegah presign flooding
+- **Rate limit presign**: 30 req/menit per user → mencegah presign flooding
   untuk enumerate keys / DoS bandwidth signing.
 
 ### Dev environment
@@ -97,36 +97,36 @@ lokal disamakan dengan `.env.example`. Untuk produksi tinggal ubah
 
 ### Positive
 
-* Bandwidth backend flat — dapat scale API tanpa perlu tuning upload buffer.
-* Progress bar real-time di FE (XHR).
-* Pattern presigned URL reusable → dapat dipakai ulang untuk avatar,
+- Bandwidth backend flat — dapat scale API tanpa perlu tuning upload buffer.
+- Progress bar real-time di FE (XHR).
+- Pattern presigned URL reusable → dapat dipakai ulang untuk avatar,
   ekspor besar, dll.
-* Isolasi tenant lewat prefix key → S3 lifecycle & audit lebih rapi.
+- Isolasi tenant lewat prefix key → S3 lifecycle & audit lebih rapi.
 
 ### Negative
 
-* Tidak ada virus scan sinkron. **Mitigasi:** integrasi async ClamAV/S3
+- Tidak ada virus scan sinkron. **Mitigasi:** integrasi async ClamAV/S3
   Event → SNS/Lambda scan di future work. Untuk MVP, whitelist MIME +
   cap 5 MiB dianggap acceptable karena berkas hanya diakses oleh pengaju
   sendiri + HR yang trusted.
-* Klien harus paham workflow 2-fase (presign → PUT → submit). **Mitigasi:**
+- Klien harus paham workflow 2-fase (presign → PUT → submit). **Mitigasi:**
   `uploadFileWithPresign` helper di FE menyembunyikan kompleksitas.
-* Kolom DB `LeaveRequest.attachmentUrl` sekarang menyimpan **key** bukan URL —
+- Kolom DB `LeaveRequest.attachmentUrl` sekarang menyimpan **key** bukan URL —
   nama kolom misleading. **Mitigasi:** komentar di kode + rename di migrasi
   future (biaya rendah, tapi bukan MVP blocker).
 
 ### Neutral
 
-* Cost S3: dominasi biaya adalah **request count** (PUT + GET), bukan
+- Cost S3: dominasi biaya adalah **request count** (PUT + GET), bukan
   storage — tetap murah untuk profil beban kami.
 
 ## Rollout / Reversibility
 
-* Merge behind feature flag? **Tidak.** Backend melakukan graceful fallback:
+- Merge behind feature flag? **Tidak.** Backend melakukan graceful fallback:
   jika `S3_BUCKET`/`S3_ACCESS_KEY_ID` tidak di-set, `StorageProvider.enabled`
   = false → endpoint `/attachments/presign` mengembalikan 503, dan pembacaan
   leave request dengan attachment mengembalikan `attachmentUrl: null` (tidak
   crash). Legacy leave requests yang tidak butuh lampiran tetap jalan.
 
-* Reversibility: schema DB tidak berubah. Cukup revert kode + hapus MinIO
+- Reversibility: schema DB tidak berubah. Cukup revert kode + hapus MinIO
   service dari compose untuk kembali ke state pre-fase.

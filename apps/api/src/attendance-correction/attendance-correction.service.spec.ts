@@ -71,12 +71,11 @@ function makeUserRow(
 ) {
   return {
     id: overrides.id ?? employee.id,
-    supervisorId:
-      'supervisorId' in overrides ? overrides.supervisorId ?? null : supervisor.id,
+    supervisorId: 'supervisorId' in overrides ? (overrides.supervisorId ?? null) : supervisor.id,
     hiredAt: 'hiredAt' in overrides ? overrides.hiredAt : new Date('2020-01-01'),
     company: {
       payrollLockedUntil:
-        'payrollLockedUntil' in overrides ? overrides.payrollLockedUntil ?? null : null,
+        'payrollLockedUntil' in overrides ? (overrides.payrollLockedUntil ?? null) : null,
     },
   };
 }
@@ -86,11 +85,7 @@ function makeCorrection(
     id: string;
     userId: string;
     supervisorId: string | null;
-    status:
-      | 'PENDING_APPROVAL'
-      | 'APPROVED'
-      | 'REJECTED'
-      | 'CANCELLED';
+    status: 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
     requestedClockInAt: Date | null;
     requestedClockOutAt: Date | null;
     workDate: Date;
@@ -106,17 +101,16 @@ function makeCorrection(
     workDate: overrides.workDate ?? YESTERDAY_DATE,
     requestedClockInAt:
       'requestedClockInAt' in overrides
-        ? overrides.requestedClockInAt ?? null
+        ? (overrides.requestedClockInAt ?? null)
         : new Date(`${YESTERDAY}T09:00:00.000Z`),
     requestedClockOutAt:
       'requestedClockOutAt' in overrides
-        ? overrides.requestedClockOutAt ?? null
+        ? (overrides.requestedClockOutAt ?? null)
         : new Date(`${YESTERDAY}T18:00:00.000Z`),
     reason: 'lupa punch',
     attachmentUrl: null,
     status: overrides.status ?? 'PENDING_APPROVAL',
-    supervisorId:
-      'supervisorId' in overrides ? overrides.supervisorId ?? null : supervisor.id,
+    supervisorId: 'supervisorId' in overrides ? (overrides.supervisorId ?? null) : supervisor.id,
     decidedById: null,
     decidedAt: null,
     decisionNote: null,
@@ -125,9 +119,7 @@ function makeCorrection(
     deletedAt: null,
     user: {
       supervisorId:
-        'userSupervisorId' in overrides
-          ? overrides.userSupervisorId ?? null
-          : supervisor.id,
+        'userSupervisorId' in overrides ? (overrides.userSupervisorId ?? null) : supervisor.id,
       email: overrides.userEmail ?? employee.email,
       fullName: overrides.userFullName ?? 'Emp User',
     },
@@ -147,14 +139,12 @@ function setup(): {
   mockReset(prisma);
 
   // $transaction: execute the callback with the same mocked client.
-  (prisma.$transaction as unknown as jest.Mock).mockImplementation(
-    async (arg: unknown) => {
-      if (typeof arg === 'function') {
-        return (arg as (tx: PrismaService) => unknown)(prisma);
-      }
-      return Promise.all(arg as Promise<unknown>[]);
-    },
-  );
+  (prisma.$transaction as unknown as jest.Mock).mockImplementation(async (arg: unknown) => {
+    if (typeof arg === 'function') {
+      return (arg as (tx: PrismaService) => unknown)(prisma);
+    }
+    return Promise.all(arg as Promise<unknown>[]);
+  });
 
   const notifications = {
     createOne: jest.fn().mockResolvedValue(undefined),
@@ -164,9 +154,7 @@ function setup(): {
 
   const timesheet = {
     assertCorrectionAllowed: jest.fn().mockResolvedValue(undefined),
-    regenerateForCorrection: jest
-      .fn()
-      .mockResolvedValue({ regenerated: true, wasPending: false }),
+    regenerateForCorrection: jest.fn().mockResolvedValue({ regenerated: true, wasPending: false }),
   };
 
   const service = new AttendanceCorrectionService(
@@ -188,9 +176,7 @@ describe('AttendanceCorrectionService.submit', () => {
     const { service, prisma, notifications } = setup();
     prisma.user.findFirst.mockResolvedValue(makeUserRow() as never);
     prisma.attendanceCorrection.findFirst.mockResolvedValue(null);
-    prisma.attendanceCorrection.create.mockResolvedValue(
-      makeCorrection() as never,
-    );
+    prisma.attendanceCorrection.create.mockResolvedValue(makeCorrection() as never);
     prisma.auditLog.create.mockResolvedValue({} as never);
     prisma.user.findUnique
       .mockResolvedValueOnce({ fullName: 'Emp User', email: 'emp@a.test' } as never)
@@ -204,15 +190,12 @@ describe('AttendanceCorrectionService.submit', () => {
     });
 
     expect(created.status).toBe('PENDING_APPROVAL');
-    const createArg =
-      prisma.attendanceCorrection.create.mock.calls[0]?.[0].data;
+    const createArg = prisma.attendanceCorrection.create.mock.calls[0]?.[0].data;
     if (!createArg) throw new Error('create was not invoked');
     expect(createArg.userId).toBe(employee.id);
     expect(createArg.workDate).toEqual(YESTERDAY_DATE);
     expect(createArg.requestedClockInAt).toBeNull();
-    expect(createArg.requestedClockOutAt).toEqual(
-      new Date(`${YESTERDAY}T18:00:00.000Z`),
-    );
+    expect(createArg.requestedClockOutAt).toEqual(new Date(`${YESTERDAY}T18:00:00.000Z`));
     expect(notifications.createOne).toHaveBeenCalledTimes(1);
   });
 
@@ -264,9 +247,7 @@ describe('AttendanceCorrectionService.submit', () => {
   it('rejects a duplicate PENDING correction for the same (userId, workDate)', async () => {
     const { service, prisma } = setup();
     prisma.user.findFirst.mockResolvedValue(makeUserRow() as never);
-    prisma.attendanceCorrection.findFirst.mockResolvedValue(
-      { id: 'existing' } as never,
-    );
+    prisma.attendanceCorrection.findFirst.mockResolvedValue({ id: 'existing' } as never);
     await expect(
       service.submit(employee, {
         workDate: YESTERDAY,
@@ -299,9 +280,7 @@ describe('AttendanceCorrectionService.submit', () => {
       makeUserRow({ payrollLockedUntil: YESTERDAY_DATE }) as never,
     );
     prisma.attendanceCorrection.findFirst.mockResolvedValue(null);
-    prisma.attendanceCorrection.create.mockResolvedValue(
-      makeCorrection() as never,
-    );
+    prisma.attendanceCorrection.create.mockResolvedValue(makeCorrection() as never);
     prisma.auditLog.create.mockResolvedValue({} as never);
     prisma.user.findUnique.mockResolvedValue({ fullName: 'x', email: 'x' } as never);
     const created = await service.submit(superAdmin, {
@@ -321,9 +300,7 @@ describe('AttendanceCorrectionService.submit', () => {
 describe('AttendanceCorrectionService.decide', () => {
   it('supervisor of the team may APPROVE a pending correction', async () => {
     const { service, prisma } = setup();
-    prisma.attendanceCorrection.findFirst.mockResolvedValue(
-      makeCorrection() as never,
-    );
+    prisma.attendanceCorrection.findFirst.mockResolvedValue(makeCorrection() as never);
     prisma.company.findFirst.mockResolvedValue({ payrollLockedUntil: null } as never);
     prisma.attendanceRecord.findFirst.mockResolvedValue(null);
     prisma.userShiftAssignment.findFirst.mockResolvedValue({
@@ -331,9 +308,10 @@ describe('AttendanceCorrectionService.decide', () => {
     } as never);
     prisma.attendanceRecord.create.mockResolvedValue({ id: 'att-new' } as never);
     prisma.absenceRecord.deleteMany.mockResolvedValue({ count: 0 } as never);
-    prisma.attendanceCorrection.update.mockResolvedValue(
-      { ...makeCorrection(), status: 'APPROVED' } as never,
-    );
+    prisma.attendanceCorrection.update.mockResolvedValue({
+      ...makeCorrection(),
+      status: 'APPROVED',
+    } as never);
     prisma.auditLog.create.mockResolvedValue({} as never);
     prisma.user.findUnique.mockResolvedValue({ fullName: 'Sup' } as never);
 
@@ -372,9 +350,10 @@ describe('AttendanceCorrectionService.decide', () => {
       deletedAt: null,
     } as never);
     prisma.attendanceRecord.update.mockResolvedValue({ id: 'att-1' } as never);
-    prisma.attendanceCorrection.update.mockResolvedValue(
-      { ...makeCorrection(), status: 'APPROVED' } as never,
-    );
+    prisma.attendanceCorrection.update.mockResolvedValue({
+      ...makeCorrection(),
+      status: 'APPROVED',
+    } as never);
     prisma.auditLog.create.mockResolvedValue({} as never);
     prisma.user.findUnique.mockResolvedValue({ fullName: 'HR' } as never);
 
@@ -390,9 +369,7 @@ describe('AttendanceCorrectionService.decide', () => {
 
   it('CONFLICT_CLOCK_IN when APPROVE would overwrite a non-null existing punch', async () => {
     const { service, prisma } = setup();
-    prisma.attendanceCorrection.findFirst.mockResolvedValue(
-      makeCorrection() as never,
-    );
+    prisma.attendanceCorrection.findFirst.mockResolvedValue(makeCorrection() as never);
     prisma.company.findFirst.mockResolvedValue({ payrollLockedUntil: null } as never);
     prisma.attendanceRecord.findFirst.mockResolvedValue({
       id: 'att-1',
@@ -401,36 +378,33 @@ describe('AttendanceCorrectionService.decide', () => {
       deletedAt: null,
     } as never);
 
-    await expect(
-      service.decide(hr, 'corr-1', { action: 'APPROVE' }),
-    ).rejects.toBeInstanceOf(ConflictException);
+    await expect(service.decide(hr, 'corr-1', { action: 'APPROVE' })).rejects.toBeInstanceOf(
+      ConflictException,
+    );
   });
 
   it('rejects a decide inside a locked payroll period for HR (PAYROLL_LOCKED)', async () => {
     const { service, prisma } = setup();
-    prisma.attendanceCorrection.findFirst.mockResolvedValue(
-      makeCorrection() as never,
-    );
+    prisma.attendanceCorrection.findFirst.mockResolvedValue(makeCorrection() as never);
     prisma.company.findFirst.mockResolvedValue({
       payrollLockedUntil: YESTERDAY_DATE,
     } as never);
 
-    await expect(
-      service.decide(hr, 'corr-1', { action: 'APPROVE' }),
-    ).rejects.toBeInstanceOf(ConflictException);
+    await expect(service.decide(hr, 'corr-1', { action: 'APPROVE' })).rejects.toBeInstanceOf(
+      ConflictException,
+    );
   });
 
   it('allows SUPER_ADMIN to decide inside a locked period', async () => {
     const { service, prisma } = setup();
-    prisma.attendanceCorrection.findFirst.mockResolvedValue(
-      makeCorrection() as never,
-    );
+    prisma.attendanceCorrection.findFirst.mockResolvedValue(makeCorrection() as never);
     prisma.company.findFirst.mockResolvedValue({
       payrollLockedUntil: YESTERDAY_DATE,
     } as never);
-    prisma.attendanceCorrection.update.mockResolvedValue(
-      { ...makeCorrection(), status: 'REJECTED' } as never,
-    );
+    prisma.attendanceCorrection.update.mockResolvedValue({
+      ...makeCorrection(),
+      status: 'REJECTED',
+    } as never);
     prisma.auditLog.create.mockResolvedValue({} as never);
     prisma.user.findUnique.mockResolvedValue({ fullName: 'SA' } as never);
 
@@ -444,9 +418,9 @@ describe('AttendanceCorrectionService.decide', () => {
   it('rejects a decide on a non-existent correction with NOT_FOUND', async () => {
     const { service, prisma } = setup();
     prisma.attendanceCorrection.findFirst.mockResolvedValue(null);
-    await expect(
-      service.decide(hr, 'missing', { action: 'APPROVE' }),
-    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.decide(hr, 'missing', { action: 'APPROVE' })).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 });
 
@@ -457,13 +431,12 @@ describe('AttendanceCorrectionService.decide', () => {
 describe('AttendanceCorrectionService.cancel', () => {
   it('owner may cancel their own PENDING correction', async () => {
     const { service, prisma } = setup();
-    prisma.attendanceCorrection.findFirst.mockResolvedValue(
-      makeCorrection() as never,
-    );
+    prisma.attendanceCorrection.findFirst.mockResolvedValue(makeCorrection() as never);
     prisma.company.findFirst.mockResolvedValue({ payrollLockedUntil: null } as never);
-    prisma.attendanceCorrection.update.mockResolvedValue(
-      { ...makeCorrection(), status: 'CANCELLED' } as never,
-    );
+    prisma.attendanceCorrection.update.mockResolvedValue({
+      ...makeCorrection(),
+      status: 'CANCELLED',
+    } as never);
     prisma.auditLog.create.mockResolvedValue({} as never);
     const updated = await service.cancel(employee, 'corr-1');
     expect(updated.status).toBe('CANCELLED');
@@ -475,22 +448,16 @@ describe('AttendanceCorrectionService.cancel', () => {
       makeCorrection({ userId: 'other-user' }) as never,
     );
     prisma.company.findFirst.mockResolvedValue({ payrollLockedUntil: null } as never);
-    await expect(service.cancel(supervisor, 'corr-1')).rejects.toBeInstanceOf(
-      ForbiddenException,
-    );
+    await expect(service.cancel(supervisor, 'corr-1')).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it('rejects a cancel inside a locked period for the owner', async () => {
     const { service, prisma } = setup();
-    prisma.attendanceCorrection.findFirst.mockResolvedValue(
-      makeCorrection() as never,
-    );
+    prisma.attendanceCorrection.findFirst.mockResolvedValue(makeCorrection() as never);
     prisma.company.findFirst.mockResolvedValue({
       payrollLockedUntil: YESTERDAY_DATE,
     } as never);
-    await expect(service.cancel(employee, 'corr-1')).rejects.toBeInstanceOf(
-      ConflictException,
-    );
+    await expect(service.cancel(employee, 'corr-1')).rejects.toBeInstanceOf(ConflictException);
   });
 });
 
@@ -501,17 +468,15 @@ describe('AttendanceCorrectionService.cancel', () => {
 describe('AttendanceCorrectionService.listPendingApprovals', () => {
   it('forbids EMPLOYEE actors', async () => {
     const { service } = setup();
-    await expect(service.listPendingApprovals(employee)).rejects.toBeInstanceOf(
-      ForbiddenException,
-    );
+    await expect(service.listPendingApprovals(employee)).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it('scopes SUPERVISOR queries to their direct reports', async () => {
     const { service, prisma } = setup();
     prisma.attendanceCorrection.findMany.mockResolvedValue([] as never);
     await service.listPendingApprovals(supervisor);
-    const where = prisma.attendanceCorrection.findMany.mock.calls[0]?.[0]
-      ?.where as { user?: { supervisorId?: string } } | undefined;
+    const where = prisma.attendanceCorrection.findMany.mock.calls[0]?.[0]?.where as
+      { user?: { supervisorId?: string } } | undefined;
     expect(where?.user?.supervisorId).toBe(supervisor.id);
   });
 
@@ -519,8 +484,8 @@ describe('AttendanceCorrectionService.listPendingApprovals', () => {
     const { service, prisma } = setup();
     prisma.attendanceCorrection.findMany.mockResolvedValue([] as never);
     await service.listPendingApprovals(hr);
-    const where = prisma.attendanceCorrection.findMany.mock.calls[0]?.[0]
-      ?.where as { user?: unknown } | undefined;
+    const where = prisma.attendanceCorrection.findMany.mock.calls[0]?.[0]?.where as
+      { user?: unknown } | undefined;
     expect(where?.user).toBeUndefined();
   });
 });

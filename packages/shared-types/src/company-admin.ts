@@ -121,10 +121,9 @@ export const updateCompanyInputSchema = z
     slug: slugSchemaOptional,
     timezone: timezoneSchemaOptional,
   })
-  .refine(
-    (data) => Object.values(data).some((v) => v !== undefined),
-    { message: 'Setidaknya satu field harus diisi' },
-  );
+  .refine((data) => Object.values(data).some((v) => v !== undefined), {
+    message: 'Setidaknya satu field harus diisi',
+  });
 export type UpdateCompanyInput = z.infer<typeof updateCompanyInputSchema>;
 
 // ---------------------------------------------------------------------------

@@ -58,10 +58,7 @@ export class GeofenceController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(
-    @CurrentUser() actor: AuthenticatedUser,
-    @Param('id') id: string,
-  ): Promise<void> {
+  async remove(@CurrentUser() actor: AuthenticatedUser, @Param('id') id: string): Promise<void> {
     await this.service.remove(actor, id);
   }
 }

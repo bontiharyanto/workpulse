@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 

@@ -75,7 +75,10 @@ export class CompanyAdminService {
   // Queries
   // ==================================================================
 
-  async list(actor: AuthenticatedUser, filter: ListCompaniesQuery): Promise<ListCompaniesResponseDto> {
+  async list(
+    actor: AuthenticatedUser,
+    filter: ListCompaniesQuery,
+  ): Promise<ListCompaniesResponseDto> {
     this.assertSuperAdmin(actor);
 
     const page = Math.max(1, filter.page ?? 1);
@@ -458,4 +461,3 @@ export class CompanyAdminService {
     };
   }
 }
-

@@ -19,9 +19,7 @@ export interface MfaEnrollment {
  *
  * The caller is responsible for cleanup via {@link disableMfaViaApi}.
  */
-export async function enrollMfaViaApi(
-  key: SeedUserKey,
-): Promise<MfaEnrollment> {
+export async function enrollMfaViaApi(key: SeedUserKey): Promise<MfaEnrollment> {
   const user = SEED_USERS[key];
   const ctx = await request.newContext({ baseURL: API_URL });
   try {
@@ -46,9 +44,7 @@ export async function enrollMfaViaApi(
       data: { code: authenticator.generate(start.secret) },
     });
     if (!confirmRes.ok()) {
-      throw new Error(
-        `enroll/confirm failed: ${confirmRes.status()} ${await confirmRes.text()}`,
-      );
+      throw new Error(`enroll/confirm failed: ${confirmRes.status()} ${await confirmRes.text()}`);
     }
     const confirm = (await confirmRes.json()) as {
       backupCodes: string[];
@@ -72,10 +68,7 @@ export async function enrollMfaViaApi(
  * best-effort cleanup in `afterEach`. When MFA was never enabled the
  * API replies with `MFA_NOT_ENABLED` which we intentionally ignore.
  */
-export async function disableMfaViaApi(
-  key: SeedUserKey,
-  secret: string,
-): Promise<void> {
+export async function disableMfaViaApi(key: SeedUserKey, secret: string): Promise<void> {
   const user = SEED_USERS[key];
   const ctx = await request.newContext({ baseURL: API_URL });
   try {

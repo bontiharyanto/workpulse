@@ -52,8 +52,7 @@ export class DataExportWorker {
     // Ops kill switch — set `DATA_EXPORT_WORKER_ENABLED=false` in the
     // env to move processing to a dedicated node while the API stays
     // read-only. The controller keeps accepting new PENDING rows.
-    this.enabled =
-      config.get<string>('DATA_EXPORT_WORKER_ENABLED', 'true') !== 'false';
+    this.enabled = config.get<string>('DATA_EXPORT_WORKER_ENABLED', 'true') !== 'false';
     if (!this.enabled) {
       this.logger.warn(
         'DATA_EXPORT_WORKER_ENABLED=false — this API instance will NOT process exports.',
@@ -75,10 +74,7 @@ export class DataExportWorker {
       }
     } catch (err) {
       // Defensive — any escape here would tear down the scheduler.
-      this.logger.error(
-        { err },
-        'data export tick failed with an unhandled error',
-      );
+      this.logger.error({ err }, 'data export tick failed with an unhandled error');
     } finally {
       this.tickRunning = false;
     }
@@ -90,10 +86,7 @@ export class DataExportWorker {
     try {
       await this.service.expireOverdue();
     } catch (err) {
-      this.logger.error(
-        { err },
-        'data export retention sweep failed',
-      );
+      this.logger.error({ err }, 'data export retention sweep failed');
     }
   }
 
@@ -173,16 +166,11 @@ export class DataExportWorker {
       });
 
       this.logger.log(
-        `export ready requestId=${row.id} bytes=${size} durationMs=${
-          Date.now() - started
-        }`,
+        `export ready requestId=${row.id} bytes=${size} durationMs=${Date.now() - started}`,
       );
     } catch (err) {
       const reason = (err as Error).message?.slice(0, 500) ?? 'unknown error';
-      this.logger.error(
-        { err, requestId: row.id },
-        `export assembly failed reason=${reason}`,
-      );
+      this.logger.error({ err, requestId: row.id }, `export assembly failed reason=${reason}`);
       await this.prisma.$transaction(async (tx) => {
         await tx.dataExportRequest.update({
           where: { id: row.id },

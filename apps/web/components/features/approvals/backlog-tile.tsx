@@ -33,7 +33,7 @@ export function BacklogTile(): JSX.Element | null {
   if (backlog.isLoading) {
     return (
       <section className="rounded-lg border p-6 shadow-sm">
-        <p className="text-sm text-muted-foreground">Memuat backlog...</p>
+        <p className="text-muted-foreground text-sm">Memuat backlog...</p>
       </section>
     );
   }
@@ -56,10 +56,7 @@ export function BacklogTile(): JSX.Element | null {
               Tidak ada permintaan menunggu keputusan.
             </p>
           </div>
-          <Link
-            href="/admin/approvals-backlog"
-            className="text-xs text-emerald-800 underline"
-          >
+          <Link href="/admin/approvals-backlog" className="text-xs text-emerald-800 underline">
             Detail →
           </Link>
         </div>
@@ -71,14 +68,15 @@ export function BacklogTile(): JSX.Element | null {
     <section className="space-y-4 rounded-lg border p-6 shadow-sm">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">
+          <p className="text-muted-foreground text-xs uppercase tracking-widest">
             Backlog persetujuan
           </p>
           <p className="text-2xl font-semibold">
             {totalPending}
-            <span className="ml-2 text-sm font-normal text-muted-foreground">
-              menunggu · {totalStale > 0 ? (
-                <span className="font-semibold text-destructive">
+            <span className="text-muted-foreground ml-2 text-sm font-normal">
+              menunggu ·{' '}
+              {totalStale > 0 ? (
+                <span className="text-destructive font-semibold">
                   {totalStale} sudah &gt; {staleAfterDays} hari
                 </span>
               ) : (
@@ -89,7 +87,7 @@ export function BacklogTile(): JSX.Element | null {
         </div>
         <Link
           href="/admin/approvals-backlog"
-          className="whitespace-nowrap rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-muted"
+          className="border-input hover:bg-muted whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium"
         >
           Detail →
         </Link>
@@ -128,14 +126,8 @@ interface ModuleChipProps {
   href: string;
 }
 
-function ModuleChip({
-  label,
-  module,
-  staleAfterDays,
-  href,
-}: ModuleChipProps): JSX.Element {
-  const tone =
-    module.stale > 0 ? 'warn' : module.total > 0 ? 'info' : 'muted';
+function ModuleChip({ label, module, staleAfterDays, href }: ModuleChipProps): JSX.Element {
+  const tone = module.stale > 0 ? 'warn' : module.total > 0 ? 'info' : 'muted';
   const border =
     tone === 'warn'
       ? 'border-destructive/30 bg-destructive/5'
@@ -148,14 +140,10 @@ function ModuleChip({
       href={href as Route}
       className={`block rounded-md border ${border} p-3 transition hover:opacity-80`}
     >
-      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-        {label}
-      </p>
+      <p className="text-muted-foreground text-[11px] uppercase tracking-wider">{label}</p>
       <p className="text-lg font-semibold tabular-nums">
         {module.total}
-        <span className="ml-1 text-xs font-normal text-muted-foreground">
-          menunggu
-        </span>
+        <span className="text-muted-foreground ml-1 text-xs font-normal">menunggu</span>
       </p>
       <p className="text-xs">
         {module.stale > 0 ? (

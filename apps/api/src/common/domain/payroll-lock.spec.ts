@@ -30,36 +30,36 @@ describe('isMutationBlockedByPayrollLock', () => {
   const cutoff = d('2026-07-31');
 
   it('does not block when no cutoff is set', () => {
-    expect(
-      isMutationBlockedByPayrollLock(d('2020-01-01'), null, { role: 'HR_MANAGER' }),
-    ).toBe(false);
+    expect(isMutationBlockedByPayrollLock(d('2020-01-01'), null, { role: 'HR_MANAGER' })).toBe(
+      false,
+    );
   });
 
   it('blocks HR_MANAGER inside the frozen period', () => {
-    expect(
-      isMutationBlockedByPayrollLock(d('2026-07-15'), cutoff, { role: 'HR_MANAGER' }),
-    ).toBe(true);
+    expect(isMutationBlockedByPayrollLock(d('2026-07-15'), cutoff, { role: 'HR_MANAGER' })).toBe(
+      true,
+    );
   });
 
   it('blocks EMPLOYEE and SUPERVISOR too (defense-in-depth even though they cannot hit these endpoints)', () => {
-    expect(
-      isMutationBlockedByPayrollLock(d('2026-07-15'), cutoff, { role: 'EMPLOYEE' }),
-    ).toBe(true);
-    expect(
-      isMutationBlockedByPayrollLock(d('2026-07-15'), cutoff, { role: 'SUPERVISOR' }),
-    ).toBe(true);
+    expect(isMutationBlockedByPayrollLock(d('2026-07-15'), cutoff, { role: 'EMPLOYEE' })).toBe(
+      true,
+    );
+    expect(isMutationBlockedByPayrollLock(d('2026-07-15'), cutoff, { role: 'SUPERVISOR' })).toBe(
+      true,
+    );
   });
 
   it('allows SUPER_ADMIN inside the frozen period (emergency override)', () => {
-    expect(
-      isMutationBlockedByPayrollLock(d('2026-07-15'), cutoff, { role: 'SUPER_ADMIN' }),
-    ).toBe(false);
+    expect(isMutationBlockedByPayrollLock(d('2026-07-15'), cutoff, { role: 'SUPER_ADMIN' })).toBe(
+      false,
+    );
   });
 
   it('does not block anyone AFTER the cutoff', () => {
-    expect(
-      isMutationBlockedByPayrollLock(d('2026-08-01'), cutoff, { role: 'HR_MANAGER' }),
-    ).toBe(false);
+    expect(isMutationBlockedByPayrollLock(d('2026-08-01'), cutoff, { role: 'HR_MANAGER' })).toBe(
+      false,
+    );
   });
 });
 

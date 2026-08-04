@@ -25,19 +25,14 @@ interface LoginedContext {
   accessToken: string;
 }
 
-async function login(
-  email: string,
-  password: string,
-): Promise<LoginedContext> {
+async function login(email: string, password: string): Promise<LoginedContext> {
   const { request } = await import('@playwright/test');
   const ctx = await request.newContext({ baseURL: API_URL });
   const res = await ctx.post('/api/v1/auth/login', {
     data: { email, password },
   });
   if (!res.ok()) {
-    throw new Error(
-      `login failed for ${email}: ${res.status()} ${await res.text()}`,
-    );
+    throw new Error(`login failed for ${email}: ${res.status()} ${await res.text()}`);
   }
   const body = (await res.json()) as { accessToken: string };
   return { ctx, accessToken: body.accessToken };
@@ -76,9 +71,7 @@ async function generateForPastMonth(
     // Anchor at the 15th of the *previous* calendar month — the whole
     // period ends well before "today", so a submit is legal.
     const now = new Date();
-    const at = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 15),
-    );
+    const at = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 15));
     const res = await ctx.post('/api/v1/test-support/timesheet/generate', {
       data: { email, at: at.toISOString() },
     });
@@ -114,10 +107,9 @@ async function readAdminTimesheet(
   token: string,
   id: string,
 ): Promise<{ id: string; status: string; rejectionReason: string | null }> {
-  const res = await ctx.get(
-    `/api/v1/admin/timesheet/${encodeURIComponent(id)}`,
-    { headers: { Authorization: `Bearer ${token}` } },
-  );
+  const res = await ctx.get(`/api/v1/admin/timesheet/${encodeURIComponent(id)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   expect(res.status()).toBe(200);
   return (await res.json()) as {
     id: string;
@@ -139,10 +131,7 @@ test.describe('Timesheet workflow — happy path & rejections', () => {
     expect(gen.timesheetsGenerated).toBeGreaterThan(0);
 
     // 1. Employee submits.
-    const emp = await login(
-      SEED_USERS.employee.email,
-      SEED_USERS.employee.password,
-    );
+    const emp = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
     const mine = await findMyTimesheet(emp.ctx, emp.accessToken, gen.periodId);
     expect(mine, 'employee should own a timesheet in the generated period').toBeTruthy();
     expect(mine!.status).toBe('DRAFT');
@@ -155,15 +144,8 @@ test.describe('Timesheet workflow — happy path & rejections', () => {
     await emp.ctx.dispose();
 
     // 2. Supervisor approves.
-    const sup = await login(
-      SEED_USERS.supervisor.email,
-      SEED_USERS.supervisor.password,
-    );
-    const afterSubmit = await readAdminTimesheet(
-      sup.ctx,
-      sup.accessToken,
-      mine!.id,
-    );
+    const sup = await login(SEED_USERS.supervisor.email, SEED_USERS.supervisor.password);
+    const afterSubmit = await readAdminTimesheet(sup.ctx, sup.accessToken, mine!.id);
     expect(afterSubmit.status).toBe('PENDING_SUPERVISOR');
 
     const supApprove = await sup.ctx.post(
@@ -174,11 +156,7 @@ test.describe('Timesheet workflow — happy path & rejections', () => {
       },
     );
     expect(supApprove.status()).toBe(204);
-    const afterSup = await readAdminTimesheet(
-      sup.ctx,
-      sup.accessToken,
-      mine!.id,
-    );
+    const afterSup = await readAdminTimesheet(sup.ctx, sup.accessToken, mine!.id);
     expect(afterSup.status).toBe('PENDING_HR');
     await sup.ctx.dispose();
 
@@ -204,9 +182,7 @@ test.describe('Timesheet workflow — happy path & rejections', () => {
     const ctx = await request.newContext({ baseURL: API_URL });
     try {
       const now = new Date();
-      const at = new Date(
-        Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 2, 15),
-      );
+      const at = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 2, 15));
       const genRes = await ctx.post('/api/v1/test-support/timesheet/generate', {
         data: { email: SEED_USERS.hr.email, at: at.toISOString() },
       });
@@ -217,10 +193,7 @@ test.describe('Timesheet workflow — happy path & rejections', () => {
     }
 
     // Employee submits.
-    const emp = await login(
-      SEED_USERS.employee.email,
-      SEED_USERS.employee.password,
-    );
+    const emp = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
     const mine = await findMyTimesheet(emp.ctx, emp.accessToken, gen.periodId);
     expect(mine).toBeTruthy();
     const submitRes = await emp.ctx.post(
@@ -230,10 +203,7 @@ test.describe('Timesheet workflow — happy path & rejections', () => {
     expect(submitRes.status()).toBe(204);
     await emp.ctx.dispose();
 
-    const sup = await login(
-      SEED_USERS.supervisor.email,
-      SEED_USERS.supervisor.password,
-    );
+    const sup = await login(SEED_USERS.supervisor.email, SEED_USERS.supervisor.password);
 
     // Reject without note → 409.
     const emptyReject = await sup.ctx.post(
@@ -257,20 +227,13 @@ test.describe('Timesheet workflow — happy path & rejections', () => {
       },
     );
     expect(goodReject.status()).toBe(204);
-    const afterReject = await readAdminTimesheet(
-      sup.ctx,
-      sup.accessToken,
-      mine!.id,
-    );
+    const afterReject = await readAdminTimesheet(sup.ctx, sup.accessToken, mine!.id);
     expect(afterReject.status).toBe('REJECTED');
     expect(afterReject.rejectionReason).toContain('koreksi jam pulang');
     await sup.ctx.dispose();
 
     // Employee resubmits — row goes back to PENDING_SUPERVISOR.
-    const emp2 = await login(
-      SEED_USERS.employee.email,
-      SEED_USERS.employee.password,
-    );
+    const emp2 = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
     const resubmit = await emp2.ctx.post(
       `/api/v1/me/timesheet/${encodeURIComponent(mine!.id)}/submit`,
       { headers: { Authorization: `Bearer ${emp2.accessToken}` }, data: {} },
@@ -278,15 +241,8 @@ test.describe('Timesheet workflow — happy path & rejections', () => {
     expect(resubmit.status()).toBe(204);
     await emp2.ctx.dispose();
 
-    const sup2 = await login(
-      SEED_USERS.supervisor.email,
-      SEED_USERS.supervisor.password,
-    );
-    const afterResubmit = await readAdminTimesheet(
-      sup2.ctx,
-      sup2.accessToken,
-      mine!.id,
-    );
+    const sup2 = await login(SEED_USERS.supervisor.email, SEED_USERS.supervisor.password);
+    const afterResubmit = await readAdminTimesheet(sup2.ctx, sup2.accessToken, mine!.id);
     expect(afterResubmit.status).toBe('PENDING_SUPERVISOR');
     expect(afterResubmit.rejectionReason).toBeNull();
     await sup2.ctx.dispose();
@@ -307,18 +263,13 @@ test.describe('Timesheet workflow — happy path & rejections', () => {
       await ctx.dispose();
     }
 
-    const emp = await login(
-      SEED_USERS.employee.email,
-      SEED_USERS.employee.password,
-    );
+    const emp = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
     const mine = await findMyTimesheet(emp.ctx, emp.accessToken, gen.periodId);
     expect(mine).toBeTruthy();
 
     // The current-month period should still be open; the submit must fail.
     const now = new Date();
-    const endOfMonth = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0),
-    );
+    const endOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0));
     if (endOfMonth.getTime() <= now.getTime()) {
       // Test run happens to be on the very last day of the month with
       // some slack; skip rather than assert a false negative.
@@ -337,9 +288,7 @@ test.describe('Timesheet workflow — happy path & rejections', () => {
     // Look up the previously-approved timesheet from test 1 (same
     // periodId — one month back) and prove a re-generate now skips it.
     const now = new Date();
-    const at = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 15),
-    );
+    const at = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 15));
 
     const { request } = await import('@playwright/test');
     const ctx = await request.newContext({ baseURL: API_URL });
@@ -363,9 +312,7 @@ test.describe('Timesheet workflow — happy path & rejections', () => {
     // supervised by the regular team-lead supervisor.
     // First, generate + submit as super-admin owner.
     const now = new Date();
-    const at = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 3, 15),
-    );
+    const at = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 3, 15));
     const { request } = await import('@playwright/test');
     const ctx = await request.newContext({ baseURL: API_URL });
     try {
@@ -379,10 +326,7 @@ test.describe('Timesheet workflow — happy path & rejections', () => {
     }
 
     // Log in as admin, find own timesheet, submit it.
-    const admin = await login(
-      SEED_USERS.admin.email,
-      SEED_USERS.admin.password,
-    );
+    const admin = await login(SEED_USERS.admin.email, SEED_USERS.admin.password);
     const adminList = await admin.ctx.get('/api/v1/me/timesheet?limit=50', {
       headers: { Authorization: `Bearer ${admin.accessToken}` },
     });
@@ -404,10 +348,7 @@ test.describe('Timesheet workflow — happy path & rejections', () => {
     // A regular team-lead supervisor should NOT be able to approve.
     // The row won't even be in their scoped list, so /decide returns
     // 404 (visibility gate) rather than 403.
-    const sup = await login(
-      SEED_USERS.supervisor.email,
-      SEED_USERS.supervisor.password,
-    );
+    const sup = await login(SEED_USERS.supervisor.email, SEED_USERS.supervisor.password);
     const foreign = await sup.ctx.post(
       `/api/v1/admin/timesheet/${encodeURIComponent(adminOwn!.id)}/decide`,
       {

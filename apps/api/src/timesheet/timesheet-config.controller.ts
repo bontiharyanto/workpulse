@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Put,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Put } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { TimesheetConfig } from '@prisma/client';
 
@@ -13,10 +6,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-import {
-  TimesheetConfigDto,
-  UpdateTimesheetConfigDto,
-} from './dto/timesheet.dto';
+import { TimesheetConfigDto, UpdateTimesheetConfigDto } from './dto/timesheet.dto';
 import { TimesheetConfigService } from './timesheet-config.service';
 
 /**
@@ -33,9 +23,7 @@ export class TimesheetConfigController {
   @Get()
   @ApiBearerAuth()
   @ApiOkResponse({ type: TimesheetConfigDto })
-  async getConfig(
-    @CurrentUser() actor: AuthenticatedUser,
-  ): Promise<TimesheetConfigDto> {
+  async getConfig(@CurrentUser() actor: AuthenticatedUser): Promise<TimesheetConfigDto> {
     const cfg = await this.service.getForCompany(actor.companyId);
     return toDto(cfg);
   }
@@ -48,10 +36,7 @@ export class TimesheetConfigController {
     @CurrentUser() actor: AuthenticatedUser,
     @Body() body: UpdateTimesheetConfigDto,
   ): Promise<TimesheetConfigDto> {
-    const cfg = await this.service.update(
-      { id: actor.id, companyId: actor.companyId },
-      body,
-    );
+    const cfg = await this.service.update({ id: actor.id, companyId: actor.companyId }, body);
     return toDto(cfg);
   }
 }
@@ -62,9 +47,7 @@ function toDto(cfg: TimesheetConfig): TimesheetConfigDto {
     companyId: cfg.companyId,
     periodType: cfg.periodType,
     weekStartDay: cfg.weekStartDay,
-    biweeklyAnchor: cfg.biweeklyAnchor
-      ? cfg.biweeklyAnchor.toISOString().slice(0, 10)
-      : null,
+    biweeklyAnchor: cfg.biweeklyAnchor ? cfg.biweeklyAnchor.toISOString().slice(0, 10) : null,
     cutoffDayOfMonth: cfg.cutoffDayOfMonth,
     timezone: cfg.timezone,
     autoGenerateEnabled: cfg.autoGenerateEnabled,

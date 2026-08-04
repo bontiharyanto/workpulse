@@ -43,7 +43,9 @@ export class OvertimeCompletionService {
     private readonly notifications: NotificationService,
   ) {}
 
-  async runCompletion(options: { companyId?: string; now?: Date } = {}): Promise<CompletionRunResult> {
+  async runCompletion(
+    options: { companyId?: string; now?: Date } = {},
+  ): Promise<CompletionRunResult> {
     const startedAt = Date.now();
     const now = options.now ?? new Date();
 

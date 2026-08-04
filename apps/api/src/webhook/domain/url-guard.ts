@@ -84,10 +84,7 @@ export interface SyntaxOptions {
   httpsRequired: boolean;
 }
 
-export function validateUrlSyntax(
-  urlString: string,
-  opts: SyntaxOptions,
-): UrlValidation {
+export function validateUrlSyntax(urlString: string, opts: SyntaxOptions): UrlValidation {
   const issues: UrlIssue[] = [];
   let parsed: URL;
   try {

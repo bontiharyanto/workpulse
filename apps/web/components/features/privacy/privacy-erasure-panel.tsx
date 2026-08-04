@@ -10,8 +10,7 @@ import { ApiError, dataErasureApi } from '@/lib/api-client';
 const ERROR_COPY: Record<string, string> = {
   ERASURE_ALREADY_PENDING:
     'Anda sudah memiliki permintaan penghapusan yang aktif. Batalkan dulu jika ingin mengajukan yang baru.',
-  ERASURE_NOT_CANCELLABLE:
-    'Permintaan ini tidak dapat dibatalkan pada status saat ini.',
+  ERASURE_NOT_CANCELLABLE: 'Permintaan ini tidak dapat dibatalkan pada status saat ini.',
   ERASURE_NOT_FOUND: 'Permintaan tidak ditemukan.',
   THROTTLED: 'Terlalu banyak percobaan. Coba lagi sebentar.',
 };
@@ -61,9 +60,7 @@ export function PrivacyErasurePanel(): JSX.Element {
     refetchInterval: (query) => {
       const rows = query.state.data ?? [];
       const inFlight = rows.some(
-        (r) =>
-          r.status === 'PENDING_APPROVAL' ||
-          r.status === 'APPROVED_SCHEDULED',
+        (r) => r.status === 'PENDING_APPROVAL' || r.status === 'APPROVED_SCHEDULED',
       );
       return inFlight ? 10_000 : false;
     },
@@ -108,8 +105,7 @@ export function PrivacyErasurePanel(): JSX.Element {
 
   const rows = requests.data ?? [];
   const hasInFlight = rows.some(
-    (r) =>
-      r.status === 'PENDING_APPROVAL' || r.status === 'APPROVED_SCHEDULED',
+    (r) => r.status === 'PENDING_APPROVAL' || r.status === 'APPROVED_SCHEDULED',
   );
 
   const submitDisabled =
@@ -125,22 +121,19 @@ export function PrivacyErasurePanel(): JSX.Element {
       aria-labelledby="data-erasure-heading"
     >
       <div>
-        <h2
-          id="data-erasure-heading"
-          className="text-lg font-semibold tracking-tight"
-        >
+        <h2 id="data-erasure-heading" className="text-lg font-semibold tracking-tight">
           Hapus akun & data pribadi
         </h2>
-        <p className="text-sm text-muted-foreground">
-          Ajukan permintaan penghapusan data pribadi (nama, email, kredensial,
-          notifikasi). Permintaan memerlukan persetujuan HR atau Super Admin
-          dan dijalankan setelah masa tenggang. Data bisnis (kehadiran, cuti,
-          lembur) tetap disimpan sesuai kewajiban retensi hukum.
+        <p className="text-muted-foreground text-sm">
+          Ajukan permintaan penghapusan data pribadi (nama, email, kredensial, notifikasi).
+          Permintaan memerlukan persetujuan HR atau Super Admin dan dijalankan setelah masa
+          tenggang. Data bisnis (kehadiran, cuti, lembur) tetap disimpan sesuai kewajiban retensi
+          hukum.
         </p>
       </div>
 
       <form
-        className="space-y-3 rounded-md border border-dashed border-input p-4"
+        className="border-input space-y-3 rounded-md border border-dashed p-4"
         onSubmit={(event) => {
           event.preventDefault();
           if (submitDisabled) return;
@@ -148,20 +141,18 @@ export function PrivacyErasurePanel(): JSX.Element {
         }}
       >
         <label className="block text-sm">
-          <span className="mb-1 block font-medium">
-            Alasan (opsional, maks 1000 karakter)
-          </span>
+          <span className="mb-1 block font-medium">Alasan (opsional, maks 1000 karakter)</span>
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value.slice(0, 1000))}
             data-testid="erasure-reason"
-            className="min-h-[80px] w-full rounded-md border border-input bg-background p-2 text-sm"
+            className="border-input bg-background min-h-[80px] w-full rounded-md border p-2 text-sm"
             placeholder="Contoh: sudah tidak bekerja di perusahaan ini."
             disabled={hasInFlight}
           />
         </label>
 
-        <label className="flex items-start gap-2 text-xs text-muted-foreground">
+        <label className="text-muted-foreground flex items-start gap-2 text-xs">
           <input
             type="checkbox"
             checked={acknowledged}
@@ -171,23 +162,21 @@ export function PrivacyErasurePanel(): JSX.Element {
             className="mt-0.5"
           />
           <span>
-            Saya memahami bahwa permintaan ini akan menganonimkan data pribadi
-            saya secara permanen setelah disetujui dan masa tenggang selesai.
-            Record bisnis (kehadiran, cuti, lembur) akan tetap disimpan
-            sebagai bukti sesuai kewajiban retensi.
+            Saya memahami bahwa permintaan ini akan menganonimkan data pribadi saya secara permanen
+            setelah disetujui dan masa tenggang selesai. Record bisnis (kehadiran, cuti, lembur)
+            akan tetap disimpan sebagai bukti sesuai kewajiban retensi.
           </span>
         </label>
 
         <label className="block text-xs">
-          <span className="mb-1 block text-muted-foreground">
-            Ketik <strong className="font-mono">HAPUS</strong> untuk
-            konfirmasi.
+          <span className="text-muted-foreground mb-1 block">
+            Ketik <strong className="font-mono">HAPUS</strong> untuk konfirmasi.
           </span>
           <input
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value)}
             data-testid="erasure-confirm"
-            className="w-32 rounded-md border border-input bg-background px-2 py-1 text-sm"
+            className="border-input bg-background w-32 rounded-md border px-2 py-1 text-sm"
             disabled={hasInFlight}
           />
         </label>
@@ -196,7 +185,7 @@ export function PrivacyErasurePanel(): JSX.Element {
           type="submit"
           disabled={submitDisabled}
           data-testid="erasure-submit"
-          className="rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+          className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50"
         >
           {createMutation.isPending
             ? 'Mengirim...'
@@ -207,15 +196,15 @@ export function PrivacyErasurePanel(): JSX.Element {
       </form>
 
       {inlineError && (
-        <p role="alert" className="text-xs text-destructive">
+        <p role="alert" className="text-destructive text-xs">
           {inlineError}
         </p>
       )}
 
       {requests.isLoading ? (
-        <p className="text-sm text-muted-foreground">Memuat riwayat...</p>
+        <p className="text-muted-foreground text-sm">Memuat riwayat...</p>
       ) : rows.length === 0 ? (
-        <p className="rounded-md border border-dashed border-input p-4 text-sm text-muted-foreground">
+        <p className="border-input text-muted-foreground rounded-md border border-dashed p-4 text-sm">
           Belum ada permintaan penghapusan.
         </p>
       ) : (
@@ -225,49 +214,38 @@ export function PrivacyErasurePanel(): JSX.Element {
               key={row.id}
               data-testid="erasure-row"
               data-status={row.status}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-input p-3"
+              className="border-input flex flex-wrap items-center justify-between gap-3 rounded-md border p-3"
             >
               <div className="min-w-0 flex-1 space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span
-                    className={statusPillClass(STATUS_COPY[row.status].tone)}
-                  >
+                  <span className={statusPillClass(STATUS_COPY[row.status].tone)}>
                     {STATUS_COPY[row.status].label}
                   </span>
-                  <p className="text-sm">
-                    Diajukan {formatDate(row.requestedAt)}
-                  </p>
+                  <p className="text-sm">Diajukan {formatDate(row.requestedAt)}</p>
                 </div>
                 {row.reason && (
-                  <p className="text-xs text-muted-foreground">
-                    Alasan: {row.reason}
-                  </p>
+                  <p className="text-muted-foreground text-xs">Alasan: {row.reason}</p>
                 )}
                 {row.status === 'APPROVED_SCHEDULED' && row.scheduledFor && (
                   <p className="text-xs text-amber-900">
-                    Eksekusi terjadwal {formatDate(row.scheduledFor)}. Anda
-                    masih dapat membatalkan sebelum waktu tersebut.
+                    Eksekusi terjadwal {formatDate(row.scheduledFor)}. Anda masih dapat membatalkan
+                    sebelum waktu tersebut.
                   </p>
                 )}
                 {row.status === 'REJECTED' && row.decisionNote && (
-                  <p className="text-xs text-destructive">
-                    Alasan penolakan: {row.decisionNote}
-                  </p>
+                  <p className="text-destructive text-xs">Alasan penolakan: {row.decisionNote}</p>
                 )}
                 {row.status === 'FAILED' && row.failureReason && (
-                  <p className="text-xs text-destructive">
-                    Gagal: {row.failureReason}
-                  </p>
+                  <p className="text-destructive text-xs">Gagal: {row.failureReason}</p>
                 )}
               </div>
-              {(row.status === 'PENDING_APPROVAL' ||
-                row.status === 'APPROVED_SCHEDULED') && (
+              {(row.status === 'PENDING_APPROVAL' || row.status === 'APPROVED_SCHEDULED') && (
                 <button
                   type="button"
                   onClick={() => cancelMutation.mutate(row.id)}
                   disabled={cancelMutation.isPending}
                   data-testid="erasure-cancel"
-                  className="rounded-md border border-input px-3 py-1 text-xs font-medium hover:bg-muted disabled:opacity-50"
+                  className="border-input hover:bg-muted rounded-md border px-3 py-1 text-xs font-medium disabled:opacity-50"
                 >
                   {cancelMutation.isPending ? 'Membatalkan...' : 'Batalkan'}
                 </button>
@@ -280,11 +258,8 @@ export function PrivacyErasurePanel(): JSX.Element {
   );
 }
 
-function statusPillClass(
-  tone: 'neutral' | 'progress' | 'warn' | 'ok' | 'error',
-): string {
-  const base =
-    'rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider';
+function statusPillClass(tone: 'neutral' | 'progress' | 'warn' | 'ok' | 'error'): string {
+  const base = 'rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider';
   switch (tone) {
     case 'ok':
       return `${base} bg-emerald-100 text-emerald-900`;

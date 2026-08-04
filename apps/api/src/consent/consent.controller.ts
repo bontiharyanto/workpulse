@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Req,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
@@ -39,10 +31,11 @@ export class ConsentController {
   @Get('current')
   @ApiBearerAuth()
   @AllowPendingConsent()
-  @ApiOkResponse({ type: PrivacyPolicyDto, description: 'Current active policy for the tenant, or 204 if none exists.' })
-  async currentPolicy(
-    @CurrentUser() user: AuthenticatedUser,
-  ): Promise<PrivacyPolicyDto | null> {
+  @ApiOkResponse({
+    type: PrivacyPolicyDto,
+    description: 'Current active policy for the tenant, or 204 if none exists.',
+  })
+  async currentPolicy(@CurrentUser() user: AuthenticatedUser): Promise<PrivacyPolicyDto | null> {
     const policy = await this.service.getLatestForCompany(user.companyId);
     if (!policy) return null;
     return {
@@ -68,15 +61,10 @@ export class ConsentController {
     @Body() dto: AcceptConsentDto,
     @Req() req: Request,
   ): Promise<UserConsentDto> {
-    const row = await this.service.accept(
-      user.id,
-      user.companyId,
-      dto.policyId,
-      {
-        ip: req.ip,
-        userAgent: req.get('user-agent') ?? null,
-      },
-    );
+    const row = await this.service.accept(user.id, user.companyId, dto.policyId, {
+      ip: req.ip,
+      userAgent: req.get('user-agent') ?? null,
+    });
     // Re-read for the policy label so we can return a self-contained DTO.
     const policy = await this.service.getLatestForCompany(user.companyId);
     return {
@@ -93,9 +81,7 @@ export class ConsentController {
   @Get('history')
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserConsentListResponseDto })
-  async history(
-    @CurrentUser() user: AuthenticatedUser,
-  ): Promise<UserConsentListResponseDto> {
+  async history(@CurrentUser() user: AuthenticatedUser): Promise<UserConsentListResponseDto> {
     const rows = await this.service.listUserConsents(user.id);
     return {
       items: rows.map((r) => ({

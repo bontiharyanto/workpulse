@@ -4,8 +4,7 @@ import { randomInt } from 'node:crypto';
  * Unambiguous alphabet: excludes visually confusable chars (0/O, 1/l/I) so
  * users can transcribe from screen/email without errors.
  */
-const ALPHABET =
-  'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#%&*';
+const ALPHABET = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#%&*';
 
 /**
  * Generate a cryptographically secure temporary password.

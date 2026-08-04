@@ -53,29 +53,20 @@ export class DataErasureService {
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
     config: ConfigService,
   ) {
-    this.graceDays = Number(
-      config.get<string>('DATA_ERASURE_GRACE_DAYS', '7'),
-    );
+    this.graceDays = Number(config.get<string>('DATA_ERASURE_GRACE_DAYS', '7'));
   }
 
   // -------------------------------------------------------------------------
   // User-side
   // -------------------------------------------------------------------------
 
-  async create(
-    userId: string,
-    companyId: string,
-    reason?: string,
-  ): Promise<DataErasureRequest> {
+  async create(userId: string, companyId: string, reason?: string): Promise<DataErasureRequest> {
     // Reject if any active request exists.
     const active = await this.prisma.dataErasureRequest.findFirst({
       where: {
         userId,
         status: {
-          in: [
-            DataErasureStatus.PENDING_APPROVAL,
-            DataErasureStatus.APPROVED_SCHEDULED,
-          ],
+          in: [DataErasureStatus.PENDING_APPROVAL, DataErasureStatus.APPROVED_SCHEDULED],
         },
       },
     });
@@ -132,9 +123,7 @@ export class DataErasureService {
       requestId: row.id,
       requesterName: requester.fullName,
     }).catch((err: Error) =>
-      this.logger.warn(
-        `notifyDecisionMakers failed for erasure ${row.id}: ${err.message}`,
-      ),
+      this.logger.warn(`notifyDecisionMakers failed for erasure ${row.id}: ${err.message}`),
     );
 
     return row;
@@ -202,10 +191,7 @@ export class DataErasureService {
       where: {
         companyId,
         status: {
-          in: [
-            DataErasureStatus.PENDING_APPROVAL,
-            DataErasureStatus.APPROVED_SCHEDULED,
-          ],
+          in: [DataErasureStatus.PENDING_APPROVAL, DataErasureStatus.APPROVED_SCHEDULED],
         },
       },
       orderBy: { requestedAt: 'asc' },
@@ -241,8 +227,7 @@ export class DataErasureService {
       throw new ForbiddenException({
         statusCode: 403,
         code: 'ERASURE_SELF_APPROVAL',
-        message:
-          'Anda tidak dapat menyetujui permintaan penghapusan Anda sendiri.',
+        message: 'Anda tidak dapat menyetujui permintaan penghapusan Anda sendiri.',
       });
     }
 
@@ -298,9 +283,7 @@ export class DataErasureService {
           }),
         })
         .catch((err: Error) =>
-          this.logger.warn(
-            `erasure APPROVED notify failed requestId=${row.id}: ${err.message}`,
-          ),
+          this.logger.warn(`erasure APPROVED notify failed requestId=${row.id}: ${err.message}`),
         );
     }
 
@@ -375,9 +358,7 @@ export class DataErasureService {
           }),
         })
         .catch((err: Error) =>
-          this.logger.warn(
-            `erasure REJECTED notify failed requestId=${row.id}: ${err.message}`,
-          ),
+          this.logger.warn(`erasure REJECTED notify failed requestId=${row.id}: ${err.message}`),
         );
     }
 
@@ -398,9 +379,7 @@ export class DataErasureService {
       try {
         await this.storage.deleteObject(key);
       } catch (err) {
-        this.logger.warn(
-          `erasure: failed to delete S3 object ${key}: ${(err as Error).message}`,
-        );
+        this.logger.warn(`erasure: failed to delete S3 object ${key}: ${(err as Error).message}`);
       }
     }
   }
@@ -419,10 +398,7 @@ export class DataErasureService {
     }
   }
 
-  private async loadForDecision(
-    companyId: string,
-    requestId: string,
-  ): Promise<DataErasureRequest> {
+  private async loadForDecision(companyId: string, requestId: string): Promise<DataErasureRequest> {
     const row = await this.prisma.dataErasureRequest.findUnique({
       where: { id: requestId },
     });
@@ -461,9 +437,7 @@ export class DataErasureService {
           content: dataErasureRequested(payload),
         })
         .catch((err: Error) =>
-          this.logger.warn(
-            `erasure REQUESTED notify failed for ${approver.id}: ${err.message}`,
-          ),
+          this.logger.warn(`erasure REQUESTED notify failed for ${approver.id}: ${err.message}`),
         );
     }
   }

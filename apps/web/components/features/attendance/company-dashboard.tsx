@@ -22,8 +22,7 @@ export function CompanyDashboard(): JSX.Element | null {
   const { user } = useAuth();
   const [date, setDate] = useState<string>(() => toIsoDate(new Date()));
 
-  const canView =
-    !!user && (user.role === 'HR_MANAGER' || user.role === 'SUPER_ADMIN');
+  const canView = !!user && (user.role === 'HR_MANAGER' || user.role === 'SUPER_ADMIN');
 
   const q = useQuery({
     queryKey: ['attendance', 'dashboard', date],
@@ -39,26 +38,22 @@ export function CompanyDashboard(): JSX.Element | null {
   return (
     <section className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+        <label className="text-muted-foreground flex items-center gap-2 text-xs">
           Tanggal
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="rounded-md border border-input bg-background px-2 py-1 text-xs"
+            className="border-input bg-background rounded-md border px-2 py-1 text-xs"
           />
         </label>
-        {q.isFetching ? (
-          <span className="text-xs text-muted-foreground">Memperbarui…</span>
-        ) : null}
+        {q.isFetching ? <span className="text-muted-foreground text-xs">Memperbarui…</span> : null}
       </div>
 
       {q.isLoading ? (
-        <p className="text-sm text-muted-foreground">Memuat rekap...</p>
+        <p className="text-muted-foreground text-sm">Memuat rekap...</p>
       ) : q.isError ? (
-        <p className="text-sm text-destructive">
-          Gagal memuat rekap. Coba muat ulang.
-        </p>
+        <p className="text-destructive text-sm">Gagal memuat rekap. Coba muat ulang.</p>
       ) : q.data ? (
         <>
           <CompanyCards snapshot={q.data} />
@@ -71,11 +66,7 @@ export function CompanyDashboard(): JSX.Element | null {
 
 // ---------------------------------------------------------------------------
 
-function CompanyCards({
-  snapshot,
-}: {
-  snapshot: CompanyDashboardSnapshot;
-}): JSX.Element {
+function CompanyCards({ snapshot }: { snapshot: CompanyDashboardSnapshot }): JSX.Element {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       <StatCard label="Total karyawan" value={snapshot.total} />
@@ -85,11 +76,7 @@ function CompanyCards({
         value={snapshot.absent}
         tone={snapshot.absent > 0 ? 'warn' : 'muted'}
       />
-      <StatCard
-        label="Cuti / izin"
-        value={snapshot.onLeave}
-        tone="muted"
-      />
+      <StatCard label="Cuti / izin" value={snapshot.onLeave} tone="muted" />
       <StatCard
         label="Belum clock-in"
         value={snapshot.notClockedIn}
@@ -108,9 +95,7 @@ function CompanyCards({
       <StatCard
         label="On-time"
         value={
-          snapshot.onTimeRatePercent === null
-            ? '—'
-            : `${snapshot.onTimeRatePercent.toFixed(1)}%`
+          snapshot.onTimeRatePercent === null ? '—' : `${snapshot.onTimeRatePercent.toFixed(1)}%`
         }
         tone={
           snapshot.onTimeRatePercent === null
@@ -126,22 +111,16 @@ function CompanyCards({
   );
 }
 
-function DepartmentTable({
-  rows,
-}: {
-  rows: DepartmentDashboardSnapshot[];
-}): JSX.Element {
+function DepartmentTable({ rows }: { rows: DepartmentDashboardSnapshot[] }): JSX.Element {
   if (rows.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">
-        Tidak ada departemen dengan karyawan aktif.
-      </p>
+      <p className="text-muted-foreground text-sm">Tidak ada departemen dengan karyawan aktif.</p>
     );
   }
   return (
     <div className="overflow-x-auto rounded-lg border">
       <table className="w-full text-sm">
-        <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
+        <thead className="bg-muted/40 text-muted-foreground text-xs uppercase tracking-wider">
           <tr>
             <th className="px-3 py-2 text-left font-medium">Departemen</th>
             <th className="px-3 py-2 text-right font-medium">Total</th>
@@ -156,13 +135,9 @@ function DepartmentTable({
         <tbody>
           {rows.map((r) => (
             <tr key={r.departmentId ?? '(unassigned)'} className="border-t">
-              <td className="px-3 py-2">
-                {r.departmentName ?? '(Tanpa departemen)'}
-              </td>
+              <td className="px-3 py-2">{r.departmentName ?? '(Tanpa departemen)'}</td>
               <td className="px-3 py-2 text-right tabular-nums">{r.total}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-emerald-600">
-                {r.clockedIn}
-              </td>
+              <td className="px-3 py-2 text-right tabular-nums text-emerald-600">{r.clockedIn}</td>
               <td
                 className={`px-3 py-2 text-right tabular-nums ${
                   r.absent > 0 ? 'text-destructive' : ''
@@ -170,7 +145,7 @@ function DepartmentTable({
               >
                 {r.absent}
               </td>
-              <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
+              <td className="text-muted-foreground px-3 py-2 text-right tabular-nums">
                 {r.onLeave}
               </td>
               <td
@@ -188,9 +163,7 @@ function DepartmentTable({
                 {r.lateToday}
               </td>
               <td className="px-3 py-2 text-right tabular-nums">
-                {r.onTimeRatePercent === null
-                  ? '—'
-                  : `${r.onTimeRatePercent.toFixed(1)}%`}
+                {r.onTimeRatePercent === null ? '—' : `${r.onTimeRatePercent.toFixed(1)}%`}
               </td>
             </tr>
           ))}
@@ -210,19 +183,11 @@ interface StatCardProps {
 
 function StatCard({ label, value, tone = 'muted' }: StatCardProps): JSX.Element {
   const valueClass =
-    tone === 'ok'
-      ? 'text-emerald-600'
-      : tone === 'warn'
-        ? 'text-destructive'
-        : 'text-foreground';
+    tone === 'ok' ? 'text-emerald-600' : tone === 'warn' ? 'text-destructive' : 'text-foreground';
   return (
-    <div className="rounded-md border bg-muted/30 p-3">
-      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-        {label}
-      </p>
-      <p className={`text-2xl font-semibold tabular-nums ${valueClass}`}>
-        {value}
-      </p>
+    <div className="bg-muted/30 rounded-md border p-3">
+      <p className="text-muted-foreground text-[11px] uppercase tracking-wider">{label}</p>
+      <p className={`text-2xl font-semibold tabular-nums ${valueClass}`}>{value}</p>
     </div>
   );
 }

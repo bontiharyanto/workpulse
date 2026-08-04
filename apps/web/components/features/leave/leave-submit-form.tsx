@@ -78,9 +78,7 @@ export function LeaveSubmitForm(): JSX.Element {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleFileChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ): Promise<void> => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -150,7 +148,7 @@ export function LeaveSubmitForm(): JSX.Element {
         </label>
         <select
           id="leaveTypeId"
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
           disabled={types.isLoading}
           {...form.register('leaveTypeId')}
         >
@@ -162,7 +160,7 @@ export function LeaveSubmitForm(): JSX.Element {
           ))}
         </select>
         {form.formState.errors.leaveTypeId && (
-          <p role="alert" className="text-xs text-destructive">
+          <p role="alert" className="text-destructive text-xs">
             {form.formState.errors.leaveTypeId.message}
           </p>
         )}
@@ -176,11 +174,11 @@ export function LeaveSubmitForm(): JSX.Element {
           <input
             id="startDate"
             type="date"
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
             {...form.register('startDate')}
           />
           {form.formState.errors.startDate && (
-            <p role="alert" className="text-xs text-destructive">
+            <p role="alert" className="text-destructive text-xs">
               {form.formState.errors.startDate.message}
             </p>
           )}
@@ -192,11 +190,11 @@ export function LeaveSubmitForm(): JSX.Element {
           <input
             id="endDate"
             type="date"
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
             {...form.register('endDate')}
           />
           {form.formState.errors.endDate && (
-            <p role="alert" className="text-xs text-destructive">
+            <p role="alert" className="text-destructive text-xs">
               {form.formState.errors.endDate.message}
             </p>
           )}
@@ -210,18 +208,18 @@ export function LeaveSubmitForm(): JSX.Element {
         <textarea
           id="reason"
           rows={3}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
           {...form.register('reason')}
         />
         {form.formState.errors.reason && (
-          <p role="alert" className="text-xs text-destructive">
+          <p role="alert" className="text-destructive text-xs">
             {form.formState.errors.reason.message}
           </p>
         )}
       </div>
 
       {selectedType?.requiresAttachment && (
-        <div className="space-y-2 rounded-md border border-dashed border-input p-3">
+        <div className="border-input space-y-2 rounded-md border border-dashed p-3">
           <label htmlFor="attachmentFile" className="text-sm font-medium">
             Lampiran (surat dokter, dll.)
           </label>
@@ -230,7 +228,7 @@ export function LeaveSubmitForm(): JSX.Element {
             ref={fileInputRef}
             type="file"
             accept="image/jpeg,image/png,image/webp,application/pdf"
-            className="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-primary-foreground hover:file:opacity-90"
+            className="file:bg-primary file:text-primary-foreground block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:px-3 file:py-1.5 hover:file:opacity-90"
             disabled={uploading}
             onChange={(e) => {
               void handleFileChange(e);
@@ -238,19 +236,20 @@ export function LeaveSubmitForm(): JSX.Element {
           />
           {uploading && (
             <div className="space-y-1">
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
                 <div
-                  className="h-full bg-primary transition-[width]"
+                  className="bg-primary h-full transition-[width]"
                   style={{ width: `${uploadPercent}%` }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">Mengunggah… {uploadPercent}%</p>
+              <p className="text-muted-foreground text-xs">Mengunggah… {uploadPercent}%</p>
             </div>
           )}
           {uploaded && !uploading && (
             <div className="flex items-center justify-between text-xs">
               <span className="text-emerald-700 dark:text-emerald-400">
-                ✓ {uploaded.filename} ({(uploaded.sizeBytes / 1024).toFixed(0)} KB) berhasil diunggah
+                ✓ {uploaded.filename} ({(uploaded.sizeBytes / 1024).toFixed(0)} KB) berhasil
+                diunggah
               </span>
               <button
                 type="button"
@@ -261,19 +260,26 @@ export function LeaveSubmitForm(): JSX.Element {
               </button>
             </div>
           )}
-          <p className="text-xs text-muted-foreground">
-            Format yang didukung: JPG, PNG, WebP, PDF. Maks {MAX_ATTACHMENT_BYTES / (1024 * 1024)} MB.
+          <p className="text-muted-foreground text-xs">
+            Format yang didukung: JPG, PNG, WebP, PDF. Maks {MAX_ATTACHMENT_BYTES / (1024 * 1024)}{' '}
+            MB.
           </p>
         </div>
       )}
 
       {submitError && (
-        <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+        <p
+          role="alert"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
+        >
           {submitError}
         </p>
       )}
       {submitOk && (
-        <p role="status" className="rounded-md border border-emerald-500/40 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
+        <p
+          role="status"
+          className="rounded-md border border-emerald-500/40 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400"
+        >
           {submitOk}
         </p>
       )}
@@ -281,7 +287,7 @@ export function LeaveSubmitForm(): JSX.Element {
       <button
         type="submit"
         disabled={submit.isPending || uploading}
-        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:opacity-90 disabled:opacity-50"
+        className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90 disabled:opacity-50"
       >
         {submit.isPending ? 'Mengirim...' : 'Ajukan'}
       </button>

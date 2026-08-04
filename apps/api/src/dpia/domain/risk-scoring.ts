@@ -24,19 +24,13 @@ const AXIS_MAX = 5;
 
 export class InvalidRiskAxisError extends Error {
   constructor(axis: 'likelihood' | 'impact', value: number) {
-    super(
-      `${axis} must be an integer in [${AXIS_MIN}..${AXIS_MAX}], got ${value}`,
-    );
+    super(`${axis} must be an integer in [${AXIS_MIN}..${AXIS_MAX}], got ${value}`);
     this.name = 'InvalidRiskAxisError';
   }
 }
 
 export class ResidualExceedsInherentError extends Error {
-  constructor(
-    axis: 'likelihood' | 'impact',
-    inherent: number,
-    residual: number,
-  ) {
+  constructor(axis: 'likelihood' | 'impact', inherent: number, residual: number) {
     super(
       `residual ${axis} (${residual}) must be ≤ inherent ${axis} (${inherent}) — mitigations cannot make a risk worse`,
     );
@@ -45,12 +39,7 @@ export class ResidualExceedsInherentError extends Error {
 }
 
 function assertOnAxis(axis: 'likelihood' | 'impact', v: unknown): number {
-  if (
-    typeof v !== 'number' ||
-    !Number.isInteger(v) ||
-    v < AXIS_MIN ||
-    v > AXIS_MAX
-  ) {
+  if (typeof v !== 'number' || !Number.isInteger(v) || v < AXIS_MIN || v > AXIS_MAX) {
     throw new InvalidRiskAxisError(axis, v as number);
   }
   return v;
@@ -69,9 +58,7 @@ export function bucketScore(score: number): DpiaRiskLevel {
 }
 
 export function scoreOf(likelihood: number, impact: number): number {
-  return (
-    assertOnAxis('likelihood', likelihood) * assertOnAxis('impact', impact)
-  );
+  return assertOnAxis('likelihood', likelihood) * assertOnAxis('impact', impact);
 }
 
 export function levelOf(likelihood: number, impact: number): DpiaRiskLevel {
@@ -102,11 +89,7 @@ export function deriveRisk(inputs: RiskInputs): RiskDerived {
   const inherentScore = scoreOf(likelihood, impact);
   const residualScore = scoreOf(residualLikelihood, residualImpact);
   if (residualLikelihood > likelihood) {
-    throw new ResidualExceedsInherentError(
-      'likelihood',
-      likelihood,
-      residualLikelihood,
-    );
+    throw new ResidualExceedsInherentError('likelihood', likelihood, residualLikelihood);
   }
   if (residualImpact > impact) {
     throw new ResidualExceedsInherentError('impact', impact, residualImpact);
@@ -125,9 +108,7 @@ export function deriveRisk(inputs: RiskInputs): RiskDerived {
  * register — the DPO gets a green tile until they enter at least one
  * risk (matches ENISA "no residual risk identified" convention).
  */
-export function summariseResidual(
-  items: Array<{ residualLevel: DpiaRiskLevel }>,
-): DpiaRiskLevel {
+export function summariseResidual(items: Array<{ residualLevel: DpiaRiskLevel }>): DpiaRiskLevel {
   if (items.length === 0) return DpiaRiskLevel.LOW;
   const rank: Record<DpiaRiskLevel, number> = {
     LOW: 0,

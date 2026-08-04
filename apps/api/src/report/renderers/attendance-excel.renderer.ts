@@ -1,9 +1,6 @@
 import ExcelJS from 'exceljs';
 
-import type {
-  AttendanceReportRow,
-  AttendanceReportSummary,
-} from '../domain/attendance-report';
+import type { AttendanceReportRow, AttendanceReportSummary } from '../domain/attendance-report';
 
 import type { RendererStream } from './render-context';
 
@@ -56,7 +53,8 @@ export async function renderAttendanceExcel(
   ws.getCell(2, 1).value = stream.header.subtitle;
 
   ws.mergeCells(3, 1, 3, COLUMNS.length);
-  ws.getCell(3, 1).value = `Dicetak: ${stream.header.generatedAt.toISOString()} · Oleh: ${stream.header.generatedByEmail} · Zona: ${stream.header.timezone}`;
+  ws.getCell(3, 1).value =
+    `Dicetak: ${stream.header.generatedAt.toISOString()} · Oleh: ${stream.header.generatedByEmail} · Zona: ${stream.header.timezone}`;
   ws.getCell(3, 1).font = { italic: true, color: { argb: 'FF666666' } };
 
   // Row 4 blank spacer, row 5 = header row

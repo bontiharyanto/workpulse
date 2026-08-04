@@ -23,7 +23,8 @@ domain table and produces MB-scale archives.
 ## Decision
 
 Introduce a `DataExportRequest` table + `/me/data-export` controller
-+ `DataExportWorker` cron job. The user-facing lifecycle is:
+
+- `DataExportWorker` cron job. The user-facing lifecycle is:
 
 ```
 POST /me/data-export         (creates PENDING row + audit)

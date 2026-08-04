@@ -153,11 +153,7 @@ export class AnalyticsQueryService {
     const window = buildWindow(now, timezone, days);
     const descriptor = METRIC_DESCRIPTORS[metricKey];
 
-    const historicalMap = await this.loadHistoricalMap(
-      actor.companyId,
-      metricKey,
-      window,
-    );
+    const historicalMap = await this.loadHistoricalMap(actor.companyId, metricKey, window);
     const todayValue = await this.computation.compute(
       actor.companyId,
       window.today,
@@ -226,12 +222,7 @@ export class AnalyticsQueryService {
 
     if (includeToday) {
       for (const key of METRIC_KEYS) {
-        const value = await this.computation.compute(
-          companyId,
-          window.today,
-          timezone,
-          key,
-        );
+        const value = await this.computation.compute(companyId, window.today, timezone, key);
         bucket[key]!.push(value);
       }
     }

@@ -99,11 +99,11 @@ export function LoginForm({ redirectTo }: { redirectTo: string }): JSX.Element {
           autoComplete="email"
           autoFocus
           aria-invalid={Boolean(form.formState.errors.email) || undefined}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2"
           {...form.register('email')}
         />
         {form.formState.errors.email && (
-          <p role="alert" className="text-xs text-destructive">
+          <p role="alert" className="text-destructive text-xs">
             {form.formState.errors.email.message}
           </p>
         )}
@@ -116,7 +116,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string }): JSX.Element {
           </label>
           <Link
             href="/forgot-password"
-            className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground text-xs underline underline-offset-4"
           >
             Lupa password?
           </Link>
@@ -126,18 +126,21 @@ export function LoginForm({ redirectTo }: { redirectTo: string }): JSX.Element {
           type="password"
           autoComplete="current-password"
           aria-invalid={Boolean(form.formState.errors.password) || undefined}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2"
           {...form.register('password')}
         />
         {form.formState.errors.password && (
-          <p role="alert" className="text-xs text-destructive">
+          <p role="alert" className="text-destructive text-xs">
             {form.formState.errors.password.message}
           </p>
         )}
       </div>
 
       {submitError && (
-        <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+        <p
+          role="alert"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
+        >
           {submitError}
         </p>
       )}
@@ -145,7 +148,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string }): JSX.Element {
       <button
         type="submit"
         disabled={form.formState.isSubmitting}
-        className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:opacity-90 disabled:opacity-50"
+        className="bg-primary text-primary-foreground w-full rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90 disabled:opacity-50"
       >
         {form.formState.isSubmitting ? 'Masuk...' : 'Masuk'}
       </button>

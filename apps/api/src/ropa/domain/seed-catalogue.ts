@@ -69,12 +69,7 @@ export const ROPA_SEED_BLUEPRINTS: readonly RopaSeedBlueprint[] = [
     legalBasis: 'LEGAL_OBLIGATION',
     legalBasisDetail:
       'UU 13/2003 Pasal 79 (cuti tahunan wajib) & Pasal 93 (upah selama sakit) — pemberi kerja wajib mencatat.',
-    dataCategories: [
-      'BASIC_IDENTITY',
-      'HEALTH_DATA',
-      'DOCTOR_NOTE_ATTACHMENT',
-      'DATE_RANGE',
-    ],
+    dataCategories: ['BASIC_IDENTITY', 'HEALTH_DATA', 'DOCTOR_NOTE_ATTACHMENT', 'DATE_RANGE'],
     subjectCategories: ['EMPLOYEE', 'DEPENDENT'],
     recipients: ['Internal HR', 'Direct supervisor', 'Layanan penyimpanan objek (attachment)'],
     retentionPeriod:
@@ -97,8 +92,7 @@ export const ROPA_SEED_BLUEPRINTS: readonly RopaSeedBlueprint[] = [
     dataCategories: ['BASIC_IDENTITY', 'EMPLOYMENT', 'FINANCIAL', 'TIMESTAMP'],
     subjectCategories: ['EMPLOYEE'],
     recipients: ['Internal HR', 'Direct supervisor', 'Payroll pipeline (internal)'],
-    retentionPeriod:
-      'Masa kerja + 5 tahun (audit dinas ketenagakerjaan + pajak).',
+    retentionPeriod: 'Masa kerja + 5 tahun (audit dinas ketenagakerjaan + pajak).',
     crossBorderTransfer: false,
     crossBorderDetail: null,
     securityMeasures:
@@ -111,15 +105,8 @@ export const ROPA_SEED_BLUEPRINTS: readonly RopaSeedBlueprint[] = [
     purpose:
       'Menghasilkan snapshot bulanan / periodik dari kehadiran, cuti, dan lembur, kemudian meng-export data terverifikasi ke sistem payroll (internal atau vendor).',
     legalBasis: 'CONTRACT',
-    legalBasisDetail:
-      'Pelaksanaan kontrak kerja — perhitungan upah bulanan.',
-    dataCategories: [
-      'BASIC_IDENTITY',
-      'EMPLOYMENT',
-      'FINANCIAL',
-      'TIMESTAMP',
-      'DATE_RANGE',
-    ],
+    legalBasisDetail: 'Pelaksanaan kontrak kerja — perhitungan upah bulanan.',
+    dataCategories: ['BASIC_IDENTITY', 'EMPLOYMENT', 'FINANCIAL', 'TIMESTAMP', 'DATE_RANGE'],
     subjectCategories: ['EMPLOYEE'],
     recipients: [
       'Internal HR',
@@ -167,13 +154,7 @@ export const ROPA_SEED_BLUEPRINTS: readonly RopaSeedBlueprint[] = [
     legalBasis: 'CONTRACT',
     legalBasisDetail:
       'Pelaksanaan kontrak dengan vendor payroll / HRIS pihak ketiga yang bertindak sebagai processor.',
-    dataCategories: [
-      'BASIC_IDENTITY',
-      'EMPLOYMENT',
-      'FINANCIAL',
-      'TIMESTAMP',
-      'PROCESS_METADATA',
-    ],
+    dataCategories: ['BASIC_IDENTITY', 'EMPLOYMENT', 'FINANCIAL', 'TIMESTAMP', 'PROCESS_METADATA'],
     subjectCategories: ['EMPLOYEE'],
     recipients: [
       'Vendor / sistem eksternal yang di-registrasi oleh HR pada `/admin/webhooks` (dilihat sebagai processor)',

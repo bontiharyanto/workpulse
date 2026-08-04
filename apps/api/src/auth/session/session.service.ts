@@ -1,9 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { Prisma, RefreshToken } from '@prisma/client';
 import { RefreshTokenStatus } from '@prisma/client';
 
@@ -46,13 +41,8 @@ export class SessionService {
    * still carries them until a background sweep, but they cannot
    * mint new access tokens so they're not real "sessions" anymore.
    */
-  async list(
-    userId: string,
-    currentRawToken?: string,
-  ): Promise<SessionSummary[]> {
-    const currentHash = currentRawToken
-      ? hashRefreshSecret(currentRawToken)
-      : null;
+  async list(userId: string, currentRawToken?: string): Promise<SessionSummary[]> {
+    const currentHash = currentRawToken ? hashRefreshSecret(currentRawToken) : null;
 
     const rows = await this.prisma.refreshToken.findMany({
       where: {
@@ -113,13 +103,8 @@ export class SessionService {
    * `SESSION_REVOKED_OTHERS` action and reported back with a count
    * so the FE can render a confirmation toast.
    */
-  async revokeOthers(
-    userId: string,
-    currentRawToken?: string,
-  ): Promise<{ revokedCount: number }> {
-    const currentHash = currentRawToken
-      ? hashRefreshSecret(currentRawToken)
-      : null;
+  async revokeOthers(userId: string, currentRawToken?: string): Promise<{ revokedCount: number }> {
+    const currentHash = currentRawToken ? hashRefreshSecret(currentRawToken) : null;
 
     const whereClause: Prisma.RefreshTokenWhereInput = {
       userId,
@@ -155,10 +140,7 @@ export class SessionService {
     return { revokedCount: count };
   }
 
-  private toSummary(
-    row: RefreshToken,
-    currentHash: string | null,
-  ): SessionSummary {
+  private toSummary(row: RefreshToken, currentHash: string | null): SessionSummary {
     return {
       id: row.id,
       userAgent: row.userAgent,
@@ -192,9 +174,7 @@ export class SessionService {
         entityType: 'RefreshToken',
         entityId: args.sessionId ?? args.userId,
         afterJson:
-          args.count !== undefined
-            ? ({ count: args.count } as Prisma.InputJsonValue)
-            : undefined,
+          args.count !== undefined ? ({ count: args.count } as Prisma.InputJsonValue) : undefined,
       },
     });
   }

@@ -11,12 +11,7 @@ import type {
   ReportFormat,
 } from '@workpulse/shared-types';
 
-import {
-  ApiError,
-  departmentsAdminApi,
-  reportsApi,
-  saveBlob,
-} from '@/lib/api-client';
+import { ApiError, departmentsAdminApi, reportsApi, saveBlob } from '@/lib/api-client';
 
 const ERROR_COPY: Record<string, string> = {
   REPORT_RANGE_INVALID: 'Rentang tanggal tidak valid.',
@@ -63,7 +58,7 @@ export function ReportPanel(): JSX.Element {
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold">Laporan</h2>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           Ekspor data dalam format Excel atau PDF. Rate limit: 5 permintaan / menit.
         </p>
       </div>
@@ -71,7 +66,7 @@ export function ReportPanel(): JSX.Element {
       {errorText && (
         <p
           role="alert"
-          className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
         >
           {errorText}
         </p>
@@ -142,9 +137,9 @@ function AttendanceReportForm({
     <section className="rounded-lg border p-4">
       <div className="mb-3">
         <h3 className="text-sm font-semibold">Kehadiran</h3>
-        <p className="text-xs text-muted-foreground">
-          Rincian clock-in / clock-out per hari, termasuk keterlambatan &amp; pulang cepat.
-          Maks. 366 hari untuk Excel, 92 hari untuk PDF.
+        <p className="text-muted-foreground text-xs">
+          Rincian clock-in / clock-out per hari, termasuk keterlambatan &amp; pulang cepat. Maks.
+          366 hari untuk Excel, 92 hari untuk PDF.
         </p>
       </div>
 
@@ -169,7 +164,7 @@ function AttendanceReportForm({
             type="button"
             disabled={mut.isPending}
             onClick={() => mut.mutate('xlsx')}
-            className="flex-1 rounded-md bg-foreground px-3 py-2 text-xs font-medium text-background disabled:opacity-50"
+            className="bg-foreground text-background flex-1 rounded-md px-3 py-2 text-xs font-medium disabled:opacity-50"
           >
             {mut.isPending && mut.variables === 'xlsx' ? 'Mengunduh...' : 'Excel'}
           </button>
@@ -177,7 +172,7 @@ function AttendanceReportForm({
             type="button"
             disabled={mut.isPending}
             onClick={() => mut.mutate('pdf')}
-            className="flex-1 rounded-md border border-foreground px-3 py-2 text-xs font-medium disabled:opacity-50"
+            className="border-foreground flex-1 rounded-md border px-3 py-2 text-xs font-medium disabled:opacity-50"
           >
             {mut.isPending && mut.variables === 'pdf' ? 'Mengunduh...' : 'PDF'}
           </button>
@@ -226,9 +221,9 @@ function LeaveSummaryReportForm({
     <section className="rounded-lg border p-4">
       <div className="mb-3">
         <h3 className="text-sm font-semibold">Ringkasan Saldo Cuti</h3>
-        <p className="text-xs text-muted-foreground">
-          Matriks karyawan × tipe cuti dengan kuota, terpakai, reserved, dan sisa untuk
-          tahun terpilih.
+        <p className="text-muted-foreground text-xs">
+          Matriks karyawan × tipe cuti dengan kuota, terpakai, reserved, dan sisa untuk tahun
+          terpilih.
         </p>
       </div>
 
@@ -241,7 +236,7 @@ function LeaveSummaryReportForm({
             max={2100}
             value={state.year}
             onChange={(e) => setState({ ...state, year: Number(e.target.value) })}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm tabular-nums"
+            className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm tabular-nums"
           />
         </div>
         <FieldDepartment
@@ -254,7 +249,7 @@ function LeaveSummaryReportForm({
             type="button"
             disabled={mut.isPending}
             onClick={() => mut.mutate('xlsx')}
-            className="flex-1 rounded-md bg-foreground px-3 py-2 text-xs font-medium text-background disabled:opacity-50"
+            className="bg-foreground text-background flex-1 rounded-md px-3 py-2 text-xs font-medium disabled:opacity-50"
           >
             {mut.isPending && mut.variables === 'xlsx' ? 'Mengunduh...' : 'Excel'}
           </button>
@@ -262,7 +257,7 @@ function LeaveSummaryReportForm({
             type="button"
             disabled={mut.isPending}
             onClick={() => mut.mutate('pdf')}
-            className="flex-1 rounded-md border border-foreground px-3 py-2 text-xs font-medium disabled:opacity-50"
+            className="border-foreground flex-1 rounded-md border px-3 py-2 text-xs font-medium disabled:opacity-50"
           >
             {mut.isPending && mut.variables === 'pdf' ? 'Mengunduh...' : 'PDF'}
           </button>
@@ -338,11 +333,11 @@ function OvertimeReportForm({
     <section className="rounded-lg border p-4">
       <div className="mb-3">
         <h3 className="text-sm font-semibold">Lembur</h3>
-        <p className="text-xs text-muted-foreground">
-          Rincian pengajuan lembur beserta tarif, multiplier, dan total pembayaran. Default
-          hanya menampilkan pengajuan <span className="font-medium">Disetujui</span> dan{' '}
-          <span className="font-medium">Selesai</span> untuk kebutuhan payroll — centang
-          status lain untuk audit lengkap. Maks. 366 hari untuk Excel, 92 hari untuk PDF.
+        <p className="text-muted-foreground text-xs">
+          Rincian pengajuan lembur beserta tarif, multiplier, dan total pembayaran. Default hanya
+          menampilkan pengajuan <span className="font-medium">Disetujui</span> dan{' '}
+          <span className="font-medium">Selesai</span> untuk kebutuhan payroll — centang status lain
+          untuk audit lengkap. Maks. 366 hari untuk Excel, 92 hari untuk PDF.
         </p>
       </div>
 
@@ -367,7 +362,7 @@ function OvertimeReportForm({
             type="button"
             disabled={mut.isPending}
             onClick={() => mut.mutate('xlsx')}
-            className="flex-1 rounded-md bg-foreground px-3 py-2 text-xs font-medium text-background disabled:opacity-50"
+            className="bg-foreground text-background flex-1 rounded-md px-3 py-2 text-xs font-medium disabled:opacity-50"
           >
             {mut.isPending && mut.variables === 'xlsx' ? 'Mengunduh...' : 'Excel'}
           </button>
@@ -375,7 +370,7 @@ function OvertimeReportForm({
             type="button"
             disabled={mut.isPending}
             onClick={() => mut.mutate('pdf')}
-            className="flex-1 rounded-md border border-foreground px-3 py-2 text-xs font-medium disabled:opacity-50"
+            className="border-foreground flex-1 rounded-md border px-3 py-2 text-xs font-medium disabled:opacity-50"
           >
             {mut.isPending && mut.variables === 'pdf' ? 'Mengunduh...' : 'PDF'}
           </button>
@@ -394,8 +389,8 @@ function OvertimeReportForm({
                 onClick={() => toggleStatus(opt.id)}
                 className={
                   active
-                    ? 'rounded-full border border-foreground bg-foreground px-2.5 py-0.5 text-background'
-                    : 'rounded-full border border-input px-2.5 py-0.5 text-muted-foreground hover:bg-accent'
+                    ? 'border-foreground bg-foreground text-background rounded-full border px-2.5 py-0.5'
+                    : 'border-input text-muted-foreground hover:bg-accent rounded-full border px-2.5 py-0.5'
                 }
                 aria-pressed={active}
               >
@@ -429,7 +424,7 @@ function FieldDate({
         type="date"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm tabular-nums"
+        className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm tabular-nums"
       />
     </div>
   );
@@ -450,7 +445,7 @@ function FieldDepartment({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+        className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
       >
         <option value="">Semua departemen</option>
         {departments.map((d) => (

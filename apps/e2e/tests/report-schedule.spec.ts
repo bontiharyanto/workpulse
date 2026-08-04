@@ -68,19 +68,17 @@ test('HR creates + dispatches a weekly TIMESHEET_SUMMARY schedule', async () => 
     // Force the tick to run "after" the scheduled time.
     const nextRunAt = new Date(created.nextRunAt);
     const forcedAt = new Date(nextRunAt.getTime() + 60_000);
-    const tickRes = await hr.ctx.post(
-      '/api/v1/test-support/report-scheduler/tick',
-      { data: { at: forcedAt.toISOString() } },
-    );
+    const tickRes = await hr.ctx.post('/api/v1/test-support/report-scheduler/tick', {
+      data: { at: forcedAt.toISOString() },
+    });
     expect(tickRes.status()).toBe(200);
     const tick = (await tickRes.json()) as { delivered: number };
     expect(tick.delivered).toBe(1);
 
     // Delivery log should show DELIVERED + SHA-256.
-    const dRes = await hr.ctx.get(
-      `/api/v1/admin/reports/schedules/${created.id}/deliveries`,
-      { headers: authHeader(hr.accessToken) },
-    );
+    const dRes = await hr.ctx.get(`/api/v1/admin/reports/schedules/${created.id}/deliveries`, {
+      headers: authHeader(hr.accessToken),
+    });
     expect(dRes.status()).toBe(200);
     const deliveries = (await dRes.json()) as Array<{
       status: string;
@@ -94,10 +92,9 @@ test('HR creates + dispatches a weekly TIMESHEET_SUMMARY schedule', async () => 
     expect(latest.payloadBytes).toBeGreaterThan(100);
 
     // Audit trail must contain schedule + delivery entries.
-    const auditRes = await hr.ctx.get(
-      `/api/v1/admin/audit-log?entityType=ReportSchedule`,
-      { headers: authHeader(hr.accessToken) },
-    );
+    const auditRes = await hr.ctx.get(`/api/v1/admin/audit-log?entityType=ReportSchedule`, {
+      headers: authHeader(hr.accessToken),
+    });
     expect(auditRes.status()).toBe(200);
     const auditBody = (await auditRes.json()) as {
       rows: Array<{ action: string; entityId: string }>;
@@ -113,10 +110,7 @@ test('HR creates + dispatches a weekly TIMESHEET_SUMMARY schedule', async () => 
 });
 
 test('EMPLOYEE is refused report-schedule endpoints', async () => {
-  const emp = await login(
-    SEED_USERS.employee.email,
-    SEED_USERS.employee.password,
-  );
+  const emp = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
   try {
     const res = await emp.ctx.get('/api/v1/admin/reports/schedules', {
       headers: authHeader(emp.accessToken),

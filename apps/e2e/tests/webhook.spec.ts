@@ -37,9 +37,7 @@ async function login(email: string, password: string): Promise<Login> {
     data: { email, password },
   });
   if (!res.ok()) {
-    throw new Error(
-      `login failed for ${email}: ${res.status()} ${await res.text()}`,
-    );
+    throw new Error(`login failed for ${email}: ${res.status()} ${await res.text()}`);
   }
   const body = (await res.json()) as { accessToken: string };
   return { ctx, accessToken: body.accessToken };
@@ -74,33 +72,25 @@ test.describe('Webhooks — outbound delivery', () => {
     // Same seeding pattern as the export test — build an APPROVED
     // period so the subsequent export commits successfully.
     const now = new Date();
-    const prevMonthAnchor = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 15),
-    );
+    const prevMonthAnchor = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 15));
     const { request } = await import('@playwright/test');
     const genCtx = await request.newContext({ baseURL: API_URL });
     try {
-      const genRes = await genCtx.post(
-        '/api/v1/test-support/timesheet/generate',
-        {
-          data: {
-            email: SEED_USERS.hr.email,
-            at: prevMonthAnchor.toISOString(),
-          },
+      const genRes = await genCtx.post('/api/v1/test-support/timesheet/generate', {
+        data: {
+          email: SEED_USERS.hr.email,
+          at: prevMonthAnchor.toISOString(),
         },
-      );
+      });
       expect(genRes.ok()).toBeTruthy();
       const gen = (await genRes.json()) as { periodId: string };
       approvedPeriodId = gen.periodId;
-      const approveRes = await genCtx.post(
-        '/api/v1/test-support/timesheet/approve-all',
-        {
-          data: {
-            email: SEED_USERS.hr.email,
-            periodId: approvedPeriodId,
-          },
+      const approveRes = await genCtx.post('/api/v1/test-support/timesheet/approve-all', {
+        data: {
+          email: SEED_USERS.hr.email,
+          periodId: approvedPeriodId,
         },
-      );
+      });
       expect(approveRes.status()).toBe(204);
     } finally {
       await genCtx.dispose();
@@ -141,16 +131,11 @@ test.describe('Webhooks — outbound delivery', () => {
       expect(exportId).toBeTruthy();
 
       // 3. Force the worker to run right away.
-      const deliver = await hr.ctx.post(
-        '/api/v1/test-support/webhook/deliver-now',
-        {},
-      );
+      const deliver = await hr.ctx.post('/api/v1/test-support/webhook/deliver-now', {});
       expect(deliver.status()).toBe(204);
 
       // 4. Read the sink.
-      const read = await hr.ctx.get(
-        `/api/v1/test-support/webhook-sink/read?bucket=${bucket}`,
-      );
+      const read = await hr.ctx.get(`/api/v1/test-support/webhook-sink/read?bucket=${bucket}`);
       expect(read.status()).toBe(200);
       const { items } = (await read.json()) as {
         items: Array<{
@@ -187,10 +172,9 @@ test.describe('Webhooks — outbound delivery', () => {
       expect(v1).toBe(expected);
 
       // Delivery log should show SUCCEEDED.
-      const log = await hr.ctx.get(
-        `/api/v1/admin/webhooks/deliveries?endpointId=${endpoint.id}`,
-        { headers: { Authorization: `Bearer ${hr.accessToken}` } },
-      );
+      const log = await hr.ctx.get(`/api/v1/admin/webhooks/deliveries?endpointId=${endpoint.id}`, {
+        headers: { Authorization: `Bearer ${hr.accessToken}` },
+      });
       expect(log.status()).toBe(200);
       const logBody = (await log.json()) as {
         items: Array<{ status: string; attemptCount: number }>;
@@ -221,10 +205,7 @@ test.describe('Webhooks — outbound delivery', () => {
   });
 
   test('EMPLOYEE cannot list webhooks (403)', async () => {
-    const emp = await login(
-      SEED_USERS.employee.email,
-      SEED_USERS.employee.password,
-    );
+    const emp = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
     try {
       const res = await emp.ctx.get('/api/v1/admin/webhooks', {
         headers: { Authorization: `Bearer ${emp.accessToken}` },

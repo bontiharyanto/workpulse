@@ -1,17 +1,10 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Holiday, Prisma } from '@prisma/client';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-import type {
-  BulkImportHolidaysResponseDto,
-  HolidayResponseDto,
-} from './dto/holiday-response.dto';
+import type { BulkImportHolidaysResponseDto, HolidayResponseDto } from './dto/holiday-response.dto';
 
 export interface CreateHolidayInput {
   date: string; // YYYY-MM-DD
@@ -42,10 +35,7 @@ export class HolidayService {
     return rows.map((r) => this.toDto(r));
   }
 
-  async create(
-    actor: AuthenticatedUser,
-    input: CreateHolidayInput,
-  ): Promise<HolidayResponseDto> {
+  async create(actor: AuthenticatedUser, input: CreateHolidayInput): Promise<HolidayResponseDto> {
     try {
       const created = await this.prisma.$transaction(async (tx) => {
         const row = await tx.holiday.create({

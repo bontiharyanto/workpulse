@@ -84,12 +84,12 @@ set `true`.
 
 ## Life-cycle transitions
 
-| Event                             | Flag set to |
-| --------------------------------- | ----------- |
-| Admin creates user                | `true`      |
-| Admin issues password reset       | `true`      |
-| Self-service `/auth/change-password` succeeds | `false` |
-| Email-based `/auth/reset-password` succeeds   | `false` |
+| Event                                         | Flag set to |
+| --------------------------------------------- | ----------- |
+| Admin creates user                            | `true`      |
+| Admin issues password reset                   | `true`      |
+| Self-service `/auth/change-password` succeeds | `false`     |
+| Email-based `/auth/reset-password` succeeds   | `false`     |
 
 Both reset paths also invoke `TokenService.revokeAllForUser` so any
 outstanding session is severed the moment the password changes.

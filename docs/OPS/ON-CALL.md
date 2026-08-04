@@ -7,11 +7,13 @@ Kekuatan mekanisme on-call bukan pada teknologi, tapi pada kejelasan **siapa** y
 ## 1. Rotasi
 
 **Beta** (pilot 1–10 tenant, tim < 5 orang):
+
 - **1 primary** + **1 secondary**, rotasi mingguan.
 - Handoff Senin 09:00 WIB di channel `#ops-handoff`.
 - Primary bertanggung-jawab menjawab pager 24/7 selama shift-nya. Secondary sebagai backup kalau primary tidak available.
 
 **Enterprise GA** (>10 tenant):
+
 - Split ke 2 shift: **APAC** (00:00–12:00 UTC) + **EMEA** (12:00–24:00 UTC).
 - 4 orang minimum per shift.
 
@@ -21,12 +23,12 @@ Tools: **PagerDuty Free** (5 user, 1 schedule) atau **Opsgenie Free**. Untuk Bet
 
 ## 2. Severity Definisi
 
-| Level | Definisi | SLA response | SLA resolution | Contoh |
-|---|---|---:|---:|---|
-| **P0** | Full outage — tenant tidak bisa clock-in / login. Data loss risk. Data breach confirmed. | 15 menit | 4 jam | DB down, seluruh site 5xx |
-| **P1** | Feature critical rusak untuk banyak tenant. Approaching SLA breach. | 1 jam | 24 jam | MFA lockout, backup gagal 2 hari, breach reminder overdue |
-| **P2** | Feature rusak untuk minoritas / workaround tersedia. | 4 jam | 5 hari kerja | Webhook backlog, notification delay, dashboard slow |
-| **P3** | Cosmetic bug, dokumentasi salah. | 1 hari | Sprint berikutnya | Typo di UI, wrong tooltip |
+| Level  | Definisi                                                                                 | SLA response |    SLA resolution | Contoh                                                    |
+| ------ | ---------------------------------------------------------------------------------------- | -----------: | ----------------: | --------------------------------------------------------- |
+| **P0** | Full outage — tenant tidak bisa clock-in / login. Data loss risk. Data breach confirmed. |     15 menit |             4 jam | DB down, seluruh site 5xx                                 |
+| **P1** | Feature critical rusak untuk banyak tenant. Approaching SLA breach.                      |        1 jam |            24 jam | MFA lockout, backup gagal 2 hari, breach reminder overdue |
+| **P2** | Feature rusak untuk minoritas / workaround tersedia.                                     |        4 jam |      5 hari kerja | Webhook backlog, notification delay, dashboard slow       |
+| **P3** | Cosmetic bug, dokumentasi salah.                                                         |       1 hari | Sprint berikutnya | Typo di UI, wrong tooltip                                 |
 
 SLA di atas dihitung dari **acknowledgment**, bukan dari waktu incident. On-call **wajib** ack dalam 15 menit setelah pager.
 
@@ -164,12 +166,12 @@ Backup job dijadwalkan 08:30 WIB (dari default `BACKUP_CRON=30 1 * * *` — 01:3
 
 ## Actions
 
-| # | Owner | Due | Preventive/Detective/Corrective | Task |
-|---|---|---|---|---|
-| 1 | @ops | 2026-08-20 | Preventive | Reschedule `BACKUP_CRON` ke 20:00 UTC (03:00 WIB off-peak). Update `.env.production.example`. |
-| 2 | @ops | 2026-08-22 | Detective | Add BetterStack alert: `p95(clock-in) > 1000ms selama 5 menit`. |
-| 3 | @eng-lead | 2026-08-30 | Corrective | Add resource limit `deploy.resources.limits.memory` pada backup container. |
-| 4 | @eng-lead | 2026-09-15 | Preventive | Explore `pg_dump` streaming ke S3 tanpa disk intermediate (mengurangi mem pressure). |
+| #   | Owner     | Due        | Preventive/Detective/Corrective | Task                                                                                          |
+| --- | --------- | ---------- | ------------------------------- | --------------------------------------------------------------------------------------------- |
+| 1   | @ops      | 2026-08-20 | Preventive                      | Reschedule `BACKUP_CRON` ke 20:00 UTC (03:00 WIB off-peak). Update `.env.production.example`. |
+| 2   | @ops      | 2026-08-22 | Detective                       | Add BetterStack alert: `p95(clock-in) > 1000ms selama 5 menit`.                               |
+| 3   | @eng-lead | 2026-08-30 | Corrective                      | Add resource limit `deploy.resources.limits.memory` pada backup container.                    |
+| 4   | @eng-lead | 2026-09-15 | Preventive                      | Explore `pg_dump` streaming ke S3 tanpa disk intermediate (mengurangi mem pressure).          |
 
 ## Blameless Statement
 

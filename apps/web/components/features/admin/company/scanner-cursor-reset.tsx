@@ -4,10 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import { useAuth } from '@/components/providers/auth-provider';
-import {
-  ApiError,
-  attendanceApi,
-} from '@/lib/api-client';
+import { ApiError, attendanceApi } from '@/lib/api-client';
 import type { ResetScannerCursorResponse } from '@workpulse/shared-types';
 
 /**
@@ -24,9 +21,7 @@ export function ScannerCursorResetPanel(): JSX.Element | null {
   const [triggerRescan, setTriggerRescan] = useState(false);
   const [confirmArmed, setConfirmArmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lastResult, setLastResult] = useState<ResetScannerCursorResponse | null>(
-    null,
-  );
+  const [lastResult, setLastResult] = useState<ResetScannerCursorResponse | null>(null);
 
   const reset = useMutation({
     mutationFn: () => attendanceApi.resetScannerCursor({ triggerRescan }),
@@ -45,24 +40,21 @@ export function ScannerCursorResetPanel(): JSX.Element | null {
 
   return (
     <section
-      className="rounded-lg border border-destructive/40 bg-destructive/5 p-4"
+      className="border-destructive/40 bg-destructive/5 rounded-lg border p-4"
       aria-labelledby="scanner-reset-heading"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="max-w-xl">
-          <h3
-            id="scanner-reset-heading"
-            className="text-sm font-semibold text-destructive"
-          >
+          <h3 id="scanner-reset-heading" className="text-destructive text-sm font-semibold">
             Reset cursor auto-absent scanner
           </h3>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Menghapus <code className="rounded bg-white/70 px-1">lastAbsentScanDate</code>{' '}
-            sehingga proses berikutnya melakukan <strong>backfill</strong> hingga 30 hari
-            ke belakang (kecuali tanggal terkunci payroll). Gunakan jika terjadi drift
-            cursor setelah menambahkan hari libur / shift secara retroaktif.
+          <p className="text-muted-foreground mt-1 text-xs">
+            Menghapus <code className="rounded bg-white/70 px-1">lastAbsentScanDate</code> sehingga
+            proses berikutnya melakukan <strong>backfill</strong> hingga 30 hari ke belakang
+            (kecuali tanggal terkunci payroll). Gunakan jika terjadi drift cursor setelah
+            menambahkan hari libur / shift secara retroaktif.
           </p>
-          <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-muted-foreground">
+          <ul className="text-muted-foreground mt-2 list-inside list-disc space-y-1 text-xs">
             <li>Absensi tetap idempotent — tidak akan ada baris ganda.</li>
             <li>
               Notifikasi <code>ATTENDANCE_ABSENT_MARKED</code> <strong>bisa terkirim ulang</strong>{' '}
@@ -99,39 +91,27 @@ export function ScannerCursorResetPanel(): JSX.Element | null {
         type="button"
         disabled={!confirmArmed || reset.isPending}
         onClick={() => reset.mutate()}
-        className="mt-3 whitespace-nowrap rounded-md bg-destructive px-3 py-2 text-xs font-medium text-destructive-foreground shadow disabled:opacity-50"
+        className="bg-destructive text-destructive-foreground mt-3 whitespace-nowrap rounded-md px-3 py-2 text-xs font-medium shadow disabled:opacity-50"
       >
         {reset.isPending ? 'Memproses…' : 'Reset cursor sekarang'}
       </button>
 
       {error && (
-        <p role="alert" className="mt-2 text-xs text-destructive">
+        <p role="alert" className="text-destructive mt-2 text-xs">
           {error}
         </p>
       )}
 
       {lastResult && (
         <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
-          <Metric
-            label="Cursor sebelum"
-            value={lastResult.before ?? '— (belum pernah)'}
-          />
+          <Metric label="Cursor sebelum" value={lastResult.before ?? '— (belum pernah)'} />
           <Metric label="Cursor sesudah" value="null" />
-          <Metric
-            label="Rescan"
-            value={lastResult.rescanTriggered ? 'dijalankan' : '—'}
-          />
+          <Metric label="Rescan" value={lastResult.rescanTriggered ? 'dijalankan' : '—'} />
           {lastResult.rescanResult && (
             <>
-              <Metric
-                label="Tanggal diproses"
-                value={lastResult.rescanResult.scannedDates}
-              />
+              <Metric label="Tanggal diproses" value={lastResult.rescanResult.scannedDates} />
               <Metric label="Ditandai absen" value={lastResult.rescanResult.marked} />
-              <Metric
-                label="Durasi rescan"
-                value={`${lastResult.rescanResult.durationMs} ms`}
-              />
+              <Metric label="Durasi rescan" value={`${lastResult.rescanResult.durationMs} ms`} />
             </>
           )}
         </dl>
@@ -140,18 +120,10 @@ export function ScannerCursorResetPanel(): JSX.Element | null {
   );
 }
 
-function Metric({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number;
-}): JSX.Element {
+function Metric({ label, value }: { label: string; value: string | number }): JSX.Element {
   return (
-    <div className="rounded-md border bg-background px-3 py-2">
-      <dt className="text-[10px] uppercase tracking-widest text-muted-foreground">
-        {label}
-      </dt>
+    <div className="bg-background rounded-md border px-3 py-2">
+      <dt className="text-muted-foreground text-[10px] uppercase tracking-widest">{label}</dt>
       <dd className="font-medium tabular-nums">{value}</dd>
     </div>
   );

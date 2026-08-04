@@ -121,9 +121,9 @@ describe('DepartmentService.update', () => {
     const { service, prisma } = setup();
     prisma.department.findFirst.mockResolvedValueOnce(makeRow({ id: 'dep-1' }) as never);
 
-    await expect(
-      service.update(hr, 'dep-1', { parentId: 'dep-1' }),
-    ).rejects.toBeInstanceOf(BadRequestException);
+    await expect(service.update(hr, 'dep-1', { parentId: 'dep-1' })).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
   });
 
   it('detects and rejects parent cycles', async () => {
@@ -137,9 +137,9 @@ describe('DepartmentService.update', () => {
       .mockResolvedValueOnce({ id: 'dep-2' } as never)
       .mockResolvedValueOnce({ parentId: 'dep-1' } as never);
 
-    await expect(
-      service.update(hr, 'dep-1', { parentId: 'dep-2' }),
-    ).rejects.toBeInstanceOf(BadRequestException);
+    await expect(service.update(hr, 'dep-1', { parentId: 'dep-2' })).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
   });
 
   it('throws NotFound when department is outside actor company', async () => {

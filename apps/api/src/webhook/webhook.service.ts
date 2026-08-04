@@ -12,11 +12,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import type { Prisma, WebhookEventType } from '@prisma/client';
 
-import {
-  decodeEncryptionKey,
-  decryptString,
-  encryptString,
-} from '../auth/mfa/domain/crypto';
+import { decodeEncryptionKey, decryptString, encryptString } from '../auth/mfa/domain/crypto';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -83,26 +79,19 @@ export class WebhookService implements OnModuleInit {
   onModuleInit(): void {
     const raw = this.config.get<string>('MFA_SECRET_ENCRYPTION_KEY');
     this.encryptionKey = raw ? decodeEncryptionKey(raw) : null;
-    this.blockPrivateIps =
-      this.config.get<string>('WEBHOOK_BLOCK_PRIVATE_IPS', 'true') !== 'false';
+    this.blockPrivateIps = this.config.get<string>('WEBHOOK_BLOCK_PRIVATE_IPS', 'true') !== 'false';
     // Force HTTPS in production only. Dev / test benches connect to a
     // local receiver over http://localhost so we can't require https.
-    this.httpsRequired =
-      this.config.get<string>('NODE_ENV', 'development') === 'production';
+    this.httpsRequired = this.config.get<string>('NODE_ENV', 'development') === 'production';
     if (
       this.config.get<string>('NODE_ENV', 'development') === 'production' &&
       !this.encryptionKey
     ) {
-      throw new Error(
-        'MFA_SECRET_ENCRYPTION_KEY is required in production for webhook secrets',
-      );
+      throw new Error('MFA_SECRET_ENCRYPTION_KEY is required in production for webhook secrets');
     }
   }
 
-  async create(
-    actor: AuthenticatedUser,
-    input: CreateEndpointInput,
-  ): Promise<EndpointWithSecret> {
+  async create(actor: AuthenticatedUser, input: CreateEndpointInput): Promise<EndpointWithSecret> {
     this.assertRole(actor);
     await this.validateOrThrow(input.url);
     if (!input.events || input.events.length === 0) {
@@ -181,9 +170,7 @@ export class WebhookService implements OnModuleInit {
       data: {
         url: input.url?.trim() ?? undefined,
         description:
-          input.description === undefined
-            ? undefined
-            : input.description?.trim() || null,
+          input.description === undefined ? undefined : input.description?.trim() || null,
         events: input.events ?? undefined,
         active: input.active ?? undefined,
       },
@@ -228,10 +215,7 @@ export class WebhookService implements OnModuleInit {
     });
   }
 
-  async rotateSecret(
-    actor: AuthenticatedUser,
-    id: string,
-  ): Promise<EndpointWithSecret> {
+  async rotateSecret(actor: AuthenticatedUser, id: string): Promise<EndpointWithSecret> {
     this.assertRole(actor);
     const existing = await this.prisma.webhookEndpoint.findFirst({
       where: { id, companyId: actor.companyId },
@@ -303,17 +287,13 @@ export class WebhookService implements OnModuleInit {
 
   private urlErrorCopy(issues: string[]): string {
     if (issues.includes('MALFORMED_URL')) return 'URL tidak valid.';
-    if (issues.includes('INVALID_SCHEME'))
-      return 'Skema URL harus http atau https.';
-    if (issues.includes('HTTPS_REQUIRED'))
-      return 'Di production, URL wajib https.';
+    if (issues.includes('INVALID_SCHEME')) return 'Skema URL harus http atau https.';
+    if (issues.includes('HTTPS_REQUIRED')) return 'Di production, URL wajib https.';
     if (issues.includes('CREDENTIALS_IN_URL'))
       return 'URL tidak boleh berisi kredensial (user:pass@host).';
-    if (issues.includes('PRIVATE_IP'))
-      return 'URL resolve ke IP internal / private — dilarang.';
+    if (issues.includes('PRIVATE_IP')) return 'URL resolve ke IP internal / private — dilarang.';
     if (issues.includes('BLOCKED_HOST')) return 'Host tersebut diblokir.';
-    if (issues.includes('DNS_LOOKUP_FAILED'))
-      return 'Host tidak dapat di-resolve DNS.';
+    if (issues.includes('DNS_LOOKUP_FAILED')) return 'Host tidak dapat di-resolve DNS.';
     return 'URL webhook ditolak.';
   }
 

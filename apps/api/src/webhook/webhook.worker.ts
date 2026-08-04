@@ -55,18 +55,11 @@ export class WebhookWorker {
     private readonly webhookService: WebhookService,
     config: ConfigService,
   ) {
-    this.enabled =
-      config.get<string>('WEBHOOK_WORKER_ENABLED', 'true') !== 'false';
-    this.timeoutMs = Number(
-      config.get<number>('WEBHOOK_HTTP_TIMEOUT_MS', 10_000),
-    );
-    this.maxAttempts = Number(
-      config.get<number>('WEBHOOK_MAX_ATTEMPTS', 4),
-    );
-    this.blockPrivateIps =
-      config.get<string>('WEBHOOK_BLOCK_PRIVATE_IPS', 'true') !== 'false';
-    this.httpsRequired =
-      config.get<string>('NODE_ENV', 'development') === 'production';
+    this.enabled = config.get<string>('WEBHOOK_WORKER_ENABLED', 'true') !== 'false';
+    this.timeoutMs = Number(config.get<number>('WEBHOOK_HTTP_TIMEOUT_MS', 10_000));
+    this.maxAttempts = Number(config.get<number>('WEBHOOK_MAX_ATTEMPTS', 4));
+    this.blockPrivateIps = config.get<string>('WEBHOOK_BLOCK_PRIVATE_IPS', 'true') !== 'false';
+    this.httpsRequired = config.get<string>('NODE_ENV', 'development') === 'production';
     if (!this.enabled) {
       this.logger.warn(
         'WEBHOOK_WORKER_ENABLED=false — this API instance will NOT deliver webhooks.',
@@ -88,17 +81,13 @@ export class WebhookWorker {
         await this.deliverOne(row.delivery, row.endpoint);
       }
     } catch (err) {
-      this.logger.error(
-        `webhook worker tick crashed: ${(err as Error).message}`,
-      );
+      this.logger.error(`webhook worker tick crashed: ${(err as Error).message}`);
     } finally {
       this.tickRunning = false;
     }
   }
 
-  private async claim(): Promise<
-    Array<{ delivery: WebhookDelivery; endpoint: WebhookEndpoint }>
-  > {
+  private async claim(): Promise<Array<{ delivery: WebhookDelivery; endpoint: WebhookEndpoint }>> {
     // Use a raw SELECT ... FOR UPDATE SKIP LOCKED to atomically pick
     // rows; the follow-up findMany with include hydrates them.
     const claimed = await this.prisma.$transaction(async (tx) => {
@@ -133,10 +122,7 @@ export class WebhookWorker {
     }));
   }
 
-  private async deliverOne(
-    delivery: WebhookDelivery,
-    endpoint: WebhookEndpoint,
-  ): Promise<void> {
+  private async deliverOne(delivery: WebhookDelivery, endpoint: WebhookEndpoint): Promise<void> {
     if (!endpoint.active) {
       // Endpoint was flipped off after enqueue — mark FAILED with no
       // more retries, but audit-log this so operators can see why the
@@ -152,11 +138,7 @@ export class WebhookWorker {
       httpsRequired: this.httpsRequired,
     });
     if (!syntax.ok || !syntax.parsed) {
-      await this.recordFailure(
-        delivery,
-        `url syntax invalid: ${syntax.issues.join(',')}`,
-        null,
-      );
+      await this.recordFailure(delivery, `url syntax invalid: ${syntax.issues.join(',')}`, null);
       return;
     }
     const resolved = await validateResolvedHost(syntax.parsed.hostname, {
@@ -215,13 +197,7 @@ export class WebhookWorker {
     if (success && status !== null) {
       await this.recordSuccess(delivery, endpoint, status, bodySnippet, sig.header);
     } else {
-      await this.recordFailure(
-        delivery,
-        err ?? `http ${status}`,
-        status,
-        bodySnippet,
-        sig.header,
-      );
+      await this.recordFailure(delivery, err ?? `http ${status}`, status, bodySnippet, sig.header);
     }
   }
 
@@ -298,10 +274,7 @@ export class WebhookWorker {
     ]);
   }
 
-  private async markPermanentlyFailed(
-    id: string,
-    error: string,
-  ): Promise<void> {
+  private async markPermanentlyFailed(id: string, error: string): Promise<void> {
     const now = new Date();
     await this.prisma.webhookDelivery.update({
       where: { id },

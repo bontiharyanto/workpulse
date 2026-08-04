@@ -27,11 +27,7 @@ export interface Signature {
   header: string;
 }
 
-export function sign(
-  secret: string,
-  rawBody: string,
-  now: number = Date.now(),
-): Signature {
+export function sign(secret: string, rawBody: string, now: number = Date.now()): Signature {
   const timestampSec = Math.floor(now / 1000);
   const signatureHex = createHmac('sha256', secret)
     .update(`${timestampSec}.${rawBody}`)
@@ -44,14 +40,10 @@ export function sign(
 }
 
 export type VerifyFailure =
-  | 'MALFORMED_HEADER'
-  | 'INVALID_SIGNATURE'
-  | 'TIMESTAMP_TOO_OLD'
-  | 'TIMESTAMP_TOO_NEW';
+  'MALFORMED_HEADER' | 'INVALID_SIGNATURE' | 'TIMESTAMP_TOO_OLD' | 'TIMESTAMP_TOO_NEW';
 
 export type VerifyResult =
-  | { ok: true; timestampSec: number }
-  | { ok: false; reason: VerifyFailure };
+  { ok: true; timestampSec: number } | { ok: false; reason: VerifyFailure };
 
 /**
  * Parity verifier — mostly used by the E2E receiver + unit tests, but
@@ -78,9 +70,7 @@ export function verify(
   if (nowSec - t > toleranceSec) return { ok: false, reason: 'TIMESTAMP_TOO_OLD' };
   if (t - nowSec > toleranceSec) return { ok: false, reason: 'TIMESTAMP_TOO_NEW' };
 
-  const expectedHex = createHmac('sha256', secret)
-    .update(`${t}.${rawBody}`)
-    .digest('hex');
+  const expectedHex = createHmac('sha256', secret).update(`${t}.${rawBody}`).digest('hex');
 
   const a = Buffer.from(expectedHex, 'hex');
   let b: Buffer;

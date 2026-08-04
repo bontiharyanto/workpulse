@@ -5,7 +5,7 @@ export default function LeaveApprovalsPage(): JSX.Element {
     <div className="mx-auto max-w-3xl space-y-6">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">Approval Cuti</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Setujui atau tolak pengajuan cuti sesuai tingkatan role Anda. Supervisor melihat pengajuan
           dari tim langsung; HR Manager melihat pengajuan yang sudah lolos level 1.
         </p>

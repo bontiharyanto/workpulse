@@ -8,12 +8,7 @@
  * report cache without coupling.
  */
 
-export type AttendanceSummaryStatus =
-  | 'ON_TIME'
-  | 'LATE'
-  | 'EARLY_LEAVE'
-  | 'ABSENT'
-  | 'ON_LEAVE';
+export type AttendanceSummaryStatus = 'ON_TIME' | 'LATE' | 'EARLY_LEAVE' | 'ABSENT' | 'ON_LEAVE';
 
 export interface AttendanceSummaryInput {
   status: AttendanceSummaryStatus;
@@ -107,9 +102,7 @@ export function summarizeAttendance(
 
   const totalHoursWorked = round2(totalHoursWorkedMs / 3_600_000);
   const onTimeRatePercent =
-    presentDays === 0
-      ? null
-      : Math.round((onTimeDays / presentDays) * 1000) / 10;
+    presentDays === 0 ? null : Math.round((onTimeDays / presentDays) * 1000) / 10;
 
   return {
     totalRecords: rows.length,

@@ -1,21 +1,13 @@
-import {
-  planCorrectionApply,
-  type AttendanceRecordSlice,
-} from './apply-correction';
+import { planCorrectionApply, type AttendanceRecordSlice } from './apply-correction';
 
 const T = (iso: string): Date => new Date(iso);
 
-function makeExisting(
-  overrides: Partial<AttendanceRecordSlice> = {},
-): AttendanceRecordSlice {
+function makeExisting(overrides: Partial<AttendanceRecordSlice> = {}): AttendanceRecordSlice {
   return {
     id: overrides.id ?? 'att-1',
-    clockInAt:
-      'clockInAt' in overrides ? overrides.clockInAt ?? null : T('2026-08-01T09:00:00Z'),
+    clockInAt: 'clockInAt' in overrides ? (overrides.clockInAt ?? null) : T('2026-08-01T09:00:00Z'),
     clockOutAt:
-      'clockOutAt' in overrides
-        ? overrides.clockOutAt ?? null
-        : T('2026-08-01T18:00:00Z'),
+      'clockOutAt' in overrides ? (overrides.clockOutAt ?? null) : T('2026-08-01T18:00:00Z'),
     deletedAt: overrides.deletedAt ?? null,
   };
 }

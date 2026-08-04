@@ -1,7 +1,4 @@
-import type {
-  PayrollColumn,
-  PayrollRow,
-} from '../domain/payroll-rows';
+import type { PayrollColumn, PayrollRow } from '../domain/payroll-rows';
 
 /**
  * RFC-4180-compliant CSV encoder for payroll rows. Deliberately pure —
@@ -28,16 +25,11 @@ import type {
  *     read `NULL` differently per vendor; the empty cell is the
  *     lowest-common-denominator.
  */
-export function renderCsv(
-  columns: readonly PayrollColumn[],
-  rows: readonly PayrollRow[],
-): Buffer {
+export function renderCsv(columns: readonly PayrollColumn[], rows: readonly PayrollRow[]): Buffer {
   const lines: string[] = [];
   lines.push(columns.map((c) => encodeCell(c.header)).join(','));
   for (const row of rows) {
-    lines.push(
-      columns.map((c) => encodeCell(row[c.key])).join(','),
-    );
+    lines.push(columns.map((c) => encodeCell(row[c.key])).join(','));
   }
   const body = lines.join('\r\n') + '\r\n';
   return Buffer.from('\uFEFF' + body, 'utf8');

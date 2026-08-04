@@ -9,12 +9,7 @@ import {
 } from './version-state-machine';
 
 const ALL_STATUSES: RopaVersionStatus[] = ['DRAFT', 'REVIEW', 'PUBLISHED', 'ARCHIVED'];
-const ALL_ACTIONS: RopaTransition[] = [
-  'SUBMIT_REVIEW',
-  'RETURN_TO_DRAFT',
-  'PUBLISH',
-  'ARCHIVE',
-];
+const ALL_ACTIONS: RopaTransition[] = ['SUBMIT_REVIEW', 'RETURN_TO_DRAFT', 'PUBLISH', 'ARCHIVE'];
 
 type Legal = {
   from: RopaVersionStatus;

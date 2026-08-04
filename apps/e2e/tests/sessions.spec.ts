@@ -86,10 +86,9 @@ test('DELETE /auth/sessions/:id revokes another device without touching the curr
     expect(victim).toBeDefined();
     expect(victim?.isCurrent).toBe(false);
 
-    const kill = await primary.ctx.delete(
-      `/api/v1/auth/sessions/${victim?.id ?? ''}`,
-      { headers: { Authorization: `Bearer ${primary.accessToken}` } },
-    );
+    const kill = await primary.ctx.delete(`/api/v1/auth/sessions/${victim?.id ?? ''}`, {
+      headers: { Authorization: `Bearer ${primary.accessToken}` },
+    });
     expect(kill.status()).toBe(204);
 
     // The primary session still refreshes cleanly.
@@ -118,10 +117,9 @@ test('DELETE /auth/sessions/:id 404s for a foreign session id', async () => {
     const targetId = victimRows.find((r) => r.isCurrent)?.id;
     expect(targetId).toBeDefined();
 
-    const attack = await attacker.ctx.delete(
-      `/api/v1/auth/sessions/${targetId ?? ''}`,
-      { headers: { Authorization: `Bearer ${attacker.accessToken}` } },
-    );
+    const attack = await attacker.ctx.delete(`/api/v1/auth/sessions/${targetId ?? ''}`, {
+      headers: { Authorization: `Bearer ${attacker.accessToken}` },
+    });
     expect(attack.status()).toBe(404);
     const body = await attack.json();
     expect(body.code).toBe('SESSION_NOT_FOUND');
@@ -135,17 +133,16 @@ test('DELETE /auth/sessions/:id 404s for a foreign session id', async () => {
   }
 });
 
-test('DELETE /auth/sessions/:id kills the caller\'s own session (isCurrent branch)', async () => {
+test("DELETE /auth/sessions/:id kills the caller's own session (isCurrent branch)", async () => {
   const kill = await loginContext('employee', 'e2e-agent/self-destruct');
   try {
     const rows = await listSessions(kill.ctx, kill.accessToken);
     const current = rows.find((r) => r.isCurrent);
     expect(current).toBeDefined();
 
-    const res = await kill.ctx.delete(
-      `/api/v1/auth/sessions/${current?.id ?? ''}`,
-      { headers: { Authorization: `Bearer ${kill.accessToken}` } },
-    );
+    const res = await kill.ctx.delete(`/api/v1/auth/sessions/${current?.id ?? ''}`, {
+      headers: { Authorization: `Bearer ${kill.accessToken}` },
+    });
     expect(res.status()).toBe(204);
 
     const dead = await kill.ctx.post('/api/v1/auth/refresh');

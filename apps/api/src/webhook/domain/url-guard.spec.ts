@@ -1,8 +1,4 @@
-import {
-  validateResolvedHost,
-  validateUrl,
-  validateUrlSyntax,
-} from './url-guard';
+import { validateResolvedHost, validateUrl, validateUrlSyntax } from './url-guard';
 
 describe('validateUrlSyntax (Fase 32e)', () => {
   it('accepts a well-formed https URL', () => {

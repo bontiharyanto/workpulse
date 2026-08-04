@@ -1,18 +1,5 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-  Query,
-} from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOkResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { RetentionAuditReport } from '@prisma/client';
 
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -69,9 +56,7 @@ export class RetentionAuditController {
   @Get('latest')
   @ApiBearerAuth()
   @ApiOkResponse({ type: RetentionAuditReportDto, isArray: false })
-  async latest(
-    @CurrentUser() actor: AuthenticatedUser,
-  ): Promise<RetentionAuditReportDto | null> {
+  async latest(@CurrentUser() actor: AuthenticatedUser): Promise<RetentionAuditReportDto | null> {
     const row = await this.service.latestForCompany(actor.companyId);
     return row ? toDto(row) : null;
   }
@@ -95,11 +80,7 @@ export class RetentionAuditController {
     @CurrentUser() actor: AuthenticatedUser,
     @Body() body: RegenerateRetentionAuditDto,
   ): Promise<RetentionAuditReportDto> {
-    const row = await this.service.regenerateMonth(
-      actor.companyId,
-      body.year,
-      body.month,
-    );
+    const row = await this.service.regenerateMonth(actor.companyId, body.year, body.month);
     return toDto(row);
   }
 }
@@ -121,25 +102,18 @@ function toDto(row: RetentionAuditReport): RetentionAuditReportDto {
     dsarArchivesPastRetention: row.dsarArchivesPastRetention,
     terminatedUsersPastRetention: row.terminatedUsersPastRetention,
     policySnapshot: {
-      notificationRetentionDays:
-        (rawSnapshot['notificationRetentionDays'] as number) ?? 0,
+      notificationRetentionDays: (rawSnapshot['notificationRetentionDays'] as number) ?? 0,
       dataExportArchiveRetentionHours:
         (rawSnapshot['dataExportArchiveRetentionHours'] as number) ?? 0,
-      terminatedUserAnonymizeDays:
-        (rawSnapshot['terminatedUserAnonymizeDays'] as number) ?? 0,
+      terminatedUserAnonymizeDays: (rawSnapshot['terminatedUserAnonymizeDays'] as number) ?? 0,
     },
-    workerLastRunAt: row.workerLastRunAt
-      ? row.workerLastRunAt.toISOString()
-      : null,
+    workerLastRunAt: row.workerLastRunAt ? row.workerLastRunAt.toISOString() : null,
     findings: rawFindings.map((f) => {
       const entry = f as Record<string, unknown>;
       return {
         kind: entry['kind'] as RetentionAuditFindingKindLiteral,
         severity: entry['severity'] as 'info' | 'warning' | 'critical',
-        count:
-          typeof entry['count'] === 'number'
-            ? (entry['count'] as number)
-            : undefined,
+        count: typeof entry['count'] === 'number' ? (entry['count'] as number) : undefined,
         message: (entry['message'] as string) ?? '',
       };
     }),

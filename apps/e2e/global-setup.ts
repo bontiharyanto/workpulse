@@ -41,7 +41,9 @@ export default async function globalSetup(): Promise<void> {
   }
 
   // eslint-disable-next-line no-console
-  console.log('[e2e:setup] running prisma migrate reset --force (destructive) against DATABASE_URL');
+  console.log(
+    '[e2e:setup] running prisma migrate reset --force (destructive) against DATABASE_URL',
+  );
 
   runInApi('prisma:migrate:reset --force');
 
@@ -54,8 +56,7 @@ export default async function globalSetup(): Promise<void> {
 }
 
 async function waitForApiHealth(): Promise<void> {
-  const url =
-    (process.env.E2E_API_URL ?? 'http://localhost:4000') + '/api/v1/health';
+  const url = (process.env.E2E_API_URL ?? 'http://localhost:4000') + '/api/v1/health';
   const deadline = Date.now() + 30_000;
   // Require N consecutive successful health probes before proceeding. A
   // single 200 is not enough because `nest start --watch` reloads the

@@ -103,7 +103,11 @@ describe('OvertimeService.submit', () => {
     const tomorrow = new Date();
     tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
     await expect(
-      service.submit(employee, { workDate: tomorrow.toISOString().slice(0, 10), hours: 2, reason: 'x' }),
+      service.submit(employee, {
+        workDate: tomorrow.toISOString().slice(0, 10),
+        hours: 2,
+        reason: 'x',
+      }),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
@@ -245,9 +249,9 @@ describe('OvertimeService.decide', () => {
     const { service, prisma } = setup();
     prisma.overtimeRequest.findFirst.mockResolvedValueOnce(baseRow as never);
     const otherSup: AuthenticatedUser = { ...supervisor, id: 'other-sup' };
-    await expect(
-      service.decide(otherSup, 'ot-1', { action: 'APPROVE' }),
-    ).rejects.toBeInstanceOf(BadRequestException);
+    await expect(service.decide(otherSup, 'ot-1', { action: 'APPROVE' })).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
   });
 
   it('HR can approve anyone', async () => {
@@ -269,17 +273,17 @@ describe('OvertimeService.decide', () => {
       ...baseRow,
       status: 'APPROVED',
     } as never);
-    await expect(
-      service.decide(hr, 'ot-1', { action: 'APPROVE' }),
-    ).rejects.toBeInstanceOf(ConflictException);
+    await expect(service.decide(hr, 'ot-1', { action: 'APPROVE' })).rejects.toBeInstanceOf(
+      ConflictException,
+    );
   });
 
   it('404 when the row does not exist in tenant', async () => {
     const { service, prisma } = setup();
     prisma.overtimeRequest.findFirst.mockResolvedValueOnce(null);
-    await expect(
-      service.decide(hr, 'ot-1', { action: 'APPROVE' }),
-    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.decide(hr, 'ot-1', { action: 'APPROVE' })).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 });
 
@@ -394,9 +398,7 @@ describe('OvertimeService \u2014 payroll cutoff', () => {
       payrollLockedUntil: yesterdayCutoff,
     } as never);
 
-    await expect(
-      service.decide(hr, 'ot-locked', { action: 'APPROVE' }),
-    ).rejects.toMatchObject({
+    await expect(service.decide(hr, 'ot-locked', { action: 'APPROVE' })).rejects.toMatchObject({
       response: { code: 'PAYROLL_LOCKED' },
     });
 

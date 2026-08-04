@@ -1,12 +1,14 @@
 # ADR-0026 — Timesheet export share links (Fase 32d)
 
 ## Status
+
 Accepted — 2026-08-03.
 
 ## Context
+
 Fase 32c gave HR / Super Admin an endpoint that streams payroll CSV / XLSX
 downloads and audits every hit with a SHA-256 of the emitted bytes. In
-practice the payroll team is usually an *external* vendor — they receive
+practice the payroll team is usually an _external_ vendor — they receive
 the file via email or a shared drive and never touch Workpulse. Two
 frictions came out of the first cutover:
 
@@ -15,10 +17,11 @@ frictions came out of the first cutover:
    same bytes. If the vendor lost the file HR had to redo the whole
    dance.
 2. **No cryptographic proof of what the vendor got.** The audit row
-   proved *"HR downloaded X bytes at time T"*, but nothing tied that to
+   proved _"HR downloaded X bytes at time T"_, but nothing tied that to
    the vendor's actual download.
 
 We want HR to press a "Bagikan" button and receive a signed URL that:
+
 - Can be pasted into an email to the vendor.
 - Expires (default 24 h).
 - Is verifiable server-side with no JWT / cookie session.
@@ -34,7 +37,7 @@ We want HR to press a "Bagikan" button and receive a signed URL that:
 - URL carries `?id=<shareId>&expires=<unixMs>&signature=<b64url>`.
 - `signature = base64url(HMAC_SHA256(secret, "${shareId}:${expires}"))`.
 - Verifier reconstructs the MAC, uses `timingSafeEqual`, then checks
-  expiry *only after* the MAC check (so a "valid-but-expired" URL cannot
+  expiry _only after_ the MAC check (so a "valid-but-expired" URL cannot
   be distinguished from "invalid signature" by timing).
 - All verify-failure branches return a generic 403 to the client;
   specific reason is logged server-side.
@@ -102,13 +105,14 @@ Nested under the export ID so RBAC + tenant scoping reuse the export
 row's guards:
 
 - `POST /admin/timesheet/exports/:id/shares` → create + return signed URL.
-- `GET  /admin/timesheet/exports/:id/shares`  → list share rows.
+- `GET  /admin/timesheet/exports/:id/shares` → list share rows.
 - `POST /admin/timesheet/exports/:id/shares/:shareId/revoke` → soft
   revoke, idempotent.
 
 ### 6. Audit events
 
 Three new actions on `AuditLog`:
+
 - `TIMESHEET_EXPORT_SHARED` (actor = HR).
 - `TIMESHEET_EXPORT_SHARE_REVOKED` (actor = HR).
 - `TIMESHEET_EXPORT_SHARE_DOWNLOADED` (actor = **null** — anonymous
@@ -118,6 +122,7 @@ Three new actions on `AuditLog`:
 ## Consequences
 
 **Positive:**
+
 - HR gets a one-click "bagikan" flow with an auditable trail.
 - Vendors receive the exact bytes HR saw, provable via `X-Payload-Sha256`.
 - Compromise of a single link is fixable by revocation; compromise of
@@ -125,6 +130,7 @@ Three new actions on `AuditLog`:
 - No new infra (no S3, no auth server, no separate download service).
 
 **Negative:**
+
 - Storing payloads in Postgres raises row-storage cost for exports.
   Bounded per tenant and pruned by retention worker, so acceptable.
 - Rotating `TIMESHEET_EXPORT_SIGNING_SECRET` invalidates all issued
@@ -133,6 +139,7 @@ Three new actions on `AuditLog`:
   throttling, generic 403 responses, and audit logging.
 
 ## Related
+
 - Fase 32c — ADR-0025 (payroll export CSV / XLSX).
 - Fase 31c — retention worker sweeps expired share rows + old export
   payloads.

@@ -2,10 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import type {
-  AnalyticsMetricKey,
-  AnalyticsWindowDays,
-} from '@workpulse/shared-types';
+import type { AnalyticsMetricKey, AnalyticsWindowDays } from '@workpulse/shared-types';
 import { ANALYTICS_WINDOW_OPTIONS } from '@workpulse/shared-types';
 
 import { analyticsAdminApi } from '@/lib/api-client';
@@ -34,9 +31,7 @@ const WINDOW_LABELS: Record<AnalyticsWindowDays, string> = {
  */
 export function ExecutiveDashboard(): JSX.Element {
   const [windowDays, setWindowDays] = useState<AnalyticsWindowDays>(30);
-  const [selectedMetric, setSelectedMetric] = useState<AnalyticsMetricKey | null>(
-    null,
-  );
+  const [selectedMetric, setSelectedMetric] = useState<AnalyticsMetricKey | null>(null);
 
   const dashboard = useQuery({
     queryKey: ['analytics-dashboard', windowDays],
@@ -44,8 +39,7 @@ export function ExecutiveDashboard(): JSX.Element {
     staleTime: 60_000,
   });
 
-  const activeMetric =
-    selectedMetric ?? dashboard.data?.tiles[0]?.metricKey ?? null;
+  const activeMetric = selectedMetric ?? dashboard.data?.tiles[0]?.metricKey ?? null;
 
   const trend = useQuery({
     queryKey: ['analytics-timeseries', activeMetric, windowDays],
@@ -63,15 +57,15 @@ export function ExecutiveDashboard(): JSX.Element {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-1">
           <h2 className="text-lg font-semibold">Ringkasan operasional</h2>
-          <p className="text-sm text-muted-foreground">
-            Angka-angka utama dihitung ulang setiap malam pukul 04:00 UTC. Hari
-            ini dihitung real-time — pergerakan intraday langsung terlihat.
+          <p className="text-muted-foreground text-sm">
+            Angka-angka utama dihitung ulang setiap malam pukul 04:00 UTC. Hari ini dihitung
+            real-time — pergerakan intraday langsung terlihat.
           </p>
         </div>
         <div
           role="tablist"
           aria-label="Rentang waktu"
-          className="inline-flex rounded-md border border-border p-0.5"
+          className="border-border inline-flex rounded-md border p-0.5"
         >
           {ANALYTICS_WINDOW_OPTIONS.map((n) => (
             <button
@@ -96,7 +90,7 @@ export function ExecutiveDashboard(): JSX.Element {
         <div
           role="status"
           aria-live="polite"
-          className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground"
+          className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm"
         >
           Memuat data analitik…
         </div>
@@ -113,20 +107,18 @@ export function ExecutiveDashboard(): JSX.Element {
             ))}
           </div>
 
-          <div className="rounded-lg border border-border bg-card p-4">
+          <div className="border-border bg-card rounded-lg border p-4">
             <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
               <div>
-                <h3 className="text-base font-semibold">
-                  {trend.data?.label ?? 'Grafik tren'}
-                </h3>
-                <p className="text-xs text-muted-foreground">
+                <h3 className="text-base font-semibold">{trend.data?.label ?? 'Grafik tren'}</h3>
+                <p className="text-muted-foreground text-xs">
                   {trend.data
                     ? `Data harian dari ${trend.data.window.from} sampai ${trend.data.window.to} (${trend.data.window.timezone}).`
                     : 'Klik salah satu tile di atas untuk memuat grafik.'}
                 </p>
               </div>
               {dashboard.data.lastComputedAt && (
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-muted-foreground text-[11px]">
                   Snapshot terakhir:{' '}
                   {new Date(dashboard.data.lastComputedAt).toLocaleString('id-ID')}
                 </p>
@@ -135,7 +127,7 @@ export function ExecutiveDashboard(): JSX.Element {
             {trend.isLoading ? (
               <div
                 role="status"
-                className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground"
+                className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm"
               >
                 Memuat grafik…
               </div>
@@ -147,14 +139,14 @@ export function ExecutiveDashboard(): JSX.Element {
                 ariaLabel={`Grafik ${trend.data.label}`}
               />
             ) : (
-              <div className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground">
+              <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm">
                 Pilih tile KPI untuk melihat tren.
               </div>
             )}
           </div>
         </>
       ) : (
-        <div className="rounded-md border border-destructive/50 bg-destructive/5 p-4 text-sm text-destructive">
+        <div className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-4 text-sm">
           Gagal memuat data dashboard.
         </div>
       )}

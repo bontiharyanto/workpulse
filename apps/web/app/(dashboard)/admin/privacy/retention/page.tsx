@@ -23,19 +23,15 @@ export default function AdminRetentionPage(): JSX.Element {
         <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="space-y-1">
-              <h1 className="text-2xl font-semibold tracking-tight">
-                Kebijakan retensi data
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Atur berapa lama data operasional disimpan sebelum dihapus
-                otomatis oleh job retensi harian.
+              <h1 className="text-2xl font-semibold tracking-tight">Kebijakan retensi data</h1>
+              <p className="text-muted-foreground text-sm">
+                Atur berapa lama data operasional disimpan sebelum dihapus otomatis oleh job retensi
+                harian.
               </p>
             </div>
             <Link
-              href={
-                '/admin/privacy/retention/audit-reports' as unknown as Route
-              }
-              className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground hover:border-primary/60"
+              href={'/admin/privacy/retention/audit-reports' as unknown as Route}
+              className="border-border bg-card text-foreground hover:border-primary/60 rounded-md border px-3 py-1.5 text-sm"
             >
               Lihat Audit bulanan →
             </Link>

@@ -30,9 +30,7 @@ async function login(email: string, password: string): Promise<Login> {
     data: { email, password },
   });
   if (!res.ok()) {
-    throw new Error(
-      `login failed for ${email}: ${res.status()} ${await res.text()}`,
-    );
+    throw new Error(`login failed for ${email}: ${res.status()} ${await res.text()}`);
   }
   const body = (await res.json()) as { accessToken: string };
   return { ctx, accessToken: body.accessToken };
@@ -74,12 +72,8 @@ test.describe('Timesheet export — payroll CSV & XLSX', () => {
     // it) and one in the month before that (we'll leave it empty so the
     // EXPORT_EMPTY branch fires).
     const now = new Date();
-    const prevMonthAnchor = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 15),
-    );
-    const prevPrevMonthAnchor = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 2, 15),
-    );
+    const prevMonthAnchor = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 15));
+    const prevPrevMonthAnchor = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 2, 15));
 
     const { request } = await import('@playwright/test');
 
@@ -100,12 +94,9 @@ test.describe('Timesheet export — payroll CSV & XLSX', () => {
 
     // Approve all timesheets in `approvedPeriodId` so it becomes eligible
     // to export. The other period stays in DRAFT and must be refused.
-    const approveRes = await genCtx.post(
-      '/api/v1/test-support/timesheet/approve-all',
-      {
-        data: { email: SEED_USERS.hr.email, periodId: approvedPeriodId },
-      },
-    );
+    const approveRes = await genCtx.post('/api/v1/test-support/timesheet/approve-all', {
+      data: { email: SEED_USERS.hr.email, periodId: approvedPeriodId },
+    });
     expect(approveRes.status()).toBe(204);
     await genCtx.dispose();
   });

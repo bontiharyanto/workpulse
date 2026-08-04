@@ -22,16 +22,16 @@ export const metadata: Metadata = {
 export default function ChangePasswordPage(): JSX.Element {
   return (
     <RequireAuth>
-      <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-        <div className="w-full max-w-sm rounded-lg border bg-background p-6 shadow-sm">
+      <main className="bg-muted/30 flex min-h-screen items-center justify-center px-4">
+        <div className="bg-background w-full max-w-sm rounded-lg border p-6 shadow-sm">
           <div className="mb-6 space-y-1">
-            <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            <p className="text-muted-foreground text-xs font-medium uppercase tracking-widest">
               Workpulse
             </p>
             <h1 className="text-2xl font-semibold tracking-tight">Ubah password</h1>
-            <p className="text-sm text-muted-foreground">
-              Setelah berhasil, seluruh sesi di setiap perangkat akan
-              di-logout dan Anda harus login ulang dengan password baru.
+            <p className="text-muted-foreground text-sm">
+              Setelah berhasil, seluruh sesi di setiap perangkat akan di-logout dan Anda harus login
+              ulang dengan password baru.
             </p>
           </div>
           <ChangePasswordForm />

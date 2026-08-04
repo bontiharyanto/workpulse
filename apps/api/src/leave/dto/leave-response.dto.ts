@@ -7,7 +7,9 @@ export class LeaveRequestDto {
   @ApiProperty({ required: false }) userFullName?: string;
   @ApiProperty() leaveTypeId!: string;
   @ApiProperty() leaveTypeName!: string;
-  @ApiProperty({ enum: ['ANNUAL', 'SICK', 'PERSONAL', 'MATERNITY', 'PATERNITY', 'UNPAID', 'OTHER'] })
+  @ApiProperty({
+    enum: ['ANNUAL', 'SICK', 'PERSONAL', 'MATERNITY', 'PATERNITY', 'UNPAID', 'OTHER'],
+  })
   leaveTypeKind!: LeaveKind;
   @ApiProperty({
     enum: ['DRAFT', 'PENDING_SUPERVISOR', 'PENDING_HR', 'APPROVED', 'REJECTED', 'CANCELLED'],
@@ -36,7 +38,9 @@ export class LeaveBalanceDto {
   @ApiProperty() leaveTypeId!: string;
   @ApiProperty() leaveTypeCode!: string;
   @ApiProperty() leaveTypeName!: string;
-  @ApiProperty({ enum: ['ANNUAL', 'SICK', 'PERSONAL', 'MATERNITY', 'PATERNITY', 'UNPAID', 'OTHER'] })
+  @ApiProperty({
+    enum: ['ANNUAL', 'SICK', 'PERSONAL', 'MATERNITY', 'PATERNITY', 'UNPAID', 'OTHER'],
+  })
   kind!: LeaveKind;
   @ApiProperty() year!: number;
   @ApiProperty() quota!: number;

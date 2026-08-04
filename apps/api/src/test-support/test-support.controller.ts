@@ -55,9 +55,7 @@ export class TestSupportController {
   @Post('report-scheduler/tick')
   @HttpCode(HttpStatus.OK)
   @Public()
-  async reportSchedulerTick(
-    @Body() body: { at?: string } = {},
-  ): Promise<{ delivered: number }> {
+  async reportSchedulerTick(@Body() body: { at?: string } = {}): Promise<{ delivered: number }> {
     this.assertEnabled();
     const now = body.at ? new Date(body.at) : new Date();
     if (Number.isNaN(now.getTime())) {
@@ -153,9 +151,7 @@ export class TestSupportController {
       where: { email: body.sourceEmail, deletedAt: null },
     });
     if (!source) {
-      throw new ForbiddenException(
-        `test-support: source user ${body.sourceEmail} not found`,
-      );
+      throw new ForbiddenException(`test-support: source user ${body.sourceEmail} not found`);
     }
     const suffix = `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
     const email = `throwaway-${suffix}@workpulse.test`;
@@ -200,9 +196,7 @@ export class TestSupportController {
   @Post('retention/prime')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Public()
-  async primeRetention(
-    @Body() body: { companyId?: string; email?: string },
-  ): Promise<void> {
+  async primeRetention(@Body() body: { companyId?: string; email?: string }): Promise<void> {
     this.assertEnabled();
     const companyId = await this.resolveCompanyId(body);
     if (!companyId) return;
@@ -221,7 +215,11 @@ export class TestSupportController {
   @Public()
   async ageNotifications(
     @Body()
-    body: { companyId?: string; email?: string; ageDays: number },
+    body: {
+      companyId?: string;
+      email?: string;
+      ageDays: number;
+    },
   ): Promise<void> {
     this.assertEnabled();
     const companyId = await this.resolveCompanyId(body);
@@ -240,9 +238,7 @@ export class TestSupportController {
   @Post('consent/prune')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Public()
-  async pruneConsent(
-    @Body() body: { companyId?: string; email?: string },
-  ): Promise<void> {
+  async pruneConsent(@Body() body: { companyId?: string; email?: string }): Promise<void> {
     this.assertEnabled();
     const companyId = await this.resolveCompanyId(body);
     if (!companyId) return;
@@ -258,9 +254,7 @@ export class TestSupportController {
   @Post('timesheet/prune')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Public()
-  async pruneTimesheets(
-    @Body() body: { companyId?: string; email?: string },
-  ): Promise<void> {
+  async pruneTimesheets(@Body() body: { companyId?: string; email?: string }): Promise<void> {
     this.assertEnabled();
     const companyId = await this.resolveCompanyId(body);
     if (!companyId) return;
@@ -297,9 +291,7 @@ export class TestSupportController {
   @Post('timesheet/approve-all')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Public()
-  async approveAllTimesheets(
-    @Body() body: { email: string; periodId: string },
-  ): Promise<void> {
+  async approveAllTimesheets(@Body() body: { email: string; periodId: string }): Promise<void> {
     this.assertEnabled();
     const companyId = await this.resolveCompanyId(body);
     if (!companyId) return;
@@ -321,9 +313,7 @@ export class TestSupportController {
   @Post('timesheet-export/prune')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Public()
-  async pruneTimesheetExports(
-    @Body() body: { email: string },
-  ): Promise<void> {
+  async pruneTimesheetExports(@Body() body: { email: string }): Promise<void> {
     this.assertEnabled();
     const companyId = await this.resolveCompanyId(body);
     if (!companyId) return;
@@ -371,9 +361,7 @@ export class TestSupportController {
   @Post('timesheet-scheduler/tick')
   @HttpCode(HttpStatus.OK)
   @Public()
-  async timesheetSchedulerTick(
-    @Body() body: { at?: string } = {},
-  ): Promise<{
+  async timesheetSchedulerTick(@Body() body: { at?: string } = {}): Promise<{
     reports: Awaited<ReturnType<TimesheetSchedulerWorker['tickForTest']>>;
   }> {
     this.assertEnabled();
@@ -412,9 +400,7 @@ export class TestSupportController {
   @Post('notifications/prune')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Public()
-  async pruneNotifications(
-    @Body() body: { email?: string; companyId?: string },
-  ): Promise<void> {
+  async pruneNotifications(@Body() body: { email?: string; companyId?: string }): Promise<void> {
     this.assertEnabled();
     const companyId = await this.resolveCompanyId(body);
     if (!companyId) return;
@@ -435,12 +421,7 @@ export class TestSupportController {
     @Body()
     body: {
       timesheetId: string;
-      status:
-        | 'DRAFT'
-        | 'PENDING_SUPERVISOR'
-        | 'PENDING_HR'
-        | 'APPROVED'
-        | 'REJECTED';
+      status: 'DRAFT' | 'PENDING_SUPERVISOR' | 'PENDING_HR' | 'APPROVED' | 'REJECTED';
     },
   ): Promise<void> {
     this.assertEnabled();
@@ -539,9 +520,7 @@ export class TestSupportController {
   @Post('analytics/prune')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Public()
-  async pruneAnalytics(
-    @Body() body: { companyId?: string; email?: string },
-  ): Promise<void> {
+  async pruneAnalytics(@Body() body: { companyId?: string; email?: string }): Promise<void> {
     this.assertEnabled();
     const companyId = await this.resolveCompanyId(body);
     if (!companyId) return;

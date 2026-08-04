@@ -13,8 +13,7 @@ import { useForm } from 'react-hook-form';
 import { ApiError, retentionApi } from '@/lib/api-client';
 
 const ERROR_COPY: Record<string, string> = {
-  RETENTION_OUT_OF_BOUNDS:
-    'Salah satu nilai berada di luar batas yang diizinkan.',
+  RETENTION_OUT_OF_BOUNDS: 'Salah satu nilai berada di luar batas yang diizinkan.',
   THROTTLED: 'Terlalu banyak percobaan. Coba lagi sebentar.',
 };
 
@@ -47,15 +46,13 @@ export function RetentionPolicyPanel(): JSX.Element {
     if (!policy.data) return;
     form.reset({
       notificationRetentionDays: policy.data.notificationRetentionDays,
-      dataExportArchiveRetentionHours:
-        policy.data.dataExportArchiveRetentionHours,
+      dataExportArchiveRetentionHours: policy.data.dataExportArchiveRetentionHours,
       terminatedUserAnonymizeDays: policy.data.terminatedUserAnonymizeDays,
     });
   }, [policy.data, form]);
 
   const mutation = useMutation({
-    mutationFn: (input: UpdateRetentionPolicyInput) =>
-      retentionApi.update(input),
+    mutationFn: (input: UpdateRetentionPolicyInput) => retentionApi.update(input),
     onSuccess: async () => {
       setSaved('saved');
       await qc.invalidateQueries({ queryKey: ['retention-policy'] });
@@ -78,7 +75,7 @@ export function RetentionPolicyPanel(): JSX.Element {
       <div
         role="status"
         aria-live="polite"
-        className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground"
+        className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm"
       >
         Memuat konfigurasi retensi…
       </div>
@@ -89,7 +86,7 @@ export function RetentionPolicyPanel(): JSX.Element {
     return (
       <div
         role="alert"
-        className="rounded-md border border-destructive/50 bg-destructive/5 p-4 text-sm text-destructive"
+        className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-4 text-sm"
       >
         Gagal memuat konfigurasi. Coba muat ulang halaman.
       </div>
@@ -99,17 +96,16 @@ export function RetentionPolicyPanel(): JSX.Element {
   return (
     <form
       onSubmit={onSubmit}
-      className="space-y-6 rounded-lg border border-border bg-card p-6"
+      className="border-border bg-card space-y-6 rounded-lg border p-6"
       aria-labelledby="retention-heading"
     >
       <div className="space-y-1">
         <h2 id="retention-heading" className="text-lg font-semibold">
           Kebijakan retensi data
         </h2>
-        <p className="text-sm text-muted-foreground">
-          Perubahan berlaku pada job retensi harian berikutnya (02:00 UTC).
-          Nilai <code>0</code> pada notifikasi atau auto-anonimisasi berarti
-          fitur tersebut dinonaktifkan.
+        <p className="text-muted-foreground text-sm">
+          Perubahan berlaku pada job retensi harian berikutnya (02:00 UTC). Nilai <code>0</code>{' '}
+          pada notifikasi atau auto-anonimisasi berarti fitur tersebut dinonaktifkan.
         </p>
       </div>
 
@@ -131,9 +127,7 @@ export function RetentionPolicyPanel(): JSX.Element {
           hint={`Arsip export data pengguna akan otomatis dihapus setelah interval ini. Range ${retentionBounds.dataExport.min}–${retentionBounds.dataExport.max} jam.`}
           min={retentionBounds.dataExport.min}
           max={retentionBounds.dataExport.max}
-          error={
-            form.formState.errors.dataExportArchiveRetentionHours?.message
-          }
+          error={form.formState.errors.dataExportArchiveRetentionHours?.message}
           {...form.register('dataExportArchiveRetentionHours', {
             valueAsNumber: true,
           })}
@@ -154,24 +148,20 @@ export function RetentionPolicyPanel(): JSX.Element {
       {inlineError ? (
         <div
           role="alert"
-          className="rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive"
+          className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-3 text-sm"
         >
           {inlineError}
         </div>
       ) : null}
 
       <div className="flex items-center justify-between gap-3">
-        <p
-          role="status"
-          aria-live="polite"
-          className="text-xs text-muted-foreground"
-        >
+        <p role="status" aria-live="polite" className="text-muted-foreground text-xs">
           {saved === 'saved' ? 'Perubahan tersimpan.' : ''}
         </p>
         <button
           type="submit"
           disabled={mutation.isPending || !form.formState.isDirty}
-          className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
         >
           {mutation.isPending ? 'Menyimpan…' : 'Simpan kebijakan'}
         </button>
@@ -180,46 +170,39 @@ export function RetentionPolicyPanel(): JSX.Element {
   );
 }
 
-interface NumberFieldProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+interface NumberFieldProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
   id: string;
   label: string;
   hint: string;
   error?: string;
 }
 
-const NumberField = React.forwardRef<HTMLInputElement, NumberFieldProps>(
-  function NumberField({ id, label, hint, error, ...rest }, ref): JSX.Element {
-    return (
-      <div className="space-y-1">
-        <label
-          htmlFor={id}
-          className="text-sm font-medium text-foreground"
-        >
-          {label}
-        </label>
-        <input
-          ref={ref}
-          id={id}
-          type="number"
-          className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          aria-invalid={error ? 'true' : 'false'}
-          aria-describedby={`${id}-hint${error ? ` ${id}-error` : ''}`}
-          {...rest}
-        />
-        <p id={`${id}-hint`} className="text-xs text-muted-foreground">
-          {hint}
+const NumberField = React.forwardRef<HTMLInputElement, NumberFieldProps>(function NumberField(
+  { id, label, hint, error, ...rest },
+  ref,
+): JSX.Element {
+  return (
+    <div className="space-y-1">
+      <label htmlFor={id} className="text-foreground text-sm font-medium">
+        {label}
+      </label>
+      <input
+        ref={ref}
+        id={id}
+        type="number"
+        className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
+        aria-invalid={error ? 'true' : 'false'}
+        aria-describedby={`${id}-hint${error ? ` ${id}-error` : ''}`}
+        {...rest}
+      />
+      <p id={`${id}-hint`} className="text-muted-foreground text-xs">
+        {hint}
+      </p>
+      {error ? (
+        <p id={`${id}-error`} role="alert" className="text-destructive text-xs">
+          {error}
         </p>
-        {error ? (
-          <p
-            id={`${id}-error`}
-            role="alert"
-            className="text-xs text-destructive"
-          >
-            {error}
-          </p>
-        ) : null}
-      </div>
-    );
-  },
-);
+      ) : null}
+    </div>
+  );
+});

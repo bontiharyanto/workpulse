@@ -1,10 +1,6 @@
 import { TimesheetEntryKind } from '@prisma/client';
 
-import {
-  buildEntry,
-  rollupTimesheet,
-  type BuildEntryInput,
-} from './entry-builder';
+import { buildEntry, rollupTimesheet, type BuildEntryInput } from './entry-builder';
 
 function baseInput(overrides: Partial<BuildEntryInput> = {}): BuildEntryInput {
   return {

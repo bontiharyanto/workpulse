@@ -1,10 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  forgotPasswordInputSchema,
-  type ForgotPasswordInput,
-} from '@workpulse/shared-types';
+import { forgotPasswordInputSchema, type ForgotPasswordInput } from '@workpulse/shared-types';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -60,14 +57,13 @@ export function ForgotPasswordForm(): JSX.Element {
         >
           {GENERIC_SUCCESS_MESSAGE}
         </div>
-        <p className="text-xs text-muted-foreground">
-          Link reset berlaku 30 menit. Jika email tidak muncul di inbox,
-          periksa folder spam atau minta bantuan HR untuk memverifikasi
-          alamat email Anda.
+        <p className="text-muted-foreground text-xs">
+          Link reset berlaku 30 menit. Jika email tidak muncul di inbox, periksa folder spam atau
+          minta bantuan HR untuk memverifikasi alamat email Anda.
         </p>
         <Link
           href="/login"
-          className="inline-block text-sm font-medium text-primary underline underline-offset-4"
+          className="text-primary inline-block text-sm font-medium underline underline-offset-4"
         >
           Kembali ke halaman masuk
         </Link>
@@ -87,11 +83,11 @@ export function ForgotPasswordForm(): JSX.Element {
           autoComplete="email"
           autoFocus
           aria-invalid={Boolean(form.formState.errors.email) || undefined}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2"
           {...form.register('email')}
         />
         {form.formState.errors.email && (
-          <p role="alert" className="text-xs text-destructive">
+          <p role="alert" className="text-destructive text-xs">
             {form.formState.errors.email.message}
           </p>
         )}
@@ -100,7 +96,7 @@ export function ForgotPasswordForm(): JSX.Element {
       {submitError && (
         <p
           role="alert"
-          className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
         >
           {submitError}
         </p>
@@ -109,12 +105,12 @@ export function ForgotPasswordForm(): JSX.Element {
       <button
         type="submit"
         disabled={form.formState.isSubmitting}
-        className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:opacity-90 disabled:opacity-50"
+        className="bg-primary text-primary-foreground w-full rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90 disabled:opacity-50"
       >
         {form.formState.isSubmitting ? 'Mengirim...' : 'Kirim link reset'}
       </button>
 
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="text-muted-foreground text-center text-xs">
         <Link href="/login" className="underline underline-offset-4">
           Kembali ke halaman masuk
         </Link>

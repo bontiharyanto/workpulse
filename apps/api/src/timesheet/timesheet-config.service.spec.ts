@@ -1,9 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import {
-  TimesheetConfig,
-  TimesheetPeriodType,
-  WeekStartDay,
-} from '@prisma/client';
+import { TimesheetConfig, TimesheetPeriodType, WeekStartDay } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
@@ -22,9 +18,7 @@ function buildKit(): Kit {
   return { service: new TimesheetConfigService(prisma), prisma };
 }
 
-function makeConfig(
-  overrides: Partial<TimesheetConfig> = {},
-): TimesheetConfig {
+function makeConfig(overrides: Partial<TimesheetConfig> = {}): TimesheetConfig {
   return {
     id: 'tc-1',
     companyId: 'c-1',
@@ -79,30 +73,21 @@ describe('TimesheetConfigService.update', () => {
   it('rejects cutoffDayOfMonth out of range', async () => {
     const { service } = buildKit();
     await expect(
-      service.update(
-        { id: 'u-1', companyId: 'c-1' },
-        { cutoffDayOfMonth: 30 },
-      ),
+      service.update({ id: 'u-1', companyId: 'c-1' }, { cutoffDayOfMonth: 30 }),
     ).rejects.toThrow(BadRequestException);
   });
 
   it('rejects invalid timezone', async () => {
     const { service } = buildKit();
     await expect(
-      service.update(
-        { id: 'u-1', companyId: 'c-1' },
-        { timezone: 'Mars/Olympus' },
-      ),
+      service.update({ id: 'u-1', companyId: 'c-1' }, { timezone: 'Mars/Olympus' }),
     ).rejects.toThrow(BadRequestException);
   });
 
   it('rejects biweeklyAnchor not matching YYYY-MM-DD', async () => {
     const { service } = buildKit();
     await expect(
-      service.update(
-        { id: 'u-1', companyId: 'c-1' },
-        { biweeklyAnchor: '2026/08/03' },
-      ),
+      service.update({ id: 'u-1', companyId: 'c-1' }, { biweeklyAnchor: '2026/08/03' }),
     ).rejects.toThrow(BadRequestException);
   });
 
@@ -123,10 +108,7 @@ describe('TimesheetConfigService.update', () => {
     });
 
     await expect(
-      service.update(
-        { id: 'u-1', companyId: 'c-1' },
-        { periodType: TimesheetPeriodType.CUTOFF },
-      ),
+      service.update({ id: 'u-1', companyId: 'c-1' }, { periodType: TimesheetPeriodType.CUTOFF }),
     ).rejects.toThrow(BadRequestException);
   });
 

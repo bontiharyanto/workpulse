@@ -8,7 +8,7 @@
   (payroll cutoff — writes `COMPANY_CONFIG_UPDATED` and
   `SCANNER_CURSOR_RESET`), all leave/overtime/correction ADRs (writers
   of the respective `*_SUBMITTED / *_APPROVED / *_REJECTED /
-  *_CANCELLED` rows).
+*_CANCELLED` rows).
 
 ## Context
 

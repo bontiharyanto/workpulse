@@ -28,10 +28,7 @@ export type MetricFormatKind = 'RATIO_PCT' | 'COUNT' | 'HOURS' | 'CURRENCY_IDR';
  *   LOWER_IS_BETTER  — e.g. late count, absent count, overtime cost.
  *   NEUTRAL          — e.g. leave days approved (business context varies).
  */
-export type MetricDirection =
-  | 'HIGHER_IS_BETTER'
-  | 'LOWER_IS_BETTER'
-  | 'NEUTRAL';
+export type MetricDirection = 'HIGHER_IS_BETTER' | 'LOWER_IS_BETTER' | 'NEUTRAL';
 
 export interface MetricDescriptor {
   key: AnalyticsMetricKey;
@@ -64,81 +61,80 @@ const D = (
   fractionDigits,
 });
 
-export const METRIC_DESCRIPTORS: Record<AnalyticsMetricKey, MetricDescriptor> =
-  {
-    ATTENDANCE_ON_TIME_RATE: D(
-      'ATTENDANCE_ON_TIME_RATE',
-      'On-time rate',
-      'Share of clock-ins on the given day flagged ON_TIME. Excludes LATE, EARLY_LEAVE, ABSENT, ON_LEAVE.',
-      'RATIO_PCT',
-      'HIGHER_IS_BETTER',
-      2,
-    ),
-    ATTENDANCE_LATE_COUNT: D(
-      'ATTENDANCE_LATE_COUNT',
-      'Terlambat',
-      'Absolute count of attendance records flagged LATE on the given day.',
-      'COUNT',
-      'LOWER_IS_BETTER',
-      0,
-    ),
-    ATTENDANCE_ABSENT_COUNT: D(
-      'ATTENDANCE_ABSENT_COUNT',
-      'Tanpa keterangan',
-      'Absolute count of AbsenceRecord entries whose workDate is the given day.',
-      'COUNT',
-      'LOWER_IS_BETTER',
-      0,
-    ),
-    LEAVE_PENDING_COUNT: D(
-      'LEAVE_PENDING_COUNT',
-      'Cuti pending',
-      'Leave requests still in PENDING_SUPERVISOR or PENDING_HR as of the given day (open-ended snapshot).',
-      'COUNT',
-      'LOWER_IS_BETTER',
-      0,
-    ),
-    LEAVE_DAYS_APPROVED: D(
-      'LEAVE_DAYS_APPROVED',
-      'Cuti disetujui (hari)',
-      'Total approved leave days whose startDate falls on the given day.',
-      'COUNT',
-      'NEUTRAL',
-      0,
-    ),
-    OVERTIME_HOURS: D(
-      'OVERTIME_HOURS',
-      'Lembur (jam)',
-      'Total approved overtime hours logged with workDate on the given day.',
-      'HOURS',
-      'NEUTRAL',
-      2,
-    ),
-    OVERTIME_COST_IDR: D(
-      'OVERTIME_COST_IDR',
-      'Biaya lembur',
-      'Total approved overtime cost (baseRate × multiplier × hours) in IDR on the given day.',
-      'CURRENCY_IDR',
-      'LOWER_IS_BETTER',
-      0,
-    ),
-    HEADCOUNT_ACTIVE: D(
-      'HEADCOUNT_ACTIVE',
-      'Headcount aktif',
-      'Snapshot of active (deletedAt IS NULL) employees at end-of-day on the given date.',
-      'COUNT',
-      'HIGHER_IS_BETTER',
-      0,
-    ),
-    HEADCOUNT_TERMINATED: D(
-      'HEADCOUNT_TERMINATED',
-      'Terminasi',
-      'Users terminated on the given day (User.deletedAt within the day boundary).',
-      'COUNT',
-      'LOWER_IS_BETTER',
-      0,
-    ),
-  };
+export const METRIC_DESCRIPTORS: Record<AnalyticsMetricKey, MetricDescriptor> = {
+  ATTENDANCE_ON_TIME_RATE: D(
+    'ATTENDANCE_ON_TIME_RATE',
+    'On-time rate',
+    'Share of clock-ins on the given day flagged ON_TIME. Excludes LATE, EARLY_LEAVE, ABSENT, ON_LEAVE.',
+    'RATIO_PCT',
+    'HIGHER_IS_BETTER',
+    2,
+  ),
+  ATTENDANCE_LATE_COUNT: D(
+    'ATTENDANCE_LATE_COUNT',
+    'Terlambat',
+    'Absolute count of attendance records flagged LATE on the given day.',
+    'COUNT',
+    'LOWER_IS_BETTER',
+    0,
+  ),
+  ATTENDANCE_ABSENT_COUNT: D(
+    'ATTENDANCE_ABSENT_COUNT',
+    'Tanpa keterangan',
+    'Absolute count of AbsenceRecord entries whose workDate is the given day.',
+    'COUNT',
+    'LOWER_IS_BETTER',
+    0,
+  ),
+  LEAVE_PENDING_COUNT: D(
+    'LEAVE_PENDING_COUNT',
+    'Cuti pending',
+    'Leave requests still in PENDING_SUPERVISOR or PENDING_HR as of the given day (open-ended snapshot).',
+    'COUNT',
+    'LOWER_IS_BETTER',
+    0,
+  ),
+  LEAVE_DAYS_APPROVED: D(
+    'LEAVE_DAYS_APPROVED',
+    'Cuti disetujui (hari)',
+    'Total approved leave days whose startDate falls on the given day.',
+    'COUNT',
+    'NEUTRAL',
+    0,
+  ),
+  OVERTIME_HOURS: D(
+    'OVERTIME_HOURS',
+    'Lembur (jam)',
+    'Total approved overtime hours logged with workDate on the given day.',
+    'HOURS',
+    'NEUTRAL',
+    2,
+  ),
+  OVERTIME_COST_IDR: D(
+    'OVERTIME_COST_IDR',
+    'Biaya lembur',
+    'Total approved overtime cost (baseRate × multiplier × hours) in IDR on the given day.',
+    'CURRENCY_IDR',
+    'LOWER_IS_BETTER',
+    0,
+  ),
+  HEADCOUNT_ACTIVE: D(
+    'HEADCOUNT_ACTIVE',
+    'Headcount aktif',
+    'Snapshot of active (deletedAt IS NULL) employees at end-of-day on the given date.',
+    'COUNT',
+    'HIGHER_IS_BETTER',
+    0,
+  ),
+  HEADCOUNT_TERMINATED: D(
+    'HEADCOUNT_TERMINATED',
+    'Terminasi',
+    'Users terminated on the given day (User.deletedAt within the day boundary).',
+    'COUNT',
+    'LOWER_IS_BETTER',
+    0,
+  ),
+};
 
 /** Frozen list of every metric — the executive dashboard iterates this. */
 export const METRIC_KEYS: readonly AnalyticsMetricKey[] = Object.freeze(

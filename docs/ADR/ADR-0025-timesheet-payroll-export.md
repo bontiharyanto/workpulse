@@ -1,6 +1,7 @@
 # ADR-0025 — Timesheet Payroll Export (Fase 32c)
 
 ## Status
+
 Accepted — 2026-08-03
 
 ## Context
@@ -23,8 +24,8 @@ Requirements:
    sole eligible state keeps the payroll pipeline consistent with the
    workflow invariants added in Fase 32b.
 4. **Full audit trail.** For every export we must be able to answer
-   later: *"who exported what, when, in what shape, and was the file
-   the payroll team received actually the file we produced?"*.
+   later: _"who exported what, when, in what shape, and was the file
+   the payroll team received actually the file we produced?"_.
 5. **Cross-tenant safety.** HR of Company A must never see or export
    any bytes of Company B — same discipline as the rest of the app.
 
@@ -131,19 +132,19 @@ transitions after export"). Rejected for MVP because:
   process's heap. If we grow past ~50 MB per export we'll need to
   switch to a streaming-hash pattern (`crypto.createHash().update()` on
   each chunk).
-- `TimesheetExport.payloadSha256` is *not* a signature — we don't sign
+- `TimesheetExport.payloadSha256` is _not_ a signature — we don't sign
   with a private key. A rogue superuser with DB access can still forge
   history. Acceptable for internal payroll where DB access is already
   audited at the infrastructure layer.
 
 ## Alternatives considered
 
-| Option | Rejected because |
-|---|---|
-| Presigned S3 URL per export | Adds infra dependency for a workflow that's essentially "download and forget". Reintroduce if payroll starts asking for shareable long-lived links. |
-| PDF export | Not machine-readable by payroll systems; HR's habit is spreadsheet-native. |
-| Async job + email | Payroll is a synchronous, deliberate action ("HR opens the panel, clicks export"). Adding an async layer only helps if we need >1 min renders — we're at ~1 s for the largest modelled tenant. |
-| Locking the period on export | Would prevent legitimate re-exports for spot corrections. See §5 above. |
+| Option                       | Rejected because                                                                                                                                                                               |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Presigned S3 URL per export  | Adds infra dependency for a workflow that's essentially "download and forget". Reintroduce if payroll starts asking for shareable long-lived links.                                            |
+| PDF export                   | Not machine-readable by payroll systems; HR's habit is spreadsheet-native.                                                                                                                     |
+| Async job + email            | Payroll is a synchronous, deliberate action ("HR opens the panel, clicks export"). Adding an async layer only helps if we need >1 min renders — we're at ~1 s for the largest modelled tenant. |
+| Locking the period on export | Would prevent legitimate re-exports for spot corrections. See §5 above.                                                                                                                        |
 
 ## References
 

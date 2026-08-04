@@ -17,7 +17,7 @@ export function CompanyDashboardLink(): JSX.Element | null {
   return (
     <Link
       href="/attendance/dashboard"
-      className="whitespace-nowrap rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-muted"
+      className="border-input hover:bg-muted whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium"
     >
       Dashboard HR →
     </Link>

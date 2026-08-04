@@ -1,18 +1,5 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-} from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiConflictResponse,
-  ApiOkResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiConflictResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { DataErasureRequest, User } from '@prisma/client';
 
@@ -60,9 +47,7 @@ export class DataErasureAdminController {
   @Get()
   @ApiBearerAuth()
   @ApiOkResponse({ type: DataErasureAdminListResponseDto })
-  async listAll(
-    @CurrentUser() actor: AuthenticatedUser,
-  ): Promise<DataErasureAdminListResponseDto> {
+  async listAll(@CurrentUser() actor: AuthenticatedUser): Promise<DataErasureAdminListResponseDto> {
     const rows = await this.service.listAll(actor.companyId);
     return { requests: await this.hydrate(rows) };
   }
@@ -71,8 +56,7 @@ export class DataErasureAdminController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiConflictResponse({
-    description:
-      '`ERASURE_INVALID_TRANSITION` when the request is not PENDING_APPROVAL.',
+    description: '`ERASURE_INVALID_TRANSITION` when the request is not PENDING_APPROVAL.',
   })
   @Throttle({ default: { limit: 30, ttl: 60_000 } })
   async approve(
@@ -105,9 +89,7 @@ export class DataErasureAdminController {
     return (await this.hydrate([row]))[0]!;
   }
 
-  private async hydrate(
-    rows: DataErasureRequest[],
-  ): Promise<DataErasureAdminRequestDto[]> {
+  private async hydrate(rows: DataErasureRequest[]): Promise<DataErasureAdminRequestDto[]> {
     if (rows.length === 0) return [];
     // One roundtrip regardless of the queue size.
     const users = await this.prisma.user.findMany({

@@ -21,17 +21,12 @@ const ERROR_COPY: Record<string, string> = {
   THROTTLED: 'Terlalu banyak percobaan. Coba lagi sebentar.',
   TIMESHEET_ILLEGAL_TRANSITION:
     'Aksi tidak valid untuk status timesheet ini (mungkin sudah diubah oleh orang lain).',
-  TIMESHEET_FORBIDDEN_SUPERVISOR:
-    'Anda bukan supervisor karyawan tersebut.',
+  TIMESHEET_FORBIDDEN_SUPERVISOR: 'Anda bukan supervisor karyawan tersebut.',
   TIMESHEET_FORBIDDEN_HR: 'Hanya HR yang berwenang.',
-  TIMESHEET_REJECT_NOTE_REQUIRED:
-    'Alasan penolakan wajib diisi.',
-  TIMESHEET_REOPEN_FORBIDDEN:
-    'Hanya HR Manager / Super Admin yang bisa membuka kembali timesheet.',
-  TIMESHEET_REOPEN_STATUS_INVALID:
-    'Hanya timesheet berstatus APPROVED yang bisa dibuka kembali.',
-  TIMESHEET_REOPEN_REASON_INVALID:
-    `Alasan reopen wajib diisi ${REOPEN_REASON_MIN}..${REOPEN_REASON_MAX} karakter.`,
+  TIMESHEET_REJECT_NOTE_REQUIRED: 'Alasan penolakan wajib diisi.',
+  TIMESHEET_REOPEN_FORBIDDEN: 'Hanya HR Manager / Super Admin yang bisa membuka kembali timesheet.',
+  TIMESHEET_REOPEN_STATUS_INVALID: 'Hanya timesheet berstatus APPROVED yang bisa dibuka kembali.',
+  TIMESHEET_REOPEN_REASON_INVALID: `Alasan reopen wajib diisi ${REOPEN_REASON_MIN}..${REOPEN_REASON_MAX} karakter.`,
 };
 
 const STATUS_FILTERS: Array<{ value: '' | TimesheetStatus; label: string }> = [
@@ -51,8 +46,7 @@ const STATUS_FILTERS: Array<{ value: '' | TimesheetStatus; label: string }> = [
 export function AdminTimesheetPanel(): JSX.Element {
   const qc = useQueryClient();
   const { user } = useAuth();
-  const canConfigure =
-    user?.role === 'HR_MANAGER' || user?.role === 'SUPER_ADMIN';
+  const canConfigure = user?.role === 'HR_MANAGER' || user?.role === 'SUPER_ADMIN';
   const [periodId, setPeriodId] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<'' | TimesheetStatus>('');
 
@@ -104,7 +98,7 @@ export function AdminTimesheetPanel(): JSX.Element {
 
   return (
     <div className="space-y-6">
-      <section className="flex flex-wrap items-end justify-between gap-4 rounded-lg border border-border bg-card p-6">
+      <section className="border-border bg-card flex flex-wrap items-end justify-between gap-4 rounded-lg border p-6">
         <div className="flex flex-wrap items-end gap-4">
           <div className="space-y-2">
             <label htmlFor="period" className="text-sm font-medium">
@@ -114,7 +108,7 @@ export function AdminTimesheetPanel(): JSX.Element {
               id="period"
               value={periodId}
               onChange={(e) => setPeriodId(e.target.value)}
-              className="min-w-[240px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="border-input bg-background focus:border-primary focus:ring-primary min-w-[240px] rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
               aria-label="Pilih periode"
             >
               <option value="">Terbaru (default)</option>
@@ -132,10 +126,8 @@ export function AdminTimesheetPanel(): JSX.Element {
             <select
               id="status"
               value={statusFilter}
-              onChange={(e) =>
-                setStatusFilter(e.target.value as '' | TimesheetStatus)
-              }
-              className="min-w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              onChange={(e) => setStatusFilter(e.target.value as '' | TimesheetStatus)}
+              className="border-input bg-background focus:border-primary focus:ring-primary min-w-[200px] rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
               aria-label="Filter status"
             >
               {STATUS_FILTERS.map((f) => (
@@ -150,7 +142,7 @@ export function AdminTimesheetPanel(): JSX.Element {
           {canConfigure ? (
             <Link
               href={'/admin/timesheet/config' as Route}
-              className="inline-flex items-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
+              className="border-input bg-background hover:bg-accent inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium"
             >
               Konfigurasi
             </Link>
@@ -158,7 +150,7 @@ export function AdminTimesheetPanel(): JSX.Element {
           {canConfigure ? (
             <Link
               href={'/admin/timesheet/exports' as Route}
-              className="inline-flex items-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
+              className="border-input bg-background hover:bg-accent inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium"
               data-testid="ts-open-exports"
             >
               Export payroll
@@ -169,7 +161,7 @@ export function AdminTimesheetPanel(): JSX.Element {
               type="button"
               onClick={() => generate.mutate()}
               disabled={generate.isPending}
-              className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
             >
               {generate.isPending ? 'Menghasilkan…' : 'Generate periode berjalan'}
             </button>
@@ -180,7 +172,7 @@ export function AdminTimesheetPanel(): JSX.Element {
       {generateError ? (
         <div
           role="alert"
-          className="rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive"
+          className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-3 text-sm"
         >
           {generateError}
         </div>
@@ -188,7 +180,7 @@ export function AdminTimesheetPanel(): JSX.Element {
       {decideError ? (
         <div
           role="alert"
-          className="rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive"
+          className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-3 text-sm"
         >
           {decideError}
         </div>
@@ -196,32 +188,32 @@ export function AdminTimesheetPanel(): JSX.Element {
       {reopenError ? (
         <div
           role="alert"
-          className="rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive"
+          className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-3 text-sm"
         >
           {reopenError}
         </div>
       ) : null}
 
       {list.isLoading ? (
-        <div className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground">
+        <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm">
           Memuat…
         </div>
       ) : list.isError ? (
         <div
           role="alert"
-          className="rounded-md border border-destructive/50 bg-destructive/5 p-4 text-sm text-destructive"
+          className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-4 text-sm"
         >
           Gagal memuat daftar timesheet.
         </div>
       ) : (list.data?.items ?? []).length === 0 ? (
-        <div className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground">
+        <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm">
           Belum ada timesheet — klik “Generate periode berjalan”.
         </div>
       ) : (
-        <section className="overflow-x-auto rounded-lg border border-border bg-card">
+        <section className="border-border bg-card overflow-x-auto rounded-lg border">
           <table className="w-full min-w-[860px] text-sm">
             <thead>
-              <tr className="border-b text-xs uppercase text-muted-foreground">
+              <tr className="text-muted-foreground border-b text-xs uppercase">
                 <th className="px-3 py-2 text-left">Karyawan</th>
                 <th className="px-3 py-2 text-left">Periode</th>
                 <th className="px-3 py-2 text-left">Status</th>
@@ -248,9 +240,7 @@ export function AdminTimesheetPanel(): JSX.Element {
         </section>
       )}
 
-      <p className="text-xs text-muted-foreground">
-        Total: {list.data?.total ?? 0} timesheet.
-      </p>
+      <p className="text-muted-foreground text-xs">Total: {list.data?.total ?? 0} timesheet.</p>
     </div>
   );
 }
@@ -284,18 +274,14 @@ function RowActions({
 
   const submitReject = (): void => {
     if (!note.trim()) return;
-    const action =
-      row.status === 'PENDING_SUPERVISOR' ? 'SUPERVISOR_REJECT' : 'HR_REJECT';
+    const action = row.status === 'PENDING_SUPERVISOR' ? 'SUPERVISOR_REJECT' : 'HR_REJECT';
     onDecide({ action, note: note.trim() });
     setRejecting(false);
     setNote('');
   };
 
   const submitApprove = (): void => {
-    const action =
-      row.status === 'PENDING_SUPERVISOR'
-        ? 'SUPERVISOR_APPROVE'
-        : 'HR_APPROVE';
+    const action = row.status === 'PENDING_SUPERVISOR' ? 'SUPERVISOR_APPROVE' : 'HR_APPROVE';
     onDecide({ action, note: note.trim() || undefined });
     setNote('');
   };
@@ -313,11 +299,13 @@ function RowActions({
       <tr className="border-b last:border-b-0">
         <td className="px-3 py-2">
           <div className="font-medium">{row.user.fullName}</div>
-          <div className="text-xs text-muted-foreground">{row.user.email}</div>
+          <div className="text-muted-foreground text-xs">{row.user.email}</div>
         </td>
-        <td className="px-3 py-2 text-xs text-muted-foreground">
+        <td className="text-muted-foreground px-3 py-2 text-xs">
           {row.periodLabel}
-          <div className="text-[10px]">{row.periodStart} → {row.periodEnd}</div>
+          <div className="text-[10px]">
+            {row.periodStart} → {row.periodEnd}
+          </div>
         </td>
         <td className="px-3 py-2">
           <div className="flex flex-col items-start gap-1">
@@ -333,18 +321,10 @@ function RowActions({
             ) : null}
           </div>
         </td>
-        <td className="px-3 py-2 text-right font-mono">
-          {row.totals.regularHours.toFixed(2)}
-        </td>
-        <td className="px-3 py-2 text-right font-mono">
-          {row.totals.overtimeHours.toFixed(2)}
-        </td>
-        <td className="px-3 py-2 text-right font-mono">
-          {row.totals.leaveDays}
-        </td>
-        <td className="px-3 py-2 text-right font-mono">
-          {row.totals.absentDays}
-        </td>
+        <td className="px-3 py-2 text-right font-mono">{row.totals.regularHours.toFixed(2)}</td>
+        <td className="px-3 py-2 text-right font-mono">{row.totals.overtimeHours.toFixed(2)}</td>
+        <td className="px-3 py-2 text-right font-mono">{row.totals.leaveDays}</td>
+        <td className="px-3 py-2 text-right font-mono">{row.totals.absentDays}</td>
         <td className="px-3 py-2 text-right">
           {canDecide ? (
             <div className="inline-flex gap-2">
@@ -361,7 +341,7 @@ function RowActions({
                 type="button"
                 onClick={() => setRejecting((v) => !v)}
                 disabled={pending}
-                className="rounded-md border border-destructive/50 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/5 disabled:opacity-50"
+                className="border-destructive/50 text-destructive hover:bg-destructive/5 rounded-md border px-3 py-1.5 text-xs font-medium disabled:opacity-50"
                 data-testid={`ts-reject-${row.id}`}
               >
                 Tolak
@@ -378,19 +358,16 @@ function RowActions({
               Buka kembali
             </button>
           ) : (
-            <span className="text-xs text-muted-foreground">-</span>
+            <span className="text-muted-foreground text-xs">-</span>
           )}
         </td>
       </tr>
       {rejecting && canDecide && (
-        <tr className="border-b bg-muted/40">
+        <tr className="bg-muted/40 border-b">
           <td colSpan={8} className="px-3 py-3">
             <div className="flex flex-wrap items-end gap-3">
-              <div className="flex-1 min-w-[240px]">
-                <label
-                  htmlFor={`reject-note-${row.id}`}
-                  className="text-xs font-medium"
-                >
+              <div className="min-w-[240px] flex-1">
+                <label htmlFor={`reject-note-${row.id}`} className="text-xs font-medium">
                   Alasan penolakan
                 </label>
                 <textarea
@@ -399,7 +376,7 @@ function RowActions({
                   onChange={(e) => setNote(e.target.value)}
                   maxLength={500}
                   rows={2}
-                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="border-input bg-background focus:border-primary focus:ring-primary mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1"
                   placeholder="Jelaskan yang perlu dikoreksi karyawan…"
                   data-testid={`ts-reject-note-${row.id}`}
                 />
@@ -408,7 +385,7 @@ function RowActions({
                 type="button"
                 onClick={submitReject}
                 disabled={pending || !note.trim()}
-                className="rounded-md bg-destructive px-3 py-1.5 text-xs font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md px-3 py-1.5 text-xs font-medium disabled:opacity-50"
                 data-testid={`ts-reject-confirm-${row.id}`}
               >
                 Kirim penolakan
@@ -421,13 +398,9 @@ function RowActions({
         <tr className="border-b bg-amber-50/60 dark:bg-amber-900/10">
           <td colSpan={8} className="px-3 py-3">
             <div className="flex flex-wrap items-end gap-3">
-              <div className="flex-1 min-w-[280px]">
-                <label
-                  htmlFor={`reopen-reason-${row.id}`}
-                  className="text-xs font-medium"
-                >
-                  Alasan reopen (wajib, {REOPEN_REASON_MIN}–{REOPEN_REASON_MAX}{' '}
-                  karakter)
+              <div className="min-w-[280px] flex-1">
+                <label htmlFor={`reopen-reason-${row.id}`} className="text-xs font-medium">
+                  Alasan reopen (wajib, {REOPEN_REASON_MIN}–{REOPEN_REASON_MAX} karakter)
                 </label>
                 <textarea
                   id={`reopen-reason-${row.id}`}
@@ -435,22 +408,19 @@ function RowActions({
                   onChange={(e) => setReopenReason(e.target.value)}
                   maxLength={REOPEN_REASON_MAX}
                   rows={2}
-                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="border-input bg-background focus:border-primary focus:ring-primary mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1"
                   placeholder="Contoh: OT rate revised post-payroll — mohon submit ulang setelah verifikasi."
                   data-testid={`ts-reopen-reason-${row.id}`}
                 />
-                <div className="mt-1 text-[11px] text-muted-foreground">
-                  Timesheet direset ke DRAFT; karyawan submit ulang → supervisor
-                  → HR. Webhook <code>timesheet.reopened</code> akan dikirim ke
-                  vendor payroll.
+                <div className="text-muted-foreground mt-1 text-[11px]">
+                  Timesheet direset ke DRAFT; karyawan submit ulang → supervisor → HR. Webhook{' '}
+                  <code>timesheet.reopened</code> akan dikirim ke vendor payroll.
                 </div>
               </div>
               <button
                 type="button"
                 onClick={submitReopen}
-                disabled={
-                  pending || reopenReason.trim().length < REOPEN_REASON_MIN
-                }
+                disabled={pending || reopenReason.trim().length < REOPEN_REASON_MIN}
                 className="rounded-md bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 disabled:opacity-50"
                 data-testid={`ts-reopen-confirm-${row.id}`}
               >

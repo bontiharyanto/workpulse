@@ -95,9 +95,7 @@ test('SUPER_ADMIN: POST /attendance/scanner/reset-cursor clears the cursor', asy
   expect(body.rescanTriggered).toBe(false);
   expect(body.rescanResult).toBeUndefined();
   // `before` is either an ISO date string or null (tenant never scanned).
-  expect(
-    body.before === null || typeof body.before === 'string',
-  ).toBeTruthy();
+  expect(body.before === null || typeof body.before === 'string').toBeTruthy();
   await api.dispose();
 });
 
@@ -150,9 +148,7 @@ test('SUPERVISOR: cannot reset the scanner cursor (403 Forbidden)', async () => 
   await api.dispose();
 });
 
-test('Unauthenticated: cannot reset the scanner cursor (401 Unauthorized)', async ({
-  request,
-}) => {
+test('Unauthenticated: cannot reset the scanner cursor (401 Unauthorized)', async ({ request }) => {
   const res = await request.post(
     `${process.env.E2E_API_URL ?? 'http://localhost:4000'}/api/v1/attendance/scanner/reset-cursor`,
     { data: {} },

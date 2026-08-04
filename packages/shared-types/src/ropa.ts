@@ -17,12 +17,7 @@ export const ropaLegalBasisSchema = z.enum([
 ]);
 export type RopaLegalBasis = z.infer<typeof ropaLegalBasisSchema>;
 
-export const ropaVersionStatusSchema = z.enum([
-  'DRAFT',
-  'REVIEW',
-  'PUBLISHED',
-  'ARCHIVED',
-]);
+export const ropaVersionStatusSchema = z.enum(['DRAFT', 'REVIEW', 'PUBLISHED', 'ARCHIVED']);
 export type RopaVersionStatus = z.infer<typeof ropaVersionStatusSchema>;
 
 /**
@@ -47,11 +42,7 @@ export const ROPA_DATA_CATEGORIES = [
   'PROCESS_METADATA',
 ] as const;
 
-export const ROPA_SUBJECT_CATEGORIES = [
-  'EMPLOYEE',
-  'DEPENDENT',
-  'CANDIDATE',
-] as const;
+export const ROPA_SUBJECT_CATEGORIES = ['EMPLOYEE', 'DEPENDENT', 'CANDIDATE'] as const;
 
 // -----------------------------------------------------------------------------
 // Response
@@ -114,13 +105,11 @@ export type SeedRopaResponse = z.infer<typeof seedRopaResponseSchema>;
 // Requests
 // -----------------------------------------------------------------------------
 
-const trimmedString = (min: number, max: number) =>
-  z.string().trim().min(min).max(max);
+const trimmedString = (min: number, max: number) => z.string().trim().min(min).max(max);
 
 export const createRopaActivityInputSchema = z.object({
   slug: trimmedString(2, 64).regex(/^[a-z0-9][a-z0-9-]{1,63}$/, {
-    message:
-      'slug must be lowercase alphanum + hyphens, cannot start with a hyphen',
+    message: 'slug must be lowercase alphanum + hyphens, cannot start with a hyphen',
   }),
   name: trimmedString(2, 200),
   purpose: trimmedString(4, 2000),
@@ -135,9 +124,7 @@ export const createRopaActivityInputSchema = z.object({
   securityMeasures: trimmedString(2, 2000),
   notes: z.string().max(2000).nullable().optional(),
 });
-export type CreateRopaActivityInput = z.infer<
-  typeof createRopaActivityInputSchema
->;
+export type CreateRopaActivityInput = z.infer<typeof createRopaActivityInputSchema>;
 
 export const updateRopaVersionInputSchema = z.object({
   name: trimmedString(2, 200).optional(),
@@ -153,6 +140,4 @@ export const updateRopaVersionInputSchema = z.object({
   securityMeasures: trimmedString(2, 2000).optional(),
   notes: z.string().max(2000).nullable().optional(),
 });
-export type UpdateRopaVersionInput = z.infer<
-  typeof updateRopaVersionInputSchema
->;
+export type UpdateRopaVersionInput = z.infer<typeof updateRopaVersionInputSchema>;

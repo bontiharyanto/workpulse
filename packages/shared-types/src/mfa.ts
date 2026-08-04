@@ -88,10 +88,7 @@ export type MfaBackupCodesResponse = z.infer<typeof mfaBackupCodesResponseSchema
 
 /** DELETE /auth/mfa request body. Requires password + current TOTP. */
 export const mfaDisableInputSchema = z.object({
-  currentPassword: z
-    .string()
-    .min(8, { message: 'Password minimal 8 karakter' })
-    .max(128),
+  currentPassword: z.string().min(8, { message: 'Password minimal 8 karakter' }).max(128),
   code: totpCodeSchema,
 });
 export type MfaDisableInput = z.infer<typeof mfaDisableInputSchema>;

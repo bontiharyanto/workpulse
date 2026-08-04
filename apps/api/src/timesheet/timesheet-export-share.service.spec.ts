@@ -1,13 +1,6 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
-import {
-  TimesheetExportFormat,
-  TimesheetExportMode,
-} from '@prisma/client';
+import { TimesheetExportFormat, TimesheetExportMode } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
@@ -31,14 +24,12 @@ interface Kit {
 function buildKit(): Kit {
   const prisma = mockDeep<PrismaService>();
   mockReset(prisma);
-  (prisma.$transaction as unknown as jest.Mock).mockImplementation(
-    async (arg: unknown) => {
-      if (typeof arg === 'function') {
-        return (arg as (tx: PrismaService) => unknown)(prisma);
-      }
-      return Promise.all(arg as Promise<unknown>[]);
-    },
-  );
+  (prisma.$transaction as unknown as jest.Mock).mockImplementation(async (arg: unknown) => {
+    if (typeof arg === 'function') {
+      return (arg as (tx: PrismaService) => unknown)(prisma);
+    }
+    return Promise.all(arg as Promise<unknown>[]);
+  });
   const config = {
     get: jest.fn((key: string, fallback?: unknown) => {
       if (key === 'TIMESHEET_EXPORT_SIGNING_SECRET') return SECRET;
@@ -83,20 +74,20 @@ describe('TimesheetExportShareService.create (Fase 32d)', () => {
   it('refuses when the export does not belong to the actor tenant', async () => {
     const { service, prisma } = buildKit();
     prisma.timesheetExport.findFirst.mockResolvedValue(null as never);
-    await expect(
-      service.create(makeActor(), 'export-1', {}),
-    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.create(makeActor(), 'export-1', {})).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('refuses out-of-range ttlHours', async () => {
     const { service, prisma } = buildKit();
     prisma.timesheetExport.findFirst.mockResolvedValue({ id: 'export-1' } as never);
-    await expect(
-      service.create(makeActor(), 'export-1', { ttlHours: 0 }),
-    ).rejects.toBeInstanceOf(BadRequestException);
-    await expect(
-      service.create(makeActor(), 'export-1', { ttlHours: 999 }),
-    ).rejects.toBeInstanceOf(BadRequestException);
+    await expect(service.create(makeActor(), 'export-1', { ttlHours: 0 })).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+    await expect(service.create(makeActor(), 'export-1', { ttlHours: 999 })).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
   });
 
   it('creates a share row and returns a signed URL that verifies', async () => {
@@ -118,9 +109,7 @@ describe('TimesheetExportShareService.create (Fase 32d)', () => {
     expect(share.url).toContain('https://api.example.com/api/v1/public/timesheet-exports/download');
     const url = new URL(share.url);
     expect(url.searchParams.get('id')).toBe('share-1');
-    expect(url.searchParams.get('expires')).toBe(
-      String(share.expiresAt.getTime()),
-    );
+    expect(url.searchParams.get('expires')).toBe(String(share.expiresAt.getTime()));
     const expected = sign(SECRET, {
       shareId: 'share-1',
       expiresAtMs: share.expiresAt.getTime(),
@@ -208,19 +197,12 @@ describe('TimesheetExportShareService.verifyAndDownload (Fase 32d)', () => {
 
   it('delivers the payload and increments downloadCount on success', async () => {
     const { service, prisma, exportService } = buildKit();
-    prisma.timesheetExportShare.findUnique.mockResolvedValue(
-      validShareRow as never,
-    );
+    prisma.timesheetExportShare.findUnique.mockResolvedValue(validShareRow as never);
     exportService.loadPayloadForShare.mockResolvedValue(goodExportResult);
     prisma.timesheetExportShare.update.mockResolvedValue({} as never);
     prisma.auditLog.create.mockResolvedValue({} as never);
 
-    const out = await service.verifyAndDownload(
-      shareId,
-      expiresAtMs,
-      goodSignature,
-      '203.0.113.1',
-    );
+    const out = await service.verifyAndDownload(shareId, expiresAtMs, goodSignature, '203.0.113.1');
     expect(out.result).toBe(goodExportResult);
     expect(prisma.timesheetExportShare.update).toHaveBeenCalledWith(
       expect.objectContaining({

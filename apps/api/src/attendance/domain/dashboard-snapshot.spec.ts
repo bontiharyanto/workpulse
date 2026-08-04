@@ -56,23 +56,13 @@ describe('buildCompanySnapshot', () => {
   });
 
   it('gives precedence to ABSENT over ON_LEAVE (approved leave later revoked)', () => {
-    const snap = buildCompanySnapshot(
-      roster([['u1', null, null]]),
-      [],
-      [{ userId: 'u1' }],
-      ['u1'],
-    );
+    const snap = buildCompanySnapshot(roster([['u1', null, null]]), [], [{ userId: 'u1' }], ['u1']);
     expect(snap.absent).toBe(1);
     expect(snap.onLeave).toBe(0);
   });
 
   it('leaves users with no signal in NOT_CLOCKED_IN', () => {
-    const snap = buildCompanySnapshot(
-      roster([['u1', null, null]]),
-      [],
-      [],
-      [],
-    );
+    const snap = buildCompanySnapshot(roster([['u1', null, null]]), [], [], []);
     expect(snap.notClockedIn).toBe(1);
     expect(snap.total).toBe(1);
   });
@@ -123,11 +113,7 @@ describe('buildCompanySnapshot', () => {
     ]);
     const snap = buildCompanySnapshot(
       r,
-      [
-        attendanceRow('u1'),
-        attendanceRow('u2'),
-        attendanceRow('u4', { lateMinutes: 30 }),
-      ],
+      [attendanceRow('u1'), attendanceRow('u2'), attendanceRow('u4', { lateMinutes: 30 })],
       [{ userId: 'u3' }],
       [],
     );
@@ -160,12 +146,7 @@ describe('buildCompanySnapshot', () => {
   });
 
   it('returns null on-time rate when nobody clocked in (defensive against /0)', () => {
-    const snap = buildCompanySnapshot(
-      roster([['u1', null, null]]),
-      [],
-      [{ userId: 'u1' }],
-      [],
-    );
+    const snap = buildCompanySnapshot(roster([['u1', null, null]]), [], [{ userId: 'u1' }], []);
     expect(snap.onTimeRatePercent).toBeNull();
   });
 

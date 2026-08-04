@@ -98,10 +98,7 @@ export class TimesheetExportService {
     private readonly webhookDispatcher: WebhookDispatcher,
   ) {}
 
-  async export(
-    actor: AuthenticatedUser,
-    input: ExportInput,
-  ): Promise<ExportResult> {
+  async export(actor: AuthenticatedUser, input: ExportInput): Promise<ExportResult> {
     this.assertRole(actor);
 
     const period = await this.prisma.timesheetPeriod.findFirst({
@@ -128,8 +125,7 @@ export class TimesheetExportService {
         throw new BadRequestException({
           statusCode: 400,
           code: 'DEPARTMENT_NOT_FOUND',
-          message:
-            'Departemen tidak ditemukan pada tenant Anda.',
+          message: 'Departemen tidak ditemukan pada tenant Anda.',
         });
       }
     }
@@ -141,9 +137,7 @@ export class TimesheetExportService {
         companyId: actor.companyId,
         periodId: period.id,
         status: TimesheetStatus.APPROVED,
-        ...(input.departmentId
-          ? { user: { departmentId: input.departmentId } }
-          : {}),
+        ...(input.departmentId ? { user: { departmentId: input.departmentId } } : {}),
       },
       include: {
         user: {
@@ -156,14 +150,9 @@ export class TimesheetExportService {
           },
         },
         entries:
-          input.mode === TimesheetExportMode.DETAIL
-            ? { orderBy: { workDate: 'asc' } }
-            : false,
+          input.mode === TimesheetExportMode.DETAIL ? { orderBy: { workDate: 'asc' } } : false,
       },
-      orderBy: [
-        { user: { department: { name: 'asc' } } },
-        { user: { fullName: 'asc' } },
-      ],
+      orderBy: [{ user: { department: { name: 'asc' } } }, { user: { fullName: 'asc' } }],
     });
 
     if (timesheets.length === 0) {
@@ -181,9 +170,7 @@ export class TimesheetExportService {
       userEmail: t.user.email,
       departmentName: t.user.department?.name ?? null,
       overtimeHourlyRate:
-        t.user.overtimeHourlyRate === null
-          ? null
-          : Number(t.user.overtimeHourlyRate),
+        t.user.overtimeHourlyRate === null ? null : Number(t.user.overtimeHourlyRate),
       periodLabel: period.label,
       periodStart: toYmd(period.periodStart),
       periodEnd: toYmd(period.periodEnd),
@@ -198,19 +185,21 @@ export class TimesheetExportService {
         earlyLeaveMinutes: t.totalEarlyLeaveMinutes,
       },
       entries: (
-        (t as unknown as {
-          entries?: Array<{
-            workDate: Date;
-            kind: string;
-            expectedHours: Prisma.Decimal | null;
-            regularHours: Prisma.Decimal;
-            overtimeHours: Prisma.Decimal;
-            leaveHours: Prisma.Decimal;
-            lateMinutes: number;
-            earlyLeaveMinutes: number;
-            note: string | null;
-          }>;
-        }).entries ?? []
+        (
+          t as unknown as {
+            entries?: Array<{
+              workDate: Date;
+              kind: string;
+              expectedHours: Prisma.Decimal | null;
+              regularHours: Prisma.Decimal;
+              overtimeHours: Prisma.Decimal;
+              leaveHours: Prisma.Decimal;
+              lateMinutes: number;
+              earlyLeaveMinutes: number;
+              note: string | null;
+            }>;
+          }
+        ).entries ?? []
       ).map((e) => ({
         workDate: toYmd(e.workDate),
         kind: e.kind,
@@ -264,17 +253,14 @@ export class TimesheetExportService {
         columns,
         flatRows,
       );
-      contentType =
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     }
 
     const ext = input.format === TimesheetExportFormat.CSV ? 'csv' : 'xlsx';
     const slug = slugify(period.label);
     filename = `payroll-${slug}-${input.mode.toLowerCase()}.${ext}`;
 
-    const payloadSha256 = createHash('sha256')
-      .update(payload)
-      .digest('hex');
+    const payloadSha256 = createHash('sha256').update(payload).digest('hex');
 
     // Audit-first commit. We accept the extra round-trip to keep the
     // "we told the payroll team X" invariant honest — no orphaned
@@ -392,8 +378,7 @@ export class TimesheetExportService {
       throw new BadRequestException({
         statusCode: 410,
         code: 'EXPORT_PAYLOAD_UNAVAILABLE',
-        message:
-          'Payload untuk export ini tidak tersedia. Buat export baru untuk dibagikan.',
+        message: 'Payload untuk export ini tidak tersedia. Buat export baru untuk dibagikan.',
       });
     }
     const payload = Buffer.from(row.payload);
@@ -405,8 +390,7 @@ export class TimesheetExportService {
       throw new BadRequestException({
         statusCode: 500,
         code: 'EXPORT_PAYLOAD_CORRUPTED',
-        message:
-          'Integritas payload gagal diverifikasi. Hubungi administrator.',
+        message: 'Integritas payload gagal diverifikasi. Hubungi administrator.',
       });
     }
     const ext = row.format === TimesheetExportFormat.CSV ? 'csv' : 'xlsx';
@@ -432,10 +416,7 @@ export class TimesheetExportService {
     };
   }
 
-  async list(
-    actor: AuthenticatedUser,
-    limit = 50,
-  ): Promise<ExportListItem[]> {
+  async list(actor: AuthenticatedUser, limit = 50): Promise<ExportListItem[]> {
     this.assertRole(actor);
     const rows = await this.prisma.timesheetExport.findMany({
       where: { companyId: actor.companyId },

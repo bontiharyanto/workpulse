@@ -1,25 +1,10 @@
-import {
-  Controller,
-  Get,
-  HttpCode,
-  Param,
-  Post,
-  Query,
-} from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiNoContentResponse,
-  ApiOkResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Controller, Get, HttpCode, Param, Post, Query } from '@nestjs/common';
+import { ApiBearerAuth, ApiNoContentResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-import {
-  TimesheetSummaryDto,
-  TimesheetViewDto,
-} from './dto/timesheet.dto';
+import { TimesheetSummaryDto, TimesheetViewDto } from './dto/timesheet.dto';
 import { TimesheetSubmissionService } from './timesheet-submission.service';
 import { TimesheetService } from './timesheet.service';
 
@@ -37,10 +22,11 @@ export class TimesheetSelfController {
 
   @Get('current')
   @ApiBearerAuth()
-  @ApiOkResponse({ type: TimesheetViewDto, description: 'null if no timesheet has been generated yet' })
-  async current(
-    @CurrentUser() actor: AuthenticatedUser,
-  ): Promise<TimesheetViewDto | null> {
+  @ApiOkResponse({
+    type: TimesheetViewDto,
+    description: 'null if no timesheet has been generated yet',
+  })
+  async current(@CurrentUser() actor: AuthenticatedUser): Promise<TimesheetViewDto | null> {
     return this.service.getCurrentForUser(actor);
   }
 
@@ -73,10 +59,7 @@ export class TimesheetSelfController {
   @HttpCode(204)
   @ApiBearerAuth()
   @ApiNoContentResponse()
-  async submit(
-    @CurrentUser() actor: AuthenticatedUser,
-    @Param('id') id: string,
-  ): Promise<void> {
+  async submit(@CurrentUser() actor: AuthenticatedUser, @Param('id') id: string): Promise<void> {
     await this.submission.submit(actor, id);
   }
 }

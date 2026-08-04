@@ -97,12 +97,8 @@ describe('analytics/domain/period — Fase 33a pure helpers', () => {
     });
 
     it('handles single-day and empty (reversed) ranges', () => {
-      expect(enumerateDays(asYmd('2026-08-01'), asYmd('2026-08-01'))).toEqual([
-        '2026-08-01',
-      ]);
-      expect(enumerateDays(asYmd('2026-08-02'), asYmd('2026-08-01'))).toEqual(
-        [],
-      );
+      expect(enumerateDays(asYmd('2026-08-01'), asYmd('2026-08-01'))).toEqual(['2026-08-01']);
+      expect(enumerateDays(asYmd('2026-08-02'), asYmd('2026-08-01'))).toEqual([]);
     });
   });
 

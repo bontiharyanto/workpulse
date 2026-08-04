@@ -7,12 +7,7 @@ import { isoDateTimeSchema } from './common.js';
  * Mirrors `apps/api/src/breach/**`.
  */
 
-export const breachSeveritySchema = z.enum([
-  'LOW',
-  'MEDIUM',
-  'HIGH',
-  'CRITICAL',
-]);
+export const breachSeveritySchema = z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
 export type BreachSeverity = z.infer<typeof breachSeveritySchema>;
 
 export const breachCategorySchema = z.enum([
@@ -43,16 +38,9 @@ export const breachTimelineEventTypeSchema = z.enum([
   'EXPORTED',
   'CLOSED',
 ]);
-export type BreachTimelineEventType = z.infer<
-  typeof breachTimelineEventTypeSchema
->;
+export type BreachTimelineEventType = z.infer<typeof breachTimelineEventTypeSchema>;
 
-export const breachDeadlineBucketSchema = z.enum([
-  'SAFE',
-  'WARNING',
-  'CRITICAL',
-  'OVERDUE',
-]);
+export const breachDeadlineBucketSchema = z.enum(['SAFE', 'WARNING', 'CRITICAL', 'OVERDUE']);
 export type BreachDeadlineBucket = z.infer<typeof breachDeadlineBucketSchema>;
 
 export const breachDeadlineSchema = z.object({
@@ -79,18 +67,13 @@ export const createBreachIncidentInputSchema = z.object({
   containmentActions: z.string().max(5000).optional(),
   assignedToId: z.string().optional(),
 });
-export type CreateBreachIncidentInput = z.infer<
-  typeof createBreachIncidentInputSchema
->;
+export type CreateBreachIncidentInput = z.infer<typeof createBreachIncidentInputSchema>;
 
-export const updateBreachIncidentInputSchema =
-  createBreachIncidentInputSchema.partial().extend({
-    rootCause: z.string().max(5000).optional(),
-    remediation: z.string().max(5000).optional(),
-  });
-export type UpdateBreachIncidentInput = z.infer<
-  typeof updateBreachIncidentInputSchema
->;
+export const updateBreachIncidentInputSchema = createBreachIncidentInputSchema.partial().extend({
+  rootCause: z.string().max(5000).optional(),
+  remediation: z.string().max(5000).optional(),
+});
+export type UpdateBreachIncidentInput = z.infer<typeof updateBreachIncidentInputSchema>;
 
 export const notifyAuthorityInputSchema = z.object({
   notifiedAt: isoDateTimeSchema,
@@ -114,9 +97,7 @@ export type CloseBreachInput = z.infer<typeof closeBreachInputSchema>;
 export const appendBreachNoteInputSchema = z.object({
   note: z.string().trim().min(4).max(4000),
 });
-export type AppendBreachNoteInput = z.infer<
-  typeof appendBreachNoteInputSchema
->;
+export type AppendBreachNoteInput = z.infer<typeof appendBreachNoteInputSchema>;
 
 // -------- Responses ------------------------------------------------
 
@@ -129,9 +110,7 @@ export const breachTimelineEventResponseSchema = z.object({
   actorEmail: z.string().nullable(),
   occurredAt: isoDateTimeSchema,
 });
-export type BreachTimelineEventResponse = z.infer<
-  typeof breachTimelineEventResponseSchema
->;
+export type BreachTimelineEventResponse = z.infer<typeof breachTimelineEventResponseSchema>;
 
 export const breachIncidentResponseSchema = z.object({
   id: z.string(),
@@ -164,9 +143,7 @@ export const breachIncidentResponseSchema = z.object({
   deadline: breachDeadlineSchema,
   timeline: z.array(breachTimelineEventResponseSchema),
 });
-export type BreachIncidentResponse = z.infer<
-  typeof breachIncidentResponseSchema
->;
+export type BreachIncidentResponse = z.infer<typeof breachIncidentResponseSchema>;
 
 export const breachIncidentListItemSchema = z.object({
   id: z.string(),
@@ -182,6 +159,4 @@ export const breachIncidentListItemSchema = z.object({
   assignedToEmail: z.string().nullable(),
   updatedAt: isoDateTimeSchema,
 });
-export type BreachIncidentListItem = z.infer<
-  typeof breachIncidentListItemSchema
->;
+export type BreachIncidentListItem = z.infer<typeof breachIncidentListItemSchema>;

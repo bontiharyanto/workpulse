@@ -1,14 +1,5 @@
-import {
-  ConflictException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import type {
-  Prisma,
-  PrivacyPolicy,
-  UserConsent,
-} from '@prisma/client';
+import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import type { Prisma, PrivacyPolicy, UserConsent } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -58,10 +49,7 @@ export class ConsentService {
     });
   }
 
-  async getPendingConsentForUser(
-    userId: string,
-    companyId: string,
-  ): Promise<PrivacyPolicy | null> {
+  async getPendingConsentForUser(userId: string, companyId: string): Promise<PrivacyPolicy | null> {
     const latest = await this.getLatestForCompany(companyId);
     if (!latest) return null;
     const accepted = await this.prisma.userConsent.findUnique({
@@ -74,9 +62,7 @@ export class ConsentService {
     return latest;
   }
 
-  async listUserConsents(userId: string): Promise<
-    Array<UserConsent & { policy: PrivacyPolicy }>
-  > {
+  async listUserConsents(userId: string): Promise<Array<UserConsent & { policy: PrivacyPolicy }>> {
     return this.prisma.userConsent.findMany({
       where: { userId },
       orderBy: { acceptedAt: 'desc' },

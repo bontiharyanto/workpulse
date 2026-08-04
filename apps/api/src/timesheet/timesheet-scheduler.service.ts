@@ -99,9 +99,7 @@ export class TimesheetSchedulerService {
       orderBy: { periodEnd: 'desc' },
       select: { periodEnd: true, periodStart: true },
     });
-    const latestPeriodEndYmd = latestPeriod
-      ? formatDbDateYmd(latestPeriod.periodEnd)
-      : null;
+    const latestPeriodEndYmd = latestPeriod ? formatDbDateYmd(latestPeriod.periodEnd) : null;
     const autoDecision = decideAutoGenerate({
       autoGenerateEnabled: config.autoGenerateEnabled,
       latestPeriodEndYmd,
@@ -124,10 +122,7 @@ export class TimesheetSchedulerService {
       // lookback window. The window is bounded to keep the query cheap;
       // reminders past `submit/approvalReminderMaxDays` are refused by
       // the decision function anyway.
-      const cutoffDate = subtractDaysYmd(
-        todayYmd,
-        RECENT_PERIOD_LOOKBACK_DAYS,
-      );
+      const cutoffDate = subtractDaysYmd(todayYmd, RECENT_PERIOD_LOOKBACK_DAYS);
       const cutoffPeriodEnd = dbDateFromYmd(cutoffDate);
       const timesheets = await this.prisma.timesheet.findMany({
         where: {
@@ -179,10 +174,7 @@ export class TimesheetSchedulerService {
 
       for (const ts of timesheets) {
         const periodEndYmd = formatDbDateYmd(ts.period.periodEnd);
-        const daysOverdue = Math.max(
-          0,
-          daysBetweenYmd(periodEndYmd, todayYmd),
-        );
+        const daysOverdue = Math.max(0, daysBetweenYmd(periodEndYmd, todayYmd));
 
         // Submit reminder — recipient is the user themselves.
         const submitDecision = decideSubmitReminder({

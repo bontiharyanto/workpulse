@@ -1,11 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type {
-  VendorCategory,
-  VendorDetailDto,
-  VendorStatus,
-} from '@workpulse/shared-types';
+import type { VendorCategory, VendorDetailDto, VendorStatus } from '@workpulse/shared-types';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { useState } from 'react';
@@ -46,8 +42,7 @@ const ERROR_COPY: Record<string, string> = {
   VENDOR_ALREADY_TERMINATED: 'Vendor sudah di-terminasi.',
   VENDOR_DPA_REQUIRED: 'DPA harus ditandatangani sebelum vendor dapat aktif.',
   VENDOR_ILLEGAL_TRANSITION: 'Transisi status tidak diperbolehkan.',
-  VENDOR_CONTRACT_WINDOW_INVALID:
-    'Tanggal berakhir kontrak harus setelah tanggal mulai.',
+  VENDOR_CONTRACT_WINDOW_INVALID: 'Tanggal berakhir kontrak harus setelah tanggal mulai.',
   VENDOR_ROPA_LINK_EXISTS: 'Vendor sudah tertaut dengan aktivitas ROPA ini.',
 };
 
@@ -59,14 +54,12 @@ export function VendorProcessorDetail({ vendorId }: { vendorId: string }) {
   });
 
   const markReviewed = useMutation({
-    mutationFn: (note: string) =>
-      vendorProcessorApi.markReviewed(vendorId, { note }),
+    mutationFn: (note: string) => vendorProcessorApi.markReviewed(vendorId, { note }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-vendor', vendorId] }),
   });
 
   const terminate = useMutation({
-    mutationFn: (reason: string) =>
-      vendorProcessorApi.terminate(vendorId, { reason }),
+    mutationFn: (reason: string) => vendorProcessorApi.terminate(vendorId, { reason }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-vendor', vendorId] }),
   });
 
@@ -80,7 +73,7 @@ export function VendorProcessorDetail({ vendorId }: { vendorId: string }) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-vendor', vendorId] }),
   });
 
-  if (query.isLoading) return <p className="text-sm text-muted-foreground">Memuat…</p>;
+  if (query.isLoading) return <p className="text-muted-foreground text-sm">Memuat…</p>;
   if (query.isError)
     return (
       <p className="rounded-md bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
@@ -103,7 +96,7 @@ export function VendorProcessorDetail({ vendorId }: { vendorId: string }) {
         <div className="space-y-1">
           <Link
             href={'/admin/privacy/vendors' as unknown as Route}
-            className="text-xs text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground text-xs"
           >
             ← Kembali ke register
           </Link>
@@ -115,7 +108,7 @@ export function VendorProcessorDetail({ vendorId }: { vendorId: string }) {
               {STATUS_LABEL[vendor.status]}
             </span>
           </h1>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             {CATEGORY_LABEL[vendor.category]} · slug: <code>{vendor.slug}</code>
           </p>
         </div>
@@ -138,17 +131,10 @@ export function VendorProcessorDetail({ vendorId }: { vendorId: string }) {
 
       <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card title="Data yang diproses">
-          <Row
-            label="Volume"
-            value={vendor.personalDataVolume}
-          />
+          <Row label="Volume" value={vendor.personalDataVolume} />
           <Row
             label="Kategori data"
-            value={
-              vendor.dataCategories.length > 0
-                ? vendor.dataCategories.join(', ')
-                : '—'
-            }
+            value={vendor.dataCategories.length > 0 ? vendor.dataCategories.join(', ') : '—'}
           />
           <Row label="Data residency" value={vendor.dataResidency ?? '—'} />
         </Card>
@@ -164,9 +150,7 @@ export function VendorProcessorDetail({ vendorId }: { vendorId: string }) {
           />
           <Row
             label="DPA ditandatangani"
-            value={
-              vendor.dpaSignedAt ? formatDate(vendor.dpaSignedAt) : 'Belum'
-            }
+            value={vendor.dpaSignedAt ? formatDate(vendor.dpaSignedAt) : 'Belum'}
           />
           <Row
             label="Subprocessor"
@@ -207,49 +191,35 @@ export function VendorProcessorDetail({ vendorId }: { vendorId: string }) {
           <Row label="Next review" value={formatDate(vendor.nextReviewAt)} />
           <Row
             label="Terakhir direview"
-            value={
-              vendor.lastReviewedAt ? formatDate(vendor.lastReviewedAt) : '—'
-            }
+            value={vendor.lastReviewedAt ? formatDate(vendor.lastReviewedAt) : '—'}
           />
-          <Row
-            label="Catatan review terakhir"
-            value={vendor.lastReviewNote ?? '—'}
-          />
+          <Row label="Catatan review terakhir" value={vendor.lastReviewNote ?? '—'} />
         </Card>
       </section>
 
-      <section className="rounded-md border border-border bg-card p-4">
+      <section className="border-border bg-card rounded-md border p-4">
         <h2 className="mb-2 text-sm font-medium">Deskripsi & konteks</h2>
-        <p className="whitespace-pre-wrap text-sm text-muted-foreground">
-          {vendor.description}
-        </p>
+        <p className="text-muted-foreground whitespace-pre-wrap text-sm">{vendor.description}</p>
       </section>
 
-      <section className="rounded-md border border-border bg-card p-4">
+      <section className="border-border bg-card rounded-md border p-4">
         <h2 className="mb-2 text-sm font-medium">
           ROPA activities yang tertaut ({vendor.ropaLinks.length})
         </h2>
         {vendor.ropaLinks.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Belum ada tautan ke ROPA activity. Tautkan dari halaman ROPA
-            activity untuk melengkapi register.
+          <p className="text-muted-foreground text-sm">
+            Belum ada tautan ke ROPA activity. Tautkan dari halaman ROPA activity untuk melengkapi
+            register.
           </p>
         ) : (
           <ul className="space-y-2 text-sm">
             {vendor.ropaLinks.map((link) => (
-              <li
-                key={link.id}
-                className="rounded-md border border-border bg-background p-3"
-              >
-                <div className="font-medium">
-                  {link.ropaActivityName ?? link.ropaActivitySlug}
-                </div>
-                <div className="text-xs text-muted-foreground">
+              <li key={link.id} className="border-border bg-background rounded-md border p-3">
+                <div className="font-medium">{link.ropaActivityName ?? link.ropaActivitySlug}</div>
+                <div className="text-muted-foreground text-xs">
                   Slug: <code>{link.ropaActivitySlug}</code>
                 </div>
-                {link.note && (
-                  <p className="mt-1 text-xs text-muted-foreground">{link.note}</p>
-                )}
+                {link.note && <p className="text-muted-foreground mt-1 text-xs">{link.note}</p>}
               </li>
             ))}
           </ul>
@@ -262,8 +232,8 @@ export function VendorProcessorDetail({ vendorId }: { vendorId: string }) {
             Vendor sudah di-terminasi
           </h2>
           <p className="text-sm text-rose-700 dark:text-rose-300">
-            Terminasi pada {vendor.terminatedAt ? formatDate(vendor.terminatedAt) : '—'}.
-            Alasan: {vendor.terminatedReason ?? '—'}.
+            Terminasi pada {vendor.terminatedAt ? formatDate(vendor.terminatedAt) : '—'}. Alasan:{' '}
+            {vendor.terminatedReason ?? '—'}.
           </p>
         </section>
       )}
@@ -294,11 +264,11 @@ function VendorActionBar({
   if (isTerminated) return null;
 
   return (
-    <section className="flex flex-wrap gap-2 rounded-md border border-border bg-card p-3">
+    <section className="border-border bg-card flex flex-wrap gap-2 rounded-md border p-3">
       <button
         type="button"
         onClick={() => setReviewOpen((v) => !v)}
-        className="rounded-md border border-border bg-background px-3 py-1.5 text-sm hover:border-primary/60"
+        className="border-border bg-background hover:border-primary/60 rounded-md border px-3 py-1.5 text-sm"
       >
         Mark reviewed
       </button>
@@ -308,7 +278,7 @@ function VendorActionBar({
           onClick={onActivate}
           disabled={!vendor.dpaSignedAt}
           title={!vendor.dpaSignedAt ? 'DPA harus ditandatangani dulu' : ''}
-          className="rounded-md border border-border bg-emerald-50 px-3 py-1.5 text-sm text-emerald-700 hover:border-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-emerald-950/40 dark:text-emerald-300"
+          className="border-border rounded-md border bg-emerald-50 px-3 py-1.5 text-sm text-emerald-700 hover:border-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-emerald-950/40 dark:text-emerald-300"
         >
           Aktifkan
         </button>
@@ -317,7 +287,7 @@ function VendorActionBar({
         <button
           type="button"
           onClick={onDeprecate}
-          className="rounded-md border border-border bg-slate-100 px-3 py-1.5 text-sm text-slate-700 hover:border-slate-500 dark:bg-slate-800/60 dark:text-slate-200"
+          className="border-border rounded-md border bg-slate-100 px-3 py-1.5 text-sm text-slate-700 hover:border-slate-500 dark:bg-slate-800/60 dark:text-slate-200"
         >
           Tandai deprecated
         </button>
@@ -331,22 +301,22 @@ function VendorActionBar({
       </button>
 
       {reviewOpen && (
-        <div className="w-full rounded-md border border-border bg-background p-3">
-          <label className="mb-1 block text-xs uppercase tracking-wide text-muted-foreground">
+        <div className="border-border bg-background w-full rounded-md border p-3">
+          <label className="text-muted-foreground mb-1 block text-xs uppercase tracking-wide">
             Catatan review (opsional)
           </label>
           <textarea
             rows={3}
             value={reviewNote}
             onChange={(e) => setReviewNote(e.target.value)}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            className="border-border bg-background w-full rounded-md border px-3 py-2 text-sm"
             placeholder="SOC2 renewed 2026-05, subprocessor list unchanged."
           />
           <div className="mt-2 flex justify-end gap-2">
             <button
               type="button"
               onClick={() => setReviewOpen(false)}
-              className="rounded-md border border-border px-3 py-1.5 text-sm"
+              className="border-border rounded-md border px-3 py-1.5 text-sm"
             >
               Batal
             </button>
@@ -357,7 +327,7 @@ function VendorActionBar({
                 setReviewOpen(false);
                 setReviewNote('');
               }}
-              className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground hover:bg-primary/90"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-3 py-1.5 text-sm"
             >
               Simpan review
             </button>
@@ -374,14 +344,14 @@ function VendorActionBar({
             rows={3}
             value={terminateReason}
             onChange={(e) => setTerminateReason(e.target.value)}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            className="border-border bg-background w-full rounded-md border px-3 py-2 text-sm"
             placeholder="Kontrak tidak diperpanjang, data telah dihapus per email …"
           />
           <div className="mt-2 flex justify-end gap-2">
             <button
               type="button"
               onClick={() => setTerminateOpen(false)}
-              className="rounded-md border border-border px-3 py-1.5 text-sm"
+              className="border-border rounded-md border px-3 py-1.5 text-sm"
             >
               Batal
             </button>
@@ -407,7 +377,7 @@ function VendorActionBar({
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-md border border-border bg-card p-4">
+    <div className="border-border bg-card rounded-md border p-4">
       <h3 className="mb-2 text-sm font-medium">{title}</h3>
       <dl className="space-y-1 text-sm">{children}</dl>
     </div>
@@ -417,8 +387,8 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="grid grid-cols-3 gap-2">
-      <dt className="text-xs uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="col-span-2 text-sm text-foreground">{value}</dd>
+      <dt className="text-muted-foreground text-xs uppercase tracking-wide">{label}</dt>
+      <dd className="text-foreground col-span-2 text-sm">{value}</dd>
     </div>
   );
 }

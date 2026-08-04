@@ -58,21 +58,15 @@ async function tryPruneExportsFor(email: string): Promise<boolean> {
   }
 }
 
-test('Empty state renders when the user has never requested an export', async ({
-  page,
-}) => {
+test('Empty state renders when the user has never requested an export', async ({ page }) => {
   await tryPruneExportsFor(SEED_USERS.employee.email);
   await loginAs(page, 'employee');
   await page.goto('/settings/privacy');
 
   const panel = page.getByTestId('data-export-panel');
   await expect(panel).toBeVisible();
-  await expect(
-    panel.getByRole('heading', { name: 'Ekspor data pribadi' }),
-  ).toBeVisible();
-  await expect(
-    panel.getByText(/Belum ada permintaan ekspor/i),
-  ).toBeVisible();
+  await expect(panel.getByRole('heading', { name: 'Ekspor data pribadi' })).toBeVisible();
+  await expect(panel.getByText(/Belum ada permintaan ekspor/i)).toBeVisible();
   await expect(panel.getByTestId('data-export-create')).toBeEnabled();
 });
 
@@ -129,7 +123,7 @@ test('Clicking create while cooldown is active surfaces the EXPORT_COOLDOWN copy
 
   await panel.getByTestId('data-export-create').click();
 
-  await expect(
-    panel.getByRole('alert').filter({ hasText: /sekali per 24 jam/i }),
-  ).toBeVisible({ timeout: 10_000 });
+  await expect(panel.getByRole('alert').filter({ hasText: /sekali per 24 jam/i })).toBeVisible({
+    timeout: 10_000,
+  });
 });

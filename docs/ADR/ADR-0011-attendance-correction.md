@@ -89,8 +89,8 @@ current `AttendanceRecord` (or null) and the requested clock-in/out
 times, and returns a discriminated action:
 
 - `CREATE` — no record exists; create a fresh one.
-- `PATCH`  — record exists; fill in null fields only.
-- `NO_OP`  — record already matches the request (idempotent replay).
+- `PATCH` — record exists; fill in null fields only.
+- `NO_OP` — record already matches the request (idempotent replay).
 - `CONFLICT` — refuse with a specific reason code.
 
 Reasons for the pure-function design:

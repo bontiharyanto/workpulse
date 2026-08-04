@@ -49,11 +49,7 @@ export function RequireAuth({ children }: { children: ReactNode }): JSX.Element 
       router.replace(CHANGE_PASSWORD_PATH as Route);
       return;
     }
-    if (
-      user.mfaEnabled === true &&
-      user.mfaPassed === false &&
-      pathname !== MFA_VERIFY_PATH
-    ) {
+    if (user.mfaEnabled === true && user.mfaPassed === false && pathname !== MFA_VERIFY_PATH) {
       router.replace(MFA_VERIFY_PATH as Route);
       return;
     }
@@ -78,7 +74,7 @@ export function RequireAuth({ children }: { children: ReactNode }): JSX.Element 
 
   if (status !== 'authenticated') {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center text-sm text-muted-foreground">
+      <div className="text-muted-foreground flex min-h-[40vh] items-center justify-center text-sm">
         Memuat sesi...
       </div>
     );
@@ -86,19 +82,15 @@ export function RequireAuth({ children }: { children: ReactNode }): JSX.Element 
 
   if (user?.mustChangePassword === true && pathname !== CHANGE_PASSWORD_PATH) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center text-sm text-muted-foreground">
+      <div className="text-muted-foreground flex min-h-[40vh] items-center justify-center text-sm">
         Mengarahkan ke halaman ubah password...
       </div>
     );
   }
 
-  if (
-    user?.mfaEnabled === true &&
-    user?.mfaPassed === false &&
-    pathname !== MFA_VERIFY_PATH
-  ) {
+  if (user?.mfaEnabled === true && user?.mfaPassed === false && pathname !== MFA_VERIFY_PATH) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center text-sm text-muted-foreground">
+      <div className="text-muted-foreground flex min-h-[40vh] items-center justify-center text-sm">
         Mengarahkan ke verifikasi MFA...
       </div>
     );
@@ -110,7 +102,7 @@ export function RequireAuth({ children }: { children: ReactNode }): JSX.Element 
     pathname !== CHANGE_PASSWORD_PATH
   ) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center text-sm text-muted-foreground">
+      <div className="text-muted-foreground flex min-h-[40vh] items-center justify-center text-sm">
         Mengarahkan ke pengaturan MFA...
       </div>
     );
@@ -124,7 +116,7 @@ export function RequireAuth({ children }: { children: ReactNode }): JSX.Element 
     pathname !== MFA_VERIFY_PATH
   ) {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center text-sm text-muted-foreground">
+      <div className="text-muted-foreground flex min-h-[40vh] items-center justify-center text-sm">
         Mengarahkan ke halaman persetujuan kebijakan…
       </div>
     );

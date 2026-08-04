@@ -82,9 +82,7 @@ export interface LeaveSummaryTotals {
   totalRemaining: number;
 }
 
-export function summarizeLeave(
-  rows: ReadonlyArray<LeaveSummaryReportRow>,
-): LeaveSummaryTotals {
+export function summarizeLeave(rows: ReadonlyArray<LeaveSummaryReportRow>): LeaveSummaryTotals {
   const seenUsers = new Set<string>();
   const seenTypes = new Set<string>();
   let totalQuota = 0;

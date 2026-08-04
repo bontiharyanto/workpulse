@@ -67,10 +67,7 @@ test.beforeAll(async () => {
 
 test('user can cancel while APPROVED_SCHEDULED', async () => {
   await pruneErasures([SEED_USERS.supervisor.email]);
-  const supervisor = await login(
-    SEED_USERS.supervisor.email,
-    SEED_USERS.supervisor.password,
-  );
+  const supervisor = await login(SEED_USERS.supervisor.email, SEED_USERS.supervisor.password);
   const hr = await login(SEED_USERS.hr.email, SEED_USERS.hr.password);
 
   const createRes = await supervisor.ctx.post('/api/v1/me/data-erasure', {
@@ -80,19 +77,15 @@ test('user can cancel while APPROVED_SCHEDULED', async () => {
   expect(createRes.status()).toBe(201);
   const created = (await createRes.json()) as { id: string };
 
-  const approveRes = await hr.ctx.post(
-    `/api/v1/admin/data-erasure/${created.id}/approve`,
-    {
-      headers: { Authorization: `Bearer ${hr.accessToken}` },
-      data: {},
-    },
-  );
+  const approveRes = await hr.ctx.post(`/api/v1/admin/data-erasure/${created.id}/approve`, {
+    headers: { Authorization: `Bearer ${hr.accessToken}` },
+    data: {},
+  });
   expect(approveRes.status()).toBe(200);
 
-  const cancelRes = await supervisor.ctx.post(
-    `/api/v1/me/data-erasure/${created.id}/cancel`,
-    { headers: { Authorization: `Bearer ${supervisor.accessToken}` } },
-  );
+  const cancelRes = await supervisor.ctx.post(`/api/v1/me/data-erasure/${created.id}/cancel`, {
+    headers: { Authorization: `Bearer ${supervisor.accessToken}` },
+  });
   expect(cancelRes.status()).toBe(200);
   const cancelled = (await cancelRes.json()) as { status: string };
   expect(cancelled.status).toBe('CANCELLED');
@@ -104,10 +97,7 @@ test('user can cancel while APPROVED_SCHEDULED', async () => {
 test('HR can reject with a mandatory note', async () => {
   await pruneErasures([SEED_USERS.supervisor.email]);
 
-  const supervisor = await login(
-    SEED_USERS.supervisor.email,
-    SEED_USERS.supervisor.password,
-  );
+  const supervisor = await login(SEED_USERS.supervisor.email, SEED_USERS.supervisor.password);
   const hr = await login(SEED_USERS.hr.email, SEED_USERS.hr.password);
 
   const createRes = await supervisor.ctx.post('/api/v1/me/data-erasure', {
@@ -117,22 +107,16 @@ test('HR can reject with a mandatory note', async () => {
   expect(createRes.status()).toBe(201);
   const created = (await createRes.json()) as { id: string };
 
-  const noNote = await hr.ctx.post(
-    `/api/v1/admin/data-erasure/${created.id}/reject`,
-    {
-      headers: { Authorization: `Bearer ${hr.accessToken}` },
-      data: {},
-    },
-  );
+  const noNote = await hr.ctx.post(`/api/v1/admin/data-erasure/${created.id}/reject`, {
+    headers: { Authorization: `Bearer ${hr.accessToken}` },
+    data: {},
+  });
   expect(noNote.status()).toBe(400);
 
-  const rejectRes = await hr.ctx.post(
-    `/api/v1/admin/data-erasure/${created.id}/reject`,
-    {
-      headers: { Authorization: `Bearer ${hr.accessToken}` },
-      data: { note: 'kontrak masih aktif' },
-    },
-  );
+  const rejectRes = await hr.ctx.post(`/api/v1/admin/data-erasure/${created.id}/reject`, {
+    headers: { Authorization: `Bearer ${hr.accessToken}` },
+    data: { note: 'kontrak masih aktif' },
+  });
   expect(rejectRes.status()).toBe(200);
   const rejected = (await rejectRes.json()) as {
     status: string;
@@ -146,10 +130,7 @@ test('HR can reject with a mandatory note', async () => {
 });
 
 test('EMPLOYEE / SUPERVISOR cannot hit the admin endpoints', async () => {
-  const employee = await login(
-    SEED_USERS.employee.email,
-    SEED_USERS.employee.password,
-  );
+  const employee = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
 
   const forbidden = await employee.ctx.get('/api/v1/admin/data-erasure/pending', {
     headers: { Authorization: `Bearer ${employee.accessToken}` },
@@ -170,32 +151,25 @@ test('HR cannot approve their own erasure request; another admin can', async () 
   expect(createRes.status()).toBe(201);
   const created = (await createRes.json()) as { id: string };
 
-  const selfApprove = await hr.ctx.post(
-    `/api/v1/admin/data-erasure/${created.id}/approve`,
-    {
-      headers: { Authorization: `Bearer ${hr.accessToken}` },
-      data: {},
-    },
-  );
+  const selfApprove = await hr.ctx.post(`/api/v1/admin/data-erasure/${created.id}/approve`, {
+    headers: { Authorization: `Bearer ${hr.accessToken}` },
+    data: {},
+  });
   expect(selfApprove.status()).toBe(403);
   const body = await selfApprove.json();
   expect(body.code).toBe('ERASURE_SELF_APPROVAL');
 
   const admin = await login(SEED_USERS.admin.email, SEED_USERS.admin.password);
-  const otherApprove = await admin.ctx.post(
-    `/api/v1/admin/data-erasure/${created.id}/approve`,
-    {
-      headers: { Authorization: `Bearer ${admin.accessToken}` },
-      data: {},
-    },
-  );
+  const otherApprove = await admin.ctx.post(`/api/v1/admin/data-erasure/${created.id}/approve`, {
+    headers: { Authorization: `Bearer ${admin.accessToken}` },
+    data: {},
+  });
   expect(otherApprove.status()).toBe(200);
 
   // Clean up so a subsequent tick does not anonymise HR.
-  const cancelRes = await hr.ctx.post(
-    `/api/v1/me/data-erasure/${created.id}/cancel`,
-    { headers: { Authorization: `Bearer ${hr.accessToken}` } },
-  );
+  const cancelRes = await hr.ctx.post(`/api/v1/me/data-erasure/${created.id}/cancel`, {
+    headers: { Authorization: `Bearer ${hr.accessToken}` },
+  });
   expect(cancelRes.status()).toBe(200);
 
   await hr.ctx.dispose();
@@ -218,9 +192,7 @@ test('employee submits an erasure request; HR approves; worker executes', async 
       data: { sourceEmail: SEED_USERS.employee.email },
     });
     if (!res.ok()) {
-      throw new Error(
-        `test-support create-throwaway failed: ${res.status()} ${await res.text()}`,
-      );
+      throw new Error(`test-support create-throwaway failed: ${res.status()} ${await res.text()}`);
     }
     const body = (await res.json()) as { email: string };
     throwawayEmail = body.email;
@@ -253,13 +225,10 @@ test('employee submits an erasure request; HR approves; worker executes', async 
   expect(dupeBody.code).toBe('ERASURE_ALREADY_PENDING');
 
   const hr = await login(SEED_USERS.hr.email, SEED_USERS.hr.password);
-  const approveRes = await hr.ctx.post(
-    `/api/v1/admin/data-erasure/${created.id}/approve`,
-    {
-      headers: { Authorization: `Bearer ${hr.accessToken}` },
-      data: { note: 'ok, dijadwalkan' },
-    },
-  );
+  const approveRes = await hr.ctx.post(`/api/v1/admin/data-erasure/${created.id}/approve`, {
+    headers: { Authorization: `Bearer ${hr.accessToken}` },
+    data: { note: 'ok, dijadwalkan' },
+  });
   expect(approveRes.status()).toBe(200);
   const approved = (await approveRes.json()) as {
     status: string;
@@ -270,10 +239,9 @@ test('employee submits an erasure request; HR approves; worker executes', async 
 
   const ff = await request.newContext({ baseURL: API_URL });
   try {
-    const ffRes = await ff.post(
-      '/api/v1/test-support/data-erasure/fast-forward',
-      { data: { id: created.id } },
-    );
+    const ffRes = await ff.post('/api/v1/test-support/data-erasure/fast-forward', {
+      data: { id: created.id },
+    });
     expect(ffRes.status()).toBe(204);
     const tickRes = await ff.post('/api/v1/test-support/data-erasure/tick');
     expect(tickRes.status()).toBe(204);

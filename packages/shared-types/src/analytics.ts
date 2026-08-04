@@ -22,28 +22,13 @@ export const analyticsMetricKeySchema = z.enum([
 ]);
 export type AnalyticsMetricKey = z.infer<typeof analyticsMetricKeySchema>;
 
-export const metricFormatKindSchema = z.enum([
-  'RATIO_PCT',
-  'COUNT',
-  'HOURS',
-  'CURRENCY_IDR',
-]);
+export const metricFormatKindSchema = z.enum(['RATIO_PCT', 'COUNT', 'HOURS', 'CURRENCY_IDR']);
 export type MetricFormatKind = z.infer<typeof metricFormatKindSchema>;
 
-export const metricDirectionSchema = z.enum([
-  'HIGHER_IS_BETTER',
-  'LOWER_IS_BETTER',
-  'NEUTRAL',
-]);
+export const metricDirectionSchema = z.enum(['HIGHER_IS_BETTER', 'LOWER_IS_BETTER', 'NEUTRAL']);
 export type MetricDirection = z.infer<typeof metricDirectionSchema>;
 
-export const metricTrendSchema = z.enum([
-  'UP_GOOD',
-  'UP_BAD',
-  'DOWN_GOOD',
-  'DOWN_BAD',
-  'FLAT',
-]);
+export const metricTrendSchema = z.enum(['UP_GOOD', 'UP_BAD', 'DOWN_GOOD', 'DOWN_BAD', 'FLAT']);
 export type MetricTrend = z.infer<typeof metricTrendSchema>;
 
 /** Supported look-back windows. Keep in sync with the API's ParseEnum. */

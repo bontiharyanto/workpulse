@@ -32,9 +32,7 @@ async function login(email: string, password: string): Promise<Login> {
     data: { email, password },
   });
   if (!res.ok()) {
-    throw new Error(
-      `login failed for ${email}: ${res.status()} ${await res.text()}`,
-    );
+    throw new Error(`login failed for ${email}: ${res.status()} ${await res.text()}`);
   }
   const body = (await res.json()) as { accessToken: string };
   return { ctx, accessToken: body.accessToken };
@@ -78,34 +76,26 @@ test.describe('Timesheet export — signed share URL', () => {
     await pruneExportsCtx.dispose();
 
     const now = new Date();
-    const prevMonthAnchor = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 15),
-    );
+    const prevMonthAnchor = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 15));
     const { request } = await import('@playwright/test');
     const genCtx = await request.newContext({ baseURL: API_URL });
     try {
-      const genRes = await genCtx.post(
-        '/api/v1/test-support/timesheet/generate',
-        {
-          data: {
-            email: SEED_USERS.hr.email,
-            at: prevMonthAnchor.toISOString(),
-          },
+      const genRes = await genCtx.post('/api/v1/test-support/timesheet/generate', {
+        data: {
+          email: SEED_USERS.hr.email,
+          at: prevMonthAnchor.toISOString(),
         },
-      );
+      });
       expect(genRes.ok()).toBeTruthy();
       const gen = (await genRes.json()) as { periodId: string };
       approvedPeriodId = gen.periodId;
 
-      const approveRes = await genCtx.post(
-        '/api/v1/test-support/timesheet/approve-all',
-        {
-          data: {
-            email: SEED_USERS.hr.email,
-            periodId: approvedPeriodId,
-          },
+      const approveRes = await genCtx.post('/api/v1/test-support/timesheet/approve-all', {
+        data: {
+          email: SEED_USERS.hr.email,
+          periodId: approvedPeriodId,
         },
-      );
+      });
       expect(approveRes.status()).toBe(204);
     } finally {
       await genCtx.dispose();
@@ -192,8 +182,7 @@ test.describe('Timesheet export — signed share URL', () => {
     const goodSig = url.searchParams.get('signature') ?? '';
     // Flip one char while keeping length so we exercise the HMAC path
     // and not the "wrong length" short-circuit.
-    const tampered =
-      goodSig.slice(0, -1) + (goodSig.endsWith('A') ? 'B' : 'A');
+    const tampered = goodSig.slice(0, -1) + (goodSig.endsWith('A') ? 'B' : 'A');
     url.searchParams.set('signature', tampered);
 
     const { request } = await import('@playwright/test');
@@ -235,10 +224,7 @@ test.describe('Timesheet export — signed share URL', () => {
   });
 
   test('EMPLOYEE cannot mint a share (403)', async () => {
-    const emp = await login(
-      SEED_USERS.employee.email,
-      SEED_USERS.employee.password,
-    );
+    const emp = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
     const res = await emp.ctx.post(
       `/api/v1/admin/timesheet/exports/${encodeURIComponent(exportId!)}/shares`,
       {

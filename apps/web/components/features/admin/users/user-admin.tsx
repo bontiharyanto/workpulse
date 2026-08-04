@@ -100,8 +100,7 @@ export function UserAdmin(): JSX.Element {
   });
 
   const updateMut = useMutation({
-    mutationFn: (v: { id: string; input: UpdateUserInput }) =>
-      usersAdminApi.update(v.id, v.input),
+    mutationFn: (v: { id: string; input: UpdateUserInput }) => usersAdminApi.update(v.id, v.input),
     onSuccess: () => {
       setErrorText(null);
       setMode('idle');
@@ -141,9 +140,9 @@ export function UserAdmin(): JSX.Element {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Karyawan</h2>
-          <p className="text-xs text-muted-foreground">
-            Kelola akun karyawan, atasan, dan role. Password sementara dibuat
-            otomatis dan hanya ditampilkan sekali.
+          <p className="text-muted-foreground text-xs">
+            Kelola akun karyawan, atasan, dan role. Password sementara dibuat otomatis dan hanya
+            ditampilkan sekali.
           </p>
         </div>
         <button
@@ -152,7 +151,7 @@ export function UserAdmin(): JSX.Element {
             setMode('create');
             setErrorText(null);
           }}
-          className="rounded-md bg-foreground px-3 py-1 text-xs font-medium text-background"
+          className="bg-foreground text-background rounded-md px-3 py-1 text-xs font-medium"
         >
           + Tambah karyawan
         </button>
@@ -170,7 +169,7 @@ export function UserAdmin(): JSX.Element {
       {errorText && (
         <p
           role="alert"
-          className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
         >
           {errorText}
         </p>
@@ -181,14 +180,12 @@ export function UserAdmin(): JSX.Element {
           value={filters.search}
           onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
           placeholder="Cari nama / email..."
-          className="rounded-md border border-input bg-background px-3 py-2 text-sm md:col-span-2"
+          className="border-input bg-background rounded-md border px-3 py-2 text-sm md:col-span-2"
         />
         <select
           value={filters.role}
-          onChange={(e) =>
-            setFilters((f) => ({ ...f, role: e.target.value as '' | UserRole }))
-          }
-          className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+          onChange={(e) => setFilters((f) => ({ ...f, role: e.target.value as '' | UserRole }))}
+          className="border-input bg-background rounded-md border px-3 py-2 text-sm"
         >
           <option value="">Semua role</option>
           {(Object.keys(ROLE_LABELS) as UserRole[]).map((r) => (
@@ -199,10 +196,8 @@ export function UserAdmin(): JSX.Element {
         </select>
         <select
           value={filters.departmentId}
-          onChange={(e) =>
-            setFilters((f) => ({ ...f, departmentId: e.target.value }))
-          }
-          className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+          onChange={(e) => setFilters((f) => ({ ...f, departmentId: e.target.value }))}
+          className="border-input bg-background rounded-md border px-3 py-2 text-sm"
         >
           <option value="">Semua departemen</option>
           {(departments.data ?? []).map((d) => (
@@ -211,13 +206,11 @@ export function UserAdmin(): JSX.Element {
             </option>
           ))}
         </select>
-        <label className="col-span-full flex items-center gap-2 text-xs text-muted-foreground">
+        <label className="text-muted-foreground col-span-full flex items-center gap-2 text-xs">
           <input
             type="checkbox"
             checked={filters.includeInactive}
-            onChange={(e) =>
-              setFilters((f) => ({ ...f, includeInactive: e.target.checked }))
-            }
+            onChange={(e) => setFilters((f) => ({ ...f, includeInactive: e.target.checked }))}
           />
           Tampilkan yang sudah dinonaktifkan
         </label>
@@ -254,15 +247,15 @@ export function UserAdmin(): JSX.Element {
       )}
 
       {users.isLoading ? (
-        <p className="text-sm text-muted-foreground">Memuat...</p>
+        <p className="text-muted-foreground text-sm">Memuat...</p>
       ) : rows.length === 0 ? (
-        <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+        <p className="text-muted-foreground rounded-md border border-dashed p-6 text-center text-sm">
           Tidak ada hasil.
         </p>
       ) : (
         <div className="overflow-x-auto rounded-lg border">
           <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
+            <thead className="bg-muted/40 text-muted-foreground text-xs uppercase tracking-wider">
               <tr>
                 <th className="px-3 py-2 text-left">Nama</th>
                 <th className="px-3 py-2 text-left">Email</th>
@@ -276,22 +269,19 @@ export function UserAdmin(): JSX.Element {
               {rows.map((u) => {
                 const inactive = Boolean(u.deactivatedAt);
                 const busyReset = resetMut.isPending && resetMut.variables === u.id;
-                const busyDeact =
-                  deactivateMut.isPending && deactivateMut.variables === u.id;
+                const busyDeact = deactivateMut.isPending && deactivateMut.variables === u.id;
                 return (
                   <tr key={u.id} className={inactive ? 'opacity-60' : undefined}>
                     <td className="px-3 py-2 font-medium">{u.fullName}</td>
                     <td className="px-3 py-2 font-mono text-xs">{u.email}</td>
                     <td className="px-3 py-2">{ROLE_LABELS[u.role]}</td>
-                    <td className="px-3 py-2 text-muted-foreground">
-                      {u.departmentName ?? '—'}
-                    </td>
+                    <td className="text-muted-foreground px-3 py-2">{u.departmentName ?? '—'}</td>
                     <td className="px-3 py-2">
                       <span
                         className={
                           u.employmentStatus === 'ACTIVE'
                             ? 'rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-300'
-                            : 'rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'
+                            : 'bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs'
                         }
                       >
                         {u.employmentStatus}
@@ -327,9 +317,7 @@ export function UserAdmin(): JSX.Element {
                           type="button"
                           disabled={inactive || busyDeact || u.id === actor.id}
                           title={
-                            u.id === actor.id
-                              ? 'Tidak dapat menonaktifkan diri sendiri'
-                              : undefined
+                            u.id === actor.id ? 'Tidak dapat menonaktifkan diri sendiri' : undefined
                           }
                           onClick={() => {
                             if (
@@ -340,7 +328,7 @@ export function UserAdmin(): JSX.Element {
                               deactivateMut.mutate(u.id);
                             }
                           }}
-                          className="rounded-md border border-destructive px-2 py-1 text-xs text-destructive disabled:opacity-40"
+                          className="border-destructive text-destructive rounded-md border px-2 py-1 text-xs disabled:opacity-40"
                         >
                           {busyDeact ? 'Menonaktifkan...' : 'Nonaktifkan'}
                         </button>

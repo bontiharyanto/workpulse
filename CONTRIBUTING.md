@@ -35,15 +35,15 @@ Bila mengubah `apps/*/Dockerfile`, `docker-compose.yml`, atau `.github/workflows
 
 ## Branch Naming
 
-| Prefix | Ketika |
-|---|---|
-| `feat/<scope>` | fitur baru |
-| `fix/<scope>` | bugfix |
+| Prefix             | Ketika                            |
+| ------------------ | --------------------------------- |
+| `feat/<scope>`     | fitur baru                        |
+| `fix/<scope>`      | bugfix                            |
 | `refactor/<scope>` | refactor tanpa perubahan behavior |
-| `chore/<scope>` | tooling, config, deps |
-| `docs/<scope>` | dokumentasi saja |
-| `perf/<scope>` | perbaikan performa |
-| `test/<scope>` | menambah/memperbaiki test |
+| `chore/<scope>`    | tooling, config, deps             |
+| `docs/<scope>`     | dokumentasi saja                  |
+| `perf/<scope>`     | perbaikan performa                |
+| `test/<scope>`     | menambah/memperbaiki test         |
 
 Scope contoh: `attendance`, `leave`, `auth`, `web`, `api`, `prisma`.
 

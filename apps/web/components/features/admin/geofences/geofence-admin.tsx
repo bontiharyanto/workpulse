@@ -9,7 +9,8 @@ import { ApiError, geofencesAdminApi } from '@/lib/api-client';
 import { GeofenceForm } from './geofence-form';
 
 const ERROR_COPY: Record<string, string> = {
-  GEOFENCE_IN_USE_BY_SHIFT: 'Tidak bisa dihapus: masih dipakai oleh Shift. Lepaskan dari Shift terkait terlebih dahulu.',
+  GEOFENCE_IN_USE_BY_SHIFT:
+    'Tidak bisa dihapus: masih dipakai oleh Shift. Lepaskan dari Shift terkait terlebih dahulu.',
   GEOFENCE_NOT_FOUND: 'Geofence tidak ditemukan.',
   FORBIDDEN: 'Anda tidak memiliki akses.',
 };
@@ -66,21 +67,24 @@ export function GeofenceAdmin(): JSX.Element {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Geofence</h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Titik lokasi kantor beserta radius yang divalidasi server saat clock-in/out.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setEditing('new')}
-          className="rounded-md bg-foreground px-3 py-1 text-xs font-medium text-background"
+          className="bg-foreground text-background rounded-md px-3 py-1 text-xs font-medium"
         >
           + Tambah
         </button>
       </div>
 
       {errorText && (
-        <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+        <p
+          role="alert"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
+        >
           {errorText}
         </p>
       )}
@@ -103,15 +107,15 @@ export function GeofenceAdmin(): JSX.Element {
       )}
 
       {list.isLoading ? (
-        <p className="text-sm text-muted-foreground">Memuat...</p>
+        <p className="text-muted-foreground text-sm">Memuat...</p>
       ) : rows.length === 0 ? (
-        <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+        <p className="text-muted-foreground rounded-md border border-dashed p-6 text-center text-sm">
           Belum ada geofence.
         </p>
       ) : (
         <div className="overflow-hidden rounded-lg border">
           <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
+            <thead className="bg-muted/40 text-muted-foreground text-xs uppercase tracking-wider">
               <tr>
                 <th className="px-3 py-2 text-left">Nama</th>
                 <th className="px-3 py-2 text-right">Latitude</th>
@@ -127,10 +131,10 @@ export function GeofenceAdmin(): JSX.Element {
                 return (
                   <tr key={r.id}>
                     <td className="px-3 py-2 font-medium">{r.name}</td>
-                    <td className="px-3 py-2 text-right font-mono tabular-nums text-xs">
+                    <td className="px-3 py-2 text-right font-mono text-xs tabular-nums">
                       {r.latitude.toFixed(6)}
                     </td>
-                    <td className="px-3 py-2 text-right font-mono tabular-nums text-xs">
+                    <td className="px-3 py-2 text-right font-mono text-xs tabular-nums">
                       {r.longitude.toFixed(6)}
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums">{r.radiusMeters}</td>
@@ -153,7 +157,7 @@ export function GeofenceAdmin(): JSX.Element {
                               deleteMut.mutate(r.id);
                             }
                           }}
-                          className="rounded-md border border-destructive px-2 py-1 text-xs text-destructive disabled:opacity-40"
+                          className="border-destructive text-destructive rounded-md border px-2 py-1 text-xs disabled:opacity-40"
                         >
                           {busy ? 'Menghapus...' : 'Hapus'}
                         </button>

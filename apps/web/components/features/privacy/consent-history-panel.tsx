@@ -36,25 +36,24 @@ export function ConsentHistoryPanel(): JSX.Element {
   return (
     <section
       aria-labelledby="consent-heading"
-      className="space-y-4 rounded-lg border border-border bg-card p-6"
+      className="border-border bg-card space-y-4 rounded-lg border p-6"
     >
       <div className="space-y-1">
         <h2 id="consent-heading" className="text-lg font-semibold">
           Persetujuan kebijakan privasi
         </h2>
-        <p className="text-sm text-muted-foreground">
-          Riwayat versi kebijakan yang telah Anda terima. Diperbarui setiap
-          kali perusahaan menerbitkan versi baru.
+        <p className="text-muted-foreground text-sm">
+          Riwayat versi kebijakan yang telah Anda terima. Diperbarui setiap kali perusahaan
+          menerbitkan versi baru.
         </p>
       </div>
 
       {current.data && (
-        <details className="rounded-md border border-input p-3 text-sm">
+        <details className="border-input rounded-md border p-3 text-sm">
           <summary className="cursor-pointer font-medium">
-            Lihat kebijakan aktif — v{current.data.version} ·{' '}
-            {current.data.title}
+            Lihat kebijakan aktif — v{current.data.version} · {current.data.title}
           </summary>
-          <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap rounded bg-muted p-3 text-xs">
+          <pre className="bg-muted mt-3 max-h-64 overflow-auto whitespace-pre-wrap rounded p-3 text-xs">
             {current.data.body}
           </pre>
         </details>
@@ -64,31 +63,30 @@ export function ConsentHistoryPanel(): JSX.Element {
         <div
           role="status"
           aria-live="polite"
-          className="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground"
+          className="border-border text-muted-foreground rounded-md border border-dashed p-4 text-sm"
         >
           Memuat riwayat…
         </div>
       ) : history.data && history.data.length > 0 ? (
-        <ul className="divide-y divide-border rounded-md border border-border">
+        <ul className="divide-border border-border divide-y rounded-md border">
           {history.data.map((c) => (
             <li key={c.id} className="flex items-center justify-between p-3">
               <div className="space-y-0.5">
                 <p className="text-sm font-medium">
                   {c.policyTitle}
-                  <span className="ml-2 rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                  <span className="bg-muted text-muted-foreground ml-2 rounded px-2 py-0.5 text-xs">
                     v{c.policyVersion}
                   </span>
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  Diterima{' '}
-                  {new Date(c.acceptedAt).toLocaleString('id-ID', DATE_FORMAT)}
+                <p className="text-muted-foreground text-xs">
+                  Diterima {new Date(c.acceptedAt).toLocaleString('id-ID', DATE_FORMAT)}
                 </p>
               </div>
             </li>
           ))}
         </ul>
       ) : (
-        <div className="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
+        <div className="border-border text-muted-foreground rounded-md border border-dashed p-4 text-sm">
           Belum ada persetujuan yang tercatat.
         </div>
       )}

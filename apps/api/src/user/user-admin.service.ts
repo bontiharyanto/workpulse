@@ -212,10 +212,8 @@ export class UserAdminService {
           data: {
             fullName: input.fullName?.trim() ?? undefined,
             role: input.role ?? undefined,
-            departmentId:
-              input.departmentId === undefined ? undefined : input.departmentId,
-            supervisorId:
-              input.supervisorId === undefined ? undefined : input.supervisorId,
+            departmentId: input.departmentId === undefined ? undefined : input.departmentId,
+            supervisorId: input.supervisorId === undefined ? undefined : input.supervisorId,
             employmentStatus: input.employmentStatus ?? undefined,
           },
         });
@@ -277,10 +275,7 @@ export class UserAdminService {
   // Reset password (admin-issued temporary password)
   // ==================================================================
 
-  async resetPassword(
-    actor: AuthenticatedUser,
-    id: string,
-  ): Promise<UserCredentialResponseDto> {
+  async resetPassword(actor: AuthenticatedUser, id: string): Promise<UserCredentialResponseDto> {
     const existing = await this.findOneInCompany(actor.companyId, id, /* includeDeleted */ false);
     this.assertCanManage(actor, existing);
 
@@ -341,10 +336,7 @@ export class UserAdminService {
     return row;
   }
 
-  private async assertDepartmentInCompany(
-    companyId: string,
-    departmentId: string,
-  ): Promise<void> {
+  private async assertDepartmentInCompany(companyId: string, departmentId: string): Promise<void> {
     const row = await this.prisma.department.findFirst({
       where: { id: departmentId, companyId, deletedAt: null },
       select: { id: true },
@@ -352,10 +344,7 @@ export class UserAdminService {
     if (!row) throw new BadRequestException('DEPARTMENT_INVALID');
   }
 
-  private async assertSupervisorInCompany(
-    companyId: string,
-    supervisorId: string,
-  ): Promise<void> {
+  private async assertSupervisorInCompany(companyId: string, supervisorId: string): Promise<void> {
     const row = await this.prisma.user.findFirst({
       where: { id: supervisorId, companyId, deletedAt: null },
       select: { role: true },

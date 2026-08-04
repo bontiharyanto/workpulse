@@ -12,9 +12,7 @@ describe('submission-workflow — SUBMIT', () => {
   const submitOwner: WorkflowAction = { kind: 'SUBMIT', actorIsOwner: true };
 
   it('promotes DRAFT → PENDING_SUPERVISOR', () => {
-    expect(transition(TimesheetStatus.DRAFT, submitOwner)).toBe(
-      TimesheetStatus.PENDING_SUPERVISOR,
-    );
+    expect(transition(TimesheetStatus.DRAFT, submitOwner)).toBe(TimesheetStatus.PENDING_SUPERVISOR);
   });
 
   it('promotes REJECTED → PENDING_SUPERVISOR (re-submit)', () => {
@@ -38,9 +36,7 @@ describe('submission-workflow — SUBMIT', () => {
       TimesheetStatus.PENDING_HR,
       TimesheetStatus.APPROVED,
     ]) {
-      expect(() => transition(from, submitOwner)).toThrow(
-        IllegalTimesheetTransitionError,
-      );
+      expect(() => transition(from, submitOwner)).toThrow(IllegalTimesheetTransitionError);
     }
   });
 });
@@ -53,9 +49,9 @@ describe('submission-workflow — SUPERVISOR_APPROVE / REJECT', () => {
   };
 
   it('promotes PENDING_SUPERVISOR → PENDING_HR when the actor is the direct supervisor', () => {
-    expect(
-      transition(TimesheetStatus.PENDING_SUPERVISOR, teamSupervisor),
-    ).toBe(TimesheetStatus.PENDING_HR);
+    expect(transition(TimesheetStatus.PENDING_SUPERVISOR, teamSupervisor)).toBe(
+      TimesheetStatus.PENDING_HR,
+    );
   });
 
   it('allows HR_MANAGER to short-circuit the supervisor tier', () => {
@@ -84,9 +80,7 @@ describe('submission-workflow — SUPERVISOR_APPROVE / REJECT', () => {
       TimesheetStatus.PENDING_HR,
       TimesheetStatus.APPROVED,
     ]) {
-      expect(() => transition(from, teamSupervisor)).toThrow(
-        IllegalTimesheetTransitionError,
-      );
+      expect(() => transition(from, teamSupervisor)).toThrow(IllegalTimesheetTransitionError);
     }
   });
 
@@ -136,9 +130,9 @@ describe('submission-workflow — HR_APPROVE / REJECT', () => {
       TimesheetStatus.APPROVED,
       TimesheetStatus.REJECTED,
     ]) {
-      expect(() =>
-        transition(from, { kind: 'HR_APPROVE', actorRole: 'HR_MANAGER' }),
-      ).toThrow(IllegalTimesheetTransitionError);
+      expect(() => transition(from, { kind: 'HR_APPROVE', actorRole: 'HR_MANAGER' })).toThrow(
+        IllegalTimesheetTransitionError,
+      );
     }
   });
 

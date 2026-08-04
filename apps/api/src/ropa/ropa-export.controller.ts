@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Get,
-  HttpStatus,
-  Res,
-} from '@nestjs/common';
+import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
@@ -30,19 +25,13 @@ export class RopaExportController {
   constructor(private readonly exporter: RopaExportService) {}
 
   @Get('export.pdf')
-  async exportPdf(
-    @CurrentUser() actor: AuthenticatedUser,
-    @Res() res: Response,
-  ): Promise<void> {
+  async exportPdf(@CurrentUser() actor: AuthenticatedUser, @Res() res: Response): Promise<void> {
     const result = await this.exporter.buildExport(actor, 'PDF');
     this.writeAttachment(res, result.filename, result.contentType, result.bytes, result.sha256);
   }
 
   @Get('export.xlsx')
-  async exportXlsx(
-    @CurrentUser() actor: AuthenticatedUser,
-    @Res() res: Response,
-  ): Promise<void> {
+  async exportXlsx(@CurrentUser() actor: AuthenticatedUser, @Res() res: Response): Promise<void> {
     const result = await this.exporter.buildExport(actor, 'XLSX');
     this.writeAttachment(res, result.filename, result.contentType, result.bytes, result.sha256);
   }

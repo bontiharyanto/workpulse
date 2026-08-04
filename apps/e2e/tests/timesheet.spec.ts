@@ -30,9 +30,7 @@ async function login(email: string, password: string): Promise<LoginedContext> {
     data: { email, password },
   });
   if (!res.ok()) {
-    throw new Error(
-      `login failed for ${email}: ${res.status()} ${await res.text()}`,
-    );
+    throw new Error(`login failed for ${email}: ${res.status()} ${await res.text()}`);
   }
   const body = (await res.json()) as { accessToken: string };
   return { ctx, accessToken: body.accessToken };
@@ -88,10 +86,7 @@ test.describe('Timesheet — config surface', () => {
   });
 
   test('HR reads + updates the tenant timesheet config', async () => {
-    const { ctx, accessToken } = await login(
-      SEED_USERS.hr.email,
-      SEED_USERS.hr.password,
-    );
+    const { ctx, accessToken } = await login(SEED_USERS.hr.email, SEED_USERS.hr.password);
 
     const getRes = await ctx.get('/api/v1/admin/timesheet/config', {
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -129,10 +124,7 @@ test.describe('Timesheet — config surface', () => {
   });
 
   test('config rejects out-of-range cutoffDayOfMonth (400)', async () => {
-    const { ctx, accessToken } = await login(
-      SEED_USERS.hr.email,
-      SEED_USERS.hr.password,
-    );
+    const { ctx, accessToken } = await login(SEED_USERS.hr.email, SEED_USERS.hr.password);
     const res = await ctx.put('/api/v1/admin/timesheet/config', {
       headers: { Authorization: `Bearer ${accessToken}` },
       data: { cutoffDayOfMonth: 30 },
@@ -144,10 +136,7 @@ test.describe('Timesheet — config surface', () => {
   test.afterAll(async () => {
     // Restore the tenant to the shared-default MONTHLY so downstream
     // suites depending on the seed remain isolated.
-    const { ctx, accessToken } = await login(
-      SEED_USERS.hr.email,
-      SEED_USERS.hr.password,
-    );
+    const { ctx, accessToken } = await login(SEED_USERS.hr.email, SEED_USERS.hr.password);
     await ctx.put('/api/v1/admin/timesheet/config', {
       headers: { Authorization: `Bearer ${accessToken}` },
       data: { periodType: 'MONTHLY', cutoffDayOfMonth: null },
@@ -167,10 +156,7 @@ test.describe('Timesheet — generator + read surface', () => {
     expect(gen.timesheetsGenerated).toBeGreaterThan(0);
     expect(gen.periodId).toMatch(/^c/); // cuid()
 
-    const emp = await login(
-      SEED_USERS.employee.email,
-      SEED_USERS.employee.password,
-    );
+    const emp = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
     const currentRes = await emp.ctx.get('/api/v1/me/timesheet/current', {
       headers: { Authorization: `Bearer ${emp.accessToken}` },
     });
@@ -203,20 +189,14 @@ test.describe('Timesheet — generator + read surface', () => {
     const list = (await listRes.json()) as {
       items: Array<{ id: string; user: { email: string } }>;
     };
-    const peer = list.items.find(
-      (t) => t.user.email !== SEED_USERS.employee.email,
-    );
+    const peer = list.items.find((t) => t.user.email !== SEED_USERS.employee.email);
     expect(peer, 'HR should see at least one peer timesheet').toBeTruthy();
     await hr.ctx.dispose();
 
-    const emp = await login(
-      SEED_USERS.employee.email,
-      SEED_USERS.employee.password,
-    );
-    const peerRes = await emp.ctx.get(
-      `/api/v1/me/timesheet/${encodeURIComponent(peer!.id)}`,
-      { headers: { Authorization: `Bearer ${emp.accessToken}` } },
-    );
+    const emp = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
+    const peerRes = await emp.ctx.get(`/api/v1/me/timesheet/${encodeURIComponent(peer!.id)}`, {
+      headers: { Authorization: `Bearer ${emp.accessToken}` },
+    });
     // `/me/timesheet/:id` is service-scoped; a foreign ID → 403/404. We
     // accept either since the wrapper hides existence.
     expect([403, 404]).toContain(peerRes.status());
@@ -226,10 +206,7 @@ test.describe('Timesheet — generator + read surface', () => {
   test('supervisor sees direct-reports only in /admin/timesheet', async () => {
     await generateTimesheetsForCompany(SEED_USERS.hr.email);
 
-    const sup = await login(
-      SEED_USERS.supervisor.email,
-      SEED_USERS.supervisor.password,
-    );
+    const sup = await login(SEED_USERS.supervisor.email, SEED_USERS.supervisor.password);
     const supList = await sup.ctx.get('/api/v1/admin/timesheet?limit=200', {
       headers: { Authorization: `Bearer ${sup.accessToken}` },
     });

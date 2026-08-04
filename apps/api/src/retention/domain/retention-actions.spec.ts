@@ -1,9 +1,6 @@
 import type { Prisma } from '@prisma/client';
 
-import {
-  listAutoErasureCandidates,
-  pruneNotifications,
-} from './retention-actions';
+import { listAutoErasureCandidates, pruneNotifications } from './retention-actions';
 
 describe('pruneNotifications', () => {
   it('returns 0 and skips the delete when retention is disabled', async () => {
@@ -18,9 +15,7 @@ describe('pruneNotifications', () => {
   });
 
   it('deletes notifications older than the retention window', async () => {
-    const deleteMany = jest
-      .fn()
-      .mockResolvedValue({ count: 5 });
+    const deleteMany = jest.fn().mockResolvedValue({ count: 5 });
     const tx = {
       notification: { deleteMany },
     } as unknown as Prisma.TransactionClient;

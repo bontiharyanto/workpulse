@@ -13,11 +13,7 @@ import type {
   SavedReportResponse,
 } from '@workpulse/shared-types';
 
-import {
-  ApiError,
-  customReportAdminApi,
-  saveBlob,
-} from '@/lib/api-client';
+import { ApiError, customReportAdminApi, saveBlob } from '@/lib/api-client';
 
 /**
  * Fase 33b — DPO-facing builder for ad-hoc + saved custom reports.
@@ -101,19 +97,17 @@ export function CustomReportBuilder(): JSX.Element {
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
       <aside className="space-y-4">
-        <section className="space-y-2 rounded-md border border-border p-3">
+        <section className="border-border space-y-2 rounded-md border p-3">
           <h3 className="text-sm font-semibold">Saved reports</h3>
           <ul className="space-y-1">
             {savedList.data?.map((r) => (
               <li
                 key={r.id}
-                className="flex items-center justify-between rounded-md border border-border px-2 py-1 text-xs"
+                className="border-border flex items-center justify-between rounded-md border px-2 py-1 text-xs"
               >
                 <button
                   type="button"
-                  className={`flex-1 text-left ${
-                    r.id === selectedSavedId ? 'font-semibold' : ''
-                  }`}
+                  className={`flex-1 text-left ${r.id === selectedSavedId ? 'font-semibold' : ''}`}
                   onClick={() => loadSaved(r)}
                 >
                   {r.name}
@@ -130,19 +124,17 @@ export function CustomReportBuilder(): JSX.Element {
               </li>
             ))}
             {savedList.data?.length === 0 && (
-              <li className="text-xs text-muted-foreground">
-                Belum ada saved report.
-              </li>
+              <li className="text-muted-foreground text-xs">Belum ada saved report.</li>
             )}
           </ul>
         </section>
 
-        <section className="space-y-2 rounded-md border border-border p-3">
+        <section className="border-border space-y-2 rounded-md border p-3">
           <h3 className="text-sm font-semibold">Builder</h3>
           <label className="block text-xs">
             Dimension
             <select
-              className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+              className="border-input bg-background mt-1 w-full rounded-md border px-2 py-1.5 text-sm"
               value={def.dimension}
               onChange={(e) =>
                 setDef({
@@ -161,7 +153,7 @@ export function CustomReportBuilder(): JSX.Element {
           <label className="block text-xs">
             Metric
             <select
-              className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+              className="border-input bg-background mt-1 w-full rounded-md border px-2 py-1.5 text-sm"
               value={def.metric}
               onChange={(e) =>
                 setDef({
@@ -180,7 +172,7 @@ export function CustomReportBuilder(): JSX.Element {
           <label className="block text-xs">
             Window (hari)
             <select
-              className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+              className="border-input bg-background mt-1 w-full rounded-md border px-2 py-1.5 text-sm"
               value={def.filter.windowDays}
               onChange={(e) =>
                 setDef({
@@ -201,7 +193,7 @@ export function CustomReportBuilder(): JSX.Element {
           </label>
           <button
             type="button"
-            className="w-full rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground disabled:opacity-50"
+            className="bg-primary text-primary-foreground w-full rounded-md px-3 py-1.5 text-sm font-medium disabled:opacity-50"
             onClick={() => previewMut.mutate()}
             disabled={previewMut.isPending}
           >
@@ -209,12 +201,12 @@ export function CustomReportBuilder(): JSX.Element {
           </button>
         </section>
 
-        <section className="space-y-2 rounded-md border border-border p-3">
+        <section className="border-border space-y-2 rounded-md border p-3">
           <h3 className="text-sm font-semibold">Save</h3>
           <input
             type="text"
             placeholder="Nama saved report"
-            className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+            className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm"
             value={savedName}
             onChange={(e) => setSavedName(e.target.value)}
             minLength={3}
@@ -239,9 +231,8 @@ export function CustomReportBuilder(): JSX.Element {
         {preview ? (
           <PreviewTable preview={preview} />
         ) : (
-          <div className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground">
-            Klik "Preview" untuk menjalankan definition di server dan melihat
-            hasilnya di sini.
+          <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm">
+            Klik "Preview" untuk menjalankan definition di server dan melihat hasilnya di sini.
           </div>
         )}
 
@@ -278,11 +269,7 @@ export function CustomReportBuilder(): JSX.Element {
   );
 }
 
-function PreviewTable({
-  preview,
-}: {
-  preview: CustomReportResult;
-}): JSX.Element {
+function PreviewTable({ preview }: { preview: CustomReportResult }): JSX.Element {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs">
@@ -290,7 +277,7 @@ function PreviewTable({
           {preview.totalRows} rows · {preview.computedAt.slice(0, 19).replace('T', ' ')} UTC
         </span>
       </div>
-      <div className="overflow-x-auto rounded-md border border-border">
+      <div className="border-border overflow-x-auto rounded-md border">
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-left text-xs">
             <tr>
@@ -301,7 +288,7 @@ function PreviewTable({
           </thead>
           <tbody>
             {preview.rows.map((r) => (
-              <tr key={r.key} className="border-t border-border">
+              <tr key={r.key} className="border-border border-t">
                 <td className="px-2 py-1 font-mono text-xs">{r.key}</td>
                 <td className="px-2 py-1">{r.label ?? '—'}</td>
                 <td className="px-2 py-1 text-right font-mono">{r.value}</td>
@@ -309,10 +296,7 @@ function PreviewTable({
             ))}
             {preview.rows.length === 0 && (
               <tr>
-                <td
-                  colSpan={3}
-                  className="px-2 py-6 text-center text-xs text-muted-foreground"
-                >
+                <td colSpan={3} className="text-muted-foreground px-2 py-6 text-center text-xs">
                   Tidak ada data untuk kombinasi dimension × metric × window ini.
                 </td>
               </tr>

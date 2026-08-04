@@ -105,9 +105,10 @@ describe('classifyAbsence', () => {
   });
 
   it('skips employees who were not yet hired on the target date', () => {
-    expect(
-      classifyAbsence({ ...base, hiredAt: '2026-09-01', targetDate: '2026-08-05' }),
-    ).toEqual({ kind: 'SKIP', reason: 'NOT_HIRED_YET' });
+    expect(classifyAbsence({ ...base, hiredAt: '2026-09-01', targetDate: '2026-08-05' })).toEqual({
+      kind: 'SKIP',
+      reason: 'NOT_HIRED_YET',
+    });
   });
 
   it('skips weekends (Sat/Sun) regardless of shift', () => {

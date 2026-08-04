@@ -67,10 +67,10 @@ export function UserForm({
         <label className="text-xs font-medium uppercase tracking-wider">Nama Lengkap</label>
         <input
           {...form.register('fullName')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         />
         {form.formState.errors.fullName && (
-          <p className="text-xs text-destructive">{form.formState.errors.fullName.message}</p>
+          <p className="text-destructive text-xs">{form.formState.errors.fullName.message}</p>
         )}
       </div>
 
@@ -80,10 +80,10 @@ export function UserForm({
           type="email"
           autoComplete="off"
           {...form.register('email')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         />
         {form.formState.errors.email && (
-          <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
+          <p className="text-destructive text-xs">{form.formState.errors.email.message}</p>
         )}
       </div>
 
@@ -91,7 +91,7 @@ export function UserForm({
         <label className="text-xs font-medium uppercase tracking-wider">Role</label>
         <select
           {...form.register('role')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         >
           {assignableRoles.map((r) => (
             <option key={r} value={r}>
@@ -106,10 +106,10 @@ export function UserForm({
         <input
           type="date"
           {...form.register('hiredAt')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         />
         {form.formState.errors.hiredAt && (
-          <p className="text-xs text-destructive">{form.formState.errors.hiredAt.message}</p>
+          <p className="text-destructive text-xs">{form.formState.errors.hiredAt.message}</p>
         )}
       </div>
 
@@ -117,7 +117,7 @@ export function UserForm({
         <label className="text-xs font-medium uppercase tracking-wider">Departemen</label>
         <select
           {...form.register('departmentId')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         >
           <option value="">— tidak ada —</option>
           {departments.map((d) => (
@@ -132,7 +132,7 @@ export function UserForm({
         <label className="text-xs font-medium uppercase tracking-wider">Atasan Langsung</label>
         <select
           {...form.register('supervisorId')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         >
           <option value="">— tidak ada —</option>
           {potentialSupervisors.map((u) => (
@@ -144,17 +144,13 @@ export function UserForm({
       </div>
 
       <div className="col-span-full flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border px-3 py-1 text-xs"
-        >
+        <button type="button" onClick={onCancel} className="rounded-md border px-3 py-1 text-xs">
           Batal
         </button>
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-md bg-foreground px-3 py-1 text-xs font-medium text-background disabled:opacity-50"
+          className="bg-foreground text-background rounded-md px-3 py-1 text-xs font-medium disabled:opacity-50"
         >
           {submitting ? 'Membuat...' : 'Buat karyawan'}
         </button>

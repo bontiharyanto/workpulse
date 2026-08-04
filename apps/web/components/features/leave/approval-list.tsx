@@ -41,17 +41,17 @@ export function ApprovalList(): JSX.Element {
   if (!user) return <></>;
   if (user.role === 'EMPLOYEE') {
     return (
-      <div className="rounded-md border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+      <div className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border p-4 text-sm">
         Anda tidak memiliki akses ke halaman ini.
       </div>
     );
   }
 
-  if (list.isLoading) return <p className="text-sm text-muted-foreground">Memuat...</p>;
+  if (list.isLoading) return <p className="text-muted-foreground text-sm">Memuat...</p>;
 
   if (!list.data || list.data.length === 0) {
     return (
-      <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+      <p className="text-muted-foreground rounded-md border border-dashed p-6 text-center text-sm">
         Tidak ada pengajuan menunggu keputusan.
       </p>
     );
@@ -60,7 +60,10 @@ export function ApprovalList(): JSX.Element {
   return (
     <div className="space-y-3">
       {errorText && (
-        <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+        <p
+          role="alert"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
+        >
           {errorText}
         </p>
       )}
@@ -72,8 +75,9 @@ export function ApprovalList(): JSX.Element {
               <header className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">{r.userFullName ?? r.userId}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {r.leaveTypeName} · {r.startDate} → {r.endDate} · <span className="tabular-nums">{r.days}</span> hari
+                  <p className="text-muted-foreground text-xs">
+                    {r.leaveTypeName} · {r.startDate} → {r.endDate} ·{' '}
+                    <span className="tabular-nums">{r.days}</span> hari
                   </p>
                 </div>
                 <LeaveStatusBadge status={r.status} />
@@ -89,7 +93,7 @@ export function ApprovalList(): JSX.Element {
                   href={r.attachmentUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-primary underline-offset-2 hover:underline"
+                  className="text-primary text-xs underline-offset-2 hover:underline"
                 >
                   Lihat lampiran →
                 </a>
@@ -100,7 +104,7 @@ export function ApprovalList(): JSX.Element {
                 rows={2}
                 value={notes[r.id] ?? ''}
                 onChange={(e) => setNotes((prev) => ({ ...prev, [r.id]: e.target.value }))}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
               />
 
               <div className="flex gap-2">
@@ -120,7 +124,7 @@ export function ApprovalList(): JSX.Element {
                   onClick={() =>
                     decide.mutate({ id: r.id, action: 'REJECT', note: notes[r.id] || undefined })
                   }
-                  className="rounded-md border border-destructive px-3 py-1 text-xs font-medium text-destructive hover:bg-destructive/5 disabled:opacity-50"
+                  className="border-destructive text-destructive hover:bg-destructive/5 rounded-md border px-3 py-1 text-xs font-medium disabled:opacity-50"
                 >
                   {busy && decide.variables?.action === 'REJECT' ? 'Menolak...' : 'Tolak'}
                 </button>

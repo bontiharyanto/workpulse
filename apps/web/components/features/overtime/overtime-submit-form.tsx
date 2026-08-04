@@ -2,10 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  overtimeRequestInputSchema,
-  type OvertimeRequestInput,
-} from '@workpulse/shared-types';
+import { overtimeRequestInputSchema, type OvertimeRequestInput } from '@workpulse/shared-types';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -66,11 +63,11 @@ export function OvertimeSubmitForm(): JSX.Element {
         <input
           id="ot-workDate"
           type="date"
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
           {...form.register('workDate')}
         />
         {form.formState.errors.workDate && (
-          <p role="alert" className="text-xs text-destructive">
+          <p role="alert" className="text-destructive text-xs">
             {form.formState.errors.workDate.message}
           </p>
         )}
@@ -86,11 +83,11 @@ export function OvertimeSubmitForm(): JSX.Element {
           step="0.25"
           min="0.25"
           max="12"
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
           {...form.register('hours', { valueAsNumber: true })}
         />
         {form.formState.errors.hours && (
-          <p role="alert" className="text-xs text-destructive">
+          <p role="alert" className="text-destructive text-xs">
             {form.formState.errors.hours.message}
           </p>
         )}
@@ -103,12 +100,12 @@ export function OvertimeSubmitForm(): JSX.Element {
         <textarea
           id="ot-reason"
           rows={3}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
           placeholder="Deadline release / support incident / …"
           {...form.register('reason')}
         />
         {form.formState.errors.reason && (
-          <p role="alert" className="text-xs text-destructive">
+          <p role="alert" className="text-destructive text-xs">
             {form.formState.errors.reason.message}
           </p>
         )}
@@ -117,7 +114,7 @@ export function OvertimeSubmitForm(): JSX.Element {
       {error && (
         <p
           role="alert"
-          className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
         >
           {error}
         </p>
@@ -134,7 +131,7 @@ export function OvertimeSubmitForm(): JSX.Element {
       <button
         type="submit"
         disabled={submit.isPending}
-        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:opacity-90 disabled:opacity-50"
+        className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90 disabled:opacity-50"
       >
         {submit.isPending ? 'Mengirim...' : 'Ajukan'}
       </button>

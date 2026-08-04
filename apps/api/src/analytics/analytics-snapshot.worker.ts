@@ -32,8 +32,7 @@ export class AnalyticsSnapshotWorker {
     private readonly service: AnalyticsSnapshotService,
     config: ConfigService,
   ) {
-    this.enabled =
-      config.get<string>('ANALYTICS_SNAPSHOT_ENABLED', 'true') !== 'false';
+    this.enabled = config.get<string>('ANALYTICS_SNAPSHOT_ENABLED', 'true') !== 'false';
     if (!this.enabled) {
       this.logger.warn(
         'ANALYTICS_SNAPSHOT_ENABLED=false — nightly executive KPI snapshot disabled on this instance.',
@@ -52,9 +51,7 @@ export class AnalyticsSnapshotWorker {
         `analytics snapshot tick complete processed=${summary.tenantsProcessed} failed=${summary.tenantsFailed} durationMs=${Date.now() - started}`,
       );
     } catch (err) {
-      this.logger.error(
-        `analytics snapshot tick crashed: ${(err as Error).message}`,
-      );
+      this.logger.error(`analytics snapshot tick crashed: ${(err as Error).message}`);
     } finally {
       this.tickRunning = false;
     }

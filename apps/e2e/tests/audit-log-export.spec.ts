@@ -43,9 +43,7 @@ function parseNdjson(text: string): AuditRow[] {
   return rows;
 }
 
-async function primeAuditRows(
-  api: import('@playwright/test').APIRequestContext,
-): Promise<void> {
+async function primeAuditRows(api: import('@playwright/test').APIRequestContext): Promise<void> {
   // Two config PATCHes to guarantee we have COMPANY_CONFIG_UPDATED
   // rows regardless of what other specs did. Second call restores
   // the baseline so we don't leave drift.
@@ -116,8 +114,7 @@ test('HR: export honors the same filter set as the JSON list endpoint', async ()
 test('HR: export with impossibly narrow filter returns valid but empty NDJSON', async () => {
   const { api } = await authenticateApi('hr');
   const res = await api.get(
-    '/api/v1/admin/audit-log/export?entityType=DoesNotExist_' +
-      Math.random().toString(36).slice(2),
+    '/api/v1/admin/audit-log/export?entityType=DoesNotExist_' + Math.random().toString(36).slice(2),
   );
   expect(res.status()).toBe(200);
   expect(res.headers()['content-type']).toContain('application/x-ndjson');

@@ -26,7 +26,9 @@ test.describe.configure({ mode: 'serial' });
 const API_URL = process.env.E2E_API_URL ?? 'http://localhost:4000';
 
 async function loginRaw(email: string, password: string) {
-  const login = await (await import('@playwright/test')).request.newContext({
+  const login = await (
+    await import('@playwright/test')
+  ).request.newContext({
     baseURL: API_URL,
   });
   const res = await login.post('/api/v1/auth/login', {
@@ -107,17 +109,16 @@ test('MFA login: password-only login returns mfaRequired=true after enrollment',
   });
 
   // 2. Fresh password-only login now expects mfaRequired=true.
-  const { body, ctx } = await loginRaw(
-    SEED_USERS.employee.email,
-    SEED_USERS.employee.password,
-  );
+  const { body, ctx } = await loginRaw(SEED_USERS.employee.email, SEED_USERS.employee.password);
   expect(body.mfaRequired).toBe(true);
   expect(body.user.mfaEnabled).toBe(true);
   expect(body.user.mfaPassed).toBe(false);
   await ctx.dispose();
 
   // 3. Non-auth endpoint 403 with MFA_REQUIRED using this pre-MFA token.
-  const preMfa = await (await import('@playwright/test')).request.newContext({
+  const preMfa = await (
+    await import('@playwright/test')
+  ).request.newContext({
     baseURL: API_URL,
     extraHTTPHeaders: { Authorization: `Bearer ${body.accessToken}` },
   });
@@ -146,7 +147,9 @@ test('MFA verify: valid TOTP upgrades session; wrong code stays blocked', async 
   });
 
   // Full login flow using the raw context (to capture cookies).
-  const login = await (await import('@playwright/test')).request.newContext({
+  const login = await (
+    await import('@playwright/test')
+  ).request.newContext({
     baseURL: API_URL,
   });
   const loginRes = await login.post('/api/v1/auth/login', {
@@ -195,14 +198,18 @@ test('MFA verify: valid TOTP upgrades session; wrong code stays blocked', async 
 test('MFA backup code: valid consumes single-use, replayed rejected', async () => {
   const { api } = await authenticateApi('employee');
   const start = await (await api.post('/api/v1/auth/mfa/enroll/start')).json();
-  const confirm = await (await api.post('/api/v1/auth/mfa/enroll/confirm', {
-    data: { code: authenticator.generate(start.secret) },
-  })).json();
+  const confirm = await (
+    await api.post('/api/v1/auth/mfa/enroll/confirm', {
+      data: { code: authenticator.generate(start.secret) },
+    })
+  ).json();
   const codes: string[] = confirm.backupCodes;
   expect(codes).toHaveLength(8);
 
   // Fresh password-only login to produce a pre-MFA token.
-  const login = await (await import('@playwright/test')).request.newContext({
+  const login = await (
+    await import('@playwright/test')
+  ).request.newContext({
     baseURL: API_URL,
   });
   const loginRes = await login.post('/api/v1/auth/login', {
@@ -237,9 +244,11 @@ test('MFA backup code: valid consumes single-use, replayed rejected', async () =
   expect(replay.status()).toBe(401);
 
   // Remaining codes count is 7.
-  const status = await (await login.get('/api/v1/auth/mfa/status', {
-    headers: { Authorization: `Bearer ${firstBody.accessToken}` },
-  })).json();
+  const status = await (
+    await login.get('/api/v1/auth/mfa/status', {
+      headers: { Authorization: `Bearer ${firstBody.accessToken}` },
+    })
+  ).json();
   expect(status.remainingBackupCodes).toBe(7);
 
   // Cleanup.
@@ -287,9 +296,11 @@ test('MFA disable: rejects wrong password, accepts correct pair, revokes session
 test('MFA regenerate backup codes: requires valid TOTP + wipes old codes', async () => {
   const { api } = await authenticateApi('employee');
   const start = await (await api.post('/api/v1/auth/mfa/enroll/start')).json();
-  const first = await (await api.post('/api/v1/auth/mfa/enroll/confirm', {
-    data: { code: authenticator.generate(start.secret) },
-  })).json();
+  const first = await (
+    await api.post('/api/v1/auth/mfa/enroll/confirm', {
+      data: { code: authenticator.generate(start.secret) },
+    })
+  ).json();
   const originalCodes: string[] = first.backupCodes;
 
   // Wrong TOTP → 401.
@@ -319,7 +330,9 @@ test('MFA regenerate backup codes: requires valid TOTP + wipes old codes', async
 });
 
 test('MFA endpoints require authentication', async () => {
-  const anon = await (await import('@playwright/test')).request.newContext({
+  const anon = await (
+    await import('@playwright/test')
+  ).request.newContext({
     baseURL: API_URL,
   });
   const attempts = [

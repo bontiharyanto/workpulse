@@ -94,7 +94,11 @@ describe('buildTeamSummary', () => {
       rr({ userId: 'u1' }), // 100% on time
       rr({ userId: 'u2', status: 'LATE', lateMinutes: 15 }), // 0% on time
       rr({ userId: 'u3' }),
-      rr({ userId: 'u3', clockInAt: new Date('2026-08-02T02:00:00Z'), clockOutAt: new Date('2026-08-02T10:00:00Z') }),
+      rr({
+        userId: 'u3',
+        clockInAt: new Date('2026-08-02T02:00:00Z'),
+        clockOutAt: new Date('2026-08-02T10:00:00Z'),
+      }),
     ]);
     expect(rows[0]?.userId).toBe('u2'); // worst on-time rate
     // u1 (Aditya) + u3 (Cinta) tie on 100%; alphabetical tie-break sorts Aditya first.

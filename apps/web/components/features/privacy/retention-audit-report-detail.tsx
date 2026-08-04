@@ -1,20 +1,14 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import type {
-  RetentionAuditFinding,
-  RetentionAuditReportDto,
-} from '@workpulse/shared-types';
+import type { RetentionAuditFinding, RetentionAuditReportDto } from '@workpulse/shared-types';
 import Link from 'next/link';
 import type { Route } from 'next';
 import React from 'react';
 
 import { retentionAuditApi } from '@/lib/api-client';
 
-const SEVERITY_CLASSES: Record<
-  RetentionAuditFinding['severity'],
-  string
-> = {
+const SEVERITY_CLASSES: Record<RetentionAuditFinding['severity'], string> = {
   info: 'bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-500/20 dark:bg-sky-950/40 dark:text-sky-200 dark:ring-sky-500/30',
   warning:
     'bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-500/30 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-500/40',
@@ -62,7 +56,7 @@ export function RetentionAuditReportDetail({ reportId }: Props): JSX.Element {
       <div
         role="status"
         aria-live="polite"
-        className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground"
+        className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm"
       >
         Memuat detail laporan…
       </div>
@@ -73,7 +67,7 @@ export function RetentionAuditReportDetail({ reportId }: Props): JSX.Element {
     return (
       <div
         role="alert"
-        className="rounded-md border border-destructive/50 bg-destructive/5 p-4 text-sm text-destructive"
+        className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-4 text-sm"
       >
         Gagal memuat detail laporan.
         <div className="mt-2">
@@ -102,7 +96,7 @@ function ReportHeader({ row }: { row: RetentionAuditReportDto }): JSX.Element {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div>
-        <div className="text-xs text-muted-foreground">
+        <div className="text-muted-foreground text-xs">
           <Link
             href={'/admin/privacy/retention/audit-reports' as unknown as Route}
             className="hover:underline"
@@ -110,15 +104,12 @@ function ReportHeader({ row }: { row: RetentionAuditReportDto }): JSX.Element {
             ← Retention Audit
           </Link>
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {formatPeriod(row.periodStart)}
-        </h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-2xl font-semibold tracking-tight">{formatPeriod(row.periodStart)}</h1>
+        <p className="text-muted-foreground text-sm">
           Dihasilkan {new Date(row.generatedAt).toLocaleString('id-ID')}
           {row.workerLastRunAt && (
             <>
-              {' · '}Worker terakhir tick{' '}
-              {new Date(row.workerLastRunAt).toLocaleString('id-ID')}
+              {' · '}Worker terakhir tick {new Date(row.workerLastRunAt).toLocaleString('id-ID')}
             </>
           )}
         </p>
@@ -128,11 +119,7 @@ function ReportHeader({ row }: { row: RetentionAuditReportDto }): JSX.Element {
   );
 }
 
-function StatusBadge({
-  status,
-}: {
-  status: RetentionAuditReportDto['status'];
-}): JSX.Element {
+function StatusBadge({ status }: { status: RetentionAuditReportDto['status'] }): JSX.Element {
   const label =
     status === 'SUCCESS'
       ? 'Bersih'
@@ -146,21 +133,15 @@ function StatusBadge({
         ? 'bg-amber-50 text-amber-800 ring-amber-600/30 dark:bg-amber-950/40 dark:text-amber-200'
         : 'bg-rose-50 text-rose-700 ring-rose-600/30 dark:bg-rose-950/40 dark:text-rose-300';
   return (
-    <span
-      className={`rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset ${cls}`}
-    >
+    <span className={`rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset ${cls}`}>
       {label}
     </span>
   );
 }
 
-function ReportCounters({
-  row,
-}: {
-  row: RetentionAuditReportDto;
-}): JSX.Element {
+function ReportCounters({ row }: { row: RetentionAuditReportDto }): JSX.Element {
   return (
-    <section className="rounded-lg border border-border bg-card p-4">
+    <section className="border-border bg-card rounded-lg border p-4">
       <h2 className="mb-3 text-sm font-semibold">Aktivitas worker</h2>
       <dl className="grid grid-cols-3 gap-4 text-sm">
         <Cell label="Notifikasi dihapus" value={row.notificationsPruned} />
@@ -200,7 +181,7 @@ function Cell({
 }): JSX.Element {
   return (
     <div>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dt className="text-muted-foreground text-xs">{label}</dt>
       <dd
         className={`mt-0.5 text-lg font-semibold tabular-nums ${
           highlight ? 'text-amber-600 dark:text-amber-400' : ''
@@ -212,29 +193,23 @@ function Cell({
   );
 }
 
-function FindingsList({
-  findings,
-}: {
-  findings: RetentionAuditFinding[];
-}): JSX.Element {
+function FindingsList({ findings }: { findings: RetentionAuditFinding[] }): JSX.Element {
   if (findings.length === 0) {
     return (
       <section className="rounded-lg border border-emerald-500/20 bg-emerald-50 p-4 text-sm text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-950/30 dark:text-emerald-200">
-        Tidak ada temuan pada periode ini. RetentionWorker menjalankan semua
-        pruning sesuai kebijakan.
+        Tidak ada temuan pada periode ini. RetentionWorker menjalankan semua pruning sesuai
+        kebijakan.
       </section>
     );
   }
   return (
-    <section className="rounded-lg border border-border bg-card p-4">
-      <h2 className="mb-3 text-sm font-semibold">
-        {findings.length} temuan aktif
-      </h2>
+    <section className="border-border bg-card rounded-lg border p-4">
+      <h2 className="mb-3 text-sm font-semibold">{findings.length} temuan aktif</h2>
       <ul className="space-y-3">
         {findings.map((f) => (
           <li
             key={f.kind}
-            className="flex items-start gap-3 rounded-md border border-border bg-background p-3"
+            className="border-border bg-background flex items-start gap-3 rounded-md border p-3"
           >
             <span
               className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
@@ -248,7 +223,7 @@ function FindingsList({
               <div className="text-muted-foreground">{f.message}</div>
             </div>
             {typeof f.count === 'number' && (
-              <span className="text-sm tabular-nums text-foreground">
+              <span className="text-foreground text-sm tabular-nums">
                 {f.count.toLocaleString('id-ID')}
               </span>
             )}
@@ -274,19 +249,13 @@ function humanKind(kind: RetentionAuditFinding['kind']): string {
   }
 }
 
-function PolicySnapshot({
-  row,
-}: {
-  row: RetentionAuditReportDto;
-}): JSX.Element {
+function PolicySnapshot({ row }: { row: RetentionAuditReportDto }): JSX.Element {
   return (
-    <section className="rounded-lg border border-border bg-card p-4">
-      <h2 className="mb-3 text-sm font-semibold">
-        Snapshot kebijakan saat laporan dibuat
-      </h2>
-      <p className="mb-3 text-xs text-muted-foreground">
-        Nilai-nilai kebijakan pada saat audit dibuat, dibekukan supaya
-        regenerate berikutnya reproducible walau kebijakan berubah.
+    <section className="border-border bg-card rounded-lg border p-4">
+      <h2 className="mb-3 text-sm font-semibold">Snapshot kebijakan saat laporan dibuat</h2>
+      <p className="text-muted-foreground mb-3 text-xs">
+        Nilai-nilai kebijakan pada saat audit dibuat, dibekukan supaya regenerate berikutnya
+        reproducible walau kebijakan berubah.
       </p>
       <dl className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
         <Cell

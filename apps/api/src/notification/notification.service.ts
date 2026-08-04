@@ -1,15 +1,6 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { Prisma, PrismaClient } from '@prisma/client';
-import type {
-  Notification as SharedNotification,
-  NotificationPage,
-} from '@workpulse/shared-types';
+import type { Notification as SharedNotification, NotificationPage } from '@workpulse/shared-types';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';

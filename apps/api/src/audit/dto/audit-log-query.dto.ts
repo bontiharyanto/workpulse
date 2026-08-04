@@ -1,13 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import {
-  IsInt,
-  IsISO8601,
-  IsOptional,
-  IsString,
-  Max,
-  Min,
-} from 'class-validator';
+import { IsInt, IsISO8601, IsOptional, IsString, Max, Min } from 'class-validator';
 
 /**
  * Query parameters for `GET /admin/audit-log`. All fields are optional;
@@ -27,7 +20,8 @@ export class AuditLogQueryDto {
   entityType?: string;
 
   @ApiPropertyOptional({
-    description: 'Filter by AuditLog.entityId (exact match). Requires entityType to be selective on the index.',
+    description:
+      'Filter by AuditLog.entityId (exact match). Requires entityType to be selective on the index.',
   })
   @IsOptional()
   @IsString()
@@ -69,7 +63,7 @@ export class AuditLogQueryDto {
 
   @ApiPropertyOptional({
     description:
-      'Opaque cursor from a previous response\'s `nextCursor`. Omit to start at the newest row.',
+      "Opaque cursor from a previous response's `nextCursor`. Omit to start at the newest row.",
   })
   @IsOptional()
   @IsString()

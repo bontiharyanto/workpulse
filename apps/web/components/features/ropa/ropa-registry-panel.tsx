@@ -9,8 +9,7 @@ import { ApiError, ropaAdminApi, saveBlob } from '@/lib/api-client';
 
 const ERROR_COPY: Record<string, string> = {
   ROPA_SLUG_TAKEN: 'Slug ini sudah dipakai di tenant Anda.',
-  ROPA_SLUG_INVALID:
-    'Slug hanya boleh huruf kecil, angka, dan tanda hubung (2..64 karakter).',
+  ROPA_SLUG_INVALID: 'Slug hanya boleh huruf kecil, angka, dan tanda hubung (2..64 karakter).',
   THROTTLED: 'Terlalu banyak percobaan. Coba lagi sebentar.',
 };
 
@@ -28,8 +27,7 @@ const STATUS_BADGE: Record<
   },
   PUBLISHED: {
     label: 'Published',
-    className:
-      'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100',
+    className: 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100',
   },
   ARCHIVED: {
     label: 'Archived',
@@ -85,9 +83,9 @@ export function RopaRegistryPanel(): JSX.Element {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-1">
           <h2 className="text-lg font-semibold">Register aktivitas pemrosesan</h2>
-          <p className="text-sm text-muted-foreground">
-            Setiap aktivitas memiliki riwayat versi terpisah (DRAFT → REVIEW →
-            PUBLISHED). Regulator hanya membaca versi PUBLISHED.
+          <p className="text-muted-foreground text-sm">
+            Setiap aktivitas memiliki riwayat versi terpisah (DRAFT → REVIEW → PUBLISHED). Regulator
+            hanya membaca versi PUBLISHED.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -95,7 +93,7 @@ export function RopaRegistryPanel(): JSX.Element {
             type="button"
             onClick={() => seed.mutate()}
             disabled={seed.isPending}
-            className="inline-flex items-center rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+            className="border-border bg-background hover:bg-muted inline-flex items-center rounded-md border px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
           >
             {seed.isPending ? 'Menjalankan…' : 'Seed defaults'}
           </button>
@@ -103,7 +101,7 @@ export function RopaRegistryPanel(): JSX.Element {
             type="button"
             onClick={() => exportPdf.mutate()}
             disabled={exportPdf.isPending}
-            className="inline-flex items-center rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+            className="border-border bg-background hover:bg-muted inline-flex items-center rounded-md border px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
           >
             {exportPdf.isPending ? 'Menyiapkan…' : 'Export PDF'}
           </button>
@@ -111,7 +109,7 @@ export function RopaRegistryPanel(): JSX.Element {
             type="button"
             onClick={() => exportXlsx.mutate()}
             disabled={exportXlsx.isPending}
-            className="inline-flex items-center rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+            className="border-border bg-background hover:bg-muted inline-flex items-center rounded-md border px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
           >
             {exportXlsx.isPending ? 'Menyiapkan…' : 'Export XLSX'}
           </button>
@@ -129,7 +127,7 @@ export function RopaRegistryPanel(): JSX.Element {
       {seedError && (
         <div
           role="alert"
-          className="rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive"
+          className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-3 text-sm"
         >
           {seedError}
         </div>
@@ -139,7 +137,7 @@ export function RopaRegistryPanel(): JSX.Element {
         <div
           role="status"
           aria-live="polite"
-          className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground"
+          className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm"
         >
           Memuat daftar aktivitas…
         </div>
@@ -150,38 +148,27 @@ export function RopaRegistryPanel(): JSX.Element {
             if (!shown) return null;
             const badge = STATUS_BADGE[shown.status];
             return (
-              <li
-                key={item.activityId}
-                className="rounded-lg border border-border bg-card p-4"
-              >
+              <li key={item.activityId} className="border-border bg-card rounded-lg border p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="space-y-1">
                     <p className="font-medium">
                       {shown.name}{' '}
-                      <span
-                        className={`ml-2 rounded px-2 py-0.5 text-xs ${badge.className}`}
-                      >
+                      <span className={`ml-2 rounded px-2 py-0.5 text-xs ${badge.className}`}>
                         {badge.label}
                       </span>
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-muted-foreground text-xs">
                       slug: {item.slug} · versi terbaru: {shown.version}
                       {item.currentVersion && item.draftVersion
                         ? ' · draft baru sedang disiapkan'
                         : ''}
-                      {item.currentVersion && item.reviewVersion
-                        ? ' · draft menunggu review'
-                        : ''}
+                      {item.currentVersion && item.reviewVersion ? ' · draft menunggu review' : ''}
                     </p>
-                    <p className="line-clamp-2 text-sm text-muted-foreground">
-                      {shown.purpose}
-                    </p>
+                    <p className="text-muted-foreground line-clamp-2 text-sm">{shown.purpose}</p>
                   </div>
                   <Link
-                    href={
-                      (`/admin/ropa/${item.activityId}` as Route)
-                    }
-                    className="inline-flex shrink-0 items-center rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted"
+                    href={`/admin/ropa/${item.activityId}` as Route}
+                    className="border-border hover:bg-muted inline-flex shrink-0 items-center rounded-md border px-3 py-1.5 text-xs font-medium"
                   >
                     Kelola →
                   </Link>
@@ -191,11 +178,10 @@ export function RopaRegistryPanel(): JSX.Element {
           })}
         </ul>
       ) : (
-        <div className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground">
-          Belum ada aktivitas terdaftar. Klik &ldquo;Seed defaults&rdquo; untuk
-          mengimpor enam aktivitas bawaan (kehadiran, cuti, lembur, timesheet /
-          payroll, autentikasi, webhook), lalu review masing-masing sebelum
-          publish.
+        <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm">
+          Belum ada aktivitas terdaftar. Klik &ldquo;Seed defaults&rdquo; untuk mengimpor enam
+          aktivitas bawaan (kehadiran, cuti, lembur, timesheet / payroll, autentikasi, webhook),
+          lalu review masing-masing sebelum publish.
         </div>
       )}
     </div>

@@ -39,10 +39,7 @@ export class ConsentAcceptedGuard implements CanActivate {
     // Routes on the mustChangePassword whitelist ALSO bypass the
     // consent gate — a user still in the password-rotation flow
     // must be able to reach `/auth/me`, `/auth/logout`, etc.
-    const bypasses = [
-      ALLOW_PENDING_CONSENT_KEY,
-      ALLOW_MUST_CHANGE_PASSWORD_KEY,
-    ];
+    const bypasses = [ALLOW_PENDING_CONSENT_KEY, ALLOW_MUST_CHANGE_PASSWORD_KEY];
     for (const key of bypasses) {
       const allow = this.reflector.getAllAndOverride<boolean>(key, [
         context.getHandler(),
@@ -51,16 +48,11 @@ export class ConsentAcceptedGuard implements CanActivate {
       if (allow) return true;
     }
 
-    const req = context.switchToHttp().getRequest<
-      Request & { user?: AuthenticatedUser }
-    >();
+    const req = context.switchToHttp().getRequest<Request & { user?: AuthenticatedUser }>();
     const user = req.user;
     if (!user) return true; // upstream JWT guard already denied
 
-    const pending = await this.consent.getPendingConsentForUser(
-      user.id,
-      user.companyId,
-    );
+    const pending = await this.consent.getPendingConsentForUser(user.id, user.companyId);
     if (!pending) return true;
 
     throw new ForbiddenException({

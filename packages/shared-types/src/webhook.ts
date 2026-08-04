@@ -11,11 +11,7 @@ export const webhookEventTypeSchema = z.enum([
 ]);
 export type WebhookEventType = z.infer<typeof webhookEventTypeSchema>;
 
-export const webhookDeliveryStatusSchema = z.enum([
-  'PENDING',
-  'SUCCEEDED',
-  'FAILED',
-]);
+export const webhookDeliveryStatusSchema = z.enum(['PENDING', 'SUCCEEDED', 'FAILED']);
 export type WebhookDeliveryStatus = z.infer<typeof webhookDeliveryStatusSchema>;
 
 // ---------- Admin CRUD ----------
@@ -59,9 +55,7 @@ export type WebhookEndpointRow = z.infer<typeof webhookEndpointRowSchema>;
 export const webhookEndpointWithSecretSchema = webhookEndpointRowSchema.extend({
   secret: z.string(),
 });
-export type WebhookEndpointWithSecret = z.infer<
-  typeof webhookEndpointWithSecretSchema
->;
+export type WebhookEndpointWithSecret = z.infer<typeof webhookEndpointWithSecretSchema>;
 
 export const webhookEndpointListSchema = z.object({
   items: z.array(webhookEndpointRowSchema),

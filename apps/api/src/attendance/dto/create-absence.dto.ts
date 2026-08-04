@@ -20,8 +20,7 @@ export class CreateAbsenceDto {
   userId!: string;
 
   @ApiProperty({
-    description:
-      'Calendar date (UTC, YYYY-MM-DD) the user was absent. Must not be in the future.',
+    description: 'Calendar date (UTC, YYYY-MM-DD) the user was absent. Must not be in the future.',
     example: '2026-07-30',
   })
   @IsISO8601({ strict: true })
@@ -31,7 +30,7 @@ export class CreateAbsenceDto {
   @ApiProperty({
     required: false,
     description:
-      "Free-text audit note (max 500 chars). Stored on the AbsenceRecord — visible in the audit log and to HR when reconciling.",
+      'Free-text audit note (max 500 chars). Stored on the AbsenceRecord — visible in the audit log and to HR when reconciling.',
     example: 'Forgot to file leave request.',
   })
   @IsOptional()

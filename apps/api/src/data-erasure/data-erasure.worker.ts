@@ -44,8 +44,7 @@ export class DataErasureWorker {
     private readonly notifications: NotificationService,
     config: ConfigService,
   ) {
-    this.enabled =
-      config.get<string>('DATA_ERASURE_WORKER_ENABLED', 'true') !== 'false';
+    this.enabled = config.get<string>('DATA_ERASURE_WORKER_ENABLED', 'true') !== 'false';
     if (!this.enabled) {
       this.logger.warn(
         'DATA_ERASURE_WORKER_ENABLED=false — this API instance will NOT execute erasures.',
@@ -65,10 +64,7 @@ export class DataErasureWorker {
         await this.processOne(row);
       }
     } catch (err) {
-      this.logger.error(
-        { err },
-        'data erasure tick failed with an unhandled error',
-      );
+      this.logger.error({ err }, 'data erasure tick failed with an unhandled error');
     } finally {
       this.tickRunning = false;
     }
@@ -103,9 +99,7 @@ export class DataErasureWorker {
 
   private async processOne(row: DataErasureRequest): Promise<void> {
     const started = Date.now();
-    this.logger.log(
-      `executing erasure requestId=${row.id} userId=${row.userId}`,
-    );
+    this.logger.log(`executing erasure requestId=${row.id} userId=${row.userId}`);
 
     try {
       // Snapshot the "before" for the audit trail.
@@ -173,10 +167,7 @@ export class DataErasureWorker {
       void updated;
     } catch (err) {
       const reason = (err as Error).message?.slice(0, 500) ?? 'unknown error';
-      this.logger.error(
-        { err, requestId: row.id },
-        `erasure execution failed reason=${reason}`,
-      );
+      this.logger.error({ err, requestId: row.id }, `erasure execution failed reason=${reason}`);
       await this.prisma.$transaction(async (tx) => {
         await tx.dataErasureRequest.update({
           where: { id: row.id },
@@ -200,10 +191,7 @@ export class DataErasureWorker {
     }
   }
 
-  private async notifyPostExecution(
-    row: DataErasureRequest,
-    fullName: string,
-  ): Promise<void> {
+  private async notifyPostExecution(row: DataErasureRequest, fullName: string): Promise<void> {
     const approvers = await this.prisma.user.findMany({
       where: {
         companyId: row.companyId,
@@ -224,9 +212,7 @@ export class DataErasureWorker {
           }),
         })
         .catch((err: Error) =>
-          this.logger.warn(
-            `post-erasure notify failed for ${approver.id}: ${err.message}`,
-          ),
+          this.logger.warn(`post-erasure notify failed for ${approver.id}: ${err.message}`),
         );
     }
   }

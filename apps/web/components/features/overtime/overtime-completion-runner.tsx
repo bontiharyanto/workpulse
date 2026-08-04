@@ -38,27 +38,27 @@ export function OvertimeCompletionRunner(): JSX.Element | null {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="max-w-xl">
           <h3 className="text-sm font-semibold">Penyelesaian Otomatis (Scheduler)</h3>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Scheduler harian akan mempromote pengajuan lembur berstatus{' '}
             <span className="font-medium">Disetujui</span> menjadi{' '}
-            <span className="font-medium">Selesai</span> setelah masa tenggang lewat dan
-            kehadiran pada tanggal tersebut terverifikasi (clock-in &amp; clock-out lengkap).
-            Klik tombol di samping untuk menjalankannya sekarang — cocok setelah menambahkan
-            timesheet manual atau backfill kehadiran.
+            <span className="font-medium">Selesai</span> setelah masa tenggang lewat dan kehadiran
+            pada tanggal tersebut terverifikasi (clock-in &amp; clock-out lengkap). Klik tombol di
+            samping untuk menjalankannya sekarang — cocok setelah menambahkan timesheet manual atau
+            backfill kehadiran.
           </p>
         </div>
         <button
           type="button"
           disabled={run.isPending}
           onClick={() => run.mutate()}
-          className="whitespace-nowrap rounded-md bg-foreground px-3 py-2 text-xs font-medium text-background shadow disabled:opacity-50"
+          className="bg-foreground text-background whitespace-nowrap rounded-md px-3 py-2 text-xs font-medium shadow disabled:opacity-50"
         >
           {run.isPending ? 'Menjalankan…' : 'Jalankan sekarang'}
         </button>
       </div>
 
       {error && (
-        <p role="alert" className="mt-2 text-xs text-destructive">
+        <p role="alert" className="text-destructive mt-2 text-xs">
           {error}
         </p>
       )}
@@ -77,8 +77,8 @@ export function OvertimeCompletionRunner(): JSX.Element | null {
 
 function Metric({ label, value }: { label: string; value: string | number }): JSX.Element {
   return (
-    <div className="rounded-md border bg-muted/40 px-3 py-2">
-      <dt className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</dt>
+    <div className="bg-muted/40 rounded-md border px-3 py-2">
+      <dt className="text-muted-foreground text-[10px] uppercase tracking-widest">{label}</dt>
       <dd className="font-medium">{value}</dd>
     </div>
   );
@@ -99,8 +99,8 @@ function SkippedMetric({ skipped }: { skipped: Record<string, number> }): JSX.El
     return <Metric label="Dilewati" value="—" />;
   }
   return (
-    <div className="rounded-md border bg-muted/40 px-3 py-2 sm:col-span-1">
-      <dt className="text-[10px] uppercase tracking-widest text-muted-foreground">Dilewati</dt>
+    <div className="bg-muted/40 rounded-md border px-3 py-2 sm:col-span-1">
+      <dt className="text-muted-foreground text-[10px] uppercase tracking-widest">Dilewati</dt>
       <dd className="mt-1 space-y-0.5">
         {entries.map(([reason, count]) => (
           <div key={reason} className="flex items-center justify-between gap-2">

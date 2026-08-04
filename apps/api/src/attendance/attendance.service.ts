@@ -9,10 +9,7 @@ import {
 import type { AttendanceRecord, Prisma } from '@prisma/client';
 import { AbsenceSource, AttendanceEventType, AttendanceStatus } from '@prisma/client';
 
-import {
-  PayrollLockedError,
-  assertPayrollNotLocked,
-} from '../common/domain/payroll-lock';
+import { PayrollLockedError, assertPayrollNotLocked } from '../common/domain/payroll-lock';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { attendanceAbsentMarked } from '../notification/domain/templates';
 import { NotificationService } from '../notification/notification.service';
@@ -23,10 +20,7 @@ import {
   type AttendanceMonthlySummary,
   type AttendanceSummaryStatus,
 } from './domain/attendance-summary';
-import {
-  buildCompanySnapshot,
-  type CompanySnapshot,
-} from './domain/dashboard-snapshot';
+import { buildCompanySnapshot, type CompanySnapshot } from './domain/dashboard-snapshot';
 import { checkGeofence } from './domain/geofence';
 import { evaluateClockIn, evaluateClockOut } from './domain/shift-timing';
 import {
@@ -143,7 +137,10 @@ export class AttendanceService {
     const result = checkGeofence(
       { latitude: dto.latitude, longitude: dto.longitude },
       {
-        center: { latitude: geofence.latitude.toNumber(), longitude: geofence.longitude.toNumber() },
+        center: {
+          latitude: geofence.latitude.toNumber(),
+          longitude: geofence.longitude.toNumber(),
+        },
         radiusMeters: geofence.radiusMeters,
       },
     );
@@ -237,7 +234,10 @@ export class AttendanceService {
     const geoResult = checkGeofence(
       { latitude: dto.latitude, longitude: dto.longitude },
       {
-        center: { latitude: geofence.latitude.toNumber(), longitude: geofence.longitude.toNumber() },
+        center: {
+          latitude: geofence.latitude.toNumber(),
+          longitude: geofence.longitude.toNumber(),
+        },
         radiusMeters: geofence.radiusMeters,
       },
     );
@@ -311,10 +311,10 @@ export class AttendanceService {
    */
   async listMyHistory(user: AuthenticatedUser, q: HistoryQuery = {}): Promise<AttendanceRecord[]> {
     const today = truncateToUtcDate(new Date());
-    const to = q.to ? parseIsoDate(q.to) ?? today : today;
+    const to = q.to ? (parseIsoDate(q.to) ?? today) : today;
     const defaultFrom = new Date(to);
     defaultFrom.setUTCDate(defaultFrom.getUTCDate() - 89); // 90-day window inclusive
-    const from = q.from ? parseIsoDate(q.from) ?? defaultFrom : defaultFrom;
+    const from = q.from ? (parseIsoDate(q.from) ?? defaultFrom) : defaultFrom;
 
     if (from > to) {
       throw new BadRequestException('INVALID_RANGE');
@@ -492,10 +492,10 @@ export class AttendanceService {
     this.assertTeamViewer(actor);
 
     const today = truncateToUtcDate(new Date());
-    const to = q.to ? parseIsoDate(q.to) ?? today : today;
+    const to = q.to ? (parseIsoDate(q.to) ?? today) : today;
     const defaultFrom = new Date(to);
     defaultFrom.setUTCDate(defaultFrom.getUTCDate() - (TEAM_SUMMARY_DEFAULT_DAYS - 1));
-    const from = q.from ? parseIsoDate(q.from) ?? defaultFrom : defaultFrom;
+    const from = q.from ? (parseIsoDate(q.from) ?? defaultFrom) : defaultFrom;
     if (!from || !to) throw new BadRequestException('INVALID_DATE');
 
     if (from > to) throw new BadRequestException('INVALID_RANGE');
@@ -990,11 +990,7 @@ function parseIsoDate(s: string): Date | null {
   const parts = s.split('-').map(Number) as [number, number, number];
   const [y, m, d] = parts;
   const dt = new Date(Date.UTC(y, m - 1, d));
-  if (
-    dt.getUTCFullYear() !== y ||
-    dt.getUTCMonth() !== m - 1 ||
-    dt.getUTCDate() !== d
-  ) {
+  if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) {
     return null;
   }
   return dt;

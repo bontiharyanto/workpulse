@@ -2,12 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import type {
-  CreateShiftInput,
-  Geofence,
-  Shift,
-  ShiftType,
-} from '@workpulse/shared-types';
+import type { CreateShiftInput, Geofence, Shift, ShiftType } from '@workpulse/shared-types';
 import { createShiftSchema } from '@workpulse/shared-types';
 
 const TYPE_LABELS: Record<ShiftType, string> = {
@@ -50,10 +45,10 @@ export function ShiftForm({
         <input
           {...form.register('name')}
           placeholder="Shift Pagi"
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         />
         {form.formState.errors.name && (
-          <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
+          <p className="text-destructive text-xs">{form.formState.errors.name.message}</p>
         )}
       </div>
 
@@ -61,7 +56,7 @@ export function ShiftForm({
         <label className="text-xs font-medium uppercase tracking-wider">Tipe</label>
         <select
           {...form.register('type')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         >
           {(Object.keys(TYPE_LABELS) as ShiftType[]).map((t) => (
             <option key={t} value={t}>
@@ -80,7 +75,7 @@ export function ShiftForm({
           min={0}
           max={240}
           {...form.register('graceMinutes', { valueAsNumber: true })}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm tabular-nums"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm tabular-nums"
         />
       </div>
 
@@ -89,10 +84,10 @@ export function ShiftForm({
         <input
           type="time"
           {...form.register('startTime')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm tabular-nums"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm tabular-nums"
         />
         {form.formState.errors.startTime && (
-          <p className="text-xs text-destructive">{form.formState.errors.startTime.message}</p>
+          <p className="text-destructive text-xs">{form.formState.errors.startTime.message}</p>
         )}
       </div>
 
@@ -101,13 +96,13 @@ export function ShiftForm({
         <input
           type="time"
           {...form.register('endTime')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm tabular-nums"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm tabular-nums"
         />
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           Untuk shift lintas tengah malam, jam selesai boleh &lt; jam mulai.
         </p>
         {form.formState.errors.endTime && (
-          <p className="text-xs text-destructive">{form.formState.errors.endTime.message}</p>
+          <p className="text-destructive text-xs">{form.formState.errors.endTime.message}</p>
         )}
       </div>
 
@@ -117,7 +112,7 @@ export function ShiftForm({
           {...form.register('geofenceId', {
             setValueAs: (v: string) => (v === '' ? null : v),
           })}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         >
           <option value="">— Tidak dibatasi lokasi —</option>
           {geofences.map((g) => (
@@ -135,7 +130,7 @@ export function ShiftForm({
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-md bg-foreground px-3 py-1 text-xs font-medium text-background disabled:opacity-50"
+          className="bg-foreground text-background rounded-md px-3 py-1 text-xs font-medium disabled:opacity-50"
         >
           {submitting ? 'Menyimpan...' : initial ? 'Simpan perubahan' : 'Buat shift'}
         </button>

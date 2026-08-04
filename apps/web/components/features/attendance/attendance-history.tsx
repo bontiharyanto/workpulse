@@ -32,11 +32,11 @@ export function AttendanceHistory(): JSX.Element {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Riwayat kehadiran</h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             {from} → {to}
           </p>
         </div>
-        <div className="flex gap-1 rounded-md border bg-background p-0.5 text-xs">
+        <div className="bg-background flex gap-1 rounded-md border p-0.5 text-xs">
           {(['30', '60', '90'] as RangePreset[]).map((p) => (
             <button
               key={p}
@@ -54,7 +54,7 @@ export function AttendanceHistory(): JSX.Element {
 
       <div className="overflow-hidden rounded-md border">
         <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
+          <thead className="bg-muted/40 text-muted-foreground text-left text-xs uppercase tracking-wider">
             <tr>
               <th className="px-3 py-2">Tanggal</th>
               <th className="px-3 py-2">Clock-in</th>
@@ -67,7 +67,7 @@ export function AttendanceHistory(): JSX.Element {
           <tbody>
             {list.isLoading ? (
               <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-sm text-muted-foreground">
+                <td colSpan={6} className="text-muted-foreground px-3 py-6 text-center text-sm">
                   Memuat...
                 </td>
               </tr>
@@ -100,7 +100,7 @@ export function AttendanceHistory(): JSX.Element {
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-sm text-muted-foreground">
+                <td colSpan={6} className="text-muted-foreground px-3 py-6 text-center text-sm">
                   Tidak ada catatan kehadiran pada rentang ini.
                 </td>
               </tr>

@@ -7,10 +7,7 @@ import { anonymizeUser } from '../data-erasure/domain/anonymize-user';
 import { DataErasureService } from '../data-erasure/data-erasure.service';
 import { PrismaService } from '../prisma/prisma.service';
 
-import {
-  listAutoErasureCandidates,
-  pruneNotifications,
-} from './domain/retention-actions';
+import { listAutoErasureCandidates, pruneNotifications } from './domain/retention-actions';
 import { RetentionService } from './retention.service';
 
 /**
@@ -44,8 +41,7 @@ export class RetentionWorker {
     private readonly erasureService: DataErasureService,
     config: ConfigService,
   ) {
-    this.enabled =
-      config.get<string>('RETENTION_WORKER_ENABLED', 'true') !== 'false';
+    this.enabled = config.get<string>('RETENTION_WORKER_ENABLED', 'true') !== 'false';
     if (!this.enabled) {
       this.logger.warn(
         'RETENTION_WORKER_ENABLED=false — retention sweeps disabled on this instance.',
@@ -61,18 +57,15 @@ export class RetentionWorker {
     try {
       const targets = await this.service.listCompaniesForSweep();
       for (const target of targets) {
-        await this.sweepOne(target.companyId, target.policy).catch(
-          (err: Error) =>
-            this.logger.error(
-              { err, companyId: target.companyId },
-              `retention sweep failed for tenant: ${err.message}`,
-            ),
+        await this.sweepOne(target.companyId, target.policy).catch((err: Error) =>
+          this.logger.error(
+            { err, companyId: target.companyId },
+            `retention sweep failed for tenant: ${err.message}`,
+          ),
         );
       }
       this.logger.log(
-        `retention sweep complete tenants=${targets.length} durationMs=${
-          Date.now() - started
-        }`,
+        `retention sweep complete tenants=${targets.length} durationMs=${Date.now() - started}`,
       );
     } finally {
       this.tickRunning = false;
@@ -87,12 +80,11 @@ export class RetentionWorker {
   async runOnce(): Promise<void> {
     const targets = await this.service.listCompaniesForSweep();
     for (const target of targets) {
-      await this.sweepOne(target.companyId, target.policy).catch(
-        (err: Error) =>
-          this.logger.error(
-            { err, companyId: target.companyId },
-            `retention runOnce failed for tenant: ${err.message}`,
-          ),
+      await this.sweepOne(target.companyId, target.policy).catch((err: Error) =>
+        this.logger.error(
+          { err, companyId: target.companyId },
+          `retention runOnce failed for tenant: ${err.message}`,
+        ),
       );
     }
   }
@@ -137,9 +129,7 @@ export class RetentionWorker {
         return count;
       });
       if (deleted > 0) {
-        this.logger.log(
-          `notifications pruned companyId=${companyId} count=${deleted}`,
-        );
+        this.logger.log(`notifications pruned companyId=${companyId} count=${deleted}`);
       }
     }
 
@@ -155,15 +145,11 @@ export class RetentionWorker {
       );
       for (const cand of candidates) {
         await this.anonymiseOne(companyId, cand, now).catch((err: Error) =>
-          this.logger.warn(
-            `auto-erasure failed userId=${cand.id} reason=${err.message}`,
-          ),
+          this.logger.warn(`auto-erasure failed userId=${cand.id} reason=${err.message}`),
         );
       }
       if (candidates.length > 0) {
-        this.logger.log(
-          `auto-erasure companyId=${companyId} count=${candidates.length}`,
-        );
+        this.logger.log(`auto-erasure companyId=${companyId} count=${candidates.length}`);
       }
     }
   }
@@ -209,9 +195,7 @@ export class RetentionWorker {
     });
 
     if (result.dataExportFileKeys.length > 0) {
-      await this.erasureService.deleteExportedArchives(
-        result.dataExportFileKeys,
-      );
+      await this.erasureService.deleteExportedArchives(result.dataExportFileKeys);
     }
   }
 }

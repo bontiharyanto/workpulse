@@ -5,12 +5,7 @@ import { z } from 'zod';
  * `apps/api/src/timesheet/dto/timesheet.dto.ts` on the FE.
  */
 
-export const timesheetPeriodTypeSchema = z.enum([
-  'WEEKLY',
-  'BIWEEKLY',
-  'MONTHLY',
-  'CUTOFF',
-]);
+export const timesheetPeriodTypeSchema = z.enum(['WEEKLY', 'BIWEEKLY', 'MONTHLY', 'CUTOFF']);
 export type TimesheetPeriodType = z.infer<typeof timesheetPeriodTypeSchema>;
 
 export const weekStartDaySchema = z.enum(['SUNDAY', 'MONDAY']);
@@ -95,9 +90,7 @@ export const updateTimesheetConfigInputSchema = z.object({
     .max(timesheetConfigBounds.approvalReminderMaxDays.max)
     .optional(),
 });
-export type UpdateTimesheetConfigInput = z.infer<
-  typeof updateTimesheetConfigInputSchema
->;
+export type UpdateTimesheetConfigInput = z.infer<typeof updateTimesheetConfigInputSchema>;
 
 export const timesheetUserSchema = z.object({
   id: z.string(),
@@ -188,18 +181,14 @@ export type TimesheetPeriodListDto = z.infer<typeof timesheetPeriodListSchema>;
 export const generateTimesheetInputSchema = z.object({
   at: z.string().datetime().optional(),
 });
-export type GenerateTimesheetInput = z.infer<
-  typeof generateTimesheetInputSchema
->;
+export type GenerateTimesheetInput = z.infer<typeof generateTimesheetInputSchema>;
 
 export const generateTimesheetResponseSchema = z.object({
   periodId: z.string(),
   timesheetsGenerated: z.number().int(),
   timesheetsSkippedApproved: z.number().int(),
 });
-export type GenerateTimesheetResponse = z.infer<
-  typeof generateTimesheetResponseSchema
->;
+export type GenerateTimesheetResponse = z.infer<typeof generateTimesheetResponseSchema>;
 
 // ---------- Workflow (Fase 32b) ----------
 
@@ -209,9 +198,7 @@ export const timesheetDecideActionSchema = z.enum([
   'HR_APPROVE',
   'HR_REJECT',
 ]);
-export type TimesheetDecideAction = z.infer<
-  typeof timesheetDecideActionSchema
->;
+export type TimesheetDecideAction = z.infer<typeof timesheetDecideActionSchema>;
 
 export const decideTimesheetInputSchema = z
   .object({
@@ -230,9 +217,7 @@ export const decideTimesheetInputSchema = z
       path: ['note'],
     },
   );
-export type DecideTimesheetInput = z.infer<
-  typeof decideTimesheetInputSchema
->;
+export type DecideTimesheetInput = z.infer<typeof decideTimesheetInputSchema>;
 
 // ---------- Reopen (Fase 32g) ----------
 
@@ -253,9 +238,7 @@ export const reopenTimesheetResponseSchema = z.object({
   status: timesheetStatusSchema,
   reopenCount: z.number().int(),
 });
-export type ReopenTimesheetResponse = z.infer<
-  typeof reopenTimesheetResponseSchema
->;
+export type ReopenTimesheetResponse = z.infer<typeof reopenTimesheetResponseSchema>;
 
 // ---------- Export (Fase 32c) ----------
 

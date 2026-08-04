@@ -38,8 +38,7 @@ export class DataExportService {
     // default recommended by every DSAR runbook — it keeps a
     // motivated user from DOS'ing the assembler while remaining
     // responsive for a genuine "download it now, I forgot" retry.
-    this.cooldownMs =
-      Number(config.get<string>('DATA_EXPORT_COOLDOWN_HOURS', '24')) * 3_600_000;
+    this.cooldownMs = Number(config.get<string>('DATA_EXPORT_COOLDOWN_HOURS', '24')) * 3_600_000;
   }
 
   /**
@@ -79,9 +78,7 @@ export class DataExportService {
       orderBy: { requestedAt: 'desc' },
     });
     if (lastRequest) {
-      const nextAllowedAt = new Date(
-        lastRequest.requestedAt.getTime() + this.cooldownMs,
-      );
+      const nextAllowedAt = new Date(lastRequest.requestedAt.getTime() + this.cooldownMs);
       if (nextAllowedAt.getTime() > now) {
         throw new ConflictException({
           statusCode: 409,
@@ -125,9 +122,7 @@ export class DataExportService {
    * fresh presigned URL only when the user clicks. That way stale
    * URLs never end up in bookmark bars or shared screenshots.
    */
-  async list(userId: string): Promise<
-    (DataExportRequest & { downloadUrl: null })[]
-  > {
+  async list(userId: string): Promise<(DataExportRequest & { downloadUrl: null })[]> {
     const rows = await this.prisma.dataExportRequest.findMany({
       where: { userId },
       orderBy: { requestedAt: 'desc' },

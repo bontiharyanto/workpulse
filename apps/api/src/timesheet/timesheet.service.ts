@@ -40,9 +40,7 @@ import { TimesheetConfigService } from './timesheet-config.service';
  * default to the service's own `prisma`.
  */
 type PrismaLike =
-  | PrismaService
-  | Prisma.TransactionClient
-  | Omit<PrismaService, '$connect' | '$disconnect'>;
+  PrismaService | Prisma.TransactionClient | Omit<PrismaService, '$connect' | '$disconnect'>;
 
 /**
  * Public shape of a timesheet returned by the read endpoints. Kept
@@ -424,86 +422,69 @@ export class TimesheetService {
     weekStartDay: WeekStartDay;
     holidayByDate: Map<string, HolidayInput>;
   }): Promise<void> {
-    const {
-      companyId,
-      userId,
-      periodId,
-      periodStart,
-      periodEnd,
-      timezone,
-      holidayByDate,
-    } = args;
+    const { companyId, userId, periodId, periodStart, periodEnd, timezone, holidayByDate } = args;
 
     // Load everything we need in one shot per user. This ends up as
     // ~5 queries per user × N users; if `N` grows past ~500 in one
     // tenant we'd batch. For 32a we prioritise correctness over that
     // last mile.
-    const [attendance, overtimes, leaves, absences, shiftAssignments] =
-      await Promise.all([
-        this.prisma.attendanceRecord.findMany({
-          where: {
-            userId,
-            workDate: { gte: periodStart, lte: periodEnd },
-            deletedAt: null,
-          },
-        }),
-        this.prisma.overtimeRequest.findMany({
-          where: {
-            userId,
-            workDate: { gte: periodStart, lte: periodEnd },
-            status: { in: [OvertimeStatus.APPROVED, OvertimeStatus.COMPLETED] },
-          },
-        }),
-        this.prisma.leaveRequest.findMany({
-          where: {
-            userId,
-            status: LeaveStatus.APPROVED,
-            // A leave overlaps the period if [startDate, endDate]
-            // intersects [periodStart, periodEnd].
-            startDate: { lte: periodEnd },
-            endDate: { gte: periodStart },
-            deletedAt: null,
-          },
-          include: { leaveType: true },
-        }),
-        this.prisma.absenceRecord.findMany({
-          where: {
-            userId,
-            workDate: { gte: periodStart, lte: periodEnd },
-          },
-        }),
-        this.prisma.userShiftAssignment.findMany({
-          where: {
-            userId,
-            effectiveFrom: { lte: periodEnd },
-            OR: [
-              { effectiveTo: null },
-              { effectiveTo: { gte: periodStart } },
-            ],
-            deletedAt: null,
-          },
-          include: { shift: true },
-        }),
-      ]);
+    const [attendance, overtimes, leaves, absences, shiftAssignments] = await Promise.all([
+      this.prisma.attendanceRecord.findMany({
+        where: {
+          userId,
+          workDate: { gte: periodStart, lte: periodEnd },
+          deletedAt: null,
+        },
+      }),
+      this.prisma.overtimeRequest.findMany({
+        where: {
+          userId,
+          workDate: { gte: periodStart, lte: periodEnd },
+          status: { in: [OvertimeStatus.APPROVED, OvertimeStatus.COMPLETED] },
+        },
+      }),
+      this.prisma.leaveRequest.findMany({
+        where: {
+          userId,
+          status: LeaveStatus.APPROVED,
+          // A leave overlaps the period if [startDate, endDate]
+          // intersects [periodStart, periodEnd].
+          startDate: { lte: periodEnd },
+          endDate: { gte: periodStart },
+          deletedAt: null,
+        },
+        include: { leaveType: true },
+      }),
+      this.prisma.absenceRecord.findMany({
+        where: {
+          userId,
+          workDate: { gte: periodStart, lte: periodEnd },
+        },
+      }),
+      this.prisma.userShiftAssignment.findMany({
+        where: {
+          userId,
+          effectiveFrom: { lte: periodEnd },
+          OR: [{ effectiveTo: null }, { effectiveTo: { gte: periodStart } }],
+          deletedAt: null,
+        },
+        include: { shift: true },
+      }),
+    ]);
 
     // Fase 32b — break-time deduction. Look up the effective shift for
     // each attended day and subtract its unpaid break window from
     // `hoursWorked` before it flows into `TimesheetEntry.regularHours`.
     // We cap at zero so a mis-configured shift (break > worked) never
     // yields a negative payroll number.
-    const resolveShiftForDate = (
-      workDate: Date,
-    ): (typeof shiftAssignments)[number] | null => {
+    const resolveShiftForDate = (workDate: Date): (typeof shiftAssignments)[number] | null => {
       const applicable = shiftAssignments
         .filter(
           (a) =>
             a.effectiveFrom.getTime() <= workDate.getTime() &&
-            (a.effectiveTo === null ||
-              a.effectiveTo.getTime() >= workDate.getTime()),
+            (a.effectiveTo === null || a.effectiveTo.getTime() >= workDate.getTime()),
         )
-        .sort(
-          (a, b) => b.effectiveFrom.getTime() - a.effectiveFrom.getTime(),
-        )[0];
+        .sort((a, b) => b.effectiveFrom.getTime() - a.effectiveFrom.getTime())[0];
       return applicable ?? null;
     };
 
@@ -515,9 +496,7 @@ export class TimesheetService {
           ? (a.clockOutAt.getTime() - a.clockInAt.getTime()) / 3_600_000
           : 0;
       const assignment = resolveShiftForDate(a.workDate);
-      const breakHours = assignment
-        ? (assignment.shift.breakMinutes ?? 0) / 60
-        : 0;
+      const breakHours = assignment ? (assignment.shift.breakMinutes ?? 0) / 60 : 0;
       const hoursWorked = round2(Math.max(0, rawHours - breakHours));
       attendanceByDate.set(key, {
         workDate: key,
@@ -579,9 +558,7 @@ export class TimesheetService {
     // regular workday matches what the entry-builder allocates to
     // `regularHours` (the attendance mapping above already subtracts
     // the break).
-    const shiftInputForDate = (
-      workDate: Date,
-    ): ShiftAssignmentInput | null => {
+    const shiftInputForDate = (workDate: Date): ShiftAssignmentInput | null => {
       const applicable = resolveShiftForDate(workDate);
       if (!applicable) return null;
       const start = parseHhmm(applicable.shift.startTime);
@@ -654,10 +631,7 @@ export class TimesheetService {
             timesheetId: timesheet.id,
             workDate: new Date(e.workDate + 'T00:00:00Z'),
             kind: e.kind,
-            expectedHours:
-              e.expectedHours === null
-                ? null
-                : new Prisma.Decimal(e.expectedHours),
+            expectedHours: e.expectedHours === null ? null : new Prisma.Decimal(e.expectedHours),
             regularHours: new Prisma.Decimal(e.regularHours),
             overtimeHours: new Prisma.Decimal(e.overtimeHours),
             leaveHours: new Prisma.Decimal(e.leaveHours),
@@ -676,11 +650,7 @@ export class TimesheetService {
 
   // ---------- READ endpoints ----------
 
-  async listForUser(
-    userId: string,
-    companyId: string,
-    limit = 12,
-  ): Promise<TimesheetSummary[]> {
+  async listForUser(userId: string, companyId: string, limit = 12): Promise<TimesheetSummary[]> {
     const rows = await this.prisma.timesheet.findMany({
       where: { userId, companyId },
       orderBy: { period: { periodEnd: 'desc' } },
@@ -700,10 +670,7 @@ export class TimesheetService {
     return rows.map(toSummary);
   }
 
-  async getDetail(
-    actor: AuthenticatedUser,
-    timesheetId: string,
-  ): Promise<TimesheetView> {
+  async getDetail(actor: AuthenticatedUser, timesheetId: string): Promise<TimesheetView> {
     const ts = await this.prisma.timesheet.findUnique({
       where: { id: timesheetId },
       include: {
@@ -786,9 +753,7 @@ export class TimesheetService {
     if (filter.periodId) where.periodId = filter.periodId;
     if (filter.userId) where.userId = filter.userId;
     if (filter.status) {
-      where.status = Array.isArray(filter.status)
-        ? { in: filter.status }
-        : filter.status;
+      where.status = Array.isArray(filter.status) ? { in: filter.status } : filter.status;
     }
 
     // Supervisors only see their direct reports; HR sees everyone.
@@ -832,9 +797,10 @@ export class TimesheetService {
     };
   }
 
-  async listPeriods(companyId: string, limit = 24): Promise<
-    Array<{ id: string; periodStart: string; periodEnd: string; label: string }>
-  > {
+  async listPeriods(
+    companyId: string,
+    limit = 24,
+  ): Promise<Array<{ id: string; periodStart: string; periodEnd: string; label: string }>> {
     const rows = await this.prisma.timesheetPeriod.findMany({
       where: { companyId },
       orderBy: { periodEnd: 'desc' },
@@ -862,10 +828,7 @@ export class TimesheetService {
     }
     if (actor.id === target.userId) return;
     if (actor.role === 'HR_MANAGER' || actor.role === 'SUPER_ADMIN') return;
-    if (
-      actor.role === 'SUPERVISOR' &&
-      target.supervisorId === actor.id
-    ) {
+    if (actor.role === 'SUPERVISOR' && target.supervisorId === actor.id) {
       return;
     }
     throw new ForbiddenException('FORBIDDEN');
@@ -996,13 +959,10 @@ function toYmd(instant: Date, timezone: string): string {
     month: '2-digit',
     day: '2-digit',
   });
-  const parts = dtf.formatToParts(instant).reduce<Record<string, string>>(
-    (acc, p) => {
-      if (p.type !== 'literal') acc[p.type] = p.value;
-      return acc;
-    },
-    {},
-  );
+  const parts = dtf.formatToParts(instant).reduce<Record<string, string>>((acc, p) => {
+    if (p.type !== 'literal') acc[p.type] = p.value;
+    return acc;
+  }, {});
   return `${parts.year}-${parts.month}-${parts.day}`;
 }
 

@@ -10,10 +10,7 @@
  */
 
 export class OvertimeHoursError extends Error {
-  readonly code:
-    | 'HOURS_NOT_POSITIVE'
-    | 'HOURS_TOO_MANY_DECIMALS'
-    | 'HOURS_EXCEEDS_DAILY_CAP';
+  readonly code: 'HOURS_NOT_POSITIVE' | 'HOURS_TOO_MANY_DECIMALS' | 'HOURS_EXCEEDS_DAILY_CAP';
   constructor(code: OvertimeHoursError['code'], message: string) {
     super(message);
     this.name = 'OvertimeHoursError';

@@ -31,8 +31,8 @@ export default function SetupMfaPage(): JSX.Element {
 
   if (status === 'loading') {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-        <p className="text-sm text-muted-foreground">Memuat sesi...</p>
+      <main className="bg-muted/30 flex min-h-screen items-center justify-center px-4">
+        <p className="text-muted-foreground text-sm">Memuat sesi...</p>
       </main>
     );
   }
@@ -43,16 +43,16 @@ export default function SetupMfaPage(): JSX.Element {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-10">
-      <div className="w-full max-w-lg space-y-4 rounded-lg border bg-background p-6 shadow-sm">
+    <main className="bg-muted/30 flex min-h-screen items-center justify-center px-4 py-10">
+      <div className="bg-background w-full max-w-lg space-y-4 rounded-lg border p-6 shadow-sm">
         <div className="space-y-1">
-          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+          <p className="text-muted-foreground text-xs font-medium uppercase tracking-widest">
             Workpulse
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">Aktifkan MFA</h1>
-          <p className="text-sm text-muted-foreground">
-            Gunakan aplikasi seperti Google Authenticator, Authy, atau
-            1Password. Aktifkan MFA untuk mengamankan akun Anda.
+          <p className="text-muted-foreground text-sm">
+            Gunakan aplikasi seperti Google Authenticator, Authy, atau 1Password. Aktifkan MFA untuk
+            mengamankan akun Anda.
           </p>
         </div>
 

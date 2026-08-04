@@ -37,10 +37,7 @@ const DATE_CANCEL = nearestPastWeekday(9);
 const DATE_CUTOFF = nearestPastWeekday(11);
 const CUTOFF_ANCHOR = nearestPastWeekday(10); // ≥ DATE_CUTOFF → locks it
 
-async function setCutoff(
-  api: APIRequestContext,
-  value: string | null,
-): Promise<void> {
+async function setCutoff(api: APIRequestContext, value: string | null): Promise<void> {
   const res = await api.patch('/api/v1/admin/company', {
     data: { payrollLockedUntil: value },
   });
@@ -123,18 +120,12 @@ test('happy path: employee submits, supervisor approves, correction is applied',
   expect(submitted.status).toBe('PENDING_APPROVAL');
 
   // Supervisor sees it in their queue.
-  const queue = await supervisor.api.get(
-    '/api/v1/attendance/corrections/approvals/pending',
-  );
+  const queue = await supervisor.api.get('/api/v1/attendance/corrections/approvals/pending');
   expect(queue.ok()).toBeTruthy();
   const pending = (await queue.json()) as Array<{ id: string }>;
   expect(pending.some((r) => r.id === submitted.id)).toBeTruthy();
 
-  const decide = await decideCorrection(
-    supervisor.api,
-    submitted.id,
-    'APPROVE',
-  );
+  const decide = await decideCorrection(supervisor.api, submitted.id, 'APPROVE');
   expect(decide.status(), await decide.text()).toBe(200);
   const approved = (await decide.json()) as { status: string; decidedById: string };
   expect(approved.status).toBe('APPROVED');
@@ -170,9 +161,7 @@ test('happy path: employee submits, supervisor approves, correction is applied',
 
 test('RBAC: EMPLOYEE receives 403 from the approvals endpoint', async () => {
   const employee = await authenticateApi('employee');
-  const res = await employee.api.get(
-    '/api/v1/attendance/corrections/approvals/pending',
-  );
+  const res = await employee.api.get('/api/v1/attendance/corrections/approvals/pending');
   expect(res.status()).toBe(403);
   await employee.api.dispose();
 });

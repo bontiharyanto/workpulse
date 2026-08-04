@@ -56,7 +56,7 @@ export function HolidayBulkImport({ submitting, onSubmit, onCancel, result }: Pr
     <div className="space-y-3 rounded-lg border p-4">
       <div>
         <h3 className="text-sm font-semibold">Bulk Import</h3>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           Tempel array JSON berisi <code className="font-mono">{`{date, name}`}</code>. Duplikat
           (tanggal yang sudah ada di database) akan dilewati otomatis.
         </p>
@@ -67,11 +67,14 @@ export function HolidayBulkImport({ submitting, onSubmit, onCancel, result }: Pr
         onChange={(e) => setText(e.target.value)}
         rows={10}
         placeholder={EXAMPLE}
-        className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs"
+        className="border-input bg-background w-full rounded-md border px-3 py-2 font-mono text-xs"
       />
 
       {error && (
-        <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+        <p
+          role="alert"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-xs"
+        >
           {error}
         </p>
       )}
@@ -91,7 +94,7 @@ export function HolidayBulkImport({ submitting, onSubmit, onCancel, result }: Pr
           type="button"
           onClick={handleSubmit}
           disabled={submitting || text.trim().length === 0}
-          className="rounded-md bg-foreground px-3 py-1 text-xs font-medium text-background disabled:opacity-50"
+          className="bg-foreground text-background rounded-md px-3 py-1 text-xs font-medium disabled:opacity-50"
         >
           {submitting ? 'Mengimpor...' : 'Impor'}
         </button>

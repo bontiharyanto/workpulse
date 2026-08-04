@@ -28,7 +28,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
     this.logger.error({
       message: 'Unhandled exception',
       path: request.url,
-      error: exception instanceof Error ? { name: exception.name, message: exception.message, stack: exception.stack } : exception,
+      error:
+        exception instanceof Error
+          ? { name: exception.name, message: exception.message, stack: exception.stack }
+          : exception,
     });
 
     response.status(500).json({

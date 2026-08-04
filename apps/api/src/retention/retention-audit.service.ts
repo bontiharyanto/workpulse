@@ -1,14 +1,5 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import type {
-  Prisma,
-  RetentionAuditReport,
-  RetentionAuditStatus,
-} from '@prisma/client';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import type { Prisma, RetentionAuditReport, RetentionAuditStatus } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -82,17 +73,8 @@ export class RetentionAuditService {
       terminatedUserAnonymizeDays: policy.terminatedUserAnonymizeDays,
     };
 
-    const counters = await this.collectCounters(
-      companyId,
-      periodStart,
-      periodEnd,
-      policySnapshot,
-    );
-    const workerLastRunAt = await this.workerLastRunAt(
-      companyId,
-      periodStart,
-      periodEnd,
-    );
+    const counters = await this.collectCounters(companyId, periodStart, periodEnd, policySnapshot);
+    const workerLastRunAt = await this.workerLastRunAt(companyId, periodStart, periodEnd);
 
     const derived = deriveRetentionAudit({
       counters,
@@ -199,10 +181,7 @@ export class RetentionAuditService {
     return { rows, total, page, pageSize };
   }
 
-  async detail(
-    companyId: string,
-    reportId: string,
-  ): Promise<RetentionAuditReport> {
+  async detail(companyId: string, reportId: string): Promise<RetentionAuditReport> {
     const row = await this.prisma.retentionAuditReport.findFirst({
       where: { id: reportId, companyId },
     });
@@ -213,9 +192,7 @@ export class RetentionAuditService {
   }
 
   /** Latest report per tenant — used by the FE landing card. */
-  async latestForCompany(
-    companyId: string,
-  ): Promise<RetentionAuditReport | null> {
+  async latestForCompany(companyId: string): Promise<RetentionAuditReport | null> {
     return this.prisma.retentionAuditReport.findFirst({
       where: { companyId },
       orderBy: { periodStart: 'desc' },
@@ -248,27 +225,11 @@ export class RetentionAuditService {
         periodEnd,
         'deletedCount',
       ),
-      this.countAuditRows(
-        companyId,
-        AUDIT_ACTIONS.userAnonymised,
-        periodStart,
-        periodEnd,
-      ),
-      this.countAuditRows(
-        companyId,
-        AUDIT_ACTIONS.dsarExpired,
-        periodStart,
-        periodEnd,
-      ),
-      this.notificationsPastRetentionCount(
-        companyId,
-        policy.notificationRetentionDays,
-      ),
+      this.countAuditRows(companyId, AUDIT_ACTIONS.userAnonymised, periodStart, periodEnd),
+      this.countAuditRows(companyId, AUDIT_ACTIONS.dsarExpired, periodStart, periodEnd),
+      this.notificationsPastRetentionCount(companyId, policy.notificationRetentionDays),
       this.dsarArchivesPastRetentionCount(companyId),
-      this.terminatedUsersPastRetentionCount(
-        companyId,
-        policy.terminatedUserAnonymizeDays,
-      ),
+      this.terminatedUsersPastRetentionCount(companyId, policy.terminatedUserAnonymizeDays),
     ]);
     return {
       notificationsPruned,
@@ -340,10 +301,7 @@ export class RetentionAuditService {
       where: {
         companyId,
         action: {
-          in: [
-            AUDIT_ACTIONS.notificationsPruned,
-            AUDIT_ACTIONS.userAnonymised,
-          ],
+          in: [AUDIT_ACTIONS.notificationsPruned, AUDIT_ACTIONS.userAnonymised],
         },
         createdAt: { gte: periodStart, lt: periodEnd },
       },
@@ -368,9 +326,7 @@ export class RetentionAuditService {
     });
   }
 
-  private async dsarArchivesPastRetentionCount(
-    companyId: string,
-  ): Promise<number> {
+  private async dsarArchivesPastRetentionCount(companyId: string): Promise<number> {
     // `expiresAt` was set by the DSAR worker when the archive was
     // committed. Post-expiry, the sweep is supposed to null the
     // `fileKey`. A row that still has `fileKey` past its expiry is

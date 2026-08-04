@@ -84,9 +84,7 @@ export function pendingScanDates(
 // Per-user classification
 // ---------------------------------------------------------------------------
 
-export type AbsenceDecision =
-  | { kind: 'ABSENT' }
-  | { kind: 'SKIP'; reason: AbsenceSkipReason };
+export type AbsenceDecision = { kind: 'ABSENT' } | { kind: 'SKIP'; reason: AbsenceSkipReason };
 
 export type AbsenceSkipReason =
   | 'NOT_HIRED_YET'
@@ -130,10 +128,7 @@ export interface ClassifyAbsenceInput {
  *   6. Otherwise: absent.
  */
 export function classifyAbsence(input: ClassifyAbsenceInput): AbsenceDecision {
-  if (
-    input.employmentStatus === 'TERMINATED' ||
-    input.employmentStatus === 'SUSPENDED'
-  ) {
+  if (input.employmentStatus === 'TERMINATED' || input.employmentStatus === 'SUSPENDED') {
     return { kind: 'SKIP', reason: 'INACTIVE' };
   }
   if (input.hiredAt > input.targetDate) {

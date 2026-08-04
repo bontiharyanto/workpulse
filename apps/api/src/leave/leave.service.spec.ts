@@ -1,4 +1,9 @@
-import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { LeaveKind, LeaveStatus } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
@@ -119,7 +124,10 @@ describe('LeaveService.submit', () => {
 
   it('rejects when leave type requires attachment and none provided', async () => {
     const { service, prisma } = setup();
-    prisma.leaveType.findFirst.mockResolvedValue({ ...annualType, requiresAttachment: true } as never);
+    prisma.leaveType.findFirst.mockResolvedValue({
+      ...annualType,
+      requiresAttachment: true,
+    } as never);
     await expect(
       service.submit(employee, {
         leaveTypeId: annualType.id,
@@ -173,7 +181,7 @@ describe('LeaveService.submit', () => {
       service.submit(employee, {
         leaveTypeId: annualType.id,
         startDate: '2026-06-15', // Mon
-        endDate: '2026-06-19',   // Fri → 5 business days
+        endDate: '2026-06-19', // Fri → 5 business days
         reason: 'trip',
       }),
     ).rejects.toMatchObject({ message: 'INSUFFICIENT_BALANCE' });
@@ -268,16 +276,19 @@ describe('LeaveService.decide', () => {
       user: { supervisorId: 'someone-else' },
     } as never);
 
-    await expect(
-      service.decide(supervisor, 'req-1', { action: 'APPROVE' }),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(service.decide(supervisor, 'req-1', { action: 'APPROVE' })).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
   });
 
   it('supervisor APPROVE moves state to PENDING_HR without touching balance', async () => {
     const { service, prisma } = setup();
     prisma.leaveRequest.findFirst.mockResolvedValue(pendingSupervisor as never);
     prisma.$queryRaw.mockResolvedValue([balance({ reserved: 5, remaining: 7 })] as never);
-    prisma.leaveRequest.update.mockResolvedValue({ ...pendingSupervisor, status: LeaveStatus.PENDING_HR } as never);
+    prisma.leaveRequest.update.mockResolvedValue({
+      ...pendingSupervisor,
+      status: LeaveStatus.PENDING_HR,
+    } as never);
     prisma.auditLog.create.mockResolvedValue({} as never);
     stubTransaction(prisma);
 
@@ -301,7 +312,10 @@ describe('LeaveService.decide', () => {
     const { service, prisma } = setup();
     prisma.leaveRequest.findFirst.mockResolvedValue(pendingSupervisor as never);
     prisma.$queryRaw.mockResolvedValue([balance({ reserved: 5, remaining: 7 })] as never);
-    prisma.leaveRequest.update.mockResolvedValue({ ...pendingSupervisor, status: LeaveStatus.REJECTED } as never);
+    prisma.leaveRequest.update.mockResolvedValue({
+      ...pendingSupervisor,
+      status: LeaveStatus.REJECTED,
+    } as never);
     prisma.auditLog.create.mockResolvedValue({} as never);
     stubTransaction(prisma);
 
@@ -323,7 +337,10 @@ describe('LeaveService.decide', () => {
     const atHr = { ...pendingSupervisor, status: LeaveStatus.PENDING_HR, supervisorId: 'user-sup' };
     prisma.leaveRequest.findFirst.mockResolvedValue(atHr as never);
     prisma.$queryRaw.mockResolvedValue([balance({ reserved: 5, remaining: 7 })] as never);
-    prisma.leaveRequest.update.mockResolvedValue({ ...atHr, status: LeaveStatus.APPROVED } as never);
+    prisma.leaveRequest.update.mockResolvedValue({
+      ...atHr,
+      status: LeaveStatus.APPROVED,
+    } as never);
     prisma.auditLog.create.mockResolvedValue({} as never);
     stubTransaction(prisma);
 
@@ -337,8 +354,8 @@ describe('LeaveService.decide', () => {
     expect(balanceCall).toMatchObject({
       data: { reserved: { increment: -5 }, used: { increment: 5 } },
     });
-    const remaining = (balanceCall?.data as { remaining?: { increment: number } })
-      ?.remaining?.increment;
+    const remaining = (balanceCall?.data as { remaining?: { increment: number } })?.remaining
+      ?.increment;
     expect(remaining === 0 || Object.is(remaining, -0)).toBe(true);
   });
 
@@ -348,9 +365,9 @@ describe('LeaveService.decide', () => {
     // So instead test: EMPLOYEE actor cannot approve
     prisma.leaveRequest.findFirst.mockResolvedValue(pendingSupervisor as never);
 
-    await expect(
-      service.decide(employee, 'req-1', { action: 'APPROVE' }),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(service.decide(employee, 'req-1', { action: 'APPROVE' })).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
   });
 });
 
@@ -387,7 +404,10 @@ describe('LeaveService.cancel', () => {
     const { service, prisma } = setup();
     prisma.leaveRequest.findFirst.mockResolvedValue(pending as never);
     prisma.$queryRaw.mockResolvedValue([balance({ reserved: 5, remaining: 7 })] as never);
-    prisma.leaveRequest.update.mockResolvedValue({ ...pending, status: LeaveStatus.CANCELLED } as never);
+    prisma.leaveRequest.update.mockResolvedValue({
+      ...pending,
+      status: LeaveStatus.CANCELLED,
+    } as never);
     prisma.auditLog.create.mockResolvedValue({} as never);
     stubTransaction(prisma);
 
@@ -405,7 +425,10 @@ describe('LeaveService.cancel', () => {
 
   it('cannot cancel an already-approved request', async () => {
     const { service, prisma } = setup();
-    prisma.leaveRequest.findFirst.mockResolvedValue({ ...pending, status: LeaveStatus.APPROVED } as never);
+    prisma.leaveRequest.findFirst.mockResolvedValue({
+      ...pending,
+      status: LeaveStatus.APPROVED,
+    } as never);
     await expect(service.cancel(employee, 'req-1')).rejects.toMatchObject({
       message: 'ILLEGAL_TRANSITION',
     });
@@ -537,9 +560,7 @@ describe('LeaveService — payroll cutoff', () => {
       status: LeaveStatus.PENDING_HR,
     } as never);
 
-    await expect(
-      service.decide(hr, 'req-locked', { action: 'APPROVE' }),
-    ).rejects.toMatchObject({
+    await expect(service.decide(hr, 'req-locked', { action: 'APPROVE' })).rejects.toMatchObject({
       response: { code: 'PAYROLL_LOCKED' },
     });
 

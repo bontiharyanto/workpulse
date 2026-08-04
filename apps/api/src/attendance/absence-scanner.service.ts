@@ -186,10 +186,7 @@ export class AbsenceScannerService {
    * out so the reset endpoint can trigger a targeted rescan without
    * paying for every-tenant iteration.
    */
-  async scanCompanyById(
-    companyId: string,
-    now: Date = new Date(),
-  ): Promise<AbsenceScanResult> {
+  async scanCompanyById(companyId: string, now: Date = new Date()): Promise<AbsenceScanResult> {
     const co = await this.prisma.company.findFirst({
       where: { id: companyId, deletedAt: null },
       select: {
@@ -207,9 +204,7 @@ export class AbsenceScannerService {
     if (targetDate === null) {
       return this.emptyScanResult(companyId);
     }
-    const lastScanned = co.lastAbsentScanDate
-      ? toIsoDate(co.lastAbsentScanDate)
-      : null;
+    const lastScanned = co.lastAbsentScanDate ? toIsoDate(co.lastAbsentScanDate) : null;
     const dates = pendingScanDates(targetDate, lastScanned, MAX_BACKFILL_DAYS);
     if (dates.length === 0) {
       return this.emptyScanResult(companyId);
@@ -264,9 +259,7 @@ export class AbsenceScannerService {
       const targetDate = resolveTargetDate(now, co.timezone, co.absentScanGraceHours);
       if (targetDate === null) continue;
 
-      const lastScanned = co.lastAbsentScanDate
-        ? toIsoDate(co.lastAbsentScanDate)
-        : null;
+      const lastScanned = co.lastAbsentScanDate ? toIsoDate(co.lastAbsentScanDate) : null;
       const dates = pendingScanDates(targetDate, lastScanned, MAX_BACKFILL_DAYS);
       if (dates.length === 0) continue;
 
@@ -394,32 +387,31 @@ export class AbsenceScannerService {
     }
 
     // One-shot loads for the whole company × date.
-    const [roster, holidayRow, attendance, absences, approvedLeaves] =
-      await Promise.all([
-        this.loadRoster(companyId, workDate),
-        this.prisma.holiday.findFirst({
-          where: { companyId, date: toDateOnly(workDate) },
-          select: { id: true },
-        }),
-        this.prisma.attendanceRecord.findMany({
-          where: { companyId, workDate: toDateOnly(workDate), deletedAt: null },
-          select: { userId: true },
-        }),
-        this.prisma.absenceRecord.findMany({
-          where: { companyId, workDate: toDateOnly(workDate) },
-          select: { userId: true },
-        }),
-        this.prisma.leaveRequest.findMany({
-          where: {
-            companyId,
-            status: 'APPROVED',
-            startDate: { lte: toDateOnly(workDate) },
-            endDate: { gte: toDateOnly(workDate) },
-            deletedAt: null,
-          },
-          select: { userId: true },
-        }),
-      ]);
+    const [roster, holidayRow, attendance, absences, approvedLeaves] = await Promise.all([
+      this.loadRoster(companyId, workDate),
+      this.prisma.holiday.findFirst({
+        where: { companyId, date: toDateOnly(workDate) },
+        select: { id: true },
+      }),
+      this.prisma.attendanceRecord.findMany({
+        where: { companyId, workDate: toDateOnly(workDate), deletedAt: null },
+        select: { userId: true },
+      }),
+      this.prisma.absenceRecord.findMany({
+        where: { companyId, workDate: toDateOnly(workDate) },
+        select: { userId: true },
+      }),
+      this.prisma.leaveRequest.findMany({
+        where: {
+          companyId,
+          status: 'APPROVED',
+          startDate: { lte: toDateOnly(workDate) },
+          endDate: { gte: toDateOnly(workDate) },
+          deletedAt: null,
+        },
+        select: { userId: true },
+      }),
+    ]);
 
     const isHoliday = Boolean(holidayRow);
     const attendedIds = new Set(attendance.map((r) => r.userId));

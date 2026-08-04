@@ -5,7 +5,7 @@ export default function AttendanceHistoryPage(): JSX.Element {
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Riwayat Kehadiran</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Rekaman clock-in / clock-out Anda beserta indikator keterlambatan dan pulang cepat.
         </p>
       </div>

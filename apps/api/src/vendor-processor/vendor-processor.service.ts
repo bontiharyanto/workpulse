@@ -105,7 +105,10 @@ export class VendorProcessorService {
 
   // ---------- Reads ----------
 
-  async list(actor: AuthenticatedUser, query: VendorListQuery): Promise<{
+  async list(
+    actor: AuthenticatedUser,
+    query: VendorListQuery,
+  ): Promise<{
     items: VendorWithLinks[];
     nextCursor: string | null;
   }> {
@@ -142,7 +145,8 @@ export class VendorProcessorService {
 
   async create(actor: AuthenticatedUser, body: VendorCreateInput): Promise<VendorWithLinks> {
     const now = new Date();
-    const nextReviewAt = body.nextReviewAt ?? computeInitialNextReviewAt(now, body.contractStartAt ?? null);
+    const nextReviewAt =
+      body.nextReviewAt ?? computeInitialNextReviewAt(now, body.contractStartAt ?? null);
     this.assertContractWindow(body.contractStartAt ?? null, body.contractEndAt ?? null);
 
     try {
@@ -202,7 +206,11 @@ export class VendorProcessorService {
     }
   }
 
-  async update(actor: AuthenticatedUser, id: string, body: VendorUpdateInput): Promise<VendorWithLinks> {
+  async update(
+    actor: AuthenticatedUser,
+    id: string,
+    body: VendorUpdateInput,
+  ): Promise<VendorWithLinks> {
     return this.prisma.$transaction(async (tx) => {
       const existing = await tx.vendorProcessor.findFirst({
         where: { id, companyId: actor.companyId, deletedAt: null },
@@ -272,7 +280,10 @@ export class VendorProcessorService {
         data: {
           companyId: actor.companyId,
           actorId: actor.id,
-          action: nextStatus !== existing.status ? 'VENDOR_PROCESSOR_STATUS_CHANGED' : 'VENDOR_PROCESSOR_UPDATED',
+          action:
+            nextStatus !== existing.status
+              ? 'VENDOR_PROCESSOR_STATUS_CHANGED'
+              : 'VENDOR_PROCESSOR_UPDATED',
           entityType: 'VendorProcessor',
           entityId: updated.id,
           beforeJson: sanitiseForAudit(before),
@@ -331,11 +342,7 @@ export class VendorProcessorService {
     });
   }
 
-  async terminate(
-    actor: AuthenticatedUser,
-    id: string,
-    reason: string,
-  ): Promise<VendorWithLinks> {
+  async terminate(actor: AuthenticatedUser, id: string, reason: string): Promise<VendorWithLinks> {
     const now = new Date();
     return this.prisma.$transaction(async (tx) => {
       const existing = await tx.vendorProcessor.findFirst({

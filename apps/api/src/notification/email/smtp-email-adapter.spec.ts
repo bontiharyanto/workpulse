@@ -31,9 +31,8 @@ function makeConfig(overrides: Record<string, unknown> = {}): ConfigService {
     ...overrides,
   };
   return {
-    get: <T,>(key: string, def?: T): T | undefined =>
-      (base[key] as T | undefined) ?? def,
-    getOrThrow: <T,>(key: string): T => {
+    get: <T>(key: string, def?: T): T | undefined => (base[key] as T | undefined) ?? def,
+    getOrThrow: <T>(key: string): T => {
       if (base[key] === undefined) throw new Error(`missing ${key}`);
       return base[key] as T;
     },
@@ -71,9 +70,7 @@ describe('SmtpEmailAdapter', () => {
   it('never throws when nodemailer rejects (business op must not roll back)', async () => {
     sendMail.mockRejectedValue(new Error('EAUTH'));
     const adapter = new SmtpEmailAdapter(makeConfig());
-    await expect(
-      adapter.send({ to: 'x', subject: 'y', body: 'z' }),
-    ).resolves.toBeUndefined();
+    await expect(adapter.send({ to: 'x', subject: 'y', body: 'z' })).resolves.toBeUndefined();
   });
 
   it('omits auth when SMTP_USER/PASS are absent (open-relay dev servers)', async () => {
@@ -105,8 +102,6 @@ describe('SmtpEmailAdapter', () => {
 
   it('swallows verify() failures instead of crashing the app', () => {
     verify.mockRejectedValue(new Error('ECONNREFUSED'));
-    expect(() =>
-      new SmtpEmailAdapter(makeConfig({ SMTP_VERIFY_ON_BOOT: 'true' })),
-    ).not.toThrow();
+    expect(() => new SmtpEmailAdapter(makeConfig({ SMTP_VERIFY_ON_BOOT: 'true' }))).not.toThrow();
   });
 });

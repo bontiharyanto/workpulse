@@ -1,10 +1,21 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsISO8601, IsOptional, IsString, Length, Matches, MaxLength, MinLength } from 'class-validator';
+import {
+  IsISO8601,
+  IsOptional,
+  IsString,
+  Length,
+  Matches,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class SubmitLeaveDto {
   @ApiProperty() @IsString() leaveTypeId!: string;
 
-  @ApiProperty({ example: '2026-06-15', description: 'Calendar date YYYY-MM-DD (company local calendar)' })
+  @ApiProperty({
+    example: '2026-06-15',
+    description: 'Calendar date YYYY-MM-DD (company local calendar)',
+  })
   @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'startDate must be YYYY-MM-DD' })
   @IsISO8601({ strict: false })
   startDate!: string;

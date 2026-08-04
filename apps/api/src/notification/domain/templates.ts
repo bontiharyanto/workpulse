@@ -209,9 +209,7 @@ export function attendanceAbsentMarked(input: AbsentMarkedInput): NotificationCo
  * the real user will see this in their bell / inbox and can escalate to
  * HR. Includes IP + user-agent hints for forensics.
  */
-export function passwordResetSucceeded(
-  input: PasswordResetSucceededInput,
-): NotificationContent {
+export function passwordResetSucceeded(input: PasswordResetSucceededInput): NotificationContent {
   const details: string[] = [];
   if (input.ipAddress) details.push(`IP ${input.ipAddress}`);
   if (input.userAgent) details.push(truncate(input.userAgent, 100));
@@ -276,9 +274,7 @@ export function attendanceCorrectionRejected(
   input: AttendanceCorrectionEventInput,
 ): NotificationContent {
   const by = input.decidedByName ? ` oleh ${input.decidedByName}` : '';
-  const noteSuffix = input.note
-    ? ` Catatan: "${truncate(input.note, 160)}".`
-    : '';
+  const noteSuffix = input.note ? ` Catatan: "${truncate(input.note, 160)}".` : '';
   return {
     type: 'ATTENDANCE_CORRECTION_REJECTED',
     title: `Koreksi absensi ditolak${by}`,
@@ -305,9 +301,7 @@ export interface DataErasureEventInput {
   note?: string | null;
 }
 
-export function dataErasureRequested(
-  input: DataErasureEventInput,
-): NotificationContent {
+export function dataErasureRequested(input: DataErasureEventInput): NotificationContent {
   return {
     type: 'DATA_ERASURE_REQUESTED',
     title: `Permintaan penghapusan data dari ${input.requesterName}`,
@@ -319,13 +313,9 @@ export function dataErasureRequested(
   };
 }
 
-export function dataErasureApproved(
-  input: DataErasureEventInput,
-): NotificationContent {
+export function dataErasureApproved(input: DataErasureEventInput): NotificationContent {
   const by = input.decidedByName ? ` oleh ${input.decidedByName}` : '';
-  const when = input.scheduledFor
-    ? ` Eksekusi dijadwalkan pada ${input.scheduledFor}`
-    : '';
+  const when = input.scheduledFor ? ` Eksekusi dijadwalkan pada ${input.scheduledFor}` : '';
   return {
     type: 'DATA_ERASURE_APPROVED',
     title: `Permintaan penghapusan data disetujui${by}`,
@@ -337,13 +327,9 @@ export function dataErasureApproved(
   };
 }
 
-export function dataErasureRejected(
-  input: DataErasureEventInput,
-): NotificationContent {
+export function dataErasureRejected(input: DataErasureEventInput): NotificationContent {
   const by = input.decidedByName ? ` oleh ${input.decidedByName}` : '';
-  const noteSuffix = input.note
-    ? ` Catatan: "${truncate(input.note, 160)}".`
-    : '';
+  const noteSuffix = input.note ? ` Catatan: "${truncate(input.note, 160)}".` : '';
   return {
     type: 'DATA_ERASURE_REJECTED',
     title: `Permintaan penghapusan data ditolak${by}`,
@@ -355,9 +341,7 @@ export function dataErasureRejected(
   };
 }
 
-export function dataErasureExecuted(
-  input: DataErasureEventInput,
-): NotificationContent {
+export function dataErasureExecuted(input: DataErasureEventInput): NotificationContent {
   return {
     type: 'DATA_ERASURE_EXECUTED',
     title: `Data user ${input.requesterName} telah dianonimkan`,
@@ -383,9 +367,7 @@ export interface TimesheetEventInput {
   note?: string | null;
 }
 
-export function timesheetSubmitted(
-  input: TimesheetEventInput,
-): NotificationContent {
+export function timesheetSubmitted(input: TimesheetEventInput): NotificationContent {
   return {
     type: 'TIMESHEET_SUBMITTED',
     title: `Timesheet dari ${input.requesterName} menunggu review`,
@@ -397,9 +379,7 @@ export function timesheetSubmitted(
   };
 }
 
-export function timesheetApprovedBySupervisor(
-  input: TimesheetEventInput,
-): NotificationContent {
+export function timesheetApprovedBySupervisor(input: TimesheetEventInput): NotificationContent {
   return {
     type: 'TIMESHEET_APPROVED_SUPERVISOR',
     title: `Timesheet disetujui supervisor — menunggu HR`,
@@ -411,9 +391,7 @@ export function timesheetApprovedBySupervisor(
   };
 }
 
-export function timesheetApprovedByHr(
-  input: TimesheetEventInput,
-): NotificationContent {
+export function timesheetApprovedByHr(input: TimesheetEventInput): NotificationContent {
   return {
     type: 'TIMESHEET_APPROVED_HR',
     title: `Timesheet ${input.periodLabel} disetujui HR`,
@@ -425,13 +403,9 @@ export function timesheetApprovedByHr(
   };
 }
 
-export function timesheetRejected(
-  input: TimesheetEventInput,
-): NotificationContent {
+export function timesheetRejected(input: TimesheetEventInput): NotificationContent {
   const by = input.decidedByName ? ` oleh ${input.decidedByName}` : '';
-  const noteSuffix = input.note
-    ? ` Catatan: "${truncate(input.note, 160)}".`
-    : '';
+  const noteSuffix = input.note ? ` Catatan: "${truncate(input.note, 160)}".` : '';
   return {
     type: 'TIMESHEET_REJECTED',
     title: `Timesheet ${input.periodLabel} ditolak${by}`,
@@ -443,9 +417,7 @@ export function timesheetRejected(
   };
 }
 
-export function timesheetRegenerated(
-  input: TimesheetEventInput,
-): NotificationContent {
+export function timesheetRegenerated(input: TimesheetEventInput): NotificationContent {
   return {
     type: 'TIMESHEET_REGENERATED',
     title: `Timesheet ${input.periodLabel} diperbarui`,
@@ -469,13 +441,9 @@ export interface TimesheetReminderInput {
   daysOverdue: number;
 }
 
-export function timesheetSubmitReminder(
-  input: TimesheetReminderInput,
-): NotificationContent {
+export function timesheetSubmitReminder(input: TimesheetReminderInput): NotificationContent {
   const overdueSuffix =
-    input.daysOverdue > 0
-      ? ` — sudah ${input.daysOverdue} hari lewat periode.`
-      : '';
+    input.daysOverdue > 0 ? ` — sudah ${input.daysOverdue} hari lewat periode.` : '';
   return {
     type: 'TIMESHEET_SUBMIT_REMINDER',
     title: `Timesheet ${input.periodLabel} belum di-submit`,
@@ -521,9 +489,7 @@ export interface TimesheetReopenedInput {
   reopenCount: number;
 }
 
-export function timesheetReopened(
-  input: TimesheetReopenedInput,
-): NotificationContent {
+export function timesheetReopened(input: TimesheetReopenedInput): NotificationContent {
   const suffix =
     input.reopenCount > 1
       ? ` Ini adalah reopen ke-${input.reopenCount} untuk periode tersebut.`
@@ -564,9 +530,7 @@ export interface BreachDeadlineWarningInput {
   deadlineAt: string;
 }
 
-export function breachDeadlineWarning(
-  input: BreachDeadlineWarningInput,
-): NotificationContent {
+export function breachDeadlineWarning(input: BreachDeadlineWarningInput): NotificationContent {
   const hrs = Math.abs(input.hoursRemaining).toFixed(1);
   const timeCopy =
     input.bucket === 'OVERDUE'
@@ -602,13 +566,8 @@ export interface RetentionAuditGapInput {
   findingCount: number;
 }
 
-export function retentionAuditGap(
-  input: RetentionAuditGapInput,
-): NotificationContent {
-  const urgency =
-    input.status === 'WORKER_INACTIVE'
-      ? 'WORKER TIDAK BERJALAN'
-      : 'DITEMUKAN GAP';
+export function retentionAuditGap(input: RetentionAuditGapInput): NotificationContent {
+  const urgency = input.status === 'WORKER_INACTIVE' ? 'WORKER TIDAK BERJALAN' : 'DITEMUKAN GAP';
   const detail =
     input.status === 'WORKER_INACTIVE'
       ? `RetentionWorker tidak berjalan sama sekali pada periode ${input.periodLabel}. Cek kill switch RETENTION_WORKER_ENABLED dan cron harian 02:00 UTC.`
@@ -664,9 +623,7 @@ export interface VendorContractExpiringInput {
   contractEnd: string;
 }
 
-export function vendorContractExpiring(
-  input: VendorContractExpiringInput,
-): NotificationContent {
+export function vendorContractExpiring(input: VendorContractExpiringInput): NotificationContent {
   const overdue = input.daysUntil < 0;
   const urgency = overdue ? 'KONTRAK KADALUARSA' : 'KONTRAK HAMPIR HABIS';
   const detail = overdue

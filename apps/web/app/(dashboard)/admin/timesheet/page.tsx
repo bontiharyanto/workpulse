@@ -20,13 +20,10 @@ export default function AdminTimesheetPage(): JSX.Element {
       <RequireRole roles={['SUPERVISOR', 'HR_MANAGER', 'SUPER_ADMIN']}>
         <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Timesheet
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Kelola dan tinjau timesheet karyawan per periode. Supervisor
-              hanya melihat tim langsungnya; HR / Super Admin melihat
-              seluruh tenant.
+            <h1 className="text-2xl font-semibold tracking-tight">Timesheet</h1>
+            <p className="text-muted-foreground text-sm">
+              Kelola dan tinjau timesheet karyawan per periode. Supervisor hanya melihat tim
+              langsungnya; HR / Super Admin melihat seluruh tenant.
             </p>
           </div>
           <AdminTimesheetPanel />

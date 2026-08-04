@@ -52,9 +52,7 @@ export class AttendanceSchedulerService {
       const result = await this.scanner.runAll();
       if (result.scannedCompanies === 0 && result.totalMarked === 0) {
         // Noop tick — most hours; log only at debug to keep log volume low.
-        this.logger.debug(
-          `absence scanner tick: nothing to do (durationMs=${result.durationMs})`,
-        );
+        this.logger.debug(`absence scanner tick: nothing to do (durationMs=${result.durationMs})`);
         return;
       }
       this.logger.log(

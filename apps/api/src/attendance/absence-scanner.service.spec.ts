@@ -63,15 +63,17 @@ function stubScanContext(
   );
 }
 
-function makeMember(overrides: Partial<{
-  id: string;
-  email: string;
-  fullName: string;
-  hiredAt: Date;
-  employmentStatus: string;
-  supervisor: null | { id: string; email: string };
-  hasShift: boolean;
-}> = {}) {
+function makeMember(
+  overrides: Partial<{
+    id: string;
+    email: string;
+    fullName: string;
+    hiredAt: Date;
+    employmentStatus: string;
+    supervisor: null | { id: string; email: string };
+    hasShift: boolean;
+  }> = {},
+) {
   return {
     id: overrides.id ?? 'user-1',
     email: overrides.email ?? 'u1@x.test',
@@ -318,11 +320,8 @@ describe('AbsenceScannerService — payroll cutoff', () => {
     // Cursor advances to the last processed date (08-03), not the last
     // locked date.
     const updateCall = s.prisma.company.update.mock.calls[0]?.[0] as
-      | { data: { lastAbsentScanDate: Date } }
-      | undefined;
-    expect(updateCall?.data.lastAbsentScanDate.toISOString().slice(0, 10)).toBe(
-      '2026-08-03',
-    );
+      { data: { lastAbsentScanDate: Date } } | undefined;
+    expect(updateCall?.data.lastAbsentScanDate.toISOString().slice(0, 10)).toBe('2026-08-03');
   });
 
   it('is a no-op when payrollLockedUntil is null (no cutoff configured)', async () => {
@@ -345,14 +344,12 @@ describe('AbsenceScannerService — payroll cutoff', () => {
  * does.
  */
 function withTransaction(s: ReturnType<typeof setup>): void {
-  (s.prisma.$transaction as unknown as jest.Mock).mockImplementation(
-    async (arg: unknown) => {
-      if (typeof arg === 'function') {
-        return (arg as (tx: PrismaService) => unknown)(s.prisma);
-      }
-      return Promise.all(arg as Promise<unknown>[]);
-    },
-  );
+  (s.prisma.$transaction as unknown as jest.Mock).mockImplementation(async (arg: unknown) => {
+    if (typeof arg === 'function') {
+      return (arg as (tx: PrismaService) => unknown)(s.prisma);
+    }
+    return Promise.all(arg as Promise<unknown>[]);
+  });
   s.prisma.auditLog.create.mockResolvedValue({} as never);
 }
 
@@ -413,9 +410,7 @@ describe('AbsenceScannerService.resetCursor', () => {
   it('throws when the tenant is missing / soft-deleted', async () => {
     const s = setup();
     s.prisma.company.findFirst.mockResolvedValue(null as never);
-    await expect(s.service.resetCursor('c-missing', {})).rejects.toThrow(
-      /COMPANY_NOT_FOUND/,
-    );
+    await expect(s.service.resetCursor('c-missing', {})).rejects.toThrow(/COMPANY_NOT_FOUND/);
   });
 
   it('with triggerRescan=true, invokes scanCompanyById after the reset', async () => {
@@ -462,10 +457,7 @@ describe('AbsenceScannerService.scanCompanyById', () => {
     } as never);
     // 00:30 Jakarta on 2026-08-02 → target for yesterday is not yet
     // beyond the grace window → resolveTargetDate returns null.
-    const result = await s.service.scanCompanyById(
-      'c1',
-      new Date('2026-08-01T17:30:00Z'),
-    );
+    const result = await s.service.scanCompanyById('c1', new Date('2026-08-01T17:30:00Z'));
     expect(result.scannedDates).toBe(0);
     expect(result.marked).toBe(0);
   });
@@ -473,8 +465,8 @@ describe('AbsenceScannerService.scanCompanyById', () => {
   it('throws COMPANY_NOT_FOUND when the tenant is missing', async () => {
     const s = setup();
     s.prisma.company.findFirst.mockResolvedValue(null as never);
-    await expect(
-      s.service.scanCompanyById('c-missing', new Date()),
-    ).rejects.toThrow(/COMPANY_NOT_FOUND/);
+    await expect(s.service.scanCompanyById('c-missing', new Date())).rejects.toThrow(
+      /COMPANY_NOT_FOUND/,
+    );
   });
 });

@@ -1,22 +1,11 @@
-import {
-  ArrayMaxSize,
-  IsArray,
-  IsIn,
-  IsOptional,
-  IsString,
-  Matches,
-} from 'class-validator';
+import { ArrayMaxSize, IsArray, IsIn, IsOptional, IsString, Matches } from 'class-validator';
 
 import type { ReportFormatLiteral } from './attendance-report.dto';
 
 const CAL_DATE = /^\d{4}-\d{2}-\d{2}$/u;
 
 export type OvertimeStatusLiteral =
-  | 'PENDING_APPROVAL'
-  | 'APPROVED'
-  | 'REJECTED'
-  | 'COMPLETED'
-  | 'CANCELLED';
+  'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'COMPLETED' | 'CANCELLED';
 
 const STATUSES: OvertimeStatusLiteral[] = [
   'PENDING_APPROVAL',

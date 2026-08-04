@@ -65,7 +65,10 @@ describe('AuthService.login', () => {
 
   it('rejects TERMINATED / SUSPENDED users with UNAUTHORIZED', async () => {
     const { service, prisma, password } = setup();
-    prisma.user.findFirst.mockResolvedValue({ ...baseUser, employmentStatus: 'TERMINATED' } as never);
+    prisma.user.findFirst.mockResolvedValue({
+      ...baseUser,
+      employmentStatus: 'TERMINATED',
+    } as never);
     password.verify.mockResolvedValue(true);
     password.needsRehash.mockReturnValue(false);
 

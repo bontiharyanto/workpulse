@@ -140,9 +140,7 @@ describe('notification templates — attendance absent', () => {
     const c = attendanceAbsentMarked({ ...base, forSupervisor: true });
     expect(c.title).toContain('Ana Wijaya');
     expect(c.body).toContain('Ana Wijaya');
-    expect((c.data as { href?: string }).href).toBe(
-      '/attendance/team?date=2026-08-01',
-    );
+    expect((c.data as { href?: string }).href).toBe('/attendance/team?date=2026-08-01');
   });
 
   it('embeds the workDate in the data payload for deep-link filtering', () => {

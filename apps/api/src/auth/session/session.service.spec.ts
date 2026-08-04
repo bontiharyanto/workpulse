@@ -73,9 +73,7 @@ describe('SessionService', () => {
 
     it('exposes safe metadata only — never the token hash', async () => {
       const { service, prisma } = buildKit();
-      prisma.refreshToken.findMany.mockResolvedValue([
-        makeRow({ tokenHash: 'super-secret-hash' }),
-      ]);
+      prisma.refreshToken.findMany.mockResolvedValue([makeRow({ tokenHash: 'super-secret-hash' })]);
       const out = await service.list('user-1');
       expect(out[0]).not.toHaveProperty('tokenHash');
       expect(Object.keys(out[0] ?? {})).toEqual([
@@ -127,16 +125,12 @@ describe('SessionService', () => {
     it('404s when the id does not exist', async () => {
       const { service, prisma } = buildKit();
       prisma.refreshToken.findUnique.mockResolvedValue(null);
-      await expect(service.revoke('user-1', 'ghost')).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      await expect(service.revoke('user-1', 'ghost')).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it('404s when the id belongs to another user (no existence leak)', async () => {
       const { service, prisma } = buildKit();
-      prisma.refreshToken.findUnique.mockResolvedValue(
-        makeRow({ userId: 'stranger' }),
-      );
+      prisma.refreshToken.findUnique.mockResolvedValue(makeRow({ userId: 'stranger' }));
       const err = await service.revoke('user-1', 'foreign').catch((e) => e);
       expect(err).toBeInstanceOf(NotFoundException);
       const body = (err as NotFoundException).getResponse() as { code: string };

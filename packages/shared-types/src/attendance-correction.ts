@@ -9,9 +9,7 @@ export const attendanceCorrectionStatusSchema = z.enum([
   'REJECTED',
   'CANCELLED',
 ]);
-export type AttendanceCorrectionStatus = z.infer<
-  typeof attendanceCorrectionStatusSchema
->;
+export type AttendanceCorrectionStatus = z.infer<typeof attendanceCorrectionStatusSchema>;
 
 /**
  * Shape validated on the FE before hitting the API. The API also validates
@@ -33,24 +31,17 @@ export const attendanceCorrectionInputSchema = z
       .max(500, 'Alasan maksimum 500 karakter'),
     attachmentKey: z.string().max(500).optional(),
   })
-  .refine(
-    (v) => Boolean(v.requestedClockInAt || v.requestedClockOutAt),
-    {
-      path: ['requestedClockInAt'],
-      message: 'Isi minimal salah satu jam masuk atau jam pulang',
-    },
-  );
-export type AttendanceCorrectionInput = z.infer<
-  typeof attendanceCorrectionInputSchema
->;
+  .refine((v) => Boolean(v.requestedClockInAt || v.requestedClockOutAt), {
+    path: ['requestedClockInAt'],
+    message: 'Isi minimal salah satu jam masuk atau jam pulang',
+  });
+export type AttendanceCorrectionInput = z.infer<typeof attendanceCorrectionInputSchema>;
 
 export const attendanceCorrectionDecisionSchema = z.object({
   action: z.enum(['APPROVE', 'REJECT']),
   note: z.string().trim().max(500).optional(),
 });
-export type AttendanceCorrectionDecision = z.infer<
-  typeof attendanceCorrectionDecisionSchema
->;
+export type AttendanceCorrectionDecision = z.infer<typeof attendanceCorrectionDecisionSchema>;
 
 export const attendanceCorrectionSchema = z.object({
   id: z.string(),

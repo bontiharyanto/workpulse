@@ -16,10 +16,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { WebhookDispatcher } from '../webhook/webhook-dispatcher.service';
 
 import { sign, verify, type VerifyResult } from './domain/share-signature';
-import {
-  type ExportResult,
-  TimesheetExportService,
-} from './timesheet-export.service';
+import { type ExportResult, TimesheetExportService } from './timesheet-export.service';
 
 export interface CreateShareInput {
   ttlHours?: number;
@@ -89,9 +86,7 @@ export class TimesheetExportShareService implements OnModuleInit {
   ) {}
 
   onModuleInit(): void {
-    const configured = this.config.get<string>(
-      'TIMESHEET_EXPORT_SIGNING_SECRET',
-    );
+    const configured = this.config.get<string>('TIMESHEET_EXPORT_SIGNING_SECRET');
     if (configured) {
       this.signingSecret = configured;
     } else {
@@ -103,10 +98,7 @@ export class TimesheetExportShareService implements OnModuleInit {
         'TIMESHEET_EXPORT_SIGNING_SECRET not set — using an ephemeral random secret for this process. Links will not survive a restart.',
       );
     }
-    this.defaultTtlHours = this.config.get<number>(
-      'TIMESHEET_EXPORT_SHARE_TTL_HOURS',
-      24,
-    );
+    this.defaultTtlHours = this.config.get<number>('TIMESHEET_EXPORT_SHARE_TTL_HOURS', 24);
     this.publicApiUrl = (
       this.config.get<string>('PUBLIC_API_URL') ?? 'http://localhost:4000'
     ).replace(/\/+$/, '');
@@ -196,11 +188,7 @@ export class TimesheetExportShareService implements OnModuleInit {
     };
   }
 
-  async revoke(
-    actor: AuthenticatedUser,
-    exportId: string,
-    shareId: string,
-  ): Promise<void> {
+  async revoke(actor: AuthenticatedUser, exportId: string, shareId: string): Promise<void> {
     this.assertRole(actor);
     const share = await this.prisma.timesheetExportShare.findFirst({
       where: { id: shareId, exportId, companyId: actor.companyId },
@@ -228,10 +216,7 @@ export class TimesheetExportShareService implements OnModuleInit {
     });
   }
 
-  async listForExport(
-    actor: AuthenticatedUser,
-    exportId: string,
-  ): Promise<ShareListItem[]> {
+  async listForExport(actor: AuthenticatedUser, exportId: string): Promise<ShareListItem[]> {
     this.assertRole(actor);
     const rows = await this.prisma.timesheetExportShare.findMany({
       where: { exportId, companyId: actor.companyId },
@@ -252,8 +237,7 @@ export class TimesheetExportShareService implements OnModuleInit {
       note: r.note,
       createdBy: r.createdBy,
       revokedBy: r.revokedBy,
-      active:
-        r.revokedAt === null && r.expiresAt.getTime() > now,
+      active: r.revokedAt === null && r.expiresAt.getTime() > now,
     }));
   }
 
@@ -311,9 +295,7 @@ export class TimesheetExportShareService implements OnModuleInit {
     // byte-identical files regardless of downstream data changes).
     // `loadPayloadForShare` also cross-checks the stored hash against
     // the actual bytes as an anti-tamper signal.
-    const loaded = await this.exportService.loadPayloadForShare(
-      share.export.id,
-    );
+    const loaded = await this.exportService.loadPayloadForShare(share.export.id);
 
     // Success — bump counters.
     await this.prisma.$transaction(async (tx) => {

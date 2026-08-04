@@ -76,7 +76,7 @@ Rejected for two reasons:
 ### 3. External Kubernetes CronJob calling the admin endpoint
 
 Rejected as the primary mechanism (would tie deploy topology to a business
-rule) but *kept as an option* — because the manual endpoint exists, ops can
+rule) but _kept as an option_ — because the manual endpoint exists, ops can
 disable the in-process `@Cron` and call the endpoint from any external
 scheduler if audit / ops policy demands it.
 

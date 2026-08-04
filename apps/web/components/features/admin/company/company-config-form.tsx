@@ -71,7 +71,7 @@ export function CompanyConfigForm({ initial, submitting, onSubmit }: Props): JSX
         <button
           type="submit"
           disabled={submitting || !form.formState.isDirty}
-          className="rounded-md bg-foreground px-3 py-2 text-xs font-medium text-background disabled:opacity-50"
+          className="bg-foreground text-background rounded-md px-3 py-2 text-xs font-medium disabled:opacity-50"
         >
           {submitting ? 'Menyimpan…' : 'Simpan perubahan'}
         </button>
@@ -119,7 +119,7 @@ function IdentitySection({
         <Field label="Nama Perusahaan" error={errors.name?.message}>
           <input
             {...form.register('name')}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
           />
         </Field>
 
@@ -127,7 +127,7 @@ function IdentitySection({
           <input
             value={slug}
             disabled
-            className="w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground"
+            className="border-input bg-muted text-muted-foreground w-full rounded-md border px-3 py-2 text-sm"
           />
         </Field>
 
@@ -139,7 +139,7 @@ function IdentitySection({
           <input
             {...form.register('timezone')}
             placeholder="Asia/Jakarta"
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
           />
         </Field>
       </div>
@@ -181,7 +181,7 @@ function OvertimePolicySection({
                   field.onChange(raw === '' ? null : Number(raw));
                 }}
                 placeholder="mis. 50000"
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm tabular-nums"
+                className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm tabular-nums"
               />
             )}
           />
@@ -288,13 +288,13 @@ function PayrollLockSection({
                     const raw = e.target.value;
                     field.onChange(raw === '' ? null : raw);
                   }}
-                  className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  className="border-input bg-background rounded-md border px-3 py-2 text-sm"
                 />
                 {field.value ? (
                   <button
                     type="button"
                     onClick={() => field.onChange(null)}
-                    className="rounded-md border px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
+                    className="text-muted-foreground hover:bg-muted rounded-md border px-2 py-1 text-xs"
                   >
                     Lepas kunci
                   </button>
@@ -338,12 +338,12 @@ function OvertimePreview({ control }: { control: Control<FormValues> }): JSX.Ele
 
   return (
     <section className="rounded-lg border border-dashed p-4">
-      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+      <h4 className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
         Simulasi biaya 8 jam lembur
       </h4>
-      <p className="mt-1 text-[11px] text-muted-foreground">
-        Berdasarkan tarif dasar &amp; multiplier yang sedang diisi di form ini. Tarif per-user
-        tidak diperhitungkan di preview ini.
+      <p className="text-muted-foreground mt-1 text-[11px]">
+        Berdasarkan tarif dasar &amp; multiplier yang sedang diisi di form ini. Tarif per-user tidak
+        diperhitungkan di preview ini.
       </p>
       {rate > 0 ? (
         <dl className="mt-3 grid gap-3 text-xs sm:grid-cols-3">
@@ -352,7 +352,7 @@ function OvertimePreview({ control }: { control: Control<FormValues> }): JSX.Ele
           <PreviewRow label="Hari Libur" mult={ho} hours={hours} rate={rate} />
         </dl>
       ) : (
-        <p className="mt-3 text-xs text-muted-foreground">
+        <p className="text-muted-foreground mt-3 text-xs">
           Isi tarif dasar per jam untuk melihat simulasi.
         </p>
       )}
@@ -373,8 +373,8 @@ function PreviewRow({
 }): JSX.Element {
   const total = mult * hours * rate;
   return (
-    <div className="rounded-md border bg-muted/30 p-2">
-      <dt className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</dt>
+    <div className="bg-muted/30 rounded-md border p-2">
+      <dt className="text-muted-foreground text-[10px] uppercase tracking-widest">{label}</dt>
       <dd className="mt-1 font-medium tabular-nums">
         {mult.toFixed(2)}× · Rp {formatIDR(total)}
       </dd>
@@ -401,8 +401,8 @@ function Field({
     <div className="space-y-1">
       <label className="text-xs font-medium uppercase tracking-wider">{label}</label>
       {children}
-      {hint && !error && <p className="text-[11px] text-muted-foreground">{hint}</p>}
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {hint && !error && <p className="text-muted-foreground text-[11px]">{hint}</p>}
+      {error && <p className="text-destructive text-xs">{error}</p>}
     </div>
   );
 }
@@ -434,7 +434,7 @@ function NumberField({
         min={min}
         max={max}
         {...form.register(name, { valueAsNumber: true })}
-        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm tabular-nums"
+        className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm tabular-nums"
       />
     </Field>
   );
@@ -450,7 +450,7 @@ function SectionHeader({
   return (
     <header>
       <h3 className="text-sm font-semibold">{title}</h3>
-      <p className="text-xs text-muted-foreground">{description}</p>
+      <p className="text-muted-foreground text-xs">{description}</p>
     </header>
   );
 }

@@ -20,10 +20,7 @@ import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 import { BulkImportHolidaysDto } from './dto/bulk-import.dto';
 import { CreateHolidayDto } from './dto/create-holiday.dto';
-import type {
-  BulkImportHolidaysResponseDto,
-  HolidayResponseDto,
-} from './dto/holiday-response.dto';
+import type { BulkImportHolidaysResponseDto, HolidayResponseDto } from './dto/holiday-response.dto';
 import { UpdateHolidayDto } from './dto/update-holiday.dto';
 import { HolidayService } from './holiday.service';
 
@@ -69,10 +66,7 @@ export class HolidayController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(
-    @CurrentUser() actor: AuthenticatedUser,
-    @Param('id') id: string,
-  ): Promise<void> {
+  async remove(@CurrentUser() actor: AuthenticatedUser, @Param('id') id: string): Promise<void> {
     await this.service.remove(actor, id);
   }
 }

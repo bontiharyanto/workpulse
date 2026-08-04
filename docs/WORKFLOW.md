@@ -69,12 +69,12 @@ Auto-refresh saat 401:
 
 ### 0.5 Error Codes
 
-| Code | HTTP | UI Copy (ID) |
-|---|---|---|
-| `UNAUTHORIZED` | 401 | Email atau kata sandi salah. |
-| `FORBIDDEN` | 403 | Anda tidak memiliki akses. |
-| `THROTTLED` | 429 | Terlalu banyak percobaan. Silakan coba lagi nanti. |
-| `INVALID_TOKEN` | 400 | Link reset ini tidak valid atau sudah kedaluwarsa. |
+| Code            | HTTP | UI Copy (ID)                                       |
+| --------------- | ---- | -------------------------------------------------- |
+| `UNAUTHORIZED`  | 401  | Email atau kata sandi salah.                       |
+| `FORBIDDEN`     | 403  | Anda tidak memiliki akses.                         |
+| `THROTTLED`     | 429  | Terlalu banyak percobaan. Silakan coba lagi nanti. |
+| `INVALID_TOKEN` | 400  | Link reset ini tidak valid atau sudah kedaluwarsa. |
 
 ### 0.6 Password Recovery (Forgot Password → Reset Link)
 
@@ -129,33 +129,33 @@ API
 
 **Semantik penting:**
 
-| Aspek | Perilaku |
-|---|---|
-| Token TTL | 30 menit sejak dibuat |
-| Single-use | `usedAt` di-set atomik dalam transaction; reuse → `INVALID_TOKEN` |
-| Race handling | Guard `updateMany` dengan predikat `usedAt: null` → dua request paralel: satu sukses, satu `INVALID_TOKEN` |
-| Session invalidation | **Semua** refresh token aktif user di-`REVOKE` — kicks user out di semua device |
-| Cookie cleanup | Cookie `wp_refresh` di browser yang mengirim request juga di-`clearCookie` |
-| Outstanding tokens | Reset sukses meng-`used` semua token lain milik user (attacker's link jadi mati juga) |
-| Rate limit | Forgot: 5/menit per IP · Reset: 10/menit per IP |
-| Audit | `AuditLog` action `AUTH_PASSWORD_RESET` (actor = user sendiri) |
-| Notification | In-app `PASSWORD_RESET` + email konfirmasi (tanpa link, informatif; berisi IP + user-agent hint) |
-| Temp password | Reset password otomatis mengakhiri state "temp password from HR" (tidak ada flag terpisah) |
+| Aspek                | Perilaku                                                                                                   |
+| -------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Token TTL            | 30 menit sejak dibuat                                                                                      |
+| Single-use           | `usedAt` di-set atomik dalam transaction; reuse → `INVALID_TOKEN`                                          |
+| Race handling        | Guard `updateMany` dengan predikat `usedAt: null` → dua request paralel: satu sukses, satu `INVALID_TOKEN` |
+| Session invalidation | **Semua** refresh token aktif user di-`REVOKE` — kicks user out di semua device                            |
+| Cookie cleanup       | Cookie `wp_refresh` di browser yang mengirim request juga di-`clearCookie`                                 |
+| Outstanding tokens   | Reset sukses meng-`used` semua token lain milik user (attacker's link jadi mati juga)                      |
+| Rate limit           | Forgot: 5/menit per IP · Reset: 10/menit per IP                                                            |
+| Audit                | `AuditLog` action `AUTH_PASSWORD_RESET` (actor = user sendiri)                                             |
+| Notification         | In-app `PASSWORD_RESET` + email konfirmasi (tanpa link, informatif; berisi IP + user-agent hint)           |
+| Temp password        | Reset password otomatis mengakhiri state "temp password from HR" (tidak ada flag terpisah)                 |
 
 **Config env:**
 
-| Var | Default | Catatan |
-|---|---|---|
-| `WEB_URL` | `http://localhost:3000` | Base URL yang di-embed di email reset link |
-| `EMAIL_TRANSPORT` | `console` | `console` \| `disabled` \| `smtp` (lihat §9) |
+| Var               | Default                 | Catatan                                      |
+| ----------------- | ----------------------- | -------------------------------------------- |
+| `WEB_URL`         | `http://localhost:3000` | Base URL yang di-embed di email reset link   |
+| `EMAIL_TRANSPORT` | `console`               | `console` \| `disabled` \| `smtp` (lihat §9) |
 
 **Frontend routes:**
 
-| Path | Deskripsi |
-|---|---|
-| `/forgot-password` | Form request reset — success screen generik (tidak leak state) |
-| `/reset-password?token=...` | Form password baru + konfirmasi; `robots: noindex` |
-| `/login` | Link "Lupa password?" di sebelah label password |
+| Path                        | Deskripsi                                                      |
+| --------------------------- | -------------------------------------------------------------- |
+| `/forgot-password`          | Form request reset — success screen generik (tidak leak state) |
+| `/reset-password?token=...` | Form password baru + konfirmasi; `robots: noindex`             |
+| `/login`                    | Link "Lupa password?" di sebelah label password                |
 
 ### 0.7 Self-Service Change Password + Temp-Password Enforcement
 
@@ -205,12 +205,12 @@ Endpoint di allowlist (`@AllowMustChangePassword()`):
 
 **Transisi flag:**
 
-| Event                                          | `mustChangePassword` |
-|------------------------------------------------|----------------------|
-| `POST /admin/users`                            | `true`               |
-| `POST /admin/users/:id/reset-password`         | `true` (re-armed)    |
-| `POST /auth/change-password` sukses            | `false`              |
-| `POST /auth/reset-password` (email-link) sukses| `false`              |
+| Event                                           | `mustChangePassword` |
+| ----------------------------------------------- | -------------------- |
+| `POST /admin/users`                             | `true`               |
+| `POST /admin/users/:id/reset-password`          | `true` (re-armed)    |
+| `POST /auth/change-password` sukses             | `false`              |
+| `POST /auth/reset-password` (email-link) sukses | `false`              |
 
 **Frontend behavior.**
 
@@ -248,10 +248,10 @@ GET /auth/me  → shape identik LoginResponse.user
 
 **Frontend routes:**
 
-| Path | Deskripsi |
-|---|---|
+| Path               | Deskripsi                                                                                                      |
+| ------------------ | -------------------------------------------------------------------------------------------------------------- |
 | `/change-password` | Form ubah password. Force-render untuk `mustChangePassword=true`, opsional untuk voluntary. `robots: noindex`. |
-| `/login?changed=1` | Login page dengan toast "Password berhasil diubah, silakan masuk kembali". |
+| `/login?changed=1` | Login page dengan toast "Password berhasil diubah, silakan masuk kembali".                                     |
 
 **Ops notes:**
 
@@ -271,10 +271,10 @@ CRUD `Company` lintas-tenant yang **hanya bisa diakses SUPER_ADMIN**.
 
 **Isolasi path.** Ada dua controller Company yang sengaja dipisahkan:
 
-| Path                                   | Role        | Scope                    |
-| -------------------------------------- | ----------- | ------------------------ |
-| `PATCH /admin/company` (singular)      | HR, SA      | Tenant sendiri (config)  |
-| `POST /admin/companies` (plural)       | SA only     | **Lintas-tenant** (CRUD) |
+| Path                              | Role    | Scope                    |
+| --------------------------------- | ------- | ------------------------ |
+| `PATCH /admin/company` (singular) | HR, SA  | Tenant sendiri (config)  |
+| `POST /admin/companies` (plural)  | SA only | **Lintas-tenant** (CRUD) |
 
 URL berbeda → guard mis-config tidak bisa diam-diam nyasar.
 
@@ -321,14 +321,14 @@ CompanyAdminService.create()
 
 **Endpoints:**
 
-| Method | Path                              | Effect |
-| ------ | --------------------------------- | ------ |
-| POST   | `/admin/companies`                | Create + bootstrap. Return temp pw. |
-| GET    | `/admin/companies`                | Offset-paginated list + search. |
-| GET    | `/admin/companies/:id`            | Detail with counts. |
-| PATCH  | `/admin/companies/:id`            | Update `name`/`slug`/`timezone`. |
-| DELETE | `/admin/companies/:id`            | Soft-delete (guardrail: no active users). |
-| POST   | `/admin/companies/:id/restore`    | Restore soft-deleted tenant. |
+| Method | Path                           | Effect                                    |
+| ------ | ------------------------------ | ----------------------------------------- |
+| POST   | `/admin/companies`             | Create + bootstrap. Return temp pw.       |
+| GET    | `/admin/companies`             | Offset-paginated list + search.           |
+| GET    | `/admin/companies/:id`         | Detail with counts.                       |
+| PATCH  | `/admin/companies/:id`         | Update `name`/`slug`/`timezone`.          |
+| DELETE | `/admin/companies/:id`         | Soft-delete (guardrail: no active users). |
+| POST   | `/admin/companies/:id/restore` | Restore soft-deleted tenant.              |
 
 **Impersonate (SUPER_ADMIN "switch tenant") sengaja belum ada** di fase ini.
 Audit story-nya nontrivial (baris `AuditLog.actorId` tetap SA, tapi UI perlu
@@ -426,9 +426,9 @@ tetap tolak dengan `code` yang sesuai (`PASSWORD_CHANGE_REQUIRED`,
 
 #### 0.10.1 Kebijakan
 
-| Peran | MFA |
-|---|---|
-| EMPLOYEE, SUPERVISOR | **Opsional** (voluntary via `/settings/security`) |
+| Peran                   | MFA                                                                     |
+| ----------------------- | ----------------------------------------------------------------------- |
+| EMPLOYEE, SUPERVISOR    | **Opsional** (voluntary via `/settings/security`)                       |
 | HR_MANAGER, SUPER_ADMIN | **Wajib** — belum enroll = akses dikunci ke `/setup-mfa` sampai selesai |
 
 Env `MFA_ENFORCE_HR_ADMIN=false` (test-only; ditolak di production oleh
@@ -468,6 +468,7 @@ POST /auth/mfa/verify
 ```
 
 Rules:
+
 - Access token pre-MFA hanya diterima di `/auth/mfa/verify`,
   `/auth/me`, `/auth/logout*`, `/auth/change-password`. Semua endpoint
   lain balikin `403 { code: "MFA_REQUIRED" }`.
@@ -503,26 +504,26 @@ Semua di `/settings/security` (page baru) — panel `MfaManagementPanel`:
 
 #### 0.10.5 Error Codes
 
-| Code | HTTP | Konteks | UI Copy (ID) |
-|---|---|---|---|
-| `MFA_REQUIRED` | 403 | Pre-MFA token mencoba endpoint biasa | (auto-redirect ke `/login/mfa`) |
-| `MFA_ENROLLMENT_REQUIRED` | 403 | HR/SA belum enroll | (auto-redirect ke `/setup-mfa`) |
-| `MFA_INVALID_CODE` | 401 | TOTP salah / backup code habis / spent | Kode MFA tidak valid. |
-| `MFA_ALREADY_ENABLED` | 409 | Enroll ulang tanpa disable | MFA sudah aktif. Nonaktifkan terlebih dahulu. |
-| `MFA_ENROLLMENT_NOT_STARTED` | 400 | Confirm tanpa start | Mulai enrollment dulu sebelum konfirmasi. |
-| `MFA_NOT_ENABLED` | 400 | Disable/regenerate saat MFA off | MFA belum aktif. |
-| `MFA_MISSING_REFRESH` | 401 | Verify tanpa cookie refresh | Sesi login tidak lengkap. Silakan login ulang. |
-| `INVALID_CREDENTIALS` | 401 | Wrong password on `DELETE /auth/mfa` | Password tidak sesuai. |
-| `THROTTLED` | 429 | 10/60s IP (verify), 5/60s IP (enroll/disable) | Terlalu banyak percobaan. |
+| Code                         | HTTP | Konteks                                       | UI Copy (ID)                                   |
+| ---------------------------- | ---- | --------------------------------------------- | ---------------------------------------------- |
+| `MFA_REQUIRED`               | 403  | Pre-MFA token mencoba endpoint biasa          | (auto-redirect ke `/login/mfa`)                |
+| `MFA_ENROLLMENT_REQUIRED`    | 403  | HR/SA belum enroll                            | (auto-redirect ke `/setup-mfa`)                |
+| `MFA_INVALID_CODE`           | 401  | TOTP salah / backup code habis / spent        | Kode MFA tidak valid.                          |
+| `MFA_ALREADY_ENABLED`        | 409  | Enroll ulang tanpa disable                    | MFA sudah aktif. Nonaktifkan terlebih dahulu.  |
+| `MFA_ENROLLMENT_NOT_STARTED` | 400  | Confirm tanpa start                           | Mulai enrollment dulu sebelum konfirmasi.      |
+| `MFA_NOT_ENABLED`            | 400  | Disable/regenerate saat MFA off               | MFA belum aktif.                               |
+| `MFA_MISSING_REFRESH`        | 401  | Verify tanpa cookie refresh                   | Sesi login tidak lengkap. Silakan login ulang. |
+| `INVALID_CREDENTIALS`        | 401  | Wrong password on `DELETE /auth/mfa`          | Password tidak sesuai.                         |
+| `THROTTLED`                  | 429  | 10/60s IP (verify), 5/60s IP (enroll/disable) | Terlalu banyak percobaan.                      |
 
 #### 0.10.6 Env & Ops
 
-| Env | Wajib | Default | Catatan |
-|---|---|---|---|
-| `MFA_SECRET_ENCRYPTION_KEY` | Prod: ya | (kosong) | Base64 32 byte. `openssl rand -base64 32` |
-| `MFA_ISSUER` | Tidak | `Workpulse` | Muncul di entry authenticator app |
-| `MFA_BACKUP_CODES_COUNT` | Tidak | `8` | Range 4–20 |
-| `MFA_ENFORCE_HR_ADMIN` | Prod: ya (default `true`) | `true` | `false` DITOLAK saat `NODE_ENV=production` |
+| Env                         | Wajib                     | Default     | Catatan                                    |
+| --------------------------- | ------------------------- | ----------- | ------------------------------------------ |
+| `MFA_SECRET_ENCRYPTION_KEY` | Prod: ya                  | (kosong)    | Base64 32 byte. `openssl rand -base64 32`  |
+| `MFA_ISSUER`                | Tidak                     | `Workpulse` | Muncul di entry authenticator app          |
+| `MFA_BACKUP_CODES_COUNT`    | Tidak                     | `8`         | Range 4–20                                 |
+| `MFA_ENFORCE_HR_ADMIN`      | Prod: ya (default `true`) | `true`      | `false` DITOLAK saat `NODE_ENV=production` |
 
 Rotasi `MFA_SECRET_ENCRYPTION_KEY`: **hentikan sesi user**, re-enroll
 setiap user manual. Tidak ada re-encryption otomatis di Fase 30a
@@ -547,11 +548,11 @@ melihat dan mencabut sesi aktif dari `/settings/security`.
 
 #### 0.11.2 Endpoint
 
-| Method | Path | Deskripsi |
-|---|---|---|
-| GET | `/api/v1/auth/sessions` | List sesi ACTIVE (belum expired). Menandai satu row `isCurrent=true` berdasarkan hash `wp_refresh` cookie. |
-| DELETE | `/api/v1/auth/sessions/:id` | Cabut satu sesi milik pemanggil. `204` sukses. `404 SESSION_NOT_FOUND` untuk id asing atau tidak ada. `403 SESSION_ALREADY_REVOKED` bila row sudah non-ACTIVE. |
-| POST | `/api/v1/auth/sessions/revoke-others` | Cabut semua sesi ACTIVE KECUALI current. Response `{ revokedCount }`. |
+| Method | Path                                  | Deskripsi                                                                                                                                                      |
+| ------ | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/v1/auth/sessions`               | List sesi ACTIVE (belum expired). Menandai satu row `isCurrent=true` berdasarkan hash `wp_refresh` cookie.                                                     |
+| DELETE | `/api/v1/auth/sessions/:id`           | Cabut satu sesi milik pemanggil. `204` sukses. `404 SESSION_NOT_FOUND` untuk id asing atau tidak ada. `403 SESSION_ALREADY_REVOKED` bila row sudah non-ACTIVE. |
+| POST   | `/api/v1/auth/sessions/revoke-others` | Cabut semua sesi ACTIVE KECUALI current. Response `{ revokedCount }`.                                                                                          |
 
 Wire shape `SessionDto`:
 
@@ -561,8 +562,8 @@ Wire shape `SessionDto`:
   userAgent: string | null;
   ip: string | null;
   mfaVerified: boolean;
-  createdAt: string;   // ISO
-  expiresAt: string;   // ISO
+  createdAt: string; // ISO
+  expiresAt: string; // ISO
   isCurrent: boolean;
 }
 ```
@@ -572,10 +573,10 @@ Wire shape `SessionDto`:
 Setiap perubahan status ditulis ke `AuditLog` dalam
 `prisma.$transaction`:
 
-| Action | Payload | Kapan |
-|---|---|---|
-| `SESSION_REVOKED` | `entityId = RefreshToken.id` | Satu sesi dicabut |
-| `SESSION_REVOKED_OTHERS` | `afterJson = { count }` | Bulk revoke (skip bila `count=0`) |
+| Action                   | Payload                      | Kapan                             |
+| ------------------------ | ---------------------------- | --------------------------------- |
+| `SESSION_REVOKED`        | `entityId = RefreshToken.id` | Satu sesi dicabut                 |
+| `SESSION_REVOKED_OTHERS` | `afterJson = { count }`      | Bulk revoke (skip bila `count=0`) |
 
 #### 0.11.4 Rate limit
 
@@ -606,11 +607,11 @@ audit security headers.
 `EmailAdapter` sekarang punya 3 implementasi konkret, dipilih runtime
 lewat `EMAIL_TRANSPORT`:
 
-| Value | Adapter | Kapan dipakai |
-|---|---|---|
-| `console` | `ConsoleEmailAdapter` | Dev, seed demo, log-only |
-| `disabled` | `DisabledEmailAdapter` | Isolated E2E (tidak ada log noise) |
-| `smtp` | `SmtpEmailAdapter` (nodemailer) | Production — semua provider (SES, SendGrid, Mailgun, Postmark) mendukung SMTP |
+| Value      | Adapter                         | Kapan dipakai                                                                 |
+| ---------- | ------------------------------- | ----------------------------------------------------------------------------- |
+| `console`  | `ConsoleEmailAdapter`           | Dev, seed demo, log-only                                                      |
+| `disabled` | `DisabledEmailAdapter`          | Isolated E2E (tidak ada log noise)                                            |
+| `smtp`     | `SmtpEmailAdapter` (nodemailer) | Production — semua provider (SES, SendGrid, Mailgun, Postmark) mendukung SMTP |
 
 `superRefine` di [`env.validation.ts`](../apps/api/src/config/env.validation.ts)
 sekarang **menolak** `NODE_ENV=production` dengan `EMAIL_TRANSPORT ≠ smtp`,
@@ -622,15 +623,15 @@ provider dilog `WARN` dan dropped. Ini mempertahankan invariant lama
 
 Env vars:
 
-| Var | Wajib | Default | Catatan |
-|---|---|---|---|
-| `EMAIL_TRANSPORT` | Prod: ya (`smtp`) | `console` | Ditolak selain `smtp` di production |
-| `EMAIL_FROM` | Tidak | `Workpulse <no-reply@workpulse.local>` | Header `From` |
-| `SMTP_HOST` | Bila `EMAIL_TRANSPORT=smtp` | — | mis. `email-smtp.us-east-1.amazonaws.com` |
-| `SMTP_PORT` | Bila `EMAIL_TRANSPORT=smtp` | — | 587 (STARTTLS) atau 465 (SMTPS) |
-| `SMTP_SECURE` | Tidak | `false` | `true` untuk port 465 |
-| `SMTP_USER` / `SMTP_PASS` | Opsional | — | Kosongkan untuk open relay dev |
-| `SMTP_VERIFY_ON_BOOT` | Tidak | `false` | `true` menjalankan `transporter.verify()` di boot; failure hanya `WARN` |
+| Var                       | Wajib                       | Default                                | Catatan                                                                 |
+| ------------------------- | --------------------------- | -------------------------------------- | ----------------------------------------------------------------------- |
+| `EMAIL_TRANSPORT`         | Prod: ya (`smtp`)           | `console`                              | Ditolak selain `smtp` di production                                     |
+| `EMAIL_FROM`              | Tidak                       | `Workpulse <no-reply@workpulse.local>` | Header `From`                                                           |
+| `SMTP_HOST`               | Bila `EMAIL_TRANSPORT=smtp` | —                                      | mis. `email-smtp.us-east-1.amazonaws.com`                               |
+| `SMTP_PORT`               | Bila `EMAIL_TRANSPORT=smtp` | —                                      | 587 (STARTTLS) atau 465 (SMTPS)                                         |
+| `SMTP_SECURE`             | Tidak                       | `false`                                | `true` untuk port 465                                                   |
+| `SMTP_USER` / `SMTP_PASS` | Opsional                    | —                                      | Kosongkan untuk open relay dev                                          |
+| `SMTP_VERIFY_ON_BOOT`     | Tidak                       | `false`                                | `true` menjalankan `transporter.verify()` di boot; failure hanya `WARN` |
 
 #### 0.12.2 Security headers
 
@@ -659,10 +660,10 @@ Env vars:
 
 Env vars baru:
 
-| Var | Wajib | Default | Catatan |
-|---|---|---|---|
-| `API_CSP_EXTRA_ORIGINS` | Tidak | (kosong) | Extra origins untuk `connect-src` / `img-src` di API CSP. Comma-separated |
-| `HSTS_PRELOAD` | Tidak | `false` | Aktifkan hanya bila semua subdomain HTTPS valid — masuk browser preload list = commitment jangka panjang |
+| Var                     | Wajib | Default  | Catatan                                                                                                  |
+| ----------------------- | ----- | -------- | -------------------------------------------------------------------------------------------------------- |
+| `API_CSP_EXTRA_ORIGINS` | Tidak | (kosong) | Extra origins untuk `connect-src` / `img-src` di API CSP. Comma-separated                                |
+| `HSTS_PRELOAD`          | Tidak | `false`  | Aktifkan hanya bila semua subdomain HTTPS valid — masuk browser preload list = commitment jangka panjang |
 
 ### 0.13 Data Subject Access Request / DSAR (Fase 31a)
 
@@ -723,14 +724,14 @@ dan audit `DATA_EXPORT_EXPIRED` ditulis.
 
 #### 0.13.3 Error codes (FE copy)
 
-| Code | HTTP | UI Copy (ID) |
-|---|---|---|
-| `EXPORT_ALREADY_PENDING` | 409 | Permintaan ekspor sudah berjalan. Tunggu sampai selesai sebelum mengajukan yang baru. |
-| `EXPORT_COOLDOWN` | 409 | Permintaan ekspor hanya bisa dilakukan sekali per 24 jam. |
-| `EXPORT_NOT_READY` | 409 | Arsip masih diproses. Coba lagi sebentar. |
-| `EXPORT_FAILED` | 409 | Pembuatan arsip sebelumnya gagal. Silakan ajukan ulang. |
-| `EXPORT_EXPIRED` | 410 | Arsip sudah kedaluwarsa (batas 24 jam terlewat). Silakan ajukan permintaan baru. |
-| `EXPORT_NOT_FOUND` | 404 | Permintaan ekspor tidak ditemukan. |
+| Code                     | HTTP | UI Copy (ID)                                                                          |
+| ------------------------ | ---- | ------------------------------------------------------------------------------------- |
+| `EXPORT_ALREADY_PENDING` | 409  | Permintaan ekspor sudah berjalan. Tunggu sampai selesai sebelum mengajukan yang baru. |
+| `EXPORT_COOLDOWN`        | 409  | Permintaan ekspor hanya bisa dilakukan sekali per 24 jam.                             |
+| `EXPORT_NOT_READY`       | 409  | Arsip masih diproses. Coba lagi sebentar.                                             |
+| `EXPORT_FAILED`          | 409  | Pembuatan arsip sebelumnya gagal. Silakan ajukan ulang.                               |
+| `EXPORT_EXPIRED`         | 410  | Arsip sudah kedaluwarsa (batas 24 jam terlewat). Silakan ajukan permintaan baru.      |
+| `EXPORT_NOT_FOUND`       | 404  | Permintaan ekspor tidak ditemukan.                                                    |
 
 #### 0.13.4 Audit trail
 
@@ -744,10 +745,10 @@ Setiap transisi mencatat baris di `AuditLog` (immutable):
 
 #### 0.13.5 Ops env vars
 
-| Env | Wajib | Default | Catatan |
-|---|---|---|---|
-| `DATA_EXPORT_COOLDOWN_HOURS` | Tidak | `24` | Cooldown user-side. Range 1–168 jam. |
-| `DATA_EXPORT_WORKER_ENABLED` | Tidak | `true` | Set `false` untuk memindahkan pemrosesan ke node dedicated. |
+| Env                          | Wajib | Default | Catatan                                                     |
+| ---------------------------- | ----- | ------- | ----------------------------------------------------------- |
+| `DATA_EXPORT_COOLDOWN_HOURS` | Tidak | `24`    | Cooldown user-side. Range 1–168 jam.                        |
+| `DATA_EXPORT_WORKER_ENABLED` | Tidak | `true`  | Set `false` untuk memindahkan pemrosesan ke node dedicated. |
 
 ### 0.14 Right to Erasure (Fase 31b)
 
@@ -780,20 +781,20 @@ approval ditolak (`ERASURE_SELF_APPROVAL`).
 
 #### 0.14.2 Endpoints self-service
 
-| Method | Path | Efek |
-|---|---|---|
-| POST | `/api/v1/me/data-erasure` | Buat request. 409 jika ada in-flight. |
-| GET  | `/api/v1/me/data-erasure` | 25 request terakhir milik user. |
-| POST | `/api/v1/me/data-erasure/:id/cancel` | Cancel selama PENDING/SCHEDULED. |
+| Method | Path                                 | Efek                                  |
+| ------ | ------------------------------------ | ------------------------------------- |
+| POST   | `/api/v1/me/data-erasure`            | Buat request. 409 jika ada in-flight. |
+| GET    | `/api/v1/me/data-erasure`            | 25 request terakhir milik user.       |
+| POST   | `/api/v1/me/data-erasure/:id/cancel` | Cancel selama PENDING/SCHEDULED.      |
 
 #### 0.14.3 Endpoints admin (HR_MANAGER + SUPER_ADMIN)
 
-| Method | Path | Efek |
-|---|---|---|
-| GET  | `/api/v1/admin/data-erasure/pending` | Queue (PENDING + SCHEDULED). |
-| GET  | `/api/v1/admin/data-erasure` | Full history (100 terakhir). |
-| POST | `/api/v1/admin/data-erasure/:id/approve` | Note opsional. |
-| POST | `/api/v1/admin/data-erasure/:id/reject` | Note WAJIB (400 kalau kosong). |
+| Method | Path                                     | Efek                           |
+| ------ | ---------------------------------------- | ------------------------------ |
+| GET    | `/api/v1/admin/data-erasure/pending`     | Queue (PENDING + SCHEDULED).   |
+| GET    | `/api/v1/admin/data-erasure`             | Full history (100 terakhir).   |
+| POST   | `/api/v1/admin/data-erasure/:id/approve` | Note opsional.                 |
+| POST   | `/api/v1/admin/data-erasure/:id/reject`  | Note WAJIB (400 kalau kosong). |
 
 #### 0.14.4 Anonimisasi (yang berubah)
 
@@ -822,10 +823,10 @@ disentuh.
 
 #### 0.14.6 Ops env vars
 
-| Env | Wajib | Default | Catatan |
-|---|---|---|---|
-| `DATA_ERASURE_GRACE_DAYS` | Tidak | `7` | Range 1–30. |
-| `DATA_ERASURE_WORKER_ENABLED` | Tidak | `true` | Kill switch worker. |
+| Env                           | Wajib | Default | Catatan             |
+| ----------------------------- | ----- | ------- | ------------------- |
+| `DATA_ERASURE_GRACE_DAYS`     | Tidak | `7`     | Range 1–30.         |
+| `DATA_ERASURE_WORKER_ENABLED` | Tidak | `true`  | Kill switch worker. |
 
 ### 0.15 Retention automation + Consent tracking (Fase 31c)
 
@@ -838,11 +839,11 @@ berversi**. Detail arsitektur di ADR-0022.
 Setiap Company memiliki satu baris `RetentionPolicy` (dibuat lazily
 saat pertama kali dibaca) dengan tiga field integer:
 
-| Field | Range | Default | Semantik `0` |
-|---|---|---|---|
-| `notificationRetentionDays` | 0–730 | 90 | Simpan selamanya |
-| `dataExportArchiveRetentionHours` | 1–168 | 24 | — |
-| `terminatedUserAnonymizeDays` | 0–3650 | 0 | Auto-anonimisasi off |
+| Field                             | Range  | Default | Semantik `0`         |
+| --------------------------------- | ------ | ------- | -------------------- |
+| `notificationRetentionDays`       | 0–730  | 90      | Simpan selamanya     |
+| `dataExportArchiveRetentionHours` | 1–168  | 24      | —                    |
+| `terminatedUserAnonymizeDays`     | 0–3650 | 0       | Auto-anonimisasi off |
 
 Admin (HR_MANAGER / SUPER_ADMIN) mengelola via:
 
@@ -879,7 +880,7 @@ bukti hukum.
 Alur:
 
 1. HR / Admin publish versi baru via `POST
-   /admin/privacy/policies` (form UI di `/admin/privacy/policies`).
+/admin/privacy/policies` (form UI di `/admin/privacy/policies`).
 2. Backend menandai versi tersebut sebagai `pendingConsent`
    untuk setiap user yang belum menerimanya (surface di
    `GET /auth/me`).
@@ -912,14 +913,14 @@ bersangkutan. Sisanya diblokir.
 
 #### 0.15.5 Error codes
 
-| Code | HTTP | UI Copy (ID) |
-|---|---|---|
-| `CONSENT_REQUIRED` | 403 | "Anda perlu menerima kebijakan privasi terbaru sebelum melanjutkan." |
-| `POLICY_NOT_FOUND` | 404 | "Kebijakan privasi tidak ditemukan." |
-| `POLICY_NOT_YET_EFFECTIVE` | 409 | "Kebijakan ini belum berlaku." |
-| `CONSENT_ALREADY_ACCEPTED` | 409 | "Anda sudah menerima kebijakan ini." |
-| `POLICY_VERSION_DUPLICATE` | 409 | "Versi X sudah pernah diterbitkan." |
-| `RETENTION_OUT_OF_BOUNDS` | 400 | "Salah satu nilai berada di luar batas yang diizinkan." |
+| Code                       | HTTP | UI Copy (ID)                                                         |
+| -------------------------- | ---- | -------------------------------------------------------------------- |
+| `CONSENT_REQUIRED`         | 403  | "Anda perlu menerima kebijakan privasi terbaru sebelum melanjutkan." |
+| `POLICY_NOT_FOUND`         | 404  | "Kebijakan privasi tidak ditemukan."                                 |
+| `POLICY_NOT_YET_EFFECTIVE` | 409  | "Kebijakan ini belum berlaku."                                       |
+| `CONSENT_ALREADY_ACCEPTED` | 409  | "Anda sudah menerima kebijakan ini."                                 |
+| `POLICY_VERSION_DUPLICATE` | 409  | "Versi X sudah pernah diterbitkan."                                  |
+| `RETENTION_OUT_OF_BOUNDS`  | 400  | "Salah satu nilai berada di luar batas yang diizinkan."              |
 
 #### 0.15.6 Audit trail
 
@@ -939,9 +940,9 @@ di UI audit).
 
 #### 0.15.7 Ops env vars
 
-| Env | Wajib | Default | Catatan |
-|---|---|---|---|
-| `RETENTION_WORKER_ENABLED` | Tidak | `true` | Kill switch worker retensi. |
+| Env                        | Wajib | Default | Catatan                     |
+| -------------------------- | ----- | ------- | --------------------------- |
+| `RETENTION_WORKER_ENABLED` | Tidak | `true`  | Kill switch worker retensi. |
 
 ## 1. Kehadiran (Attendance)
 
@@ -970,15 +971,16 @@ AttendanceService.clockIn(user, dto)
 
 Error codes (surfaced ke UI copy di `apps/web/components/features/attendance/clock-panel.tsx`):
 
-| Code | HTTP | UI Copy (ID) |
-|---|---|---|
-| `OUTSIDE_GEOFENCE` | 403 | Lokasi Anda di luar area kantor. |
-| `ALREADY_CLOCKED_IN` | 409 | Anda sudah clock-in untuk hari ini. |
-| `SHIFT_NOT_FOUND` | 404 | Shift Anda belum diatur. Hubungi HR. |
+| Code                 | HTTP | UI Copy (ID)                         |
+| -------------------- | ---- | ------------------------------------ |
+| `OUTSIDE_GEOFENCE`   | 403  | Lokasi Anda di luar area kantor.     |
+| `ALREADY_CLOCKED_IN` | 409  | Anda sudah clock-in untuk hari ini.  |
+| `SHIFT_NOT_FOUND`    | 404  | Shift Anda belum diatur. Hubungi HR. |
 
 ### 1.2 Clock-Out
 
 Mirroring clock-in, ditambah:
+
 - Cek `AttendanceRecord.clockOutAt === null` → 409 jika sudah clock-out.
 - `evaluateClockOut` menghitung `earlyLeaveMinutes`.
 - Update status: menjadi `EARLY_LEAVE` bila leaves before shift end; jika tidak, mempertahankan status clock-in.
@@ -1004,21 +1006,21 @@ sebelum shift-end tetap `earlyLeaveMinutes = 1`).
 
 **Contoh** (Jakarta, shift 09:00 → 18:00, grace 15 menit):
 
-| Clock-in local | Clock-out local | `lateMinutes` | `earlyLeaveMinutes` | `status` |
-|----------------|-----------------|---------------|---------------------|----------|
-| 08:55          | 18:00           | 0             | 0                   | ON_TIME  |
-| 09:14          | 18:00           | 0             | 0                   | ON_TIME  |
-| 09:16          | 18:00           | 1             | 0                   | LATE     |
+| Clock-in local | Clock-out local | `lateMinutes` | `earlyLeaveMinutes` | `status`                                         |
+| -------------- | --------------- | ------------- | ------------------- | ------------------------------------------------ |
+| 08:55          | 18:00           | 0             | 0                   | ON_TIME                                          |
+| 09:14          | 18:00           | 0             | 0                   | ON_TIME                                          |
+| 09:16          | 18:00           | 1             | 0                   | LATE                                             |
 | 09:45          | 17:30           | 30            | 30                  | LATE (lalu update ke EARLY_LEAVE saat clock-out) |
-| 09:00          | 17:00           | 0             | 60                  | EARLY_LEAVE |
+| 09:00          | 17:00           | 0             | 60                  | EARLY_LEAVE                                      |
 
 ### 1.4 Riwayat & Rekap Self-Service
 
-| Endpoint                                       | Deskripsi                                              |
-|------------------------------------------------|--------------------------------------------------------|
-| `GET /api/v1/attendance/me/today`              | Baris hari ini (null jika belum clock-in)              |
-| `GET /api/v1/attendance/me/history?from&to&limit` | Riwayat caller (max 366 hari, max 200 rows)         |
-| `GET /api/v1/attendance/me/summary?year&month` | Rekap bulanan (present, on-time, late, early, jam)     |
+| Endpoint                                          | Deskripsi                                          |
+| ------------------------------------------------- | -------------------------------------------------- |
+| `GET /api/v1/attendance/me/today`                 | Baris hari ini (null jika belum clock-in)          |
+| `GET /api/v1/attendance/me/history?from&to&limit` | Riwayat caller (max 366 hari, max 200 rows)        |
+| `GET /api/v1/attendance/me/summary?year&month`    | Rekap bulanan (present, on-time, late, early, jam) |
 
 Rekap bulanan diproduksi oleh fungsi pure `summarizeAttendance` di
 `attendance/domain/attendance-summary.ts`. Rule:
@@ -1038,19 +1040,19 @@ UI: card `MonthlySummaryWidget` (4 stat tile + progress bar) di
 Supervisor dan HR punya visibilitas kolektif terhadap tim mereka. Employee
 **tidak** memiliki akses ke endpoint ini (403 FORBIDDEN).
 
-| Endpoint                                       | Deskripsi                                                       |
-|------------------------------------------------|-----------------------------------------------------------------|
-| `GET /api/v1/attendance/team/today?date=YYYY-MM-DD` | Roster + status clock-in hari tsb (default: hari ini)      |
-| `GET /api/v1/attendance/team/summary?from&to`  | Rekap per-anggota, rentang max 92 hari (default: 7 hari terakhir) |
+| Endpoint                                            | Deskripsi                                                         |
+| --------------------------------------------------- | ----------------------------------------------------------------- |
+| `GET /api/v1/attendance/team/today?date=YYYY-MM-DD` | Roster + status clock-in hari tsb (default: hari ini)             |
+| `GET /api/v1/attendance/team/summary?from&to`       | Rekap per-anggota, rentang max 92 hari (default: 7 hari terakhir) |
 
 **Scoping (server-side, di `AttendanceService.loadRoster`):**
 
-| Role         | Roster                                                       |
-|--------------|--------------------------------------------------------------|
-| `SUPERVISOR` | Users dengan `supervisorId = actor.id`                       |
-| `HR_MANAGER` | Seluruh users di tenant (kecuali SUSPENDED/TERMINATED)       |
-| `SUPER_ADMIN`| Seluruh users di tenant (kecuali SUSPENDED/TERMINATED)       |
-| `EMPLOYEE`   | 403 FORBIDDEN                                                |
+| Role          | Roster                                                 |
+| ------------- | ------------------------------------------------------ |
+| `SUPERVISOR`  | Users dengan `supervisorId = actor.id`                 |
+| `HR_MANAGER`  | Seluruh users di tenant (kecuali SUSPENDED/TERMINATED) |
+| `SUPER_ADMIN` | Seluruh users di tenant (kecuali SUSPENDED/TERMINATED) |
+| `EMPLOYEE`    | 403 FORBIDDEN                                          |
 
 **Semantics — Team Today:**
 
@@ -1092,10 +1094,10 @@ mengingatkan karyawan + supervisor agar bisa dispute jika keliru.
 
 **Provenance (kolom `AbsenceRecord.source`):**
 
-| Enum             | Kapan diset                                                                                                    |
-| ---------------- | -------------------------------------------------------------------------------------------------------------- |
-| `AUTO_SCHEDULER` | Cron menandai (default). `markedById` selalu NULL. `reason` selalu NULL.                                       |
-| `MANUAL_HR`      | HR/Super Admin mem-POST `/attendance/absence`. `markedById = actor.id`, `reason` opsional (audit note).        |
+| Enum             | Kapan diset                                                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------------- |
+| `AUTO_SCHEDULER` | Cron menandai (default). `markedById` selalu NULL. `reason` selalu NULL.                                |
+| `MANUAL_HR`      | HR/Super Admin mem-POST `/attendance/absence`. `markedById = actor.id`, `reason` opsional (audit note). |
 
 **Domain rules (per `classifyAbsence`):**
 
@@ -1207,10 +1209,10 @@ absen retroaktif sebelum periode scanner aktif (mis. onboarding data
 legacy). Skenario sebaliknya: scheduler keliru menandai absen karena
 data cuti telat masuk — HR harus bisa mencabutnya.
 
-| Endpoint                             | Role                    | Semantik                                                                                                                     |
-| ------------------------------------ | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `POST /attendance/absence`           | `HR_MANAGER`, `SUPER_ADMIN` | Buat `AbsenceRecord` dengan `source=MANUAL_HR`, `markedById=actor.id`. Body: `{ userId, workDate, reason? }` (reason ≤500).   |
-| `DELETE /attendance/absence/:id`     | `HR_MANAGER`, `SUPER_ADMIN` | Hard-delete satu `AbsenceRecord` (baik AUTO maupun MANUAL). Audit log `ATTENDANCE_UNMARK_ABSENT` menyimpan snapshot sebelum. |
+| Endpoint                         | Role                        | Semantik                                                                                                                     |
+| -------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `POST /attendance/absence`       | `HR_MANAGER`, `SUPER_ADMIN` | Buat `AbsenceRecord` dengan `source=MANUAL_HR`, `markedById=actor.id`. Body: `{ userId, workDate, reason? }` (reason ≤500).  |
+| `DELETE /attendance/absence/:id` | `HR_MANAGER`, `SUPER_ADMIN` | Hard-delete satu `AbsenceRecord` (baik AUTO maupun MANUAL). Audit log `ATTENDANCE_UNMARK_ABSENT` menyimpan snapshot sebelum. |
 
 Invariant yang di-enforce di service layer (`AttendanceService.markAbsent`):
 
@@ -1325,21 +1327,21 @@ konsisten lintas modul.
 
 **Yang di-enforce (attendance):**
 
-| Aksi                                              | Locked (workDate ≤ cutoff)                             |
-| ------------------------------------------------- | ------------------------------------------------------ |
-| `POST /attendance/absence` (HR mark)              | **409 CONFLICT** — `code: PAYROLL_LOCKED`              |
-| `DELETE /attendance/absence/:id` (HR unmark)      | **409 CONFLICT** — `code: PAYROLL_LOCKED`              |
-| Auto-absent scheduler                             | SKIP dengan reason `PAYROLL_LOCKED` (per-date counter) |
-| Aksi yang sama dengan role `SUPER_ADMIN`          | **Diperbolehkan** (emergency-override lane)            |
+| Aksi                                         | Locked (workDate ≤ cutoff)                             |
+| -------------------------------------------- | ------------------------------------------------------ |
+| `POST /attendance/absence` (HR mark)         | **409 CONFLICT** — `code: PAYROLL_LOCKED`              |
+| `DELETE /attendance/absence/:id` (HR unmark) | **409 CONFLICT** — `code: PAYROLL_LOCKED`              |
+| Auto-absent scheduler                        | SKIP dengan reason `PAYROLL_LOCKED` (per-date counter) |
+| Aksi yang sama dengan role `SUPER_ADMIN`     | **Diperbolehkan** (emergency-override lane)            |
 
 **Yang di-enforce (leave — startDate sebagai anchor):**
 
-| Aksi                                              | `LeaveRequest.startDate ≤ cutoff`                      |
-| ------------------------------------------------- | ------------------------------------------------------ |
-| `POST /leave` (submit)                            | **409 CONFLICT** — `code: PAYROLL_LOCKED`              |
-| `POST /leave/:id/decision` (approve / reject)     | **409 CONFLICT** — `code: PAYROLL_LOCKED`              |
-| `POST /leave/:id/cancel` (owner batalkan)         | **409 CONFLICT** — `code: PAYROLL_LOCKED`              |
-| SUPER_ADMIN pada aksi decide / (edge) cancel      | **Diperbolehkan** (submit tetap tertutup: SUPER_ADMIN tidak ada di `@Roles` `POST /leave`) |
+| Aksi                                          | `LeaveRequest.startDate ≤ cutoff`                                                          |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `POST /leave` (submit)                        | **409 CONFLICT** — `code: PAYROLL_LOCKED`                                                  |
+| `POST /leave/:id/decision` (approve / reject) | **409 CONFLICT** — `code: PAYROLL_LOCKED`                                                  |
+| `POST /leave/:id/cancel` (owner batalkan)     | **409 CONFLICT** — `code: PAYROLL_LOCKED`                                                  |
+| SUPER_ADMIN pada aksi decide / (edge) cancel  | **Diperbolehkan** (submit tetap tertutup: SUPER_ADMIN tidak ada di `@Roles` `POST /leave`) |
 
 Kenapa hanya `startDate`? Range yang overlap cutoff di sisinya (mis.
 cuti 25-Jul → 05-Aug dengan cutoff 31-Jul) TIDAK bisa "sebagian beku":
@@ -1349,13 +1351,13 @@ korrek untuk kasus umum.
 
 **Yang di-enforce (overtime — workDate sebagai anchor):**
 
-| Aksi                                              | `OvertimeRequest.workDate ≤ cutoff`                    |
-| ------------------------------------------------- | ------------------------------------------------------ |
-| `POST /overtime` (submit)                         | **409 CONFLICT** — `code: PAYROLL_LOCKED`              |
-| `POST /overtime/:id/decision` (approve / reject)  | **409 CONFLICT** — `code: PAYROLL_LOCKED`              |
-| `POST /overtime/:id/cancel` (owner batalkan)      | **409 CONFLICT** — `code: PAYROLL_LOCKED`              |
-| **Overtime completion scheduler**                 | SKIP dengan reason `PAYROLL_LOCKED` (per-row counter)  |
-| SUPER_ADMIN pada aksi decide                      | **Diperbolehkan** (submit tetap tertutup lewat `@Roles`) |
+| Aksi                                             | `OvertimeRequest.workDate ≤ cutoff`                      |
+| ------------------------------------------------ | -------------------------------------------------------- |
+| `POST /overtime` (submit)                        | **409 CONFLICT** — `code: PAYROLL_LOCKED`                |
+| `POST /overtime/:id/decision` (approve / reject) | **409 CONFLICT** — `code: PAYROLL_LOCKED`                |
+| `POST /overtime/:id/cancel` (owner batalkan)     | **409 CONFLICT** — `code: PAYROLL_LOCKED`                |
+| **Overtime completion scheduler**                | SKIP dengan reason `PAYROLL_LOCKED` (per-row counter)    |
+| SUPER_ADMIN pada aksi decide                     | **Diperbolehkan** (submit tetap tertutup lewat `@Roles`) |
 
 Completion scheduler adalah cross-cutoff hazard yang khusus: APPROVED
 → COMPLETED adalah state yang **payroll count**. Jika cutoff diaktifkan
@@ -1417,13 +1419,13 @@ ke `AttendanceRecord` (create-or-patch, non-destructive).
 
 **Bedanya dengan manual absence override (§1.7):**
 
-| Aspek                       | Manual Absence (§1.7)    | Attendance Correction (§1.9) |
-| --------------------------- | ------------------------ | ---------------------------- |
-| Inisiator                   | HR                       | Karyawan                     |
-| Efek                        | Tambah / hapus `AbsenceRecord` | Create / patch `AttendanceRecord` |
-| Approval chain              | Tidak ada (HR langsung)  | Supervisor / HR single-level |
-| Notification ke karyawan    | Ada (informational)      | Ada (submit + decision)      |
-| Payroll cutoff              | HR blocked, SUPER_ADMIN bypass | Sama                   |
+| Aspek                    | Manual Absence (§1.7)          | Attendance Correction (§1.9)      |
+| ------------------------ | ------------------------------ | --------------------------------- |
+| Inisiator                | HR                             | Karyawan                          |
+| Efek                     | Tambah / hapus `AbsenceRecord` | Create / patch `AttendanceRecord` |
+| Approval chain           | Tidak ada (HR langsung)        | Supervisor / HR single-level      |
+| Notification ke karyawan | Ada (informational)            | Ada (submit + decision)           |
+| Payroll cutoff           | HR blocked, SUPER_ADMIN bypass | Sama                              |
 
 **Model:** `AttendanceCorrection` (ADR-0011). Field kunci:
 
@@ -1454,13 +1456,13 @@ menciptakan drag tanpa menambah informasi.
 
 **Endpoint:**
 
-| Method + Path                                                | Role                       | Fungsi                              |
-| ------------------------------------------------------------ | -------------------------- | ----------------------------------- |
-| `POST /api/v1/attendance/corrections`                        | EMPLOYEE / SUP / HR        | Submit koreksi (self)               |
-| `GET  /api/v1/attendance/corrections/mine`                   | any authenticated          | List koreksi milik caller (100 terbaru) |
-| `GET  /api/v1/attendance/corrections/approvals/pending`      | SUP / HR / SUPER_ADMIN     | Antrian pending (scoped by role)    |
-| `POST /api/v1/attendance/corrections/:id/decision`           | SUP / HR / SUPER_ADMIN     | APPROVE / REJECT                    |
-| `POST /api/v1/attendance/corrections/:id/cancel`             | owner-only                 | Cancel PENDING                       |
+| Method + Path                                           | Role                   | Fungsi                                  |
+| ------------------------------------------------------- | ---------------------- | --------------------------------------- |
+| `POST /api/v1/attendance/corrections`                   | EMPLOYEE / SUP / HR    | Submit koreksi (self)                   |
+| `GET  /api/v1/attendance/corrections/mine`              | any authenticated      | List koreksi milik caller (100 terbaru) |
+| `GET  /api/v1/attendance/corrections/approvals/pending` | SUP / HR / SUPER_ADMIN | Antrian pending (scoped by role)        |
+| `POST /api/v1/attendance/corrections/:id/decision`      | SUP / HR / SUPER_ADMIN | APPROVE / REJECT                        |
+| `POST /api/v1/attendance/corrections/:id/cancel`        | owner-only             | Cancel PENDING                          |
 
 **Pada APPROVE — apply logic (`domain/apply-correction.ts`):**
 
@@ -1498,11 +1500,11 @@ membawa note ke karyawan.
 
 **Notifications:**
 
-| Event                                | Recipient                              |
-| ------------------------------------ | -------------------------------------- |
-| `ATTENDANCE_CORRECTION_SUBMITTED`    | Supervisor (bila `user.supervisorId` non-null) |
-| `ATTENDANCE_CORRECTION_APPROVED`     | Requester                              |
-| `ATTENDANCE_CORRECTION_REJECTED`     | Requester (dengan `decisionNote`)      |
+| Event                             | Recipient                                      |
+| --------------------------------- | ---------------------------------------------- |
+| `ATTENDANCE_CORRECTION_SUBMITTED` | Supervisor (bila `user.supervisorId` non-null) |
+| `ATTENDANCE_CORRECTION_APPROVED`  | Requester                                      |
+| `ATTENDANCE_CORRECTION_REJECTED`  | Requester (dengan `decisionNote`)              |
 
 Bila `user.supervisorId = null`, submitted notification di-skip — HR
 polling `/approvals/pending` sudah cukup, tidak worth broadcast ke semua
@@ -1533,12 +1535,12 @@ kali response — leaked link auto-expire.
 
 **Audit trail:**
 
-| Action                                 | Kapan                                             |
-| -------------------------------------- | ------------------------------------------------- |
-| `ATTENDANCE_CORRECTION_SUBMITTED`      | Setelah submit sukses                             |
-| `ATTENDANCE_CORRECTION_APPROVED`       | Setelah APPROVE (before/after JSON tersimpan)     |
-| `ATTENDANCE_CORRECTION_REJECTED`       | Setelah REJECT                                    |
-| `ATTENDANCE_CORRECTION_CANCELLED`      | Setelah owner cancel                              |
+| Action                            | Kapan                                         |
+| --------------------------------- | --------------------------------------------- |
+| `ATTENDANCE_CORRECTION_SUBMITTED` | Setelah submit sukses                         |
+| `ATTENDANCE_CORRECTION_APPROVED`  | Setelah APPROVE (before/after JSON tersimpan) |
+| `ATTENDANCE_CORRECTION_REJECTED`  | Setelah REJECT                                |
+| `ATTENDANCE_CORRECTION_CANCELLED` | Setelah owner cancel                          |
 
 `AttendanceRecord` yang diciptakan / di-patch oleh correction tidak
 memiliki flag khusus — audit trail-nya di `AuditLog` (via
@@ -1561,10 +1563,10 @@ baru — semua request-nya sudah ada; kami hanya membuka
 
 **Endpoint:** `GET /api/v1/admin/approvals/backlog`
 
-| Query param     | Default | Range        | Fungsi                                           |
-| --------------- | ------- | ------------ | ------------------------------------------------ |
-| `thresholdDays` | `3`     | `1`…`60`     | Ambang batas hari untuk klasifikasi "stale"      |
-| `topN`          | `5`     | `1`…`20`     | Jumlah baris tertua per modul (untuk drill-down) |
+| Query param     | Default | Range    | Fungsi                                           |
+| --------------- | ------- | -------- | ------------------------------------------------ |
+| `thresholdDays` | `3`     | `1`…`60` | Ambang batas hari untuk klasifikasi "stale"      |
+| `topN`          | `5`     | `1`…`20` | Jumlah baris tertua per modul (untuk drill-down) |
 
 **RBAC:** hanya `HR_MANAGER` + `SUPER_ADMIN`. Supervisor sengaja tidak
 diberi akses — mereka sudah punya scoped-view di
@@ -1653,9 +1655,9 @@ memberi user baru default aman (subscribed ke semuanya).
 
 **Tipe wajib (tidak bisa di-opt-out):**
 
-| Tipe               | Alasan                                                                                        |
-| ------------------ | --------------------------------------------------------------------------------------------- |
-| `PASSWORD_RESET`   | Sinyal keamanan. Kalau seseorang me-reset password Anda, konfirmasi harus terkirim tanpa kompromi. |
+| Tipe             | Alasan                                                                                             |
+| ---------------- | -------------------------------------------------------------------------------------------------- |
+| `PASSWORD_RESET` | Sinyal keamanan. Kalau seseorang me-reset password Anda, konfirmasi harus terkirim tanpa kompromi. |
 
 Daftar diatur di `notification/domain/preferences.ts` (konstanta
 `mandatoryNotificationTypes`). Menambahkan tipe wajib = policy
@@ -1663,10 +1665,10 @@ decision, harus di-review di PR dan bumping ADR-0012.
 
 **Endpoints:**
 
-| Endpoint                                  | Role                | Semantik                                                                                     |
-| ----------------------------------------- | ------------------- | -------------------------------------------------------------------------------------------- |
-| `GET /api/v1/notifications/preferences`   | Semua authenticated | Kembalikan 15 baris (satu per `NotificationType`) dengan nilai efektif + flag `mandatory`.   |
-| `PUT /api/v1/notifications/preferences`   | Semua authenticated | Bulk upsert: body `{ updates: [{ type, emailEnabled, inAppEnabled }] }`. Tipe wajib silently di-drop. Empty updates = no-op yang tetap balikan list default. Response = fresh full list (FE bisa langsung seed cache tanpa GET lagi). |
+| Endpoint                                | Role                | Semantik                                                                                                                                                                                                                              |
+| --------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/v1/notifications/preferences` | Semua authenticated | Kembalikan 15 baris (satu per `NotificationType`) dengan nilai efektif + flag `mandatory`.                                                                                                                                            |
+| `PUT /api/v1/notifications/preferences` | Semua authenticated | Bulk upsert: body `{ updates: [{ type, emailEnabled, inAppEnabled }] }`. Tipe wajib silently di-drop. Empty updates = no-op yang tetap balikan list default. Response = fresh full list (FE bisa langsung seed cache tanpa GET lagi). |
 
 **Fanout gate (`NotificationService.createOne`):**
 
@@ -1711,8 +1713,8 @@ tanpa akses DB langsung.
 
 - Response: `{ rows: AuditLogRow[], nextCursor: string | null }`.
 - Setiap row memuat `id, action, entityType, entityId, actorId,
-  actorName, actorEmail, beforeJson, afterJson, ip, userAgent,
-  createdAt`. Actor join dilakukan di query time (satu round-trip).
+actorName, actorEmail, beforeJson, afterJson, ip, userAgent,
+createdAt`. Actor join dilakukan di query time (satu round-trip).
 - Ordering: `createdAt DESC, id DESC` — newest first, deterministik
   antar row dengan timestamp yang sama.
 - Pagination: **keyset over `(createdAt, id)`** via cursor
@@ -1728,13 +1730,13 @@ sendiri di sesi DBA). Rasional detail di ADR-0013 §D2.
 
 **Filter matrix:**
 
-| Filter        | Semantik                                                                   |
-| ------------- | -------------------------------------------------------------------------- |
-| `entityType`  | Exact match (`LeaveRequest`, `Company`, `AbsenceRecord`, dst.)             |
-| `entityId`    | Exact match. Paling selektif kalau dikombinasi dengan `entityType`.        |
-| `actorId`     | Exact match `User.id`. Kombinasi dengan `from/to` sangat efisien di index. |
-| `action`      | Exact match (`LEAVE_REQUEST_APPROVED`, `SCANNER_CURSOR_RESET`, dst.)       |
-| `from`, `to`  | ISO 8601. Inclusive range di `createdAt`.                                  |
+| Filter       | Semantik                                                                   |
+| ------------ | -------------------------------------------------------------------------- |
+| `entityType` | Exact match (`LeaveRequest`, `Company`, `AbsenceRecord`, dst.)             |
+| `entityId`   | Exact match. Paling selektif kalau dikombinasi dengan `entityType`.        |
+| `actorId`    | Exact match `User.id`. Kombinasi dengan `from/to` sangat efisien di index. |
+| `action`     | Exact match (`LEAVE_REQUEST_APPROVED`, `SCANNER_CURSOR_RESET`, dst.)       |
+| `from`, `to` | ISO 8601. Inclusive range di `createdAt`.                                  |
 
 Kombinasi apapun sah — Postgres memilih index terbaik antara
 `(companyId, entityType, entityId)` dan `(actorId, createdAt)`.
@@ -1829,13 +1831,13 @@ halaman `/notifications` yang mengekspos itu ke user.
 
 **Endpoints:**
 
-| Endpoint                                        | Semantik                                                                                                                                                             |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET /api/v1/notifications`                     | Bell dropdown feed — flat array, max 20 (klamp 1..100), newest-first. Tidak paginated karena bell tidak butuh browse. **Tidak berubah di Fase 25.**                    |
-| `GET /api/v1/notifications/unread-count`        | Cheap counter. Polled 30 s. Tidak berubah.                                                                                                                             |
-| `POST /api/v1/notifications/:id/read`           | Mark-read satu row. Idempotent (baris yang sudah read tetap 204). Tidak berubah.                                                                                       |
-| `POST /api/v1/notifications/read-all`           | Mark-read semua row unread milik caller. Response `{ marked: number }`. Endpoint sudah ada sejak MVP; ekspor ke dua UI di Fase 25 (bell + archive).                    |
-| **`GET /api/v1/notifications/archive`** (baru)  | Paginated archive. Query: `unreadOnly=(true\|false)`, `limit` (default 25, klamp 1..100), `cursor`. Response: `{ rows, nextCursor }`. Newest-first, keyset atas `(createdAt, id)`. Malformed cursor → 400 `INVALID_CURSOR`. |
+| Endpoint                                       | Semantik                                                                                                                                                                                                                    |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/v1/notifications`                    | Bell dropdown feed — flat array, max 20 (klamp 1..100), newest-first. Tidak paginated karena bell tidak butuh browse. **Tidak berubah di Fase 25.**                                                                         |
+| `GET /api/v1/notifications/unread-count`       | Cheap counter. Polled 30 s. Tidak berubah.                                                                                                                                                                                  |
+| `POST /api/v1/notifications/:id/read`          | Mark-read satu row. Idempotent (baris yang sudah read tetap 204). Tidak berubah.                                                                                                                                            |
+| `POST /api/v1/notifications/read-all`          | Mark-read semua row unread milik caller. Response `{ marked: number }`. Endpoint sudah ada sejak MVP; ekspor ke dua UI di Fase 25 (bell + archive).                                                                         |
+| **`GET /api/v1/notifications/archive`** (baru) | Paginated archive. Query: `unreadOnly=(true\|false)`, `limit` (default 25, klamp 1..100), `cursor`. Response: `{ rows, nextCursor }`. Newest-first, keyset atas `(createdAt, id)`. Malformed cursor → 400 `INVALID_CURSOR`. |
 
 **Kenapa dua endpoint (`GET /notifications` vs `GET /notifications/archive`):**
 
@@ -1890,14 +1892,14 @@ remaining == quota + carriedOver - used - reserved
 
 ### 2.2 State Machine & Transisi Saldo
 
-| Dari | Event | Ke | `reserved` Δ | `used` Δ | `remaining` Δ |
-|---|---|---|:-:|:-:|:-:|
-| `PENDING_SUPERVISOR` | supervisor APPROVE | `PENDING_HR` | 0 | 0 | 0 |
-| `PENDING_SUPERVISOR` | supervisor REJECT | `REJECTED` | −days | 0 | +days |
-| `PENDING_SUPERVISOR` | owner CANCEL | `CANCELLED` | −days | 0 | +days |
-| `PENDING_HR` | HR APPROVE | `APPROVED` | −days | +days | 0 |
-| `PENDING_HR` | HR REJECT | `REJECTED` | −days | 0 | +days |
-| `PENDING_HR` | owner CANCEL | `CANCELLED` | −days | 0 | +days |
+| Dari                 | Event              | Ke           | `reserved` Δ | `used` Δ | `remaining` Δ |
+| -------------------- | ------------------ | ------------ | :----------: | :------: | :-----------: |
+| `PENDING_SUPERVISOR` | supervisor APPROVE | `PENDING_HR` |      0       |    0     |       0       |
+| `PENDING_SUPERVISOR` | supervisor REJECT  | `REJECTED`   |    −days     |    0     |     +days     |
+| `PENDING_SUPERVISOR` | owner CANCEL       | `CANCELLED`  |    −days     |    0     |     +days     |
+| `PENDING_HR`         | HR APPROVE         | `APPROVED`   |    −days     |  +days   |       0       |
+| `PENDING_HR`         | HR REJECT          | `REJECTED`   |    −days     |    0     |     +days     |
+| `PENDING_HR`         | owner CANCEL       | `CANCELLED`  |    −days     |    0     |     +days     |
 
 Terminal states (`APPROVED`, `REJECTED`, `CANCELLED`) tidak menerima transisi. Setiap transisi menulis `AuditLog` dalam transaksi yang sama.
 
@@ -1933,15 +1935,15 @@ Perhitungan balance mengikuti tabel §2.2, dieksekusi di dalam Serializable tran
 
 ### 2.6 Error Codes
 
-| Code | HTTP | UI Copy (ID) |
-|---|---|---|
-| `INSUFFICIENT_BALANCE` | 400 | Saldo cuti tidak cukup untuk rentang ini. |
-| `ZERO_BUSINESS_DAYS` | 400 | Rentang tanggal tidak berisi hari kerja. |
-| `OVERLAPPING_REQUEST` | 409 | Ada pengajuan lain yang bertabrakan. |
-| `ATTACHMENT_REQUIRED` | 400 | Jenis cuti ini membutuhkan lampiran. |
-| `ILLEGAL_TRANSITION` | 409 | Status pengajuan sudah berubah. Muat ulang halaman. |
-| `LEAVE_TYPE_NOT_FOUND` | 404 | Jenis cuti tidak ditemukan. |
-| `BALANCE_INVARIANT_VIOLATION` | 409 | Anomali saldo (tidak seharusnya terjadi — investigasi audit log). |
+| Code                          | HTTP | UI Copy (ID)                                                      |
+| ----------------------------- | ---- | ----------------------------------------------------------------- |
+| `INSUFFICIENT_BALANCE`        | 400  | Saldo cuti tidak cukup untuk rentang ini.                         |
+| `ZERO_BUSINESS_DAYS`          | 400  | Rentang tanggal tidak berisi hari kerja.                          |
+| `OVERLAPPING_REQUEST`         | 409  | Ada pengajuan lain yang bertabrakan.                              |
+| `ATTACHMENT_REQUIRED`         | 400  | Jenis cuti ini membutuhkan lampiran.                              |
+| `ILLEGAL_TRANSITION`          | 409  | Status pengajuan sudah berubah. Muat ulang halaman.               |
+| `LEAVE_TYPE_NOT_FOUND`        | 404  | Jenis cuti tidak ditemukan.                                       |
+| `BALANCE_INVARIANT_VIOLATION` | 409  | Anomali saldo (tidak seharusnya terjadi — investigasi audit log). |
 
 ### 2.7 Carry-Over (annual scheduler — TBD)
 
@@ -1966,15 +1968,15 @@ Turunan dari `LeaveRequest` dengan `LeaveType.kind = SICK | PERSONAL | OTHER`. K
 `OvertimeRequest` menyimpan snapshot lengkap kalkulasi pembayaran untuk
 kebutuhan audit:
 
-| Field | Tipe | Semantik |
-|---|---|---|
-| `workDate` | `Date` (UTC-midnight) | Tanggal kerja lembur — kalender lokal tenant |
-| `hours` | `Decimal(5,2)` | 0 < h ≤ `Company.overtimeMaxHoursPerDay` (default 4) |
-| `baseRate` | `Decimal(12,2)` | Snapshot: `User.overtimeHourlyRate` ?? `Company.overtimeHourlyRate` |
-| `rateMultiplier` | `Decimal(4,2)` | Diambil dari kebijakan Company berdasarkan `dayKind` |
-| `ratePerHour` | `Decimal(12,2)` | `baseRate × rateMultiplier` (denormalized) |
-| `totalAmount` | `Decimal(14,2)` | `hours × ratePerHour` (denormalized) |
-| `dayKind` (derived) | enum | `WEEKDAY` / `WEEKEND` / `HOLIDAY` — dihitung ulang saat read |
+| Field               | Tipe                  | Semantik                                                            |
+| ------------------- | --------------------- | ------------------------------------------------------------------- |
+| `workDate`          | `Date` (UTC-midnight) | Tanggal kerja lembur — kalender lokal tenant                        |
+| `hours`             | `Decimal(5,2)`        | 0 < h ≤ `Company.overtimeMaxHoursPerDay` (default 4)                |
+| `baseRate`          | `Decimal(12,2)`       | Snapshot: `User.overtimeHourlyRate` ?? `Company.overtimeHourlyRate` |
+| `rateMultiplier`    | `Decimal(4,2)`        | Diambil dari kebijakan Company berdasarkan `dayKind`                |
+| `ratePerHour`       | `Decimal(12,2)`       | `baseRate × rateMultiplier` (denormalized)                          |
+| `totalAmount`       | `Decimal(14,2)`       | `hours × ratePerHour` (denormalized)                                |
+| `dayKind` (derived) | enum                  | `WEEKDAY` / `WEEKEND` / `HOLIDAY` — dihitung ulang saat read        |
 
 **State transitions:**
 
@@ -2108,31 +2110,31 @@ memilih kebijakan: bayar segera setelah approve, atau tunggu completion.
 
 ### 4.7 Error Codes
 
-| Code | HTTP | UI Copy (ID) |
-|---|---|---|
-| `INVALID_DATE` | 400 | Format tanggal tidak valid. |
-| `WORK_DATE_IN_FUTURE` | 400 | Tanggal kerja tidak boleh di masa depan. |
-| `OUTSIDE_SUBMIT_WINDOW` | 400 | Tanggal kerja di luar jendela pengajuan (mis. H-14). |
-| `DUPLICATE_WORK_DATE` | 409 | Sudah ada pengajuan lembur aktif untuk tanggal tersebut. Enforced di service **dan** partial unique index DB (`OvertimeRequest_userId_workDate_active_uidx`) — race concurrent submit auto ter-catch. |
-| `HOURS_NOT_POSITIVE` | 400 | Jam lembur harus lebih dari 0. |
-| `HOURS_TOO_MANY_DECIMALS` | 400 | Jam lembur maksimum 2 angka di belakang koma. |
-| `HOURS_EXCEEDS_DAILY_CAP` | 400 | Jam melebihi batas harian perusahaan. |
-| `OVERTIME_RATE_NOT_CONFIGURED` | 400 | Tarif lembur belum dikonfigurasi. |
-| `ILLEGAL_TRANSITION` | 409 | Status sudah berubah. Muat ulang. |
-| `FORBIDDEN` | 400 | Anda tidak berwenang memutuskan pengajuan ini. |
-| `OVERTIME_NOT_FOUND` | 404 | Pengajuan tidak ditemukan. |
+| Code                           | HTTP | UI Copy (ID)                                                                                                                                                                                          |
+| ------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `INVALID_DATE`                 | 400  | Format tanggal tidak valid.                                                                                                                                                                           |
+| `WORK_DATE_IN_FUTURE`          | 400  | Tanggal kerja tidak boleh di masa depan.                                                                                                                                                              |
+| `OUTSIDE_SUBMIT_WINDOW`        | 400  | Tanggal kerja di luar jendela pengajuan (mis. H-14).                                                                                                                                                  |
+| `DUPLICATE_WORK_DATE`          | 409  | Sudah ada pengajuan lembur aktif untuk tanggal tersebut. Enforced di service **dan** partial unique index DB (`OvertimeRequest_userId_workDate_active_uidx`) — race concurrent submit auto ter-catch. |
+| `HOURS_NOT_POSITIVE`           | 400  | Jam lembur harus lebih dari 0.                                                                                                                                                                        |
+| `HOURS_TOO_MANY_DECIMALS`      | 400  | Jam lembur maksimum 2 angka di belakang koma.                                                                                                                                                         |
+| `HOURS_EXCEEDS_DAILY_CAP`      | 400  | Jam melebihi batas harian perusahaan.                                                                                                                                                                 |
+| `OVERTIME_RATE_NOT_CONFIGURED` | 400  | Tarif lembur belum dikonfigurasi.                                                                                                                                                                     |
+| `ILLEGAL_TRANSITION`           | 409  | Status sudah berubah. Muat ulang.                                                                                                                                                                     |
+| `FORBIDDEN`                    | 400  | Anda tidak berwenang memutuskan pengajuan ini.                                                                                                                                                        |
+| `OVERTIME_NOT_FOUND`           | 404  | Pengajuan tidak ditemukan.                                                                                                                                                                            |
 
 ### 4.8 Konfigurasi (Company)
 
-| Field | Default | Semantik |
-|---|---|---|
-| `overtimeHourlyRate` | `null` (tenant belum config) | Base rate default. Wajib set salah satu (User override / Company). |
-| `overtimeWeekdayMultiplier` | `1.5` | Multiplier hari kerja biasa. |
-| `overtimeWeekendMultiplier` | `2.0` | Multiplier Sabtu/Minggu (kecuali overlap dengan libur). |
-| `overtimeHolidayMultiplier` | `3.0` | Multiplier hari libur nasional/company. |
-| `overtimeMaxHoursPerDay` | `4.0` | Batas jam per hari yang diperbolehkan diajukan. |
-| `overtimeSubmitWindowDays` | `14` | Berapa hari ke belakang boleh diajukan. |
-| `overtimeCompleteGraceDays` | `2` | Tenggang setelah `workDate` sebelum scheduler mempromote ke `COMPLETED` (lihat §4.6). |
+| Field                       | Default                      | Semantik                                                                              |
+| --------------------------- | ---------------------------- | ------------------------------------------------------------------------------------- |
+| `overtimeHourlyRate`        | `null` (tenant belum config) | Base rate default. Wajib set salah satu (User override / Company).                    |
+| `overtimeWeekdayMultiplier` | `1.5`                        | Multiplier hari kerja biasa.                                                          |
+| `overtimeWeekendMultiplier` | `2.0`                        | Multiplier Sabtu/Minggu (kecuali overlap dengan libur).                               |
+| `overtimeHolidayMultiplier` | `3.0`                        | Multiplier hari libur nasional/company.                                               |
+| `overtimeMaxHoursPerDay`    | `4.0`                        | Batas jam per hari yang diperbolehkan diajukan.                                       |
+| `overtimeSubmitWindowDays`  | `14`                         | Berapa hari ke belakang boleh diajukan.                                               |
+| `overtimeCompleteGraceDays` | `2`                          | Tenggang setelah `workDate` sebelum scheduler mempromote ke `COMPLETED` (lihat §4.6). |
 
 Per-user override `User.overtimeHourlyRate` dipakai bila set (untuk gaji yang
 berbeda per level). Multiplier selalu company-wide.
@@ -2152,11 +2154,11 @@ EMPLOYEE (0)  <  SUPERVISOR (10)  <  HR_MANAGER (20)  <  SUPER_ADMIN (30)
 Dua fungsi murni di `apps/api/src/user/domain/role-hierarchy.ts` menegakkan
 invariant berikut secara konsisten di service dan UI:
 
-- **`canAssignRole(actor, target)`** — role yang boleh di-*create*/di-*promote*.
+- **`canAssignRole(actor, target)`** — role yang boleh di-_create_/di-_promote_.
   - Actor harus rank ≥ `HR_MANAGER`.
   - Actor tidak boleh menetapkan role yang rank-nya di atas dirinya sendiri.
   - ⇒ `HR_MANAGER` tidak dapat membuat/promosi ke `SUPER_ADMIN`.
-- **`canManageUser(actor, target)`** — apakah actor boleh me-*update*, *deactivate*, *reset password* target.
+- **`canManageUser(actor, target)`** — apakah actor boleh me-_update_, _deactivate_, _reset password_ target.
   - Actor harus rank ≥ `HR_MANAGER`.
   - Rank target tidak boleh di atas actor. Sesama peer diperbolehkan (HR mengelola HR lain).
 
@@ -2231,21 +2233,21 @@ untuk mengambilnya kembali.
 
 ### 5.4 Error Codes
 
-| Code | HTTP | Kapan |
-|---|---|---|
-| `ROLE_ASSIGNMENT_FORBIDDEN` | 403 | HR mencoba menetapkan `SUPER_ADMIN` |
-| `CANNOT_MANAGE_HIGHER_ROLE` | 403 | HR menyunting akun `SUPER_ADMIN` |
-| `SELF_ROLE_CHANGE_FORBIDDEN` | 403 | Actor mengubah role sendiri |
-| `SELF_STATUS_CHANGE_FORBIDDEN` | 403 | Actor set status non-ACTIVE pada dirinya |
-| `SELF_DEACTIVATE_FORBIDDEN` | 403 | Actor menonaktifkan dirinya |
-| `SUPERVISOR_CANNOT_BE_SELF` | 400 | `supervisorId === id` |
-| `SUPERVISOR_MUST_HAVE_LEAD_ROLE` | 400 | Kandidat supervisor role = `EMPLOYEE` |
-| `SUPERVISOR_INVALID` / `DEPARTMENT_INVALID` | 400 | Reference cross-tenant / dihapus |
-| `EMAIL_ALREADY_TAKEN` | 409 | Unique `(companyId, email)` violation |
-| `DEPARTMENT_NAME_TAKEN` | 409 | Unique `(companyId, name)` violation |
-| `DEPARTMENT_HAS_ACTIVE_USERS` / `DEPARTMENT_HAS_CHILDREN` | 409 | Delete guard |
-| `DEPARTMENT_CYCLE_DETECTED` / `DEPARTMENT_PARENT_CANNOT_BE_SELF` | 400 | Parent invariant |
-| `USER_NOT_FOUND` / `DEPARTMENT_NOT_FOUND` | 404 | Cross-tenant lookup |
+| Code                                                             | HTTP | Kapan                                    |
+| ---------------------------------------------------------------- | ---- | ---------------------------------------- |
+| `ROLE_ASSIGNMENT_FORBIDDEN`                                      | 403  | HR mencoba menetapkan `SUPER_ADMIN`      |
+| `CANNOT_MANAGE_HIGHER_ROLE`                                      | 403  | HR menyunting akun `SUPER_ADMIN`         |
+| `SELF_ROLE_CHANGE_FORBIDDEN`                                     | 403  | Actor mengubah role sendiri              |
+| `SELF_STATUS_CHANGE_FORBIDDEN`                                   | 403  | Actor set status non-ACTIVE pada dirinya |
+| `SELF_DEACTIVATE_FORBIDDEN`                                      | 403  | Actor menonaktifkan dirinya              |
+| `SUPERVISOR_CANNOT_BE_SELF`                                      | 400  | `supervisorId === id`                    |
+| `SUPERVISOR_MUST_HAVE_LEAD_ROLE`                                 | 400  | Kandidat supervisor role = `EMPLOYEE`    |
+| `SUPERVISOR_INVALID` / `DEPARTMENT_INVALID`                      | 400  | Reference cross-tenant / dihapus         |
+| `EMAIL_ALREADY_TAKEN`                                            | 409  | Unique `(companyId, email)` violation    |
+| `DEPARTMENT_NAME_TAKEN`                                          | 409  | Unique `(companyId, name)` violation     |
+| `DEPARTMENT_HAS_ACTIVE_USERS` / `DEPARTMENT_HAS_CHILDREN`        | 409  | Delete guard                             |
+| `DEPARTMENT_CYCLE_DETECTED` / `DEPARTMENT_PARENT_CANNOT_BE_SELF` | 400  | Parent invariant                         |
+| `USER_NOT_FOUND` / `DEPARTMENT_NOT_FOUND`                        | 404  | Cross-tenant lookup                      |
 
 ## 5.5 Config Suite — Geofence, Shift, Leave Type, User-Shift Assignment
 
@@ -2339,23 +2341,23 @@ Aturan:
 
 ### 5.5.5 Error Codes (Config Suite)
 
-| Code | HTTP | Kapan |
-|---|---|---|
-| `GEOFENCE_IN_USE_BY_SHIFT` | 409 | Delete geofence yang masih dipakai Shift |
-| `GEOFENCE_INVALID` | 400 | Create/update Shift dgn geofence cross-tenant / dihapus |
-| `GEOFENCE_NOT_FOUND` | 404 | Cross-tenant lookup |
-| `SHIFT_NAME_TAKEN` | 409 | Unique `(companyId, name)` violation |
-| `SHIFT_TIMES_INVALID` | 400 | `startTime === endTime` |
-| `SHIFT_HAS_ACTIVE_ASSIGNMENTS` | 409 | Delete shift yang masih di-assign |
-| `SHIFT_NOT_FOUND` | 404 | Cross-tenant lookup |
-| `USER_INVALID` | 400 | Assign shift ke user cross-tenant / dihapus |
-| `ASSIGNMENT_OVERLAP` | 409 | Rentang menabrak assignment lain user yang sama |
-| `ASSIGNMENT_INVALID_RANGE` | 400 | `effectiveTo < effectiveFrom` |
-| `ASSIGNMENT_ALREADY_STARTED_USE_END` | 409 | `DELETE` pada assignment yang sudah mulai |
-| `ASSIGNMENT_NOT_FOUND` | 404 | Cross-tenant lookup |
-| `LEAVE_TYPE_CODE_TAKEN` | 409 | Unique `(companyId, code)` violation |
-| `LEAVE_TYPE_HAS_OPEN_REQUESTS` | 409 | Delete tipe cuti dgn request aktif/mendatang |
-| `LEAVE_TYPE_NOT_FOUND` | 404 | Cross-tenant lookup |
+| Code                                 | HTTP | Kapan                                                   |
+| ------------------------------------ | ---- | ------------------------------------------------------- |
+| `GEOFENCE_IN_USE_BY_SHIFT`           | 409  | Delete geofence yang masih dipakai Shift                |
+| `GEOFENCE_INVALID`                   | 400  | Create/update Shift dgn geofence cross-tenant / dihapus |
+| `GEOFENCE_NOT_FOUND`                 | 404  | Cross-tenant lookup                                     |
+| `SHIFT_NAME_TAKEN`                   | 409  | Unique `(companyId, name)` violation                    |
+| `SHIFT_TIMES_INVALID`                | 400  | `startTime === endTime`                                 |
+| `SHIFT_HAS_ACTIVE_ASSIGNMENTS`       | 409  | Delete shift yang masih di-assign                       |
+| `SHIFT_NOT_FOUND`                    | 404  | Cross-tenant lookup                                     |
+| `USER_INVALID`                       | 400  | Assign shift ke user cross-tenant / dihapus             |
+| `ASSIGNMENT_OVERLAP`                 | 409  | Rentang menabrak assignment lain user yang sama         |
+| `ASSIGNMENT_INVALID_RANGE`           | 400  | `effectiveTo < effectiveFrom`                           |
+| `ASSIGNMENT_ALREADY_STARTED_USE_END` | 409  | `DELETE` pada assignment yang sudah mulai               |
+| `ASSIGNMENT_NOT_FOUND`               | 404  | Cross-tenant lookup                                     |
+| `LEAVE_TYPE_CODE_TAKEN`              | 409  | Unique `(companyId, code)` violation                    |
+| `LEAVE_TYPE_HAS_OPEN_REQUESTS`       | 409  | Delete tipe cuti dgn request aktif/mendatang            |
+| `LEAVE_TYPE_NOT_FOUND`               | 404  | Cross-tenant lookup                                     |
 
 ## 5.6 Holiday Admin — Kalender Hari Libur
 
@@ -2385,12 +2387,12 @@ DELETE /admin/holidays/:id            → hard delete
   - Duplikat terhadap data yang sudah ada di DB → `skipDuplicates: true` (bukan error).
   - Response `{ inserted, skipped }` — memungkinkan admin memvalidasi hasil paste JSON.
 - Semua create / update / delete / bulk menulis `AuditLog` (`HOLIDAY_CREATED /
-  _UPDATED / _DELETED / _BULK_IMPORTED`) dalam transaksi yang sama.
+_UPDATED / _DELETED / _BULK_IMPORTED`) dalam transaksi yang sama.
 
 ### Interaksi dengan permohonan cuti
 
 - **Saat submit**: `LeaveService.submit()` memanggil `loadCompanyHolidayDates(companyId,
-  startDate, endDate)` dan meneruskan ke `countBusinessDays(start, end, {holidays})`
+startDate, endDate)` dan meneruskan ke `countBusinessDays(start, end, {holidays})`
   yang mengeksklusi baik weekend (default Sat + Sun) maupun hari libur.
   Jika hasil `days === 0` → `400 ZERO_BUSINESS_DAYS`.
 - **Snapshot semantics**: `days` disimpan di `LeaveRequest` **saat submit**. Menambah /
@@ -2405,10 +2407,10 @@ DELETE /admin/holidays/:id            → hard delete
 
 ### Error Codes (Holiday)
 
-| Code | HTTP | Kapan |
-|---|---|---|
-| `HOLIDAY_DATE_TAKEN` | 409 | Unique `(companyId, date)` violation |
-| `HOLIDAY_NOT_FOUND` | 404 | Cross-tenant lookup atau id tidak dikenal |
+| Code                 | HTTP | Kapan                                     |
+| -------------------- | ---- | ----------------------------------------- |
+| `HOLIDAY_DATE_TAKEN` | 409  | Unique `(companyId, date)` violation      |
+| `HOLIDAY_NOT_FOUND`  | 404  | Cross-tenant lookup atau id tidak dikenal |
 
 ## 5.7 Company Config Admin — Identitas & Kebijakan Lembur
 
@@ -2432,17 +2434,17 @@ Ini konsisten dengan ADR-0002.
 
 **Field yang dapat di-manage:**
 
-| Field | Tipe | Semantik |
-|---|---|---|
-| `name` | string(1..120) | Nama tampilan. `slug` sengaja **tidak** dapat diubah karena berfungsi sebagai tenant identifier. |
-| `timezone` | IANA string | Divalidasi domain-side dengan `Intl.DateTimeFormat`. Nama tidak dikenal → 400 `INVALID_TIMEZONE`. |
-| `overtimeHourlyRate` | Decimal(12,2)? | Boleh `null` untuk mewajibkan tarif per-karyawan. |
-| `overtimeWeekdayMultiplier` | Decimal(4,2) | Range `[1, 10]`. Minimum 1× — tidak boleh mengurangi upah. |
-| `overtimeWeekendMultiplier` | Decimal(4,2) | Range `[1, 10]`. |
-| `overtimeHolidayMultiplier` | Decimal(4,2) | Range `[1, 10]`. Prioritas tertinggi di `classifyDay` (§4.2). |
-| `overtimeMaxHoursPerDay` | Decimal(4,2) | Range `(0, 24]`. |
-| `overtimeSubmitWindowDays` | Int | Range `[1, 365]`. |
-| `overtimeCompleteGraceDays` | Int | Range `[0, 30]`. Lihat §4.6. |
+| Field                       | Tipe           | Semantik                                                                                          |
+| --------------------------- | -------------- | ------------------------------------------------------------------------------------------------- |
+| `name`                      | string(1..120) | Nama tampilan. `slug` sengaja **tidak** dapat diubah karena berfungsi sebagai tenant identifier.  |
+| `timezone`                  | IANA string    | Divalidasi domain-side dengan `Intl.DateTimeFormat`. Nama tidak dikenal → 400 `INVALID_TIMEZONE`. |
+| `overtimeHourlyRate`        | Decimal(12,2)? | Boleh `null` untuk mewajibkan tarif per-karyawan.                                                 |
+| `overtimeWeekdayMultiplier` | Decimal(4,2)   | Range `[1, 10]`. Minimum 1× — tidak boleh mengurangi upah.                                        |
+| `overtimeWeekendMultiplier` | Decimal(4,2)   | Range `[1, 10]`.                                                                                  |
+| `overtimeHolidayMultiplier` | Decimal(4,2)   | Range `[1, 10]`. Prioritas tertinggi di `classifyDay` (§4.2).                                     |
+| `overtimeMaxHoursPerDay`    | Decimal(4,2)   | Range `(0, 24]`.                                                                                  |
+| `overtimeSubmitWindowDays`  | Int            | Range `[1, 365]`.                                                                                 |
+| `overtimeCompleteGraceDays` | Int            | Range `[0, 30]`. Lihat §4.6.                                                                      |
 
 **PATCH semantics:**
 
@@ -2460,7 +2462,7 @@ Ini konsisten dengan ADR-0002.
   "entityType": "Company",
   "entityId": "co-...",
   "beforeJson": { "overtimeHourlyRate": 50000, "overtimeCompleteGraceDays": 2 },
-  "afterJson":  { "overtimeHourlyRate": 75000, "overtimeCompleteGraceDays": 5 }
+  "afterJson": { "overtimeHourlyRate": 75000, "overtimeCompleteGraceDays": 5 }
 }
 ```
 
@@ -2476,12 +2478,12 @@ form belum dirty.
 
 **Error Codes:**
 
-| Code | HTTP | Kapan |
-|---|---|---|
-| `EMPTY_UPDATE` | 400 | PATCH body `{}` atau tidak ada field yang di-recognize. |
-| `INVALID_TIMEZONE` | 400 | Timezone bukan IANA yang dikenali runtime. |
-| `COMPANY_NOT_FOUND` | 404 | Tenant sudah soft-deleted atau id tidak match caller. |
-| Validation errors dari `class-validator` | 400 | Angka negatif, multiplier `< 1`, dsb. |
+| Code                                     | HTTP | Kapan                                                   |
+| ---------------------------------------- | ---- | ------------------------------------------------------- |
+| `EMPTY_UPDATE`                           | 400  | PATCH body `{}` atau tidak ada field yang di-recognize. |
+| `INVALID_TIMEZONE`                       | 400  | Timezone bukan IANA yang dikenali runtime.              |
+| `COMPANY_NOT_FOUND`                      | 404  | Tenant sudah soft-deleted atau id tidak match caller.   |
+| Validation errors dari `class-validator` | 400  | Angka negatif, multiplier `< 1`, dsb.                   |
 
 ## 6. Pelaporan & Audit
 
@@ -2527,7 +2529,7 @@ Body:
 {
   "format": "xlsx",
   "startDate": "2026-01-01",
-  "endDate":   "2026-01-31",
+  "endDate": "2026-01-31",
   "departmentId": null,
   "userIds": null
 }
@@ -2538,7 +2540,7 @@ Aturan:
 - `endDate < startDate` → `400 REPORT_RANGE_INVALID`.
 - Window size cap:
   - `xlsx` → 366 hari.
-  - `pdf`  → 92 hari (rendering PDF dengan pdfkit paginated → menghindari OOM).
+  - `pdf` → 92 hari (rendering PDF dengan pdfkit paginated → menghindari OOM).
   - Melebihi → `400 REPORT_RANGE_TOO_LARGE:{format}:max={cap}:actual={days}`.
 - `userIds` (max 500) diprioritaskan di atas `departmentId` bila keduanya diisi.
 - Waktu (workDate, clockIn, clockOut) di-format di **timezone perusahaan**
@@ -2573,7 +2575,7 @@ Body:
 {
   "format": "xlsx",
   "startDate": "2026-08-01",
-  "endDate":   "2026-08-31",
+  "endDate": "2026-08-31",
   "departmentId": null,
   "userIds": null,
   "statuses": ["APPROVED", "COMPLETED"]
@@ -2601,11 +2603,11 @@ Aturan:
 
 #### 6.1.4 Error Codes (Reports)
 
-| Code | HTTP | Kapan |
-|---|---|---|
-| `REPORT_RANGE_INVALID` | 400 | `endDate < startDate` |
-| `REPORT_RANGE_TOO_LARGE:{fmt}:max={n}:actual={n}` | 400 | Window melebihi cap format |
-| `ThrottlerException: Too Many Requests` | 429 | Melebihi 5 request / menit |
+| Code                                              | HTTP | Kapan                      |
+| ------------------------------------------------- | ---- | -------------------------- |
+| `REPORT_RANGE_INVALID`                            | 400  | `endDate < startDate`      |
+| `REPORT_RANGE_TOO_LARGE:{fmt}:max={n}:actual={n}` | 400  | Window melebihi cap format |
+| `ThrottlerException: Too Many Requests`           | 429  | Melebihi 5 request / menit |
 
 ### 6.2 Audit Log
 
@@ -2658,15 +2660,15 @@ FE                         Backend                       S3/MinIO
 
 ### 8.2 Konstrain
 
-| Aspek | Nilai | Diberlakukan di |
-|---|---|---|
-| MIME whitelist | `image/jpeg`, `image/png`, `image/webp`, `application/pdf` | Backend + FE |
-| Ukuran maks | 5 MiB | Backend (via signed `Content-Length`) + FE (pre-check) |
-| Kunci path | `attachments/leave-attachment/{companyId}/{userId}/{yyyy}/{mm}/{uuid}.{ext}` | Backend saja |
-| Presign PUT TTL | 300 detik (5 menit) | `S3_PRESIGN_PUT_TTL_SECONDS` |
-| Presign GET TTL | 3600 detik (1 jam) | `S3_PRESIGN_GET_TTL_SECONDS` |
-| Rate limit presign | 30 req/menit/user | `@Throttle` di controller |
-| Bucket ACL | Private (no public read) | Bootstrap MinIO / kebijakan bucket S3 |
+| Aspek              | Nilai                                                                        | Diberlakukan di                                        |
+| ------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------ |
+| MIME whitelist     | `image/jpeg`, `image/png`, `image/webp`, `application/pdf`                   | Backend + FE                                           |
+| Ukuran maks        | 5 MiB                                                                        | Backend (via signed `Content-Length`) + FE (pre-check) |
+| Kunci path         | `attachments/leave-attachment/{companyId}/{userId}/{yyyy}/{mm}/{uuid}.{ext}` | Backend saja                                           |
+| Presign PUT TTL    | 300 detik (5 menit)                                                          | `S3_PRESIGN_PUT_TTL_SECONDS`                           |
+| Presign GET TTL    | 3600 detik (1 jam)                                                           | `S3_PRESIGN_GET_TTL_SECONDS`                           |
+| Rate limit presign | 30 req/menit/user                                                            | `@Throttle` di controller                              |
+| Bucket ACL         | Private (no public read)                                                     | Bootstrap MinIO / kebijakan bucket S3                  |
 
 ### 8.3 Kenapa key, bukan URL, yang disubmit?
 
@@ -2687,7 +2689,7 @@ Alasannya:
   menandakan semantik baru.
 - Obyek yatim (presign berhasil, submit tidak): boleh dibersihkan oleh
   lifecycle rule S3 (`expire objects with prefix attachments/ after 30 days
-  if no reference`). Untuk MVP tidak ada job pembersih terjadwal — biaya
+if no reference`). Untuk MVP tidak ada job pembersih terjadwal — biaya
   dampak rendah pada volume yang diharapkan.
 - Bila keputusan HR sudah `APPROVED`, lampiran dianggap **immutable
   record** — tidak boleh dihapus tanpa audit event `LEAVE_ATTACHMENT_DELETED`
@@ -2695,12 +2697,12 @@ Alasannya:
 
 ### 8.5 Error Codes
 
-| Code | HTTP | UI Copy (ID) |
-|---|---|---|
-| `CONTENT_TYPE_NOT_ALLOWED` | 400 | Tipe berkas tidak diizinkan (hanya JPG/PNG/WebP/PDF). |
-| `FILE_TOO_LARGE` | 400 | Berkas melebihi batas 5 MB. |
-| `ATTACHMENT_KEY_INVALID` | 400 | Lampiran tidak valid — silakan upload ulang. |
-| `STORAGE_NOT_CONFIGURED` | 503 | Storage upload belum dikonfigurasi di server. |
+| Code                       | HTTP | UI Copy (ID)                                          |
+| -------------------------- | ---- | ----------------------------------------------------- |
+| `CONTENT_TYPE_NOT_ALLOWED` | 400  | Tipe berkas tidak diizinkan (hanya JPG/PNG/WebP/PDF). |
+| `FILE_TOO_LARGE`           | 400  | Berkas melebihi batas 5 MB.                           |
+| `ATTACHMENT_KEY_INVALID`   | 400  | Lampiran tidak valid — silakan upload ulang.          |
+| `STORAGE_NOT_CONFIGURED`   | 503  | Storage upload belum dikonfigurasi di server.         |
 
 ### 8.6 Dev Environment
 
@@ -2718,16 +2720,16 @@ menerima payload identik yang di-generate oleh template pure di
 
 ### 9.1 Katalog Event
 
-| `NotificationType`            | Trigger                                                                                     | Recipient                | Kanal    |
-|------------------------------ |---------------------------------------------------------------------------------------------|--------------------------|----------|
-| `LEAVE_SUBMITTED`             | `LeaveService.submit`                                                                        | Supervisor (jika ada)    | in-app + email |
-| `LEAVE_APPROVED_SUPERVISOR`   | `LeaveService.decide` (APPROVE @ `PENDING_SUPERVISOR` → `PENDING_HR`)                       | Employee                 | in-app + email |
-| `LEAVE_APPROVED_HR`           | `LeaveService.decide` (APPROVE @ `PENDING_HR` → `APPROVED`)                                  | Employee                 | in-app + email |
-| `LEAVE_REJECTED`              | `LeaveService.decide` (REJECT di stage manapun)                                              | Employee                 | in-app + email |
-| `OVERTIME_SUBMITTED`          | `OvertimeService.submit`                                                                     | Supervisor (jika ada)    | in-app + email |
-| `OVERTIME_APPROVED`           | `OvertimeService.decide` (APPROVE)                                                           | Employee                 | in-app + email |
-| `OVERTIME_REJECTED`           | `OvertimeService.decide` (REJECT)                                                            | Employee                 | in-app + email |
-| `OVERTIME_COMPLETED`          | `OvertimeCompletionService.runCompletion` → `promote()`                                      | Employee                 | in-app + email |
+| `NotificationType`          | Trigger                                                               | Recipient             | Kanal          |
+| --------------------------- | --------------------------------------------------------------------- | --------------------- | -------------- |
+| `LEAVE_SUBMITTED`           | `LeaveService.submit`                                                 | Supervisor (jika ada) | in-app + email |
+| `LEAVE_APPROVED_SUPERVISOR` | `LeaveService.decide` (APPROVE @ `PENDING_SUPERVISOR` → `PENDING_HR`) | Employee              | in-app + email |
+| `LEAVE_APPROVED_HR`         | `LeaveService.decide` (APPROVE @ `PENDING_HR` → `APPROVED`)           | Employee              | in-app + email |
+| `LEAVE_REJECTED`            | `LeaveService.decide` (REJECT di stage manapun)                       | Employee              | in-app + email |
+| `OVERTIME_SUBMITTED`        | `OvertimeService.submit`                                              | Supervisor (jika ada) | in-app + email |
+| `OVERTIME_APPROVED`         | `OvertimeService.decide` (APPROVE)                                    | Employee              | in-app + email |
+| `OVERTIME_REJECTED`         | `OvertimeService.decide` (REJECT)                                     | Employee              | in-app + email |
+| `OVERTIME_COMPLETED`        | `OvertimeCompletionService.runCompletion` → `promote()`               | Employee              | in-app + email |
 
 `LEAVE_CANCELLED` dan `OVERTIME_CANCELLED` dicadangkan di enum tetapi belum
 diintegrasikan — cancel adalah self-service (dilakukan oleh employee), jadi
@@ -2751,12 +2753,12 @@ memberitahu supervisor bahwa antrean approvals mereka berkurang satu.
 
 ### 9.3 API
 
-| Method | Path                                     | Deskripsi                                                       |
-|--------|------------------------------------------|-----------------------------------------------------------------|
-| GET    | `/api/v1/notifications`                  | List notifikasi caller (query: `unreadOnly=true`, `limit=1..100`) |
-| GET    | `/api/v1/notifications/unread-count`     | Angka untuk badge di bell                                       |
-| POST   | `/api/v1/notifications/:id/read`         | Mark satu row sebagai read (idempotent)                         |
-| POST   | `/api/v1/notifications/read-all`         | Mark semua unread milik caller sebagai read                     |
+| Method | Path                                 | Deskripsi                                                         |
+| ------ | ------------------------------------ | ----------------------------------------------------------------- |
+| GET    | `/api/v1/notifications`              | List notifikasi caller (query: `unreadOnly=true`, `limit=1..100`) |
+| GET    | `/api/v1/notifications/unread-count` | Angka untuk badge di bell                                         |
+| POST   | `/api/v1/notifications/:id/read`     | Mark satu row sebagai read (idempotent)                           |
+| POST   | `/api/v1/notifications/read-all`     | Mark semua unread milik caller sebagai read                       |
 
 Semua endpoint hanya bisa memodifikasi row **milik caller** — API "lihat
 notifikasi orang lain" **tidak** disediakan (privacy leak). Audit HR pakai
@@ -2777,11 +2779,11 @@ notifikasi orang lain" **tidak** disediakan (privacy leak). Audit HR pakai
 
 Dipilih via env `EMAIL_TRANSPORT`:
 
-| Value      | Adapter                    | Kapan dipakai                                          |
-|------------|----------------------------|--------------------------------------------------------|
-| `console`  | `ConsoleEmailAdapter`      | Default. Log ke stdout dengan prefix `MAIL to=…`.      |
-| `disabled` | `DisabledEmailAdapter`     | Test / E2E — silence total, tidak ada log.             |
-| `smtp`     | (belum diimplementasikan)  | Placeholder; saat ini fallback ke console + warning.   |
+| Value      | Adapter                   | Kapan dipakai                                        |
+| ---------- | ------------------------- | ---------------------------------------------------- |
+| `console`  | `ConsoleEmailAdapter`     | Default. Log ke stdout dengan prefix `MAIL to=…`.    |
+| `disabled` | `DisabledEmailAdapter`    | Test / E2E — silence total, tidak ada log.           |
+| `smtp`     | (belum diimplementasikan) | Placeholder; saat ini fallback ke console + warning. |
 
 Ketika SMTP mau di-enable secara real: install `nodemailer`, tambah
 `SmtpEmailAdapter`, extend switch di `NotificationModule`. Env
@@ -2823,17 +2825,17 @@ review HR dan input payroll.
 
 ### 11.3 Endpoint
 
-| Method + Path | Role | Fungsi |
-|---|---|---|
-| `GET /admin/timesheet/config` | HR, Super Admin | Baca konfigurasi |
-| `PUT /admin/timesheet/config` | HR, Super Admin | Update konfigurasi (validasi bounds + cross-field) |
-| `POST /admin/timesheet/generate` | HR, Super Admin | Generate/regenerate periode berjalan (idempotent) |
-| `GET /admin/timesheet/periods` | Supervisor+ | Daftar periode yang sudah pernah di-generate |
-| `GET /admin/timesheet` | Supervisor+ | Daftar timesheet per periode; supervisor otomatis di-scope ke direct reports |
-| `GET /admin/timesheet/:id` | Supervisor+ | Detail timesheet (entries + totals) |
-| `GET /me/timesheet/current` | Semua | Periode berjalan (rollup + entries) — `null` jika belum di-generate |
-| `GET /me/timesheet` | Semua | Riwayat 12 periode terakhir milik user |
-| `GET /me/timesheet/:id` | Semua | Detail timesheet milik user (403 bila milik orang lain) |
+| Method + Path                    | Role            | Fungsi                                                                       |
+| -------------------------------- | --------------- | ---------------------------------------------------------------------------- |
+| `GET /admin/timesheet/config`    | HR, Super Admin | Baca konfigurasi                                                             |
+| `PUT /admin/timesheet/config`    | HR, Super Admin | Update konfigurasi (validasi bounds + cross-field)                           |
+| `POST /admin/timesheet/generate` | HR, Super Admin | Generate/regenerate periode berjalan (idempotent)                            |
+| `GET /admin/timesheet/periods`   | Supervisor+     | Daftar periode yang sudah pernah di-generate                                 |
+| `GET /admin/timesheet`           | Supervisor+     | Daftar timesheet per periode; supervisor otomatis di-scope ke direct reports |
+| `GET /admin/timesheet/:id`       | Supervisor+     | Detail timesheet (entries + totals)                                          |
+| `GET /me/timesheet/current`      | Semua           | Periode berjalan (rollup + entries) — `null` jika belum di-generate          |
+| `GET /me/timesheet`              | Semua           | Riwayat 12 periode terakhir milik user                                       |
+| `GET /me/timesheet/:id`          | Semua           | Detail timesheet milik user (403 bila milik orang lain)                      |
 
 ### 11.4 Generator flow
 
@@ -2852,8 +2854,9 @@ review HR dan input payroll.
      entries lama, `createMany` entries baru.
 
 Idempotent: rerun untuk periode yang sama akan menggantikan `Timesheet`
-+ semua `TimesheetEntry` di dalamnya. Aman untuk dijalankan berulang
-kali (mis. setelah `AttendanceCorrection` diapprove di Fase 32b).
+
+- semua `TimesheetEntry` di dalamnya. Aman untuk dijalankan berulang
+  kali (mis. setelah `AttendanceCorrection` diapprove di Fase 32b).
 
 ### 11.5 Frontend
 
@@ -2902,13 +2905,13 @@ DRAFT ──submit──▶ PENDING_SUPERVISOR ──approve──▶ PENDING_HR
 
 Aturan aktor:
 
-| Aksi                 | Aktor                                           |
-|----------------------|-------------------------------------------------|
+| Aksi                 | Aktor                                             |
+| -------------------- | ------------------------------------------------- |
 | `SUBMIT`             | Pemilik timesheet. Hanya dari `DRAFT`/`REJECTED`. |
-| `SUPERVISOR_APPROVE` | Supervisor langsung, atau HR/Super Admin.       |
-| `SUPERVISOR_REJECT`  | Sama; **wajib menyertakan alasan**.             |
-| `HR_APPROVE`         | HR Manager / Super Admin.                       |
-| `HR_REJECT`          | Sama; **wajib menyertakan alasan**.             |
+| `SUPERVISOR_APPROVE` | Supervisor langsung, atau HR/Super Admin.         |
+| `SUPERVISOR_REJECT`  | Sama; **wajib menyertakan alasan**.               |
+| `HR_APPROVE`         | HR Manager / Super Admin.                         |
+| `HR_REJECT`          | Sama; **wajib menyertakan alasan**.               |
 
 Guard tambahan di layer service: submit ditolak (`409
 TIMESHEET_PERIOD_NOT_ENDED`) bila `periodEnd > today` — mencegah
@@ -2916,11 +2919,11 @@ submit tengah periode.
 
 ### 11.10 Endpoint tambahan (Fase 32b)
 
-| Method + Path | Role | Fungsi |
-|---|---|---|
-| `POST /me/timesheet/:id/submit` | Owner | Submit ke supervisor. 409 kalau periode belum berakhir. |
-| `POST /admin/timesheet/:id/decide` | Supervisor / HR | Approve atau reject; body `{ action, note? }`. Reject wajib `note`. |
-| `GET /admin/timesheet?status=PENDING_SUPERVISOR` | Supervisor / HR | Queue view — filter status. |
+| Method + Path                                    | Role            | Fungsi                                                              |
+| ------------------------------------------------ | --------------- | ------------------------------------------------------------------- |
+| `POST /me/timesheet/:id/submit`                  | Owner           | Submit ke supervisor. 409 kalau periode belum berakhir.             |
+| `POST /admin/timesheet/:id/decide`               | Supervisor / HR | Approve atau reject; body `{ action, note? }`. Reject wajib `note`. |
+| `GET /admin/timesheet?status=PENDING_SUPERVISOR` | Supervisor / HR | Queue view — filter status.                                         |
 
 ### 11.11 Auto-regenerate on AttendanceCorrection
 
@@ -2972,7 +2975,7 @@ baris `TimesheetExport` sebagai audit trail append-only.
 - `POST /api/v1/admin/timesheet/exports` — trigger export, streaming
   file kembali ke client. HR / SUPER_ADMIN. Throttle 10/min.
   - Body: `{ periodId, format: "CSV"|"XLSX", mode: "SUMMARY"|"DETAIL",
-    departmentId?, note? }`.
+departmentId?, note? }`.
   - Response headers:
     - `Content-Type: text/csv; charset=utf-8` atau
       `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`.
@@ -3017,10 +3020,10 @@ baris `TimesheetExport` sebagai audit trail append-only.
 
 **Mode kolom (ringkas)**
 
-| Mode | Kolom kunci |
-|---|---|
+| Mode    | Kolom kunci                                                                                                                                                                                               |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | SUMMARY | `employee_id`, `employee_name`, `department`, `period_*`, `working_days`, `regular_hours`, `overtime_hours`, `leave_days`, `absent_days`, `late_minutes`, `overtime_hourly_rate`, `overtime_pay_estimate` |
-| DETAIL | Semua kolom identitas + `work_date`, `entry_kind`, `expected_hours`, `regular_hours`, `overtime_hours`, `leave_hours`, `late_minutes`, `early_leave_minutes`, `note` |
+| DETAIL  | Semua kolom identitas + `work_date`, `entry_kind`, `expected_hours`, `regular_hours`, `overtime_hours`, `leave_hours`, `late_minutes`, `early_leave_minutes`, `note`                                      |
 
 **Alur audit-first**
 
@@ -3064,12 +3067,12 @@ bisa dibuka **tanpa akun** oleh vendor payroll — link kadaluarsa 24 jam
 
 **Endpoints**
 
-| Method | Path | Access | Deskripsi |
-|---|---|---|---|
-| POST | `/admin/timesheet/exports/:id/shares` | HR, Super Admin | Buat link. Body: `{ ttlHours?, note? }`. Response: `{ id, url, expiresAt, note, createdAt }`. |
-| GET  | `/admin/timesheet/exports/:id/shares` | HR, Super Admin | List link untuk satu export beserta `downloadCount`, `expiresAt`, `revokedAt`, dan `active`. |
-| POST | `/admin/timesheet/exports/:id/shares/:shareId/revoke` | HR, Super Admin | Revoke soft — link jadi 403 seketika. Idempotent. |
-| GET  | `/public/timesheet-exports/download?id&expires&signature` | Anonim | Endpoint download tanpa JWT. Serve bytes yang persis sama dengan hasil export awal. |
+| Method | Path                                                      | Access          | Deskripsi                                                                                     |
+| ------ | --------------------------------------------------------- | --------------- | --------------------------------------------------------------------------------------------- |
+| POST   | `/admin/timesheet/exports/:id/shares`                     | HR, Super Admin | Buat link. Body: `{ ttlHours?, note? }`. Response: `{ id, url, expiresAt, note, createdAt }`. |
+| GET    | `/admin/timesheet/exports/:id/shares`                     | HR, Super Admin | List link untuk satu export beserta `downloadCount`, `expiresAt`, `revokedAt`, dan `active`.  |
+| POST   | `/admin/timesheet/exports/:id/shares/:shareId/revoke`     | HR, Super Admin | Revoke soft — link jadi 403 seketika. Idempotent.                                             |
+| GET    | `/public/timesheet-exports/download?id&expires&signature` | Anonim          | Endpoint download tanpa JWT. Serve bytes yang persis sama dengan hasil export awal.           |
 
 **Signature**
 
@@ -3109,10 +3112,10 @@ bisa dibuka **tanpa akun** oleh vendor payroll — link kadaluarsa 24 jam
 
 **Audit events**
 
-| Action | Actor | Kapan |
-|---|---|---|
-| `TIMESHEET_EXPORT_SHARED` | HR / Super Admin | Setelah `POST /shares` sukses. |
-| `TIMESHEET_EXPORT_SHARE_REVOKED` | HR / Super Admin | Setelah revoke sukses. |
+| Action                              | Actor             | Kapan                                                                         |
+| ----------------------------------- | ----------------- | ----------------------------------------------------------------------------- |
+| `TIMESHEET_EXPORT_SHARED`           | HR / Super Admin  | Setelah `POST /shares` sukses.                                                |
+| `TIMESHEET_EXPORT_SHARE_REVOKED`    | HR / Super Admin  | Setelah revoke sukses.                                                        |
 | `TIMESHEET_EXPORT_SHARE_DOWNLOADED` | **null** (anonim) | Setiap kali public endpoint sukses. IP requester tersimpan di `afterJson.ip`. |
 
 **Rotasi secret**
@@ -3138,22 +3141,22 @@ memverifikasi otentik dengan HMAC-SHA256.
 
 **Event set (Fase 32e)**
 
-| Event | Kapan | Payload data |
-|---|---|---|
-| `timesheet.export.created` | HR commit export payroll | `exportId, periodId, periodLabel, periodStart, periodEnd, format, mode, rowCount, entryCount, bytes, payloadSha256, departmentId, requestedBy` |
-| `timesheet.export.share.created` | HR mint signed download URL | `shareId, exportId, downloadUrl, expiresAt, note, createdBy` |
+| Event                            | Kapan                       | Payload data                                                                                                                                   |
+| -------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `timesheet.export.created`       | HR commit export payroll    | `exportId, periodId, periodLabel, periodStart, periodEnd, format, mode, rowCount, entryCount, bytes, payloadSha256, departmentId, requestedBy` |
+| `timesheet.export.share.created` | HR mint signed download URL | `shareId, exportId, downloadUrl, expiresAt, note, createdBy`                                                                                   |
 
 **Admin endpoints**
 
-| Method | Path | Deskripsi |
-|---|---|---|
-| POST | `/admin/webhooks` | Buat endpoint. Response 201 memuat `secret` — **hanya kali ini**. |
-| GET  | `/admin/webhooks` | List endpoint tenant. |
-| PATCH | `/admin/webhooks/:id` | Update URL / events / active. |
-| POST | `/admin/webhooks/:id/rotate-secret` | Rotasi secret. Response memuat plaintext baru sekali. |
-| POST | `/admin/webhooks/:id/test-fire` | Kirim event sintetik ke endpoint (untuk verifikasi awal). |
-| DELETE | `/admin/webhooks/:id` | Hapus endpoint (kaskade ke delivery log). |
-| GET  | `/admin/webhooks/deliveries?endpointId=&limit=` | Riwayat delivery 50 terbaru per endpoint. |
+| Method | Path                                            | Deskripsi                                                         |
+| ------ | ----------------------------------------------- | ----------------------------------------------------------------- |
+| POST   | `/admin/webhooks`                               | Buat endpoint. Response 201 memuat `secret` — **hanya kali ini**. |
+| GET    | `/admin/webhooks`                               | List endpoint tenant.                                             |
+| PATCH  | `/admin/webhooks/:id`                           | Update URL / events / active.                                     |
+| POST   | `/admin/webhooks/:id/rotate-secret`             | Rotasi secret. Response memuat plaintext baru sekali.             |
+| POST   | `/admin/webhooks/:id/test-fire`                 | Kirim event sintetik ke endpoint (untuk verifikasi awal).         |
+| DELETE | `/admin/webhooks/:id`                           | Hapus endpoint (kaskade ke delivery log).                         |
+| GET    | `/admin/webhooks/deliveries?endpointId=&limit=` | Riwayat delivery 50 terbaru per endpoint.                         |
 
 **Signature scheme**
 
@@ -3162,10 +3165,9 @@ memverifikasi otentik dengan HMAC-SHA256.
 - Verifikasi vendor (contoh Node.js):
   ```js
   const [, t, v1] = /^t=(\d+),v1=([0-9a-f]+)$/.exec(header) ?? [];
-  if (Math.abs(Date.now()/1000 - Number(t)) > 300) reject('stale');
-  const expected = crypto.createHmac('sha256', secret)
-    .update(`${t}.${rawBody}`).digest('hex');
-  if (!crypto.timingSafeEqual(Buffer.from(v1,'hex'), Buffer.from(expected,'hex')))
+  if (Math.abs(Date.now() / 1000 - Number(t)) > 300) reject('stale');
+  const expected = crypto.createHmac('sha256', secret).update(`${t}.${rawBody}`).digest('hex');
+  if (!crypto.timingSafeEqual(Buffer.from(v1, 'hex'), Buffer.from(expected, 'hex')))
     reject('bad signature');
   ```
 - HMAC dihitung di sisi Workpulse pada **saat delivery** (bukan
@@ -3180,7 +3182,7 @@ memverifikasi otentik dengan HMAC-SHA256.
 - Terminal `FAILED` setelah semua percobaan habis. HR bisa
   **Test-fire** ulang dari UI kalau vendor sudah pulih.
 - Semua percobaan mencatat `attemptCount, lastResponseStatus,
-  lastResponseBodySnippet (512 byte), lastError` di `WebhookDelivery`.
+lastResponseBodySnippet (512 byte), lastError` di `WebhookDelivery`.
 
 **SSRF hardening**
 
@@ -3195,12 +3197,12 @@ memverifikasi otentik dengan HMAC-SHA256.
 
 **Audit events**
 
-| Action | Ketika |
-|---|---|
-| `WEBHOOK_ENDPOINT_CREATED` | POST /admin/webhooks sukses. |
-| `WEBHOOK_ENDPOINT_UPDATED` | PATCH sukses. |
-| `WEBHOOK_ENDPOINT_SECRET_ROTATED` | Rotasi secret. |
-| `WEBHOOK_ENDPOINT_DELETED` | DELETE sukses. |
+| Action                            | Ketika                       |
+| --------------------------------- | ---------------------------- |
+| `WEBHOOK_ENDPOINT_CREATED`        | POST /admin/webhooks sukses. |
+| `WEBHOOK_ENDPOINT_UPDATED`        | PATCH sukses.                |
+| `WEBHOOK_ENDPOINT_SECRET_ROTATED` | Rotasi secret.               |
+| `WEBHOOK_ENDPOINT_DELETED`        | DELETE sukses.               |
 
 Delivery attempts sendiri **tidak** ditulis ke `AuditLog` — baris
 `WebhookDelivery` sudah append-only (DB revoke DELETE) dan berperan
@@ -3232,22 +3234,22 @@ mendapat periode pertama pada tick berikutnya.
 
 **Reminder harian.** Untuk setiap timesheet yang masih perlu aksi:
 
-| Status timesheet | Recipient | Notification type |
-|---|---|---|
-| `DRAFT` / `REJECTED` | pemilik timesheet | `TIMESHEET_SUBMIT_REMINDER` |
-| `PENDING_SUPERVISOR` | supervisor langsung | `TIMESHEET_APPROVAL_REMINDER` |
-| `PENDING_HR` | semua HR_MANAGER + SUPER_ADMIN di tenant | `TIMESHEET_APPROVAL_REMINDER` |
+| Status timesheet     | Recipient                                | Notification type             |
+| -------------------- | ---------------------------------------- | ----------------------------- |
+| `DRAFT` / `REJECTED` | pemilik timesheet                        | `TIMESHEET_SUBMIT_REMINDER`   |
+| `PENDING_SUPERVISOR` | supervisor langsung                      | `TIMESHEET_APPROVAL_REMINDER` |
+| `PENDING_HR`         | semua HR_MANAGER + SUPER_ADMIN di tenant | `TIMESHEET_APPROVAL_REMINDER` |
 
 **Cadence tenant-configurable** via `TimesheetConfig`:
 
-| Field | Range | Default | Arti |
-|---|---|---|---|
-| `autoGenerateEnabled` | bool | true | Master switch auto-gen. |
-| `reminderEnabled` | bool | true | Master switch reminder. |
-| `submitReminderStartDays` | 0..30 | 1 | Hari setelah `periodEnd` sebelum reminder pertama ke employee. |
-| `submitReminderMaxDays` | 1..60 | 7 | Hari setelah `periodEnd` reminder berhenti (HR harus intervensi manual). |
-| `approvalReminderStartDays` | 0..30 | 2 | Sama, untuk approver queue. |
-| `approvalReminderMaxDays` | 1..60 | 14 | Sama, batas approver. |
+| Field                       | Range | Default | Arti                                                                     |
+| --------------------------- | ----- | ------- | ------------------------------------------------------------------------ |
+| `autoGenerateEnabled`       | bool  | true    | Master switch auto-gen.                                                  |
+| `reminderEnabled`           | bool  | true    | Master switch reminder.                                                  |
+| `submitReminderStartDays`   | 0..30 | 1       | Hari setelah `periodEnd` sebelum reminder pertama ke employee.           |
+| `submitReminderMaxDays`     | 1..60 | 7       | Hari setelah `periodEnd` reminder berhenti (HR harus intervensi manual). |
+| `approvalReminderStartDays` | 0..30 | 2       | Sama, untuk approver queue.                                              |
+| `approvalReminderMaxDays`   | 1..60 | 14      | Sama, batas approver.                                                    |
 
 Cross-field guard: `maxDays >= startDays` (DB `CHECK` + service).
 
@@ -3300,12 +3302,16 @@ sehingga re-fire idempotent. Payload:
 
 ```jsonc
 {
-  "timesheetId": "...", "userId": "...", "periodId": "...",
-  "periodLabel": "Januari 2026", "periodStart": "2026-01-01",
+  "timesheetId": "...",
+  "userId": "...",
+  "periodId": "...",
+  "periodLabel": "Januari 2026",
+  "periodStart": "2026-01-01",
   "periodEnd": "2026-01-31",
-  "reopenCount": 1, "reopenedAt": "2026-08-03T...",
+  "reopenCount": 1,
+  "reopenedAt": "2026-08-03T...",
   "reopenedBy": { "id": "...", "email": "hr@..." },
-  "reason": "..."
+  "reason": "...",
 }
 ```
 
@@ -3361,19 +3367,19 @@ PUBLISHED / ARCHIVED`).
 
 ### 12.4 Endpoint
 
-| Method + Path | Aksi |
-|---|---|
-| `GET /admin/ropa/activities` | List semua aktivitas + versi ringkas |
-| `GET /admin/ropa/activities/:id` | Detail (semua versi) |
-| `POST /admin/ropa/activities` | Buat aktivitas baru + DRAFT v1 |
-| `POST /admin/ropa/seed-defaults` | Seed 6 blueprint bawaan (idempotent) |
-| `PATCH /admin/ropa/activities/:a/versions/:v` | Edit DRAFT |
-| `POST /admin/ropa/activities/:a/versions/:v/submit-review` | DRAFT → REVIEW |
-| `POST /admin/ropa/activities/:a/versions/:v/return-to-draft` | REVIEW → DRAFT |
-| `POST /admin/ropa/activities/:a/versions/:v/publish` | REVIEW → PUBLISHED (+ archive previous) |
-| `POST /admin/ropa/activities/:a/new-version` | Fork DRAFT baru dari versi terakhir |
-| `GET /admin/ropa/export.pdf` | Export PDF (regulator-facing) |
-| `GET /admin/ropa/export.xlsx` | Export XLSX (frozen columns, machine-readable) |
+| Method + Path                                                | Aksi                                           |
+| ------------------------------------------------------------ | ---------------------------------------------- |
+| `GET /admin/ropa/activities`                                 | List semua aktivitas + versi ringkas           |
+| `GET /admin/ropa/activities/:id`                             | Detail (semua versi)                           |
+| `POST /admin/ropa/activities`                                | Buat aktivitas baru + DRAFT v1                 |
+| `POST /admin/ropa/seed-defaults`                             | Seed 6 blueprint bawaan (idempotent)           |
+| `PATCH /admin/ropa/activities/:a/versions/:v`                | Edit DRAFT                                     |
+| `POST /admin/ropa/activities/:a/versions/:v/submit-review`   | DRAFT → REVIEW                                 |
+| `POST /admin/ropa/activities/:a/versions/:v/return-to-draft` | REVIEW → DRAFT                                 |
+| `POST /admin/ropa/activities/:a/versions/:v/publish`         | REVIEW → PUBLISHED (+ archive previous)        |
+| `POST /admin/ropa/activities/:a/new-version`                 | Fork DRAFT baru dari versi terakhir            |
+| `GET /admin/ropa/export.pdf`                                 | Export PDF (regulator-facing)                  |
+| `GET /admin/ropa/export.xlsx`                                | Export XLSX (frozen columns, machine-readable) |
 
 Semua di-scope `companyId` di service; RBAC: `HR_MANAGER` +
 `SUPER_ADMIN`. Rate-limit: mutations 30/menit, seed 5/menit, export
@@ -3409,7 +3415,7 @@ diterima auditor byte-perfect dengan baris audit.
 - `/admin/ropa` — panel list dengan status badge, tombol
   "Seed defaults", "Export PDF", "Export XLSX".
 - `/admin/ropa/[activityId]` — detail semua versi + inline edit DRAFT
-  + tombol submit-review / return-to-draft / publish / new-version.
+  - tombol submit-review / return-to-draft / publish / new-version.
 
 ### 12.8 Non-goals
 
@@ -3435,12 +3441,12 @@ subjek data (GDPR Art. 35 · UU 27/2022 PDP Pasal 34).
 
 **Scoring.** `likelihood × impact` → `[1..25]`:
 
-| Score | Level    |
-| ----- | -------- |
-| <8    | LOW      |
-| 8..14 | MEDIUM   |
-| 15..19| HIGH     |
-| 20..25| CRITICAL |
+| Score  | Level    |
+| ------ | -------- |
+| <8     | LOW      |
+| 8..14  | MEDIUM   |
+| 15..19 | HIGH     |
+| 20..25 | CRITICAL |
 
 Residual dihitung sama tetapi setelah mitigasi. **Residual ≤ inherent**
 (DB CHECK + service guard).
@@ -3538,16 +3544,16 @@ Pemetaan mode diputuskan di `AnalyticsQueryService.aggregationModeFor`
 
 ### 13.5 Endpoints
 
-| Method | Path | RBAC | Throttle |
-|---|---|---|---|
-| GET | `/admin/analytics/dashboard?windowDays=7\|30\|90\|365` | HR_MANAGER / SUPER_ADMIN | 60/min |
-| GET | `/admin/analytics/timeseries?metricKey=…&windowDays=…` | HR_MANAGER / SUPER_ADMIN | 60/min |
+| Method | Path                                                   | RBAC                     | Throttle |
+| ------ | ------------------------------------------------------ | ------------------------ | -------- |
+| GET    | `/admin/analytics/dashboard?windowDays=7\|30\|90\|365` | HR_MANAGER / SUPER_ADMIN | 60/min   |
+| GET    | `/admin/analytics/timeseries?metricKey=…&windowDays=…` | HR_MANAGER / SUPER_ADMIN | 60/min   |
 
 ### 13.6 Environment
 
-| Env | Default | Purpose |
-|---|---|---|
-| `ANALYTICS_SNAPSHOT_ENABLED` | `true` | Kill switch worker (set `false` di follower replicas). |
+| Env                          | Default | Purpose                                                |
+| ---------------------------- | ------- | ------------------------------------------------------ |
+| `ANALYTICS_SNAPSHOT_ENABLED` | `true`  | Kill switch worker (set `false` di follower replicas). |
 
 ### 13.7 FE
 
@@ -3586,10 +3592,10 @@ dengan cadence per-tenant.
 - `ReportDelivery` — append-only log (REVOKE DELETE PUBLIC): status,
   attempts, `payloadSha256`, `payloadBytes`, `errorSnippet`.
 - Enum `ScheduledReportType`: `TIMESHEET_SUMMARY | ROPA | DPIA |
-  ANALYTICS_SNAPSHOT | CUSTOM` (CUSTOM reserved untuk Fase 33b).
+ANALYTICS_SNAPSHOT | CUSTOM` (CUSTOM reserved untuk Fase 33b).
 - Enum `ReportFrequency`: `DAILY | WEEKLY | MONTHLY`.
 - Enum `ReportDeliveryStatus`: `PENDING | DISPATCHING | DELIVERED |
-  FAILED`.
+FAILED`.
 
 **Cadence math.** Semua kalkulasi `nextRunAt` dilakukan di UTC. FE
 picker mem-project jam lokal ke UTC sebelum submit. Domain fungsi
@@ -3650,11 +3656,11 @@ declarative report**.
 
 **Katalog tertutup.**
 
-| Axis | Nilai |
-| --- | --- |
-| Dimension | `DAY`, `DEPARTMENT`, `USER` |
-| Metric | `ATTENDANCE_COUNT`, `ATTENDANCE_LATE_COUNT`, `ATTENDANCE_ON_TIME_RATE`, `LEAVE_DAYS_APPROVED`, `OVERTIME_HOURS` |
-| Window | 7, 30, 90, 365 hari |
+| Axis      | Nilai                                                                                                           |
+| --------- | --------------------------------------------------------------------------------------------------------------- |
+| Dimension | `DAY`, `DEPARTMENT`, `USER`                                                                                     |
+| Metric    | `ATTENDANCE_COUNT`, `ATTENDANCE_LATE_COUNT`, `ATTENDANCE_ON_TIME_RATE`, `LEAVE_DAYS_APPROVED`, `OVERTIME_HOURS` |
+| Window    | 7, 30, 90, 365 hari                                                                                             |
 
 Setiap kombinasi = SQL fragment kurasi tim engineering, di-parametrise
 via `Prisma.sql`. Tidak ada string concat user input.
@@ -3712,13 +3718,13 @@ hanya ada `AuditLog` — tidak regulator-friendly, tidak ada countdown
 
 - `BreachIncident` — head record: `title`, `description`, `severity`
   (`LOW/MEDIUM/HIGH/CRITICAL`), `category` (`CONFIDENTIALITY/
-  INTEGRITY/AVAILABILITY/MIXED`), `status`, kronologi timestamps,
+INTEGRITY/AVAILABILITY/MIXED`), `status`, kronologi timestamps,
   impact (`affectedUserCount`, `affectedDataCategories[]`,
   `affectedSystems[]`), narrative (`containmentActions`, `rootCause`,
   `remediation`), notifikasi refs (`authorityNotificationRef`,
   `subjectNotificationTemplate`).
 - `BreachTimelineEvent` — append-only event log, `REVOKE UPDATE,
-  DELETE ON PUBLIC` di DB level. Setiap mutation menulis event ini +
+DELETE ON PUBLIC` di DB level. Setiap mutation menulis event ini +
   `AuditLog` dalam satu `$transaction`.
 - CHECK constraints: `occurredAt ≤ detectedAt`, `affectedUserCount ≥ 0`.
 
@@ -3789,10 +3795,12 @@ Bukti otomatis bahwa `RetentionWorker` (§ ADR-0022) menjalankan
 pruning sesuai `RetentionPolicy` per-tenant.
 
 ### Aktor
+
 - **RetentionAuditWorker** (cron, tanggal 1 tiap bulan 05:30 UTC).
 - **HR_MANAGER / SUPER_ADMIN** (baca laporan + regenerate manual).
 
 ### Alur bulanan
+
 1. **Snapshot period**: worker menghitung window `[periodStart, periodEnd)`
    untuk bulan kalender sebelumnya (UTC).
 2. **Aggregate audit rows**: hitung
@@ -3816,6 +3824,7 @@ pruning sesuai `RetentionPolicy` per-tenant.
    tenant (in-app + email, honor preference).
 
 ### Regenerate manual
+
 - Endpoint: `POST /api/v1/admin/privacy/retention/audit-reports/regenerate`
   body `{ year, month }`.
 - **Tidak** mengirim notifikasi (biar tidak spam saat post-mortem).
@@ -3825,11 +3834,13 @@ pruning sesuai `RetentionPolicy` per-tenant.
   yang konsisten dengan policy saat itu.
 
 ### Kill switch
+
 - `RETENTION_AUDIT_WORKER_ENABLED` (default `true`).
 - Set `false` pada replika follower supaya hanya primary yang tick.
 - Health probe di `/api/v1/health/deep` mengekspos `workers.retentionAudit.enabled`.
 
 ### UI
+
 - Daftar bulanan: `/admin/privacy/retention/audit-reports`.
 - Detail satu bulan: `/admin/privacy/retention/audit-reports/[id]`.
 - Timeline card dengan status chip + counter row + jumlah temuan.
@@ -3842,26 +3853,29 @@ Snapshot bulanan footprint per-tenant untuk perencanaan kapasitas
 dan basis tier billing di masa depan.
 
 ### Aktor
+
 - **TenantUsageWorker** (cron, tanggal 1 tiap bulan 06:00 UTC —
   30 menit setelah audit retention).
 - **HR_MANAGER** (baca tenant sendiri).
 - **SUPER_ADMIN** (baca cross-tenant + regenerate).
 
 ### Metrik
-| Kategori | Field | Sumber |
-|---|---|---|
-| Storage | `storageExportBytes` | `SUM(TimesheetExport.bytes)` di periode |
-| Storage | `storageDsarBytes` | `SUM(DataExportRequest.fileSize)` di periode |
-| Storage | `storageTotalBytes` | Sum keduanya (BigInt) |
-| Storage | `attachmentBytesTracked` | `false` — lampiran belum di-track (post-Beta) |
-| DB rows | `dbRowsUser`, `dbRowsAttendance`, … | `COUNT(*)` per tabel per tenant, point-in-time |
-| DB rows | `dbRowsTotal` | Sum semua tabel (BigInt) |
-| Komunikasi | `notificationsCreated` | `COUNT(Notification)` di periode |
-| Komunikasi | `webhookDeliveries` | `COUNT(WebhookDelivery)` di periode |
-| Populasi | `activeUsers` | DISTINCT `userId` di attendance/leave/overtime/auditLog di periode |
-| Populasi | `totalUsers` | `COUNT(User WHERE deletedAt IS NULL)` |
+
+| Kategori   | Field                               | Sumber                                                             |
+| ---------- | ----------------------------------- | ------------------------------------------------------------------ |
+| Storage    | `storageExportBytes`                | `SUM(TimesheetExport.bytes)` di periode                            |
+| Storage    | `storageDsarBytes`                  | `SUM(DataExportRequest.fileSize)` di periode                       |
+| Storage    | `storageTotalBytes`                 | Sum keduanya (BigInt)                                              |
+| Storage    | `attachmentBytesTracked`            | `false` — lampiran belum di-track (post-Beta)                      |
+| DB rows    | `dbRowsUser`, `dbRowsAttendance`, … | `COUNT(*)` per tabel per tenant, point-in-time                     |
+| DB rows    | `dbRowsTotal`                       | Sum semua tabel (BigInt)                                           |
+| Komunikasi | `notificationsCreated`              | `COUNT(Notification)` di periode                                   |
+| Komunikasi | `webhookDeliveries`                 | `COUNT(WebhookDelivery)` di periode                                |
+| Populasi   | `activeUsers`                       | DISTINCT `userId` di attendance/leave/overtime/auditLog di periode |
+| Populasi   | `totalUsers`                        | `COUNT(User WHERE deletedAt IS NULL)`                              |
 
 ### Alur bulanan
+
 1. **Snapshot period**: `[periodStart, periodEnd)` untuk bulan
    kalender sebelumnya (UTC).
 2. **Query paralel** semua 5 kategori metrik.
@@ -3871,17 +3885,20 @@ dan basis tier billing di masa depan.
 4. **Upsert** `TenantUsageSnapshot` (unique `(companyId, periodStart)`).
 
 ### Regenerate manual
+
 - Endpoint: `POST /api/v1/admin/usage/regenerate` (SUPER_ADMIN)
   body `{ companyId, year, month }`.
 - HR_MANAGER tidak bisa memicu regenerate — cross-tenant capability.
 
 ### Kill switch
+
 - `TENANT_USAGE_WORKER_ENABLED` (default `true`).
 - Set `false` pada replika follower.
 - Health probe di `/api/v1/health/deep` mengekspos
   `workers.tenantUsage.enabled`.
 
 ### UI
+
 - `/admin/usage` — HR_MANAGER melihat tabel snapshot bulanan tenant
   sendiri (kolom: periode, storage, DB rows, notif, webhook, active,
   total).
@@ -3891,6 +3908,7 @@ dan basis tier billing di masa depan.
   `attachmentBytesTracked=false` — honest signal ke user.
 
 ### Precision
+
 - Storage dan `dbRowsTotal` ditransport sebagai stringified integer
   (`"12345678"`) di response JSON supaya BigInt tidak silently
   terpotong di 2^53 pada tenant matang.
@@ -3902,6 +3920,7 @@ nama tenant, memenuhi UU 27/2022 Pelindungan Data Pribadi Pasal 45
 dan GDPR Art. 28.
 
 ### Model data
+
 - `VendorProcessor` — satu baris per processor per tenant. Identitas
   (name, slug, category), footprint data (dataCategories, volume,
   residency), kontrak (start/end, dokumen URL, DPA signed date),
@@ -3915,6 +3934,7 @@ dan GDPR Art. 28.
   siklus yang di-reschedule bisa memicu reminder baru.
 
 ### State machine
+
 Enum `VendorStatus` mengikuti transisi forward-only yang dienforced
 oleh `canTransition()`:
 
@@ -3931,12 +3951,15 @@ Vendor yang re-signed setelah terminasi HARUS membuat row baru
 supaya jejak audit historis tidak tercemari.
 
 ### Aktor
+
 - **HR_MANAGER** dan **SUPER_ADMIN** — CRUD, mark reviewed,
   terminate, tautkan/putus dari ROPA.
 - **VendorReviewReminderWorker** (cron harian 07:00 UTC).
 
 ### Cadence reminder
+
 Pure function di `vendor-review-cadence.ts`:
+
 - `REVIEW_DUE` — `nextReviewAt <= now + 30d`. Severity naik ke
   `critical` begitu overdue.
 - `CONTRACT_EXPIRING` — `contractEndAt <= now + 60d`. 60 hari
@@ -3946,6 +3969,7 @@ Pure function di `vendor-review-cadence.ts`:
   reminder.
 
 ### Alur harian worker
+
 1. Load kandidat vendor (`status IN (ACTIVE, UNDER_REVIEW)` dan
    `nextReviewAt` atau `contractEndAt` <= now + 90d).
 2. Untuk tiap vendor, hitung `computeDueReminders(now, …)`.
@@ -3957,12 +3981,15 @@ Pure function di `vendor-review-cadence.ts`:
    claim, silent skip.
 
 ### Kill switch
+
 - `VENDOR_REVIEW_REMINDER_WORKER_ENABLED` (default `true`).
 - Set `false` di replika follower.
 - `/api/v1/health/deep` mengekspos `workers.vendorReviewReminder.enabled`.
 
 ### Audit trail
+
 Setiap mutasi menulis `AuditLog` di transaksi yang sama:
+
 - `VENDOR_PROCESSOR_CREATED`
 - `VENDOR_PROCESSOR_UPDATED`
 - `VENDOR_PROCESSOR_STATUS_CHANGED`
@@ -3972,6 +3999,7 @@ Setiap mutasi menulis `AuditLog` di transaksi yang sama:
 - `VENDOR_PROCESSOR_ROPA_UNLINKED`
 
 ### UI
+
 - `/admin/privacy/vendors` — daftar dengan filter status & kategori.
 - `/admin/privacy/vendors/new` — form create (mulai `UNDER_REVIEW`).
 - `/admin/privacy/vendors/[id]` — detail + action bar (mark reviewed,
@@ -3981,37 +4009,37 @@ Setiap mutasi menulis `AuditLog` di transaksi yang sama:
 
 ## 7. Roles → Access Matrix (ringkas)
 
-| Aksi | EMPLOYEE | SUPERVISOR | HR_MANAGER | SUPER_ADMIN |
-|---|:-:|:-:|:-:|:-:|
-| Clock-in/out (own) | ✓ | ✓ | ✓ | ✓ |
-| Lihat kehadiran tim | | ✓ | ✓ | ✓ |
-| Submit cuti (own) | ✓ | ✓ | ✓ | ✓ |
-| Approve cuti level 1 (supervisor tim) | | ✓ | | ✓ |
-| Approve cuti level 2 (HR) | | | ✓ | ✓ |
-| Submit lembur (own) | ✓ | ✓ | ✓ | ✓ |
-| Approve lembur (supervisor tim) | | ✓ | | ✓ |
-| Approve lembur (tenant-wide) | | | ✓ | ✓ |
-| Override saldo | | | ✓ | ✓ |
-| CRUD Department | | | ✓ | ✓ |
-| CRUD User (rank ≤ actor) | | | ✓ | ✓ |
-| Create SUPER_ADMIN | | | | ✓ |
-| Reset password admin-issued | | | ✓ | ✓ |
-| CRUD Geofence / Shift / Leave Type | | | ✓ | ✓ |
-| Assign Shift ke user | | | ✓ | ✓ |
-| CRUD Holiday (kalender libur) | | | ✓ | ✓ |
-| Export report | | | ✓ | ✓ |
-| Lihat audit log | | | ✓ | ✓ |
-| Reopen APPROVED timesheet | | | ✓ | ✓ |
-| Kelola ROPA registry | | | ✓ | ✓ |
-| Publish versi ROPA | | | ✓ | ✓ |
-| Export ROPA (PDF / XLSX) | | | ✓ | ✓ |
-| Lihat executive KPI dashboard | | | ✓ | ✓ |
-| Lihat timeseries analytics | | | ✓ | ✓ |
-| Lihat Retention Audit bulanan | | | ✓ | ✓ |
-| Regenerate Retention Audit | | | ✓ | ✓ |
-| Lihat usage tenant sendiri | | | ✓ | ✓ |
-| Lihat usage cross-tenant | | | | ✓ |
-| Regenerate usage snapshot | | | | ✓ |
-| CRUD Vendor / Processor Register | | | ✓ | ✓ |
-| Mark reviewed / Terminate vendor | | | ✓ | ✓ |
-| Tautkan vendor ke ROPA activity | | | ✓ | ✓ |
+| Aksi                                  | EMPLOYEE | SUPERVISOR | HR_MANAGER | SUPER_ADMIN |
+| ------------------------------------- | :------: | :--------: | :--------: | :---------: |
+| Clock-in/out (own)                    |    ✓     |     ✓      |     ✓      |      ✓      |
+| Lihat kehadiran tim                   |          |     ✓      |     ✓      |      ✓      |
+| Submit cuti (own)                     |    ✓     |     ✓      |     ✓      |      ✓      |
+| Approve cuti level 1 (supervisor tim) |          |     ✓      |            |      ✓      |
+| Approve cuti level 2 (HR)             |          |            |     ✓      |      ✓      |
+| Submit lembur (own)                   |    ✓     |     ✓      |     ✓      |      ✓      |
+| Approve lembur (supervisor tim)       |          |     ✓      |            |      ✓      |
+| Approve lembur (tenant-wide)          |          |            |     ✓      |      ✓      |
+| Override saldo                        |          |            |     ✓      |      ✓      |
+| CRUD Department                       |          |            |     ✓      |      ✓      |
+| CRUD User (rank ≤ actor)              |          |            |     ✓      |      ✓      |
+| Create SUPER_ADMIN                    |          |            |            |      ✓      |
+| Reset password admin-issued           |          |            |     ✓      |      ✓      |
+| CRUD Geofence / Shift / Leave Type    |          |            |     ✓      |      ✓      |
+| Assign Shift ke user                  |          |            |     ✓      |      ✓      |
+| CRUD Holiday (kalender libur)         |          |            |     ✓      |      ✓      |
+| Export report                         |          |            |     ✓      |      ✓      |
+| Lihat audit log                       |          |            |     ✓      |      ✓      |
+| Reopen APPROVED timesheet             |          |            |     ✓      |      ✓      |
+| Kelola ROPA registry                  |          |            |     ✓      |      ✓      |
+| Publish versi ROPA                    |          |            |     ✓      |      ✓      |
+| Export ROPA (PDF / XLSX)              |          |            |     ✓      |      ✓      |
+| Lihat executive KPI dashboard         |          |            |     ✓      |      ✓      |
+| Lihat timeseries analytics            |          |            |     ✓      |      ✓      |
+| Lihat Retention Audit bulanan         |          |            |     ✓      |      ✓      |
+| Regenerate Retention Audit            |          |            |     ✓      |      ✓      |
+| Lihat usage tenant sendiri            |          |            |     ✓      |      ✓      |
+| Lihat usage cross-tenant              |          |            |            |      ✓      |
+| Regenerate usage snapshot             |          |            |            |      ✓      |
+| CRUD Vendor / Processor Register      |          |            |     ✓      |      ✓      |
+| Mark reviewed / Terminate vendor      |          |            |     ✓      |      ✓      |
+| Tautkan vendor ke ROPA activity       |          |            |     ✓      |      ✓      |

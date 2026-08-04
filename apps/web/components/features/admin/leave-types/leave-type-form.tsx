@@ -2,11 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import type {
-  AdminLeaveType,
-  CreateLeaveTypeInput,
-  LeaveKind,
-} from '@workpulse/shared-types';
+import type { AdminLeaveType, CreateLeaveTypeInput, LeaveKind } from '@workpulse/shared-types';
 import { createLeaveTypeSchema } from '@workpulse/shared-types';
 
 const LEAVE_KIND_LABELS: Record<LeaveKind, string> = {
@@ -47,13 +43,13 @@ export function LeaveTypeForm({ initial, submitting, onSubmit, onCancel }: Props
           {...form.register('code')}
           disabled={Boolean(initial)}
           placeholder="ANNUAL"
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono uppercase disabled:opacity-60"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 font-mono text-sm uppercase disabled:opacity-60"
         />
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           Huruf besar / angka / underscore, tidak bisa diubah setelah dibuat.
         </p>
         {form.formState.errors.code && (
-          <p className="text-xs text-destructive">{form.formState.errors.code.message}</p>
+          <p className="text-destructive text-xs">{form.formState.errors.code.message}</p>
         )}
       </div>
 
@@ -62,10 +58,10 @@ export function LeaveTypeForm({ initial, submitting, onSubmit, onCancel }: Props
         <input
           {...form.register('name')}
           placeholder="Cuti Tahunan"
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         />
         {form.formState.errors.name && (
-          <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
+          <p className="text-destructive text-xs">{form.formState.errors.name.message}</p>
         )}
       </div>
 
@@ -73,7 +69,7 @@ export function LeaveTypeForm({ initial, submitting, onSubmit, onCancel }: Props
         <label className="text-xs font-medium uppercase tracking-wider">Kategori</label>
         <select
           {...form.register('kind')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         >
           {(Object.keys(LEAVE_KIND_LABELS) as LeaveKind[]).map((k) => (
             <option key={k} value={k}>
@@ -84,33 +80,33 @@ export function LeaveTypeForm({ initial, submitting, onSubmit, onCancel }: Props
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs font-medium uppercase tracking-wider">Kuota Tahunan Default</label>
+        <label className="text-xs font-medium uppercase tracking-wider">
+          Kuota Tahunan Default
+        </label>
         <input
           type="number"
           min={0}
           max={365}
           {...form.register('defaultAnnualQuota', { valueAsNumber: true })}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm tabular-nums"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm tabular-nums"
         />
         {form.formState.errors.defaultAnnualQuota && (
-          <p className="text-xs text-destructive">
+          <p className="text-destructive text-xs">
             {form.formState.errors.defaultAnnualQuota.message}
           </p>
         )}
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs font-medium uppercase tracking-wider">
-          Carry-Over Maksimum
-        </label>
+        <label className="text-xs font-medium uppercase tracking-wider">Carry-Over Maksimum</label>
         <input
           type="number"
           min={0}
           max={365}
           {...form.register('carryOverMax', { valueAsNumber: true })}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm tabular-nums"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm tabular-nums"
         />
-        <p className="text-xs text-muted-foreground">Sisa yang boleh dibawa ke tahun berikutnya.</p>
+        <p className="text-muted-foreground text-xs">Sisa yang boleh dibawa ke tahun berikutnya.</p>
       </div>
 
       <div className="space-y-1 md:col-span-2">
@@ -127,7 +123,7 @@ export function LeaveTypeForm({ initial, submitting, onSubmit, onCancel }: Props
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-md bg-foreground px-3 py-1 text-xs font-medium text-background disabled:opacity-50"
+          className="bg-foreground text-background rounded-md px-3 py-1 text-xs font-medium disabled:opacity-50"
         >
           {submitting ? 'Menyimpan...' : initial ? 'Simpan perubahan' : 'Buat tipe cuti'}
         </button>

@@ -1,12 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsISO8601,
-  IsOptional,
-  IsString,
-  Matches,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
+import { IsISO8601, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 
 /**
  * Payload for `POST /attendance/corrections`.

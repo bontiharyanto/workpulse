@@ -33,10 +33,7 @@ export class DpiaExportController {
     const result = await this.service.exportPdf(actor, id);
     res
       .header('Content-Type', result.contentType)
-      .header(
-        'Content-Disposition',
-        `attachment; filename="${result.filename}"`,
-      )
+      .header('Content-Disposition', `attachment; filename="${result.filename}"`)
       .header('X-Payload-Sha256', result.sha256)
       .header('Content-Length', String(result.bytes.byteLength))
       .status(200)

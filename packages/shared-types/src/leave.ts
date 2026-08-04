@@ -24,9 +24,7 @@ export const leaveKindSchema = z.enum([
 export type LeaveKind = z.infer<typeof leaveKindSchema>;
 
 /** A YYYY-MM-DD calendar date (interpreted as the company local calendar day). */
-export const calendarDateSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD');
+export const calendarDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD');
 
 export const leaveRequestInputSchema = z
   .object({

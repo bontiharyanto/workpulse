@@ -20,18 +20,16 @@ export default function PrivacySettingsPage(): JSX.Element {
     <RequireAuth>
       <main className="mx-auto max-w-2xl space-y-6 px-4 py-8">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Privasi data
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Kelola hak akses data pribadi Anda sesuai UU Perlindungan Data
-            Pribadi (UU PDP) dan praktik GDPR.
+          <h1 className="text-2xl font-semibold tracking-tight">Privasi data</h1>
+          <p className="text-muted-foreground text-sm">
+            Kelola hak akses data pribadi Anda sesuai UU Perlindungan Data Pribadi (UU PDP) dan
+            praktik GDPR.
           </p>
         </div>
         <DataExportPanel />
-        <div className="border-t border-input" />
+        <div className="border-input border-t" />
         <PrivacyErasurePanel />
-        <div className="border-t border-input" />
+        <div className="border-input border-t" />
         <ConsentHistoryPanel />
       </main>
     </RequireAuth>

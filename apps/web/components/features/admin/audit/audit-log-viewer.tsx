@@ -8,11 +8,7 @@ import { Fragment, useMemo, useState } from 'react';
 import { ApiError, auditAdminApi, saveBlob } from '@/lib/api-client';
 import type { AuditLogFilters, AuditLogRow } from '@workpulse/shared-types';
 
-import {
-  KNOWN_AUDIT_ACTIONS,
-  KNOWN_AUDIT_ENTITY_TYPES,
-  externalRouteFor,
-} from './audit-catalog';
+import { KNOWN_AUDIT_ACTIONS, KNOWN_AUDIT_ENTITY_TYPES, externalRouteFor } from './audit-catalog';
 import { AuditDiff } from './audit-diff';
 
 /**
@@ -95,25 +91,23 @@ export function AuditLogViewer(): JSX.Element {
       <FilterPanel value={filters} onChange={setFilters} disabled={q.isFetching} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-muted-foreground">
-          Ekspor akan menghasilkan file <code>.ndjson</code> (satu event per
-          baris). Server membatasi hingga 100.000 baris per ekspor —
-          gunakan filter tanggal untuk memecah rentang besar.
+        <p className="text-muted-foreground text-xs">
+          Ekspor akan menghasilkan file <code>.ndjson</code> (satu event per baris). Server
+          membatasi hingga 100.000 baris per ekspor — gunakan filter tanggal untuk memecah rentang
+          besar.
         </p>
         <button
           type="button"
-          className="whitespace-nowrap rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:opacity-50"
+          className="border-input hover:bg-muted whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium disabled:opacity-50"
           onClick={() => exportMutation.mutate()}
           disabled={exportMutation.isPending}
         >
-          {exportMutation.isPending
-            ? 'Menghasilkan file…'
-            : 'Ekspor NDJSON'}
+          {exportMutation.isPending ? 'Menghasilkan file…' : 'Ekspor NDJSON'}
         </button>
       </div>
 
       {exportMutation.isError && (
-        <p role="alert" className="text-xs text-destructive">
+        <p role="alert" className="text-destructive text-xs">
           Gagal ekspor:{' '}
           {exportMutation.error instanceof ApiError
             ? exportMutation.error.message
@@ -124,7 +118,7 @@ export function AuditLogViewer(): JSX.Element {
       )}
 
       {q.isError && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="text-destructive text-sm">
           Gagal memuat audit log:{' '}
           {q.error instanceof ApiError
             ? q.error.message
@@ -136,7 +130,7 @@ export function AuditLogViewer(): JSX.Element {
 
       <section className="overflow-hidden rounded-lg border">
         <table className="w-full text-sm">
-          <thead className="bg-muted/50 text-[11px] uppercase tracking-widest text-muted-foreground">
+          <thead className="bg-muted/50 text-muted-foreground text-[11px] uppercase tracking-widest">
             <tr>
               <th className="px-3 py-2 text-left font-medium">Waktu</th>
               <th className="px-3 py-2 text-left font-medium">Aksi</th>
@@ -149,20 +143,14 @@ export function AuditLogViewer(): JSX.Element {
           <tbody className="divide-y">
             {allRows.length === 0 && !q.isLoading && (
               <tr>
-                <td
-                  colSpan={6}
-                  className="px-3 py-8 text-center text-xs text-muted-foreground"
-                >
+                <td colSpan={6} className="text-muted-foreground px-3 py-8 text-center text-xs">
                   Tidak ada baris audit yang cocok dengan filter.
                 </td>
               </tr>
             )}
             {q.isLoading && (
               <tr>
-                <td
-                  colSpan={6}
-                  className="px-3 py-8 text-center text-xs text-muted-foreground"
-                >
+                <td colSpan={6} className="text-muted-foreground px-3 py-8 text-center text-xs">
                   Memuat…
                 </td>
               </tr>
@@ -172,11 +160,7 @@ export function AuditLogViewer(): JSX.Element {
               const externalRoute = externalRouteFor(row.entityType, row.entityId);
               return (
                 <Fragment key={row.id}>
-                  <tr
-                    className={
-                      isExpanded ? 'bg-muted/30' : 'hover:bg-muted/20'
-                    }
-                  >
+                  <tr className={isExpanded ? 'bg-muted/30' : 'hover:bg-muted/20'}>
                     <td className="px-3 py-2 text-xs tabular-nums">
                       {formatDateTime(row.createdAt)}
                     </td>
@@ -203,7 +187,7 @@ export function AuditLogViewer(): JSX.Element {
                         {externalRoute && (
                           <Link
                             href={externalRoute as Route}
-                            className="text-[10px] text-muted-foreground hover:text-foreground"
+                            className="text-muted-foreground hover:text-foreground text-[10px]"
                             title={`Buka halaman ${row.entityType}`}
                           >
                             ↗
@@ -230,20 +214,16 @@ export function AuditLogViewer(): JSX.Element {
                         title={`Filter berdasarkan pelaku ${row.actorName ?? row.actorId}`}
                         onClick={() => applyFilterPatch({ actorId: row.actorId })}
                       />
-                      <div className="text-[11px] text-muted-foreground">
-                        {row.actorEmail}
-                      </div>
+                      <div className="text-muted-foreground text-[11px]">{row.actorEmail}</div>
                     </td>
-                    <td className="px-3 py-2 font-mono text-[11px] text-muted-foreground">
+                    <td className="text-muted-foreground px-3 py-2 font-mono text-[11px]">
                       {row.ip ?? '—'}
                     </td>
                     <td className="px-3 py-2 text-right">
                       <button
                         type="button"
-                        className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
-                        onClick={() =>
-                          setExpanded((cur) => (cur === row.id ? null : row.id))
-                        }
+                        className="text-muted-foreground hover:text-foreground text-xs underline underline-offset-2"
+                        onClick={() => setExpanded((cur) => (cur === row.id ? null : row.id))}
                       >
                         {isExpanded ? 'Tutup' : 'Diff'}
                       </button>
@@ -252,14 +232,10 @@ export function AuditLogViewer(): JSX.Element {
                   {isExpanded && (
                     <tr className="bg-muted/10">
                       <td colSpan={6} className="px-3 py-3">
-                        <AuditDiff
-                          before={row.beforeJson ?? null}
-                          after={row.afterJson ?? null}
-                        />
+                        <AuditDiff before={row.beforeJson ?? null} after={row.afterJson ?? null} />
                         {row.userAgent && (
-                          <p className="mt-2 truncate text-[10px] text-muted-foreground">
-                            <span className="font-medium">UA:</span>{' '}
-                            {row.userAgent}
+                          <p className="text-muted-foreground mt-2 truncate text-[10px]">
+                            <span className="font-medium">UA:</span> {row.userAgent}
                           </p>
                         )}
                       </td>
@@ -279,7 +255,7 @@ export function AuditLogViewer(): JSX.Element {
         {q.hasNextPage && (
           <button
             type="button"
-            className="rounded-md border border-input px-3 py-2 text-xs font-medium hover:bg-muted disabled:opacity-50"
+            className="border-input hover:bg-muted rounded-md border px-3 py-2 text-xs font-medium disabled:opacity-50"
             onClick={() => void q.fetchNextPage()}
             disabled={q.isFetchingNextPage}
           >
@@ -306,7 +282,7 @@ function FilterPanel({ value, onChange, disabled }: FilterPanelProps): JSX.Eleme
     onChange({ ...value, ...next, cursor: undefined });
   };
   return (
-    <section className="grid gap-3 rounded-lg border bg-muted/20 p-3 sm:grid-cols-2 lg:grid-cols-4">
+    <section className="bg-muted/20 grid gap-3 rounded-lg border p-3 sm:grid-cols-2 lg:grid-cols-4">
       <datalist id="audit-entity-types">
         {KNOWN_AUDIT_ENTITY_TYPES.map((t) => (
           <option key={t} value={t} />
@@ -325,7 +301,7 @@ function FilterPanel({ value, onChange, disabled }: FilterPanelProps): JSX.Eleme
           value={value.entityType ?? ''}
           onChange={(e) => patch({ entityType: e.target.value || undefined })}
           disabled={disabled}
-          className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs"
+          className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
         />
       </Field>
       <Field label="Aksi">
@@ -336,7 +312,7 @@ function FilterPanel({ value, onChange, disabled }: FilterPanelProps): JSX.Eleme
           value={value.action ?? ''}
           onChange={(e) => patch({ action: e.target.value || undefined })}
           disabled={disabled}
-          className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs"
+          className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
         />
       </Field>
       <Field label="Actor ID">
@@ -346,7 +322,7 @@ function FilterPanel({ value, onChange, disabled }: FilterPanelProps): JSX.Eleme
           value={value.actorId ?? ''}
           onChange={(e) => patch({ actorId: e.target.value || undefined })}
           disabled={disabled}
-          className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs"
+          className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
         />
       </Field>
       <Field label="Entity ID">
@@ -356,7 +332,7 @@ function FilterPanel({ value, onChange, disabled }: FilterPanelProps): JSX.Eleme
           value={value.entityId ?? ''}
           onChange={(e) => patch({ entityId: e.target.value || undefined })}
           disabled={disabled}
-          className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs"
+          className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
         />
       </Field>
       <Field label="Dari (createdAt ≥)">
@@ -367,7 +343,7 @@ function FilterPanel({ value, onChange, disabled }: FilterPanelProps): JSX.Eleme
             patch({ from: e.target.value ? new Date(e.target.value).toISOString() : undefined })
           }
           disabled={disabled}
-          className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs"
+          className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
         />
       </Field>
       <Field label="Sampai (createdAt ≤)">
@@ -378,13 +354,13 @@ function FilterPanel({ value, onChange, disabled }: FilterPanelProps): JSX.Eleme
             patch({ to: e.target.value ? new Date(e.target.value).toISOString() : undefined })
           }
           disabled={disabled}
-          className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-xs"
+          className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-xs"
         />
       </Field>
-      <div className="sm:col-span-2 lg:col-span-2 flex items-end justify-end">
+      <div className="flex items-end justify-end sm:col-span-2 lg:col-span-2">
         <button
           type="button"
-          className="rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:opacity-50"
+          className="border-input hover:bg-muted rounded-md border px-3 py-1.5 text-xs font-medium disabled:opacity-50"
           onClick={() => onChange({ limit: value.limit ?? 25 })}
           disabled={disabled}
         >
@@ -395,18 +371,10 @@ function FilterPanel({ value, onChange, disabled }: FilterPanelProps): JSX.Eleme
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}): JSX.Element {
+function Field({ label, children }: { label: string; children: React.ReactNode }): JSX.Element {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
-        {label}
-      </span>
+      <span className="text-muted-foreground text-[10px] uppercase tracking-widest">{label}</span>
       {children}
     </label>
   );

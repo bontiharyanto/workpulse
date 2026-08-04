@@ -9,16 +9,10 @@ import type {
   TimesheetExportMode,
 } from '@workpulse/shared-types';
 
-import {
-  ApiError,
-  saveBlob,
-  timesheetAdminApi,
-  timesheetExportApi,
-} from '@/lib/api-client';
+import { ApiError, saveBlob, timesheetAdminApi, timesheetExportApi } from '@/lib/api-client';
 
 const ERROR_COPY: Record<string, string> = {
-  EXPORT_EMPTY:
-    'Tidak ada timesheet APPROVED pada periode & filter tersebut.',
+  EXPORT_EMPTY: 'Tidak ada timesheet APPROVED pada periode & filter tersebut.',
   TIMESHEET_PERIOD_NOT_FOUND: 'Periode tidak ditemukan.',
   DEPARTMENT_NOT_FOUND: 'Departemen tidak valid.',
   THROTTLED: 'Terlalu banyak percobaan export. Coba lagi sebentar.',
@@ -84,11 +78,11 @@ export function TimesheetExportsPanel(): JSX.Element {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-      <section className="rounded-lg border border-border bg-card p-6">
+      <section className="border-border bg-card rounded-lg border p-6">
         <h2 className="text-lg font-semibold">Export payroll</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Hanya timesheet berstatus <span className="font-medium">APPROVED</span>{' '}
-          yang akan diekspor. Setiap ekspor tercatat pada audit trail.
+        <p className="text-muted-foreground mt-1 text-sm">
+          Hanya timesheet berstatus <span className="font-medium">APPROVED</span> yang akan
+          diekspor. Setiap ekspor tercatat pada audit trail.
         </p>
 
         <div className="mt-5 space-y-4">
@@ -96,10 +90,8 @@ export function TimesheetExportsPanel(): JSX.Element {
             <span className="font-medium">Periode</span>
             <select
               value={form.periodId}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, periodId: e.target.value }))
-              }
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              onChange={(e) => setForm((f) => ({ ...f, periodId: e.target.value }))}
+              className="border-input bg-background focus:border-primary focus:ring-primary mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
               required
               data-testid="ts-export-period"
             >
@@ -123,7 +115,7 @@ export function TimesheetExportsPanel(): JSX.Element {
                     format: e.target.value as TimesheetExportFormat,
                   }))
                 }
-                className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="border-input bg-background focus:border-primary focus:ring-primary mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
                 data-testid="ts-export-format"
               >
                 <option value="XLSX">Excel (XLSX)</option>
@@ -141,7 +133,7 @@ export function TimesheetExportsPanel(): JSX.Element {
                     mode: e.target.value as TimesheetExportMode,
                   }))
                 }
-                className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className="border-input bg-background focus:border-primary focus:ring-primary mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
                 data-testid="ts-export-mode"
               >
                 <option value="SUMMARY">Summary (1 baris / user)</option>
@@ -156,11 +148,9 @@ export function TimesheetExportsPanel(): JSX.Element {
               type="text"
               maxLength={200}
               value={form.note ?? ''}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, note: e.target.value }))
-              }
+              onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
               placeholder="mis. Payroll batch Agustus"
-              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="border-input bg-background focus:border-primary focus:ring-primary mt-1 block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
             />
           </label>
 
@@ -168,18 +158,14 @@ export function TimesheetExportsPanel(): JSX.Element {
             type="button"
             onClick={() => runExport.mutate()}
             disabled={!form.periodId || runExport.isPending}
-            className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
             data-testid="ts-export-submit"
           >
             {runExport.isPending ? 'Mengirim…' : 'Export & download'}
           </button>
 
           {inlineError && (
-            <p
-              role="alert"
-              className="mt-2 text-sm text-destructive"
-              data-testid="ts-export-error"
-            >
+            <p role="alert" className="text-destructive mt-2 text-sm" data-testid="ts-export-error">
               {inlineError}
             </p>
           )}
@@ -191,18 +177,17 @@ export function TimesheetExportsPanel(): JSX.Element {
         </div>
       </section>
 
-      <section className="rounded-lg border border-border bg-card p-6">
+      <section className="border-border bg-card rounded-lg border p-6">
         <h2 className="text-lg font-semibold">Riwayat export</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Audit trail append-only. Klik <span className="font-medium">Bagikan</span>{' '}
-          untuk membuat link download 24 jam yang bisa dikirim ke vendor payroll
-          tanpa perlu akun.
+        <p className="text-muted-foreground mt-1 text-sm">
+          Audit trail append-only. Klik <span className="font-medium">Bagikan</span> untuk membuat
+          link download 24 jam yang bisa dikirim ke vendor payroll tanpa perlu akun.
         </p>
 
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[820px] text-sm">
             <thead>
-              <tr className="border-b text-xs uppercase text-muted-foreground">
+              <tr className="text-muted-foreground border-b text-xs uppercase">
                 <th className="px-2 py-2 text-left">Waktu</th>
                 <th className="px-2 py-2 text-left">Periode</th>
                 <th className="px-2 py-2 text-left">Format / Mode</th>
@@ -219,10 +204,7 @@ export function TimesheetExportsPanel(): JSX.Element {
               ))}
               {(auditRows.data?.items ?? []).length === 0 && !auditRows.isLoading && (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="px-2 py-6 text-center text-sm text-muted-foreground"
-                  >
+                  <td colSpan={8} className="text-muted-foreground px-2 py-6 text-center text-sm">
                     Belum ada export. Buat export pertama di panel sebelah kiri.
                   </td>
                 </tr>
@@ -270,48 +252,38 @@ function ExportRow({ row: r }: ExportRowProps): JSX.Element {
         </td>
         <td className="px-2 py-2 text-xs">
           <div>{r.period.label}</div>
-          <div className="text-[10px] text-muted-foreground">
+          <div className="text-muted-foreground text-[10px]">
             {r.period.periodStart} → {r.period.periodEnd}
           </div>
         </td>
         <td className="px-2 py-2 text-xs">
-          <span className="rounded-full bg-muted px-2 py-0.5 font-medium">
-            {r.format}
-          </span>
-          <span className="ml-2 rounded-full bg-muted px-2 py-0.5 font-medium">
-            {r.mode}
-          </span>
+          <span className="bg-muted rounded-full px-2 py-0.5 font-medium">{r.format}</span>
+          <span className="bg-muted ml-2 rounded-full px-2 py-0.5 font-medium">{r.mode}</span>
         </td>
         <td className="px-2 py-2 text-right font-mono text-xs">
           {r.rowCount}
           {r.mode === 'DETAIL' ? ` · ${r.entryCount}` : ''}
         </td>
-        <td className="px-2 py-2 text-right font-mono text-xs">
-          {formatBytes(r.bytes)}
-        </td>
+        <td className="px-2 py-2 text-right font-mono text-xs">{formatBytes(r.bytes)}</td>
         <td className="px-2 py-2 text-xs">
           <div>{r.requestedBy.fullName}</div>
-          <div className="text-[10px] text-muted-foreground">
-            {r.requestedBy.email}
-          </div>
+          <div className="text-muted-foreground text-[10px]">{r.requestedBy.email}</div>
         </td>
-        <td className="px-2 py-2 font-mono text-[10px] text-muted-foreground">
+        <td className="text-muted-foreground px-2 py-2 font-mono text-[10px]">
           {r.payloadSha256.slice(0, 16)}…
         </td>
         <td className="px-2 py-2 text-right">
           <button
             type="button"
             onClick={() => setShareOpen(true)}
-            className="rounded-md border border-input bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent"
+            className="border-input bg-background hover:bg-accent rounded-md border px-2.5 py-1 text-xs font-medium"
             data-testid={`ts-share-${r.id}`}
           >
             Bagikan
           </button>
         </td>
       </tr>
-      {shareOpen && (
-        <ShareDialog exportId={r.id} onClose={() => setShareOpen(false)} />
-      )}
+      {shareOpen && <ShareDialog exportId={r.id} onClose={() => setShareOpen(false)} />}
     </>
   );
 }
@@ -349,8 +321,7 @@ function ShareDialog({
   });
 
   const revokeShare = useMutation({
-    mutationFn: (shareId: string) =>
-      timesheetExportApi.revokeShare(exportId, shareId),
+    mutationFn: (shareId: string) => timesheetExportApi.revokeShare(exportId, shareId),
     onSuccess: async () => {
       await qc.invalidateQueries({
         queryKey: ['timesheet-export-shares', exportId],
@@ -377,13 +348,13 @@ function ShareDialog({
   return (
     <tr>
       <td colSpan={8} className="bg-muted/30 px-4 py-4">
-        <div className="rounded-md border border-border bg-background p-4">
+        <div className="border-border bg-background rounded-md border p-4">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-sm font-semibold">Bagikan link download</h3>
             <button
               type="button"
               onClick={onClose}
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground text-xs"
               aria-label="Tutup"
             >
               Tutup
@@ -399,7 +370,7 @@ function ShareDialog({
                 max={168}
                 value={ttlHours}
                 onChange={(e) => setTtlHours(Number(e.target.value))}
-                className="mt-1 block w-full rounded-md border border-input bg-background px-2 py-1 text-sm"
+                className="border-input bg-background mt-1 block w-full rounded-md border px-2 py-1 text-sm"
                 data-testid={`ts-share-ttl-${exportId}`}
               />
             </label>
@@ -411,14 +382,14 @@ function ShareDialog({
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="mis. shared dengan Vendor A"
-                className="mt-1 block w-full rounded-md border border-input bg-background px-2 py-1 text-sm"
+                className="border-input bg-background mt-1 block w-full rounded-md border px-2 py-1 text-sm"
               />
             </label>
             <button
               type="button"
               onClick={() => createShare.mutate()}
               disabled={createShare.isPending}
-              className="self-end rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 self-end rounded-md px-3 py-2 text-xs font-medium disabled:opacity-50"
               data-testid={`ts-share-create-${exportId}`}
             >
               {createShare.isPending ? 'Membuat…' : 'Buat link'}
@@ -428,7 +399,7 @@ function ShareDialog({
           {createError && (
             <p
               role="alert"
-              className="mt-3 text-xs text-destructive"
+              className="text-destructive mt-3 text-xs"
               data-testid={`ts-share-error-${exportId}`}
             >
               {createError}
@@ -458,17 +429,15 @@ function ShareDialog({
             </div>
           )}
 
-          <h4 className="mt-5 mb-2 text-xs font-semibold uppercase text-muted-foreground">
+          <h4 className="text-muted-foreground mb-2 mt-5 text-xs font-semibold uppercase">
             Riwayat link
           </h4>
           {shares.isLoading ? (
-            <p className="text-xs text-muted-foreground">Memuat…</p>
+            <p className="text-muted-foreground text-xs">Memuat…</p>
           ) : (shares.data?.items ?? []).length === 0 ? (
-            <p className="text-xs text-muted-foreground">
-              Belum ada link untuk export ini.
-            </p>
+            <p className="text-muted-foreground text-xs">Belum ada link untuk export ini.</p>
           ) : (
-            <ul className="divide-y divide-border rounded-md border border-border">
+            <ul className="divide-border border-border divide-y rounded-md border">
               {(shares.data?.items ?? []).map((s) => (
                 <ShareRow
                   key={s.id}
@@ -499,25 +468,21 @@ function ShareRow({
       <div>
         <div className="font-medium">
           {share.active ? (
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-900">
-              Aktif
-            </span>
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-900">Aktif</span>
           ) : share.revokedAt ? (
-            <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-destructive">
+            <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5">
               Dicabut
             </span>
           ) : (
-            <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
-              Expired
-            </span>
+            <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5">Expired</span>
           )}
-          <span className="ml-2 text-muted-foreground">
+          <span className="text-muted-foreground ml-2">
             Kadaluarsa {share.expiresAt.replace('T', ' ').slice(0, 16)}
           </span>
         </div>
-        <div className="mt-0.5 text-[10px] text-muted-foreground">
-          Dibuat {share.createdAt.replace('T', ' ').slice(0, 16)} oleh{' '}
-          {share.createdBy.email} · {share.downloadCount} unduhan
+        <div className="text-muted-foreground mt-0.5 text-[10px]">
+          Dibuat {share.createdAt.replace('T', ' ').slice(0, 16)} oleh {share.createdBy.email} ·{' '}
+          {share.downloadCount} unduhan
           {share.note ? ` · "${share.note}"` : ''}
         </div>
       </div>
@@ -526,7 +491,7 @@ function ShareRow({
           type="button"
           onClick={onRevoke}
           disabled={revoking}
-          className="rounded-md border border-destructive/40 px-2 py-1 text-[10px] font-medium text-destructive hover:bg-destructive/5 disabled:opacity-50"
+          className="border-destructive/40 text-destructive hover:bg-destructive/5 rounded-md border px-2 py-1 text-[10px] font-medium disabled:opacity-50"
           data-testid={`ts-share-revoke-${share.id}`}
         >
           Cabut

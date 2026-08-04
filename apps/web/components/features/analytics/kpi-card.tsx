@@ -2,13 +2,7 @@
 
 import type { DashboardTile } from '@workpulse/shared-types';
 
-import {
-  formatDelta,
-  formatDeltaPct,
-  formatValue,
-  trendArrow,
-  trendClass,
-} from './format-metric';
+import { formatDelta, formatDeltaPct, formatValue, trendArrow, trendClass } from './format-metric';
 
 interface KpiCardProps {
   tile: DashboardTile;
@@ -23,11 +17,7 @@ interface KpiCardProps {
  */
 export function KpiCard({ tile, onSelect, isSelected }: KpiCardProps): JSX.Element {
   const value = formatValue(tile.currentValue, tile.formatKind as never, tile.fractionDigits);
-  const deltaSign = formatDelta(
-    tile.delta.absolute,
-    tile.formatKind as never,
-    tile.fractionDigits,
-  );
+  const deltaSign = formatDelta(tile.delta.absolute, tile.formatKind as never, tile.fractionDigits);
   const deltaPct = formatDeltaPct(tile.delta.pct);
   const cls = trendClass(tile.delta.trend as never);
   const arrow = trendArrow(tile.delta.trend as never);
@@ -35,15 +25,13 @@ export function KpiCard({ tile, onSelect, isSelected }: KpiCardProps): JSX.Eleme
   const body = (
     <div className="flex h-full flex-col gap-3">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
           {tile.label}
         </p>
         <span className={`text-sm font-medium ${cls}`}>{arrow}</span>
       </div>
-      <p className="text-3xl font-semibold tracking-tight tabular-nums">
-        {value}
-      </p>
-      <div className="mt-auto flex flex-wrap items-baseline gap-x-2 text-xs text-muted-foreground">
+      <p className="text-3xl font-semibold tabular-nums tracking-tight">{value}</p>
+      <div className="text-muted-foreground mt-auto flex flex-wrap items-baseline gap-x-2 text-xs">
         <span className={`font-medium ${cls}`}>
           {deltaSign}
           {deltaPct ? ` (${deltaPct})` : ''}
@@ -53,12 +41,9 @@ export function KpiCard({ tile, onSelect, isSelected }: KpiCardProps): JSX.Eleme
     </div>
   );
 
-  const base =
-    'rounded-lg border p-4 text-left transition-colors bg-card min-h-[130px]';
+  const base = 'rounded-lg border p-4 text-left transition-colors bg-card min-h-[130px]';
   const selectable = 'hover:border-primary/60 cursor-pointer';
-  const selectedRing = isSelected
-    ? 'border-primary ring-2 ring-primary/40'
-    : 'border-border';
+  const selectedRing = isSelected ? 'border-primary ring-2 ring-primary/40' : 'border-border';
 
   if (onSelect) {
     return (

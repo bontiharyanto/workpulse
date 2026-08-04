@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "main": "index.js",
-  "files": ["eslint-preset.cjs", "tsconfig.base.json"],
+  "files": [
+    "eslint-preset.cjs",
+    "tsconfig.base.json"
+  ],
   "exports": {
     "./eslint": "./eslint-preset.cjs",
     "./tsconfig": "./tsconfig.base.json"

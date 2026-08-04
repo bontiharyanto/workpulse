@@ -1,11 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
 import { loginAs } from './helpers/login';
-import {
-  disableMfaViaApi,
-  enrollMfaViaApi,
-  generateTotp,
-} from './helpers/mfa';
+import { disableMfaViaApi, enrollMfaViaApi, generateTotp } from './helpers/mfa';
 import { SEED_USERS } from './fixtures/users';
 
 /**
@@ -54,15 +50,11 @@ async function readEnrollmentSecret(page: Page): Promise<string> {
   return secret;
 }
 
-test('MFA enroll UI: voluntary enrollment from /settings/security', async ({
-  page,
-}) => {
+test('MFA enroll UI: voluntary enrollment from /settings/security', async ({ page }) => {
   await loginAs(page, 'employee');
   await page.goto('/settings/security');
 
-  await expect(
-    page.getByRole('heading', { name: 'Keamanan akun' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Keamanan akun' })).toBeVisible();
 
   // Status card renders "Nonaktif" for a fresh account.
   await expect(page.getByText('MFA belum diaktifkan')).toBeVisible();
@@ -70,9 +62,7 @@ test('MFA enroll UI: voluntary enrollment from /settings/security', async ({
   // Step 1 — start enrollment. The panel swaps to the QR + manual
   // secret view.
   await page.getByRole('button', { name: /Mulai aktifkan MFA/i }).click();
-  await expect(
-    page.getByRole('img', { name: /QR code untuk enrollment MFA/i }),
-  ).toBeVisible();
+  await expect(page.getByRole('img', { name: /QR code untuk enrollment MFA/i })).toBeVisible();
 
   const secret = await readEnrollmentSecret(page);
   activeSecret = secret;
@@ -84,10 +74,7 @@ test('MFA enroll UI: voluntary enrollment from /settings/security', async ({
 
   // Backup codes are shown exactly once, in a monospaced grid of 8.
   await expect(page.getByText('Simpan backup codes berikut')).toBeVisible();
-  const codeItems = page
-    .locator('ul.grid.font-mono')
-    .first()
-    .locator('li');
+  const codeItems = page.locator('ul.grid.font-mono').first().locator('li');
   await expect(codeItems).toHaveCount(8);
 
   // Acknowledge and confirm the status card flips to Aktif.
@@ -112,16 +99,12 @@ test('MFA login UI: password login redirects to /login/mfa, TOTP unlocks the das
   // We land on the MFA verify step (title copy is stable enough to
   // assert against).
   await page.waitForURL(/\/login\/mfa/, { timeout: 10_000 });
-  await expect(
-    page.getByRole('heading', { name: /Verifikasi 2 langkah/i }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Verifikasi 2 langkah/i })).toBeVisible();
 
   // Wrong code first → the API mapper surfaces "Kode MFA tidak valid.".
   await page.locator('#code').fill('000000');
   await page.getByRole('button', { name: /^Verifikasi$/ }).click();
-  await expect(
-    page.getByRole('alert').filter({ hasText: /Kode MFA tidak valid/i }),
-  ).toBeVisible();
+  await expect(page.getByRole('alert').filter({ hasText: /Kode MFA tidak valid/i })).toBeVisible();
 
   // Retry with the real TOTP → we get bounced to /attendance.
   await page.locator('#code').fill(generateTotp(secret));
@@ -130,9 +113,7 @@ test('MFA login UI: password login redirects to /login/mfa, TOTP unlocks the das
   await expect(page).not.toHaveURL(/\/login/);
 });
 
-test('MFA login UI: backup code path also unlocks the dashboard', async ({
-  page,
-}) => {
+test('MFA login UI: backup code path also unlocks the dashboard', async ({ page }) => {
   const { secret, backupCodes } = await enrollMfaViaApi('employee');
   activeSecret = secret;
 
@@ -174,17 +155,13 @@ test('MFA disable UI: rejects wrong password, accepts correct pair, logs out to 
   await page.waitForURL(/\/attendance/);
 
   await page.goto('/settings/security');
-  await expect(
-    page.getByRole('heading', { name: 'Nonaktifkan MFA' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Nonaktifkan MFA' })).toBeVisible();
 
   // Wrong password → surfaces "Password tidak sesuai."
   await page.locator('#disable-pw').fill('definitely-not-my-password');
   await page.locator('#disable-code').fill(generateTotp(secret));
   await page.getByRole('button', { name: /^Nonaktifkan MFA$/ }).click();
-  await expect(
-    page.getByRole('alert').filter({ hasText: /Password tidak sesuai/i }),
-  ).toBeVisible();
+  await expect(page.getByRole('alert').filter({ hasText: /Password tidak sesuai/i })).toBeVisible();
 
   // Correct pair → the panel forces a full logout (see the
   // `authStore.clear()` + `window.location.assign('/login')` in
@@ -210,12 +187,8 @@ test('MFA disable UI: rejects wrong password, accepts correct pair, logs out to 
   activeSecret = null;
 });
 
-test('MFA regenerate backup codes UI: reveals a fresh batch', async ({
-  page,
-}) => {
-  const { secret, backupCodes: originalCodes } = await enrollMfaViaApi(
-    'employee',
-  );
+test('MFA regenerate backup codes UI: reveals a fresh batch', async ({ page }) => {
+  const { secret, backupCodes: originalCodes } = await enrollMfaViaApi('employee');
   activeSecret = secret;
 
   const employee = SEED_USERS.employee;
@@ -229,25 +202,16 @@ test('MFA regenerate backup codes UI: reveals a fresh batch', async ({
   await page.waitForURL(/\/attendance/);
 
   await page.goto('/settings/security');
-  await expect(
-    page.getByRole('heading', { name: 'Regenerasi backup codes' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Regenerasi backup codes' })).toBeVisible();
 
-  await page
-    .getByLabel(/Kode TOTP untuk regenerasi backup codes/i)
-    .fill(generateTotp(secret));
+  await page.getByLabel(/Kode TOTP untuk regenerasi backup codes/i).fill(generateTotp(secret));
   await page.getByRole('button', { name: /^Regenerasi$/ }).click();
 
   await expect(page.getByText('Simpan backup codes berikut')).toBeVisible();
-  const codeItems = page
-    .locator('ul.grid.font-mono')
-    .first()
-    .locator('li');
+  const codeItems = page.locator('ul.grid.font-mono').first().locator('li');
   await expect(codeItems).toHaveCount(8);
 
   const rendered = await codeItems.allTextContents();
-  const overlap = rendered.filter((c) =>
-    originalCodes.includes(c.trim()),
-  );
+  const overlap = rendered.filter((c) => originalCodes.includes(c.trim()));
   expect(overlap).toHaveLength(0);
 });

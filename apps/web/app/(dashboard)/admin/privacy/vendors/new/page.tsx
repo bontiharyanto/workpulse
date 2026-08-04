@@ -20,12 +20,10 @@ export default function AdminVendorCreatePage() {
       <RequireRole roles={['HR_MANAGER', 'SUPER_ADMIN']}>
         <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Vendor / processor baru
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Register akan mulai dengan status <strong>UNDER_REVIEW</strong>.
-              Setelah DPA ditandatangani, vendor dapat diaktifkan.
+            <h1 className="text-2xl font-semibold tracking-tight">Vendor / processor baru</h1>
+            <p className="text-muted-foreground text-sm">
+              Register akan mulai dengan status <strong>UNDER_REVIEW</strong>. Setelah DPA
+              ditandatangani, vendor dapat diaktifkan.
             </p>
           </div>
           <VendorProcessorCreateForm />

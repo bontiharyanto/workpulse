@@ -19,14 +19,11 @@ export default function AdminReportSchedulesPage(): JSX.Element {
       <RequireRole roles={['HR_MANAGER', 'SUPER_ADMIN']}>
         <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Jadwal Laporan Email
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Kirim laporan PDF secara otomatis (harian / mingguan / bulanan)
-              ke daftar recipient. Cron server-side dispatch tiap 15 menit,
-              setiap pengiriman tercatat di delivery log dengan SHA-256
-              payload.
+            <h1 className="text-2xl font-semibold tracking-tight">Jadwal Laporan Email</h1>
+            <p className="text-muted-foreground text-sm">
+              Kirim laporan PDF secara otomatis (harian / mingguan / bulanan) ke daftar recipient.
+              Cron server-side dispatch tiap 15 menit, setiap pengiriman tercatat di delivery log
+              dengan SHA-256 payload.
             </p>
           </div>
           <ReportSchedulesPanel />

@@ -32,9 +32,7 @@ async function login(email: string, password: string): Promise<LoginedContext> {
     data: { email, password },
   });
   if (!res.ok()) {
-    throw new Error(
-      `login failed for ${email}: ${res.status()} ${await res.text()}`,
-    );
+    throw new Error(`login failed for ${email}: ${res.status()} ${await res.text()}`);
   }
   const body = (await res.json()) as { accessToken: string };
   return { ctx, accessToken: body.accessToken };
@@ -89,12 +87,9 @@ test.beforeAll(async () => {
 test('HR sees a full dashboard payload with every KPI tile', async () => {
   const hr = await login(SEED_USERS.hr.email, SEED_USERS.hr.password);
   try {
-    const res = await hr.ctx.get(
-      '/api/v1/admin/analytics/dashboard?windowDays=7',
-      {
-        headers: { Authorization: `Bearer ${hr.accessToken}` },
-      },
-    );
+    const res = await hr.ctx.get('/api/v1/admin/analytics/dashboard?windowDays=7', {
+      headers: { Authorization: `Bearer ${hr.accessToken}` },
+    });
     expect(res.status()).toBe(200);
     const body = (await res.json()) as {
       window: { from: string; to: string; today: string; days: number };
@@ -130,14 +125,10 @@ test('HR sees a full dashboard payload with every KPI tile', async () => {
     expect(body.lastComputedAt).not.toBeNull();
 
     // On-time rate must be a fraction 0..1 (server rendering rule).
-    const onTime = body.tiles.find(
-      (t) => t.metricKey === 'ATTENDANCE_ON_TIME_RATE',
-    )!;
+    const onTime = body.tiles.find((t) => t.metricKey === 'ATTENDANCE_ON_TIME_RATE')!;
     expect(onTime.currentValue).toBeGreaterThanOrEqual(0);
     expect(onTime.currentValue).toBeLessThanOrEqual(1);
-    expect(['UP_GOOD', 'UP_BAD', 'DOWN_GOOD', 'DOWN_BAD', 'FLAT']).toContain(
-      onTime.delta.trend,
-    );
+    expect(['UP_GOOD', 'UP_BAD', 'DOWN_GOOD', 'DOWN_BAD', 'FLAT']).toContain(onTime.delta.trend);
 
     // Headcount must be a non-negative integer.
     const headcount = body.tiles.find((t) => t.metricKey === 'HEADCOUNT_ACTIVE')!;
@@ -177,22 +168,16 @@ test('HR can request a timeseries for a specific metric', async () => {
 });
 
 test('EMPLOYEE role is forbidden from both endpoints', async () => {
-  const emp = await login(
-    SEED_USERS.employee.email,
-    SEED_USERS.employee.password,
-  );
+  const emp = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
   try {
     const d = await emp.ctx.get('/api/v1/admin/analytics/dashboard', {
       headers: { Authorization: `Bearer ${emp.accessToken}` },
     });
     expect([401, 403]).toContain(d.status());
 
-    const t = await emp.ctx.get(
-      '/api/v1/admin/analytics/timeseries?metricKey=HEADCOUNT_ACTIVE',
-      {
-        headers: { Authorization: `Bearer ${emp.accessToken}` },
-      },
-    );
+    const t = await emp.ctx.get('/api/v1/admin/analytics/timeseries?metricKey=HEADCOUNT_ACTIVE', {
+      headers: { Authorization: `Bearer ${emp.accessToken}` },
+    });
     expect([401, 403]).toContain(t.status());
   } finally {
     await emp.ctx.dispose();

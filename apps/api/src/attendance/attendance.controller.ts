@@ -19,10 +19,7 @@ import { AbsenceScannerService } from './absence-scanner.service';
 import type { CompanyDashboardResponse } from './attendance.service';
 import { AttendanceService } from './attendance.service';
 import type { AttendanceMonthlySummary } from './domain/attendance-summary';
-import type {
-  TeamMemberDailyRow,
-  TeamMemberSummaryRow,
-} from './domain/team-attendance';
+import type { TeamMemberDailyRow, TeamMemberSummaryRow } from './domain/team-attendance';
 import { AttendanceRecordDto } from './dto/attendance-record.dto';
 import { ClockInDto } from './dto/clock-in.dto';
 import { ClockOutDto } from './dto/clock-out.dto';
@@ -127,7 +124,9 @@ export class AttendanceController {
    */
   @Get('team/today')
   @Roles('SUPERVISOR', 'HR_MANAGER', 'SUPER_ADMIN')
-  @ApiOkResponse({ description: "Team roster + today's attendance status (sorted by exception severity)" })
+  @ApiOkResponse({
+    description: "Team roster + today's attendance status (sorted by exception severity)",
+  })
   async teamToday(
     @CurrentUser() actor: AuthenticatedUser,
     @Query('date') date?: string,
@@ -292,9 +291,7 @@ function toIsoDate(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-function toDto(
-  record: Awaited<ReturnType<AttendanceService['clockIn']>>,
-): AttendanceRecordDto {
+function toDto(record: Awaited<ReturnType<AttendanceService['clockIn']>>): AttendanceRecordDto {
   return {
     id: record.id,
     userId: record.userId,

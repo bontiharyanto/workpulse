@@ -62,13 +62,7 @@ export class TokenService {
   async issueForLogin(
     user: Pick<
       User,
-      | 'id'
-      | 'email'
-      | 'companyId'
-      | 'departmentId'
-      | 'role'
-      | 'mustChangePassword'
-      | 'mfaEnabledAt'
+      'id' | 'email' | 'companyId' | 'departmentId' | 'role' | 'mustChangePassword' | 'mfaEnabledAt'
     >,
     ctx: TokenContext,
     claims: AccessTokenClaims,
@@ -86,7 +80,13 @@ export class TokenService {
       mfaVerified: claims.mfaPassed,
     });
 
-    return { accessToken, accessTokenExpiresIn, refreshToken, refreshTokenExpiresAt, refreshTokenRow };
+    return {
+      accessToken,
+      accessTokenExpiresIn,
+      refreshToken,
+      refreshTokenExpiresAt,
+      refreshTokenRow,
+    };
   }
 
   /**
@@ -95,10 +95,7 @@ export class TokenService {
    * Callers MUST have proven possession of the second factor before
    * invoking this; the method does not check TOTP itself.
    */
-  async rotateForMfaStepUp(
-    rawRefreshToken: string,
-    ctx: TokenContext,
-  ): Promise<IssuedTokenPair> {
+  async rotateForMfaStepUp(rawRefreshToken: string, ctx: TokenContext): Promise<IssuedTokenPair> {
     return this.rotateInternal(rawRefreshToken, ctx, { forceMfaVerified: true });
   }
 
@@ -112,13 +109,7 @@ export class TokenService {
   signStepUpAccessTokenSnapshot(
     user: Pick<
       User,
-      | 'id'
-      | 'email'
-      | 'companyId'
-      | 'departmentId'
-      | 'role'
-      | 'mustChangePassword'
-      | 'mfaEnabledAt'
+      'id' | 'email' | 'companyId' | 'departmentId' | 'role' | 'mustChangePassword' | 'mfaEnabledAt'
     >,
   ): { accessToken: string; accessTokenExpiresIn: number } {
     const accessToken = this.signAccessToken(user, { mfaPassed: true });
@@ -179,9 +170,7 @@ export class TokenService {
     // MFA-verified for the whole refresh chain. A user who disables MFA
     // sees rotations produce `mfaPassed=true` regardless (no MFA to gate).
     const nextMfaVerified =
-      opts.forceMfaVerified || user.mfaEnabledAt === null
-        ? true
-        : existing.mfaVerified === true;
+      opts.forceMfaVerified || user.mfaEnabledAt === null ? true : existing.mfaVerified === true;
     const accessToken = this.signAccessToken(user, { mfaPassed: nextMfaVerified });
     const accessTokenExpiresIn = this.parseSecondsFromDuration(
       this.config.get<string>('JWT_EXPIRES_IN', '15m'),
@@ -247,13 +236,7 @@ export class TokenService {
   private signAccessToken(
     user: Pick<
       User,
-      | 'id'
-      | 'email'
-      | 'companyId'
-      | 'departmentId'
-      | 'role'
-      | 'mustChangePassword'
-      | 'mfaEnabledAt'
+      'id' | 'email' | 'companyId' | 'departmentId' | 'role' | 'mustChangePassword' | 'mfaEnabledAt'
     >,
     claims: AccessTokenClaims,
   ): string {
@@ -277,12 +260,15 @@ export class TokenService {
     ctx: TokenContext;
     tx?: Prisma.TransactionClient;
     mfaVerified: boolean;
-  }): Promise<{ refreshToken: string; refreshTokenExpiresAt: Date; refreshTokenRow: RefreshToken }> {
+  }): Promise<{
+    refreshToken: string;
+    refreshTokenExpiresAt: Date;
+    refreshTokenRow: RefreshToken;
+  }> {
     const secret = generateRefreshSecret();
     const tokenHash = hashRefreshSecret(secret);
-    const ttlMs = this.parseSecondsFromDuration(
-      this.config.get<string>('JWT_REFRESH_EXPIRES_IN', '7d'),
-    ) * 1000;
+    const ttlMs =
+      this.parseSecondsFromDuration(this.config.get<string>('JWT_REFRESH_EXPIRES_IN', '7d')) * 1000;
     const expiresAt = new Date(Date.now() + ttlMs);
 
     const db = args.tx ?? this.prisma;

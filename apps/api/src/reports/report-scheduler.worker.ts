@@ -24,8 +24,7 @@ export class ReportSchedulerWorker {
     private readonly scheduler: ReportSchedulerService,
     config: ConfigService,
   ) {
-    this.enabled =
-      config.get<string>('REPORT_SCHEDULER_ENABLED', 'true') !== 'false';
+    this.enabled = config.get<string>('REPORT_SCHEDULER_ENABLED', 'true') !== 'false';
   }
 
   @Cron('0 */15 * * * *', { name: 'report-scheduler-tick' })
@@ -42,9 +41,7 @@ export class ReportSchedulerWorker {
         this.logger.log(`report-scheduler dispatched ${delivered} reports`);
       }
     } catch (err) {
-      this.logger.error(
-        `report-scheduler-tick threw: ${(err as Error).message}`,
-      );
+      this.logger.error(`report-scheduler-tick threw: ${(err as Error).message}`);
     } finally {
       this.tickRunning = false;
     }

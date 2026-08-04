@@ -70,14 +70,14 @@ export function DepartmentAdmin(): JSX.Element {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Departemen</h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Struktur organisasi. Departemen tidak bisa dihapus jika masih memiliki karyawan aktif.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setEditing('new')}
-          className="rounded-md bg-foreground px-3 py-1 text-xs font-medium text-background"
+          className="bg-foreground text-background rounded-md px-3 py-1 text-xs font-medium"
         >
           + Tambah
         </button>
@@ -86,7 +86,7 @@ export function DepartmentAdmin(): JSX.Element {
       {errorText && (
         <p
           role="alert"
-          className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
         >
           {errorText}
         </p>
@@ -111,15 +111,15 @@ export function DepartmentAdmin(): JSX.Element {
       )}
 
       {list.isLoading ? (
-        <p className="text-sm text-muted-foreground">Memuat...</p>
+        <p className="text-muted-foreground text-sm">Memuat...</p>
       ) : rows.length === 0 ? (
-        <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+        <p className="text-muted-foreground rounded-md border border-dashed p-6 text-center text-sm">
           Belum ada departemen.
         </p>
       ) : (
         <div className="overflow-hidden rounded-lg border">
           <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
+            <thead className="bg-muted/40 text-muted-foreground text-xs uppercase tracking-wider">
               <tr>
                 <th className="px-3 py-2 text-left">Nama</th>
                 <th className="px-3 py-2 text-left">Parent</th>
@@ -133,9 +133,7 @@ export function DepartmentAdmin(): JSX.Element {
                 return (
                   <tr key={r.id}>
                     <td className="px-3 py-2 font-medium">{r.name}</td>
-                    <td className="px-3 py-2 text-muted-foreground">
-                      {r.parentName ?? '—'}
-                    </td>
+                    <td className="text-muted-foreground px-3 py-2">{r.parentName ?? '—'}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{r.userCount}</td>
                     <td className="px-3 py-2 text-right">
                       <div className="flex justify-end gap-2">
@@ -149,17 +147,13 @@ export function DepartmentAdmin(): JSX.Element {
                         <button
                           type="button"
                           disabled={busy || r.userCount > 0}
-                          title={
-                            r.userCount > 0
-                              ? 'Pindahkan karyawan terlebih dahulu'
-                              : undefined
-                          }
+                          title={r.userCount > 0 ? 'Pindahkan karyawan terlebih dahulu' : undefined}
                           onClick={() => {
                             if (window.confirm(`Hapus departemen "${r.name}"?`)) {
                               deleteMut.mutate(r.id);
                             }
                           }}
-                          className="rounded-md border border-destructive px-2 py-1 text-xs text-destructive disabled:opacity-40"
+                          className="border-destructive text-destructive rounded-md border px-2 py-1 text-xs disabled:opacity-40"
                         >
                           {busy ? 'Menghapus...' : 'Hapus'}
                         </button>

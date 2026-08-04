@@ -93,7 +93,10 @@ export interface VendorReminderDecision {
  *     an expired contract with an `ACTIVE` vendor is a compliance
  *     defect that legal will want to know about immediately.
  */
-export function computeDueReminders(now: Date, input: VendorReminderInput): VendorReminderDecision[] {
+export function computeDueReminders(
+  now: Date,
+  input: VendorReminderInput,
+): VendorReminderDecision[] {
   const out: VendorReminderDecision[] = [];
   if (input.status === 'TERMINATED' || input.status === 'DEPRECATED') {
     return out;
@@ -144,7 +147,9 @@ export function computeDueReminders(now: Date, input: VendorReminderInput): Vend
  * DPA with the same vendor must create a fresh row so the
  * historical record survives untouched.
  */
-export const ALLOWED_STATUS_TRANSITIONS: Readonly<Record<VendorStatus, ReadonlyArray<VendorStatus>>> = {
+export const ALLOWED_STATUS_TRANSITIONS: Readonly<
+  Record<VendorStatus, ReadonlyArray<VendorStatus>>
+> = {
   UNDER_REVIEW: ['ACTIVE', 'TERMINATED'],
   ACTIVE: ['DEPRECATED', 'TERMINATED'],
   DEPRECATED: ['ACTIVE', 'TERMINATED'],

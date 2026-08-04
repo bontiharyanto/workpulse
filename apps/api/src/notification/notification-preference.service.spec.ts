@@ -16,14 +16,12 @@ function setup(): {
   prisma.notificationPreference.findMany.mockResolvedValue([] as never);
   prisma.notificationPreference.findUnique.mockResolvedValue(null as never);
   prisma.notificationPreference.upsert.mockResolvedValue({} as never);
-  (prisma.$transaction as unknown as jest.Mock).mockImplementation(
-    async (arg: unknown) => {
-      if (typeof arg === 'function') {
-        return (arg as (tx: PrismaService) => unknown)(prisma);
-      }
-      return Promise.all(arg as Promise<unknown>[]);
-    },
-  );
+  (prisma.$transaction as unknown as jest.Mock).mockImplementation(async (arg: unknown) => {
+    if (typeof arg === 'function') {
+      return (arg as (tx: PrismaService) => unknown)(prisma);
+    }
+    return Promise.all(arg as Promise<unknown>[]);
+  });
   const service = new NotificationPreferenceService(prisma);
   return { service, prisma };
 }
@@ -71,9 +69,7 @@ describe('NotificationPreferenceService.listForActor', () => {
       mandatory: false,
     });
     // Untouched types stay defaults-on.
-    expect(rows.find((r) => r.type === 'LEAVE_APPROVED_HR')?.emailEnabled).toBe(
-      true,
-    );
+    expect(rows.find((r) => r.type === 'LEAVE_APPROVED_HR')?.emailEnabled).toBe(true);
   });
 
   it('forces mandatory types to enabled=true even when a stored row says false', async () => {

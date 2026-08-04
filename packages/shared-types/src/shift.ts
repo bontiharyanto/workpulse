@@ -73,13 +73,10 @@ export const createShiftAssignmentSchema = z
     effectiveFrom: calendarDateSchema,
     effectiveTo: calendarDateSchema.nullish(),
   })
-  .refine(
-    (v) => !v.effectiveTo || v.effectiveTo >= v.effectiveFrom,
-    {
-      message: 'effectiveTo tidak boleh sebelum effectiveFrom',
-      path: ['effectiveTo'],
-    },
-  );
+  .refine((v) => !v.effectiveTo || v.effectiveTo >= v.effectiveFrom, {
+    message: 'effectiveTo tidak boleh sebelum effectiveFrom',
+    path: ['effectiveTo'],
+  });
 export type CreateShiftAssignmentInput = z.infer<typeof createShiftAssignmentSchema>;
 
 export const endShiftAssignmentSchema = z.object({

@@ -28,10 +28,10 @@ export function HolidayForm({ initial, submitting, onSubmit, onCancel }: Props):
         <input
           type="date"
           {...form.register('date')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm tabular-nums"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm tabular-nums"
         />
         {form.formState.errors.date && (
-          <p className="text-xs text-destructive">{form.formState.errors.date.message}</p>
+          <p className="text-destructive text-xs">{form.formState.errors.date.message}</p>
         )}
       </div>
 
@@ -40,10 +40,10 @@ export function HolidayForm({ initial, submitting, onSubmit, onCancel }: Props):
         <input
           {...form.register('name')}
           placeholder="Tahun Baru Masehi"
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         />
         {form.formState.errors.name && (
-          <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
+          <p className="text-destructive text-xs">{form.formState.errors.name.message}</p>
         )}
       </div>
 
@@ -54,7 +54,7 @@ export function HolidayForm({ initial, submitting, onSubmit, onCancel }: Props):
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-md bg-foreground px-3 py-1 text-xs font-medium text-background disabled:opacity-50"
+          className="bg-foreground text-background rounded-md px-3 py-1 text-xs font-medium disabled:opacity-50"
         >
           {submitting ? 'Menyimpan...' : initial ? 'Simpan perubahan' : 'Tambah hari libur'}
         </button>

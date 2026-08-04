@@ -3,10 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import type { VendorProcessor, VendorReminderKind } from '@prisma/client';
 
-import {
-  vendorContractExpiring,
-  vendorReviewDue,
-} from '../notification/domain/templates';
+import { vendorContractExpiring, vendorReviewDue } from '../notification/domain/templates';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -46,8 +43,7 @@ export class VendorReviewReminderWorker {
     private readonly notifications: NotificationService,
     config: ConfigService,
   ) {
-    this.enabled =
-      config.get<string>('VENDOR_REVIEW_REMINDER_WORKER_ENABLED', 'true') !== 'false';
+    this.enabled = config.get<string>('VENDOR_REVIEW_REMINDER_WORKER_ENABLED', 'true') !== 'false';
     if (!this.enabled) {
       this.logger.warn(
         'VENDOR_REVIEW_REMINDER_WORKER_ENABLED=false — vendor reminder disabled on this instance.',
@@ -73,9 +69,7 @@ export class VendorReviewReminderWorker {
         }`,
       );
     } catch (err) {
-      this.logger.error(
-        `vendor-reminder tick threw: ${(err as Error).message}`,
-      );
+      this.logger.error(`vendor-reminder tick threw: ${(err as Error).message}`);
     } finally {
       this.tickRunning = false;
     }
@@ -96,10 +90,7 @@ export class VendorReviewReminderWorker {
       where: {
         deletedAt: null,
         status: { in: ['ACTIVE', 'UNDER_REVIEW'] },
-        OR: [
-          { nextReviewAt: { lte: cutoffHorizon } },
-          { contractEndAt: { lte: cutoffHorizon } },
-        ],
+        OR: [{ nextReviewAt: { lte: cutoffHorizon } }, { contractEndAt: { lte: cutoffHorizon } }],
       },
     });
 

@@ -1,6 +1,11 @@
 import { randomUUID } from 'node:crypto';
 
-import { BadRequestException, Inject, Injectable, ServiceUnavailableException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import type { StorageProvider } from '../storage/storage.provider';
@@ -23,9 +28,7 @@ export interface PresignPutInput {
 
 @Injectable()
 export class AttachmentService {
-  constructor(
-    @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
-  ) {}
+  constructor(@Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider) {}
 
   async presignPut(
     actor: AuthenticatedUser,

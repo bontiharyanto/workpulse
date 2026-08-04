@@ -66,8 +66,7 @@ export function snapshot(
   now: Date = new Date(),
 ): DeadlineSnapshot {
   const deadlineAt = deadlineFor(detectedAt);
-  const hoursRemaining =
-    (deadlineAt.getTime() - now.getTime()) / MS_PER_HOUR;
+  const hoursRemaining = (deadlineAt.getTime() - now.getTime()) / MS_PER_HOUR;
   const active = isDeadlineActive(status);
   return {
     hoursRemaining,

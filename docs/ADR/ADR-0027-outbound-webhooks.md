@@ -1,6 +1,7 @@
 # ADR-0027 — Outbound webhooks (Fase 32e)
 
 ## Status
+
 Accepted — 2026-08-03.
 
 ## Context
@@ -157,7 +158,7 @@ pin delivery to the primary node.
 
 - Payroll vendors receive events within a delivery-worker tick (≤30 s).
 - SSRF surface is closed by two-phase URL validation + `redirect:
-  'error'` + explicit metadata-IP block.
+'error'` + explicit metadata-IP block.
 - Secrets are AES-256-GCM at rest, reusing the MFA-crypto module so
   operators have one key to rotate.
 - Delivery log is append-only + database-enforced immutability — the

@@ -9,63 +9,51 @@ import {
 
 describe('transition', () => {
   it('advances DETECTED -> CONTAINED via MARK_CONTAINED', () => {
-    expect(transition(BreachStatus.DETECTED, 'MARK_CONTAINED')).toBe(
-      BreachStatus.CONTAINED,
-    );
+    expect(transition(BreachStatus.DETECTED, 'MARK_CONTAINED')).toBe(BreachStatus.CONTAINED);
   });
 
   it('advances DETECTED -> NOTIFIED_AUTHORITY directly', () => {
-    expect(
-      transition(BreachStatus.DETECTED, 'MARK_AUTHORITY_NOTIFIED'),
-    ).toBe(BreachStatus.NOTIFIED_AUTHORITY);
+    expect(transition(BreachStatus.DETECTED, 'MARK_AUTHORITY_NOTIFIED')).toBe(
+      BreachStatus.NOTIFIED_AUTHORITY,
+    );
   });
 
   it('advances CONTAINED -> NOTIFIED_AUTHORITY', () => {
-    expect(
-      transition(BreachStatus.CONTAINED, 'MARK_AUTHORITY_NOTIFIED'),
-    ).toBe(BreachStatus.NOTIFIED_AUTHORITY);
+    expect(transition(BreachStatus.CONTAINED, 'MARK_AUTHORITY_NOTIFIED')).toBe(
+      BreachStatus.NOTIFIED_AUTHORITY,
+    );
   });
 
   it('advances NOTIFIED_AUTHORITY -> NOTIFIED_SUBJECTS', () => {
-    expect(
-      transition(BreachStatus.NOTIFIED_AUTHORITY, 'MARK_SUBJECTS_NOTIFIED'),
-    ).toBe(BreachStatus.NOTIFIED_SUBJECTS);
+    expect(transition(BreachStatus.NOTIFIED_AUTHORITY, 'MARK_SUBJECTS_NOTIFIED')).toBe(
+      BreachStatus.NOTIFIED_SUBJECTS,
+    );
   });
 
   it('closes from NOTIFIED_SUBJECTS', () => {
-    expect(transition(BreachStatus.NOTIFIED_SUBJECTS, 'CLOSE')).toBe(
-      BreachStatus.CLOSED,
-    );
+    expect(transition(BreachStatus.NOTIFIED_SUBJECTS, 'CLOSE')).toBe(BreachStatus.CLOSED);
   });
 
   it('allows escape-hatch CLOSE from DETECTED / CONTAINED / NOTIFIED_AUTHORITY', () => {
-    expect(transition(BreachStatus.DETECTED, 'CLOSE')).toBe(
-      BreachStatus.CLOSED,
-    );
-    expect(transition(BreachStatus.CONTAINED, 'CLOSE')).toBe(
-      BreachStatus.CLOSED,
-    );
-    expect(transition(BreachStatus.NOTIFIED_AUTHORITY, 'CLOSE')).toBe(
-      BreachStatus.CLOSED,
-    );
+    expect(transition(BreachStatus.DETECTED, 'CLOSE')).toBe(BreachStatus.CLOSED);
+    expect(transition(BreachStatus.CONTAINED, 'CLOSE')).toBe(BreachStatus.CLOSED);
+    expect(transition(BreachStatus.NOTIFIED_AUTHORITY, 'CLOSE')).toBe(BreachStatus.CLOSED);
   });
 
   it('refuses to rewind — no CLOSED -> anything', () => {
-    expect(() => transition(BreachStatus.CLOSED, 'CLOSE')).toThrow(
+    expect(() => transition(BreachStatus.CLOSED, 'CLOSE')).toThrow(IllegalBreachTransitionError);
+    expect(() => transition(BreachStatus.CLOSED, 'MARK_CONTAINED')).toThrow(
       IllegalBreachTransitionError,
     );
-    expect(() =>
-      transition(BreachStatus.CLOSED, 'MARK_CONTAINED'),
-    ).toThrow(IllegalBreachTransitionError);
   });
 
   it('refuses to skip stages backwards', () => {
-    expect(() =>
-      transition(BreachStatus.NOTIFIED_SUBJECTS, 'MARK_CONTAINED'),
-    ).toThrow(IllegalBreachTransitionError);
-    expect(() =>
-      transition(BreachStatus.CONTAINED, 'MARK_SUBJECTS_NOTIFIED'),
-    ).toThrow(IllegalBreachTransitionError);
+    expect(() => transition(BreachStatus.NOTIFIED_SUBJECTS, 'MARK_CONTAINED')).toThrow(
+      IllegalBreachTransitionError,
+    );
+    expect(() => transition(BreachStatus.CONTAINED, 'MARK_SUBJECTS_NOTIFIED')).toThrow(
+      IllegalBreachTransitionError,
+    );
   });
 });
 

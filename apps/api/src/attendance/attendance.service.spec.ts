@@ -94,14 +94,16 @@ describe('AttendanceService.clockIn', () => {
   it('throws NotFoundException when the user has no active shift', async () => {
     prisma.userShiftAssignment.findFirst.mockResolvedValue(null);
     await expect(
-      service.clockIn(user, { latitude: jakartaHQ.latitude, longitude: jakartaHQ.longitude, accuracyMeters: 10 }),
+      service.clockIn(user, {
+        latitude: jakartaHQ.latitude,
+        longitude: jakartaHQ.longitude,
+        accuracyMeters: 10,
+      }),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('throws ForbiddenException with code OUTSIDE_GEOFENCE when coords are far away', async () => {
-    prisma.userShiftAssignment.findFirst.mockResolvedValue(
-      buildAssignment() as never,
-    );
+    prisma.userShiftAssignment.findFirst.mockResolvedValue(buildAssignment() as never);
 
     await expect(
       service.clockIn(user, {
@@ -306,9 +308,9 @@ describe('AttendanceService.listTeamToday', () => {
   });
 
   it('rejects an obviously invalid date string', async () => {
-    await expect(
-      service.listTeamToday(supervisor, { date: 'not-a-date' }),
-    ).rejects.toBeInstanceOf(BadRequestException);
+    await expect(service.listTeamToday(supervisor, { date: 'not-a-date' })).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
   });
 });
 
@@ -462,9 +464,7 @@ describe('AttendanceService.getCompanyDashboard', () => {
       ForbiddenException,
     );
     const employee = { ...hr, id: 'emp-1', role: 'EMPLOYEE' as const };
-    await expect(service.getCompanyDashboard(employee)).rejects.toBeInstanceOf(
-      ForbiddenException,
-    );
+    await expect(service.getCompanyDashboard(employee)).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it('returns an empty snapshot when the company has no active users', async () => {
@@ -499,9 +499,9 @@ describe('AttendanceService.getCompanyDashboard', () => {
   });
 
   it('rejects malformed date query strings', async () => {
-    await expect(
-      service.getCompanyDashboard(hr, { date: 'not-a-date' }),
-    ).rejects.toBeInstanceOf(BadRequestException);
+    await expect(service.getCompanyDashboard(hr, { date: 'not-a-date' })).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
   });
 });
 
@@ -676,8 +676,7 @@ describe('AttendanceService.markAbsent', () => {
       reason: '   ',
     });
     const call = prisma.absenceRecord.create.mock.calls[0]?.[0] as
-      | { data: { reason: string | null } }
-      | undefined;
+      { data: { reason: string | null } } | undefined;
     expect(call?.data.reason).toBeNull();
 
     const long = 'x'.repeat(600);
@@ -687,8 +686,7 @@ describe('AttendanceService.markAbsent', () => {
       reason: long,
     });
     const secondCall = prisma.absenceRecord.create.mock.calls[1]?.[0] as
-      | { data: { reason: string | null } }
-      | undefined;
+      { data: { reason: string | null } } | undefined;
     expect(secondCall?.data.reason?.length).toBe(500);
   });
 

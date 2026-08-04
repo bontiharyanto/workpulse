@@ -191,6 +191,7 @@ Kunci: dokumentasi ini adalah **living document**. Setelah tenant pilot ke-3, re
 Semua artefak baru untuk ADR ini:
 
 **Compose + Docker infrastructure**:
+
 - `docker-compose.prod.yml` — hardened production stack
 - `docker/caddy/Caddyfile` — reverse proxy dengan auto TLS
 - `docker/backup/Dockerfile` — sidecar image (Alpine + pg-client + rclone + age + supercronic)
@@ -199,6 +200,7 @@ Semua artefak baru untuk ADR ini:
 - `.env.production.example` — dokumentasi seluruh env vars produksi
 
 **Ops scripts**:
+
 - `scripts/lib/ops-common.sh` — shared bash helpers
 - `scripts/deploy.sh` — blue/green deploy playbook
 - `scripts/rollback.sh` — image tag rollback
@@ -208,6 +210,7 @@ Semua artefak baru untuk ADR ini:
 - `scripts/restore.sh` — restore drill
 
 **API changes**:
+
 - `apps/api/src/health/health-deep.service.ts` — deep dependency probe (7 unit tests)
 - `apps/api/src/health/health-deep.service.spec.ts`
 - `apps/api/src/health/health.controller.ts` — added `GET /health/deep`
@@ -216,11 +219,13 @@ Semua artefak baru untuk ADR ini:
 - `apps/api/src/storage/s3-storage.provider.ts` — implemented `HeadBucket` probe with 3s abort timeout
 
 **Load test suite** (`apps/load-test/`):
+
 - `package.json` + `README.md`
 - `lib/config.js` + `lib/auth.js`
 - `scenarios/smoke.js` + `clock-in-burst.js` + `dashboard-read.js` + `timesheet-export.js` + `baseline.js`
 
 **Documentation** (`docs/OPS/`):
+
 - `DEPLOYMENT.md` — playbook lengkap dengan pre-flight checklist
 - `BACKUP-RESTORE.md` — pipeline + RTO/RPO commitment + drill playbook
 - `PERFORMANCE.md` — SLO targets + capacity plan + tuning guide

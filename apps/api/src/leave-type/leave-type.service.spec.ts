@@ -63,15 +63,9 @@ describe('LeaveTypeService.create', () => {
       updatedAt: new Date(),
       deletedAt: null,
     } as never);
-    prisma.user.findMany.mockResolvedValue([
-      { id: 'u1' },
-      { id: 'u2' },
-      { id: 'u3' },
-    ] as never);
+    prisma.user.findMany.mockResolvedValue([{ id: 'u1' }, { id: 'u2' }, { id: 'u3' }] as never);
     prisma.leaveBalance.createMany.mockResolvedValue({ count: 3 } as never);
-    prisma.leaveType.findFirst.mockResolvedValue(
-      makeRow({ id: 'lt-new', balances: 3 }) as never,
-    );
+    prisma.leaveType.findFirst.mockResolvedValue(makeRow({ id: 'lt-new', balances: 3 }) as never);
 
     await service.create(hr, {
       code: '  personal ',

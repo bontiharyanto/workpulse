@@ -29,11 +29,11 @@ export function GeofenceForm({ initial, submitting, onSubmit, onCancel }: Props)
         <label className="text-xs font-medium uppercase tracking-wider">Nama Lokasi</label>
         <input
           {...form.register('name')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
           placeholder="Head Office"
         />
         {form.formState.errors.name && (
-          <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
+          <p className="text-destructive text-xs">{form.formState.errors.name.message}</p>
         )}
       </div>
 
@@ -43,10 +43,10 @@ export function GeofenceForm({ initial, submitting, onSubmit, onCancel }: Props)
           type="number"
           step="0.0000001"
           {...form.register('latitude', { valueAsNumber: true })}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm tabular-nums"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm tabular-nums"
         />
         {form.formState.errors.latitude && (
-          <p className="text-xs text-destructive">{form.formState.errors.latitude.message}</p>
+          <p className="text-destructive text-xs">{form.formState.errors.latitude.message}</p>
         )}
       </div>
 
@@ -56,10 +56,10 @@ export function GeofenceForm({ initial, submitting, onSubmit, onCancel }: Props)
           type="number"
           step="0.0000001"
           {...form.register('longitude', { valueAsNumber: true })}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm tabular-nums"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm tabular-nums"
         />
         {form.formState.errors.longitude && (
-          <p className="text-xs text-destructive">{form.formState.errors.longitude.message}</p>
+          <p className="text-destructive text-xs">{form.formState.errors.longitude.message}</p>
         )}
       </div>
 
@@ -69,13 +69,13 @@ export function GeofenceForm({ initial, submitting, onSubmit, onCancel }: Props)
           type="number"
           step="1"
           {...form.register('radiusMeters', { valueAsNumber: true })}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm tabular-nums"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm tabular-nums"
         />
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           Rekomendasi: 30–100m untuk kantor kecil, 200–500m untuk pabrik/kompleks.
         </p>
         {form.formState.errors.radiusMeters && (
-          <p className="text-xs text-destructive">{form.formState.errors.radiusMeters.message}</p>
+          <p className="text-destructive text-xs">{form.formState.errors.radiusMeters.message}</p>
         )}
       </div>
 
@@ -86,7 +86,7 @@ export function GeofenceForm({ initial, submitting, onSubmit, onCancel }: Props)
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-md bg-foreground px-3 py-1 text-xs font-medium text-background disabled:opacity-50"
+          className="bg-foreground text-background rounded-md px-3 py-1 text-xs font-medium disabled:opacity-50"
         >
           {submitting ? 'Menyimpan...' : initial ? 'Simpan perubahan' : 'Buat geofence'}
         </button>

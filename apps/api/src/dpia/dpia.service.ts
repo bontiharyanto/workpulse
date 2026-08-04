@@ -5,12 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  DpiaAssessment,
-  DpiaRiskItem,
-  DpiaStatus,
-  Prisma,
-} from '@prisma/client';
+import { DpiaAssessment, DpiaRiskItem, DpiaStatus, Prisma } from '@prisma/client';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
@@ -102,10 +97,7 @@ export class DpiaService {
     });
   }
 
-  async detail(
-    actor: AuthenticatedUser,
-    id: string,
-  ): Promise<AssessmentWithItems> {
+  async detail(actor: AuthenticatedUser, id: string): Promise<AssessmentWithItems> {
     const row = await this.prisma.dpiaAssessment.findFirst({
       where: { id, companyId: actor.companyId },
       include: { riskItems: { orderBy: { ordinal: 'asc' } } },
@@ -212,20 +204,14 @@ export class DpiaService {
     });
   }
 
-  async submitReview(
-    actor: AuthenticatedUser,
-    id: string,
-  ): Promise<AssessmentWithItems> {
+  async submitReview(actor: AuthenticatedUser, id: string): Promise<AssessmentWithItems> {
     return this.applyTransition(actor, id, 'SUBMIT_REVIEW', {
       reviewedById: actor.id,
       reviewedAt: new Date(),
     });
   }
 
-  async returnToDraft(
-    actor: AuthenticatedUser,
-    id: string,
-  ): Promise<AssessmentWithItems> {
+  async returnToDraft(actor: AuthenticatedUser, id: string): Promise<AssessmentWithItems> {
     return this.applyTransition(actor, id, 'RETURN_TO_DRAFT', {
       // Clear the review provenance — the DPO must re-submit fresh.
       reviewedById: null,
@@ -233,10 +219,7 @@ export class DpiaService {
     });
   }
 
-  async approve(
-    actor: AuthenticatedUser,
-    id: string,
-  ): Promise<AssessmentWithItems> {
+  async approve(actor: AuthenticatedUser, id: string): Promise<AssessmentWithItems> {
     // Approving requires the register to have at least one risk item —
     // otherwise the DPIA is meaningless as compliance evidence.
     return this.prisma.$transaction(async (tx) => {
@@ -301,11 +284,7 @@ export class DpiaService {
     input: CreateRiskItemInput,
   ): Promise<AssessmentWithItems> {
     return this.prisma.$transaction(async (tx) => {
-      const assessment = await this.loadForUpdate(
-        tx,
-        actor.companyId,
-        assessmentId,
-      );
+      const assessment = await this.loadForUpdate(tx, actor.companyId, assessmentId);
       if (!isEditable(assessment.status)) {
         throw new ConflictException('DPIA_NOT_EDITABLE');
       }
@@ -371,11 +350,7 @@ export class DpiaService {
     input: UpdateRiskItemInput,
   ): Promise<AssessmentWithItems> {
     return this.prisma.$transaction(async (tx) => {
-      const assessment = await this.loadForUpdate(
-        tx,
-        actor.companyId,
-        assessmentId,
-      );
+      const assessment = await this.loadForUpdate(tx, actor.companyId, assessmentId);
       if (!isEditable(assessment.status)) {
         throw new ConflictException('DPIA_NOT_EDITABLE');
       }
@@ -390,8 +365,7 @@ export class DpiaService {
 
       const likelihood = input.likelihood ?? existing.likelihood;
       const impact = input.impact ?? existing.impact;
-      const residualLikelihood =
-        input.residualLikelihood ?? existing.residualLikelihood;
+      const residualLikelihood = input.residualLikelihood ?? existing.residualLikelihood;
       const residualImpact = input.residualImpact ?? existing.residualImpact;
 
       let derived;
@@ -415,10 +389,8 @@ export class DpiaService {
         residualLevel: derived.residualLevel,
       };
       if (input.title !== undefined) patch.title = input.title.trim();
-      if (input.description !== undefined)
-        patch.description = input.description.trim();
-      if (input.mitigations !== undefined)
-        patch.mitigations = input.mitigations.trim();
+      if (input.description !== undefined) patch.description = input.description.trim();
+      if (input.mitigations !== undefined) patch.mitigations = input.mitigations.trim();
 
       await tx.dpiaRiskItem.update({ where: { id: riskItemId }, data: patch });
 
@@ -446,11 +418,7 @@ export class DpiaService {
     riskItemId: string,
   ): Promise<AssessmentWithItems> {
     return this.prisma.$transaction(async (tx) => {
-      const assessment = await this.loadForUpdate(
-        tx,
-        actor.companyId,
-        assessmentId,
-      );
+      const assessment = await this.loadForUpdate(tx, actor.companyId, assessmentId);
       if (!isEditable(assessment.status)) {
         throw new ConflictException('DPIA_NOT_EDITABLE');
       }

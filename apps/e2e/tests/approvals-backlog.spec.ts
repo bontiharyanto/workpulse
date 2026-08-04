@@ -91,9 +91,7 @@ test('RBAC: EMPLOYEE is forbidden (403)', async () => {
 
 test('threshold param travels through to the response body', async () => {
   const hr = await authenticateApi('hr');
-  const res = await hr.api.get(
-    '/api/v1/admin/approvals/backlog?thresholdDays=7',
-  );
+  const res = await hr.api.get('/api/v1/admin/approvals/backlog?thresholdDays=7');
   expect(res.status()).toBe(200);
   const body = (await res.json()) as { staleAfterDays: number };
   expect(body.staleAfterDays).toBe(7);
@@ -138,9 +136,7 @@ test('a freshly submitted correction shows up in the backlog', async () => {
     expect(afterBody.correction.total).toBe(beforeTotal + 1);
     // Housekeeping: cancel so this test doesn't pollute subsequent runs.
     const submitted = (await submit.json()) as { id: string };
-    await employee.api.post(
-      `/api/v1/attendance/corrections/${submitted.id}/cancel`,
-    );
+    await employee.api.post(`/api/v1/attendance/corrections/${submitted.id}/cancel`);
   }
   await hr.api.dispose();
   await employee.api.dispose();

@@ -98,7 +98,7 @@ export function HolidayAdmin(): JSX.Element {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Hari Libur</h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Dipakai oleh mesin kalkulasi cuti untuk mengecualikan hari libur nasional dari
             perhitungan hari kerja.
           </p>
@@ -108,7 +108,7 @@ export function HolidayAdmin(): JSX.Element {
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
-            className="rounded-md border border-input bg-background px-2 py-1 text-sm tabular-nums"
+            className="border-input bg-background rounded-md border px-2 py-1 text-sm tabular-nums"
           >
             {yearOptions.map((y) => (
               <option key={y} value={y}>
@@ -129,7 +129,7 @@ export function HolidayAdmin(): JSX.Element {
           <button
             type="button"
             onClick={() => setEditing('new')}
-            className="rounded-md bg-foreground px-3 py-1 text-xs font-medium text-background"
+            className="bg-foreground text-background rounded-md px-3 py-1 text-xs font-medium"
           >
             + Tambah
           </button>
@@ -137,7 +137,10 @@ export function HolidayAdmin(): JSX.Element {
       </div>
 
       {errorText && (
-        <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+        <p
+          role="alert"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
+        >
           {errorText}
         </p>
       )}
@@ -172,15 +175,15 @@ export function HolidayAdmin(): JSX.Element {
       )}
 
       {list.isLoading ? (
-        <p className="text-sm text-muted-foreground">Memuat...</p>
+        <p className="text-muted-foreground text-sm">Memuat...</p>
       ) : rows.length === 0 ? (
-        <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+        <p className="text-muted-foreground rounded-md border border-dashed p-6 text-center text-sm">
           Belum ada hari libur untuk tahun {year}. Gunakan Bulk Import untuk mempercepat.
         </p>
       ) : (
         <div className="overflow-hidden rounded-lg border">
           <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
+            <thead className="bg-muted/40 text-muted-foreground text-xs uppercase tracking-wider">
               <tr>
                 <th className="px-3 py-2 text-left">Tanggal</th>
                 <th className="px-3 py-2 text-left">Nama</th>
@@ -193,7 +196,7 @@ export function HolidayAdmin(): JSX.Element {
                 return (
                   <tr key={r.id}>
                     <td className="px-3 py-2 tabular-nums">
-                      <span className="font-mono text-xs text-muted-foreground">{r.date}</span>
+                      <span className="text-muted-foreground font-mono text-xs">{r.date}</span>
                       <span className="ml-2 text-xs">· {formatDateID(r.date)}</span>
                     </td>
                     <td className="px-3 py-2 font-medium">{r.name}</td>
@@ -214,7 +217,7 @@ export function HolidayAdmin(): JSX.Element {
                               deleteMut.mutate(r.id);
                             }
                           }}
-                          className="rounded-md border border-destructive px-2 py-1 text-xs text-destructive disabled:opacity-40"
+                          className="border-destructive text-destructive rounded-md border px-2 py-1 text-xs disabled:opacity-40"
                         >
                           {busy ? 'Menghapus...' : 'Hapus'}
                         </button>
@@ -228,7 +231,7 @@ export function HolidayAdmin(): JSX.Element {
         </div>
       )}
 
-      <p className="text-xs text-muted-foreground">
+      <p className="text-muted-foreground text-xs">
         <strong>Catatan:</strong> Menghapus atau mengubah tanggal hari libur tidak mengubah
         permohonan cuti yang sudah tersimpan — kolom <code className="font-mono">days</code>{' '}
         dihitung dan disimpan saat pengajuan (snapshot).

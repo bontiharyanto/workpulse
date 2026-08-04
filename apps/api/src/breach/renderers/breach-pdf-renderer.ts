@@ -1,10 +1,6 @@
 import { PassThrough } from 'node:stream';
 
-import {
-  BreachIncident,
-  BreachSeverity,
-  BreachTimelineEvent,
-} from '@prisma/client';
+import { BreachIncident, BreachSeverity, BreachTimelineEvent } from '@prisma/client';
 import PDFDocument from 'pdfkit';
 
 import { snapshot } from '../domain/deadline';
@@ -71,16 +67,8 @@ export async function renderBreachPdf(
   });
 }
 
-function drawTitle(
-  doc: PDFKit.PDFDocument,
-  header: BreachPdfHeader,
-  b: WithTimeline,
-): void {
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(18)
-    .fillColor('#000')
-    .text('Breach Notification Report');
+function drawTitle(doc: PDFKit.PDFDocument, header: BreachPdfHeader, b: WithTimeline): void {
+  doc.font('Helvetica-Bold').fontSize(18).fillColor('#000').text('Breach Notification Report');
   doc
     .font('Helvetica')
     .fontSize(11)
@@ -100,12 +88,7 @@ function drawTitle(
     .text(`Digenerate: ${header.generatedAt.toISOString()}`)
     .text(`Diminta oleh: ${header.generatedByEmail}`);
   doc.moveDown(0.75);
-  doc
-    .strokeColor('#000')
-    .lineWidth(0.5)
-    .moveTo(48, doc.y)
-    .lineTo(547, doc.y)
-    .stroke();
+  doc.strokeColor('#000').lineWidth(0.5).moveTo(48, doc.y).lineTo(547, doc.y).stroke();
   doc.moveDown(0.5);
   doc.font('Helvetica-Bold').fontSize(14).fillColor('#000').text(b.title);
   doc.moveDown(0.75);
@@ -123,9 +106,7 @@ function drawSummary(doc: PDFKit.PDFDocument, b: WithTimeline): void {
     .text(`Kategori: ${b.category}`)
     .text(`Status: ${b.status}`)
     .text(`Terdampak: ${b.affectedUserCount} data subjek (approx)`)
-    .text(
-      `Kategori data: ${b.affectedDataCategories.join(', ') || '—'}`,
-    )
+    .text(`Kategori data: ${b.affectedDataCategories.join(', ') || '—'}`)
     .text(`Sistem: ${b.affectedSystems.join(', ') || '—'}`)
     .fillColor(snap.overdue ? '#991b1b' : '#166534')
     .text(
@@ -169,16 +150,9 @@ function drawActions(doc: PDFKit.PDFDocument, b: WithTimeline): void {
   bullet(doc, 'Remediation / Post-Mortem', b.remediation ?? '—');
 }
 
-function drawNotifications(
-  doc: PDFKit.PDFDocument,
-  b: WithTimeline,
-): void {
+function drawNotifications(doc: PDFKit.PDFDocument, b: WithTimeline): void {
   section(doc, 'Notifikasi');
-  bullet(
-    doc,
-    'Nomor Referensi Otoritas',
-    b.authorityNotificationRef ?? '—',
-  );
+  bullet(doc, 'Nomor Referensi Otoritas', b.authorityNotificationRef ?? '—');
   bullet(
     doc,
     'Template Notifikasi Subjek Data',
@@ -207,39 +181,23 @@ function drawTimeline(doc: PDFKit.PDFDocument, b: WithTimeline): void {
       .font('Helvetica')
       .fillColor('#555')
       .text(` · ${ev.actor?.email ?? 'system'}`);
-    doc
-      .font('Helvetica')
-      .fontSize(9)
-      .fillColor('#333')
-      .text(ev.note, { indent: 12 });
+    doc.font('Helvetica').fontSize(9).fillColor('#333').text(ev.note, { indent: 12 });
     doc.moveDown(0.2);
   });
 }
 
 function section(doc: PDFKit.PDFDocument, title: string): void {
   doc.moveDown(0.5);
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(12)
-    .fillColor('#000')
-    .text(title);
+  doc.font('Helvetica-Bold').fontSize(12).fillColor('#000').text(title);
   doc.moveDown(0.25);
 }
 
 function paragraph(doc: PDFKit.PDFDocument, text: string): void {
-  doc
-    .font('Helvetica')
-    .fontSize(10)
-    .fillColor('#333')
-    .text(text, { align: 'justify' });
+  doc.font('Helvetica').fontSize(10).fillColor('#333').text(text, { align: 'justify' });
   doc.moveDown(0.25);
 }
 
-function bullet(
-  doc: PDFKit.PDFDocument,
-  label: string,
-  value: string,
-): void {
+function bullet(doc: PDFKit.PDFDocument, label: string, value: string): void {
   doc
     .font('Helvetica-Bold')
     .fontSize(10)

@@ -10,20 +10,20 @@ export default function LeavePage(): JSX.Element {
       <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Manajemen Cuti</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Saldo, riwayat pengajuan, dan pengajuan cuti baru.
           </p>
         </div>
         <Link
           href="/leave/approvals"
-          className="text-sm text-primary underline-offset-2 hover:underline"
+          className="text-primary text-sm underline-offset-2 hover:underline"
         >
           Lihat halaman approval →
         </Link>
       </header>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
+        <h2 className="text-muted-foreground text-sm font-medium uppercase tracking-widest">
           Saldo Tahun Ini
         </h2>
         <LeaveBalanceCard />
@@ -31,7 +31,7 @@ export default function LeavePage(): JSX.Element {
 
       <section className="grid gap-6 md:grid-cols-2">
         <div className="space-y-3">
-          <h2 className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
+          <h2 className="text-muted-foreground text-sm font-medium uppercase tracking-widest">
             Pengajuan Saya
           </h2>
           <MyLeaveList />

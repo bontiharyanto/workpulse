@@ -20,14 +20,11 @@ export default function AdminWebhooksPage(): JSX.Element {
       <RequireRole roles={['HR_MANAGER', 'SUPER_ADMIN']}>
         <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Webhooks
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Push notifikasi otomatis ke sistem eksternal (payroll, BI) saat
-              event Workpulse terjadi. Setiap request ditandatangani{' '}
-              <span className="font-mono text-xs">HMAC-SHA256</span> agar
-              vendor bisa memverifikasi.
+            <h1 className="text-2xl font-semibold tracking-tight">Webhooks</h1>
+            <p className="text-muted-foreground text-sm">
+              Push notifikasi otomatis ke sistem eksternal (payroll, BI) saat event Workpulse
+              terjadi. Setiap request ditandatangani{' '}
+              <span className="font-mono text-xs">HMAC-SHA256</span> agar vendor bisa memverifikasi.
             </p>
           </div>
           <WebhooksPanel />

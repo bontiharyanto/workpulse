@@ -48,11 +48,7 @@ function generateNonce(): string {
   return btoa(binary);
 }
 
-function buildCsp(opts: {
-  nonce: string;
-  isProd: boolean;
-  apiUrl: string;
-}): string {
+function buildCsp(opts: { nonce: string; isProd: boolean; apiUrl: string }): string {
   const self = "'self'";
   const nonceSource = `'nonce-${opts.nonce}'`;
   // `strict-dynamic` lets any nonce-loaded script transitively load

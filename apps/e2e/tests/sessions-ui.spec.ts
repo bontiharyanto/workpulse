@@ -25,10 +25,7 @@ const API_URL = process.env.E2E_API_URL ?? 'http://localhost:4000';
  * (its cookie is never used again) — the row on the server survives
  * until either the token expires or a UI revoke burns it.
  */
-async function forkExtraSession(
-  role: keyof typeof SEED_USERS,
-  userAgent: string,
-): Promise<void> {
+async function forkExtraSession(role: keyof typeof SEED_USERS, userAgent: string): Promise<void> {
   const ctx = await request.newContext({
     baseURL: API_URL,
     extraHTTPHeaders: { 'user-agent': userAgent },
@@ -39,9 +36,7 @@ async function forkExtraSession(
       data: { email: user.email, password: user.password },
     });
     if (!res.ok()) {
-      throw new Error(
-        `forkExtraSession(${role}) failed: ${res.status()} ${await res.text()}`,
-      );
+      throw new Error(`forkExtraSession(${role}) failed: ${res.status()} ${await res.text()}`);
     }
   } finally {
     await ctx.dispose();
@@ -54,9 +49,7 @@ async function forkExtraSession(
  * where every test leaves behind residual `RefreshToken` rows that
  * would otherwise skew the next test's row counts.
  */
-async function pruneToOneSession(
-  role: keyof typeof SEED_USERS,
-): Promise<void> {
+async function pruneToOneSession(role: keyof typeof SEED_USERS): Promise<void> {
   const ctx = await request.newContext({ baseURL: API_URL });
   try {
     const user = SEED_USERS[role];
@@ -93,17 +86,13 @@ test.beforeEach(async () => {
   await pruneToOneSession('employee');
 });
 
-test('SessionsPanel renders every active session and marks the current one', async ({
-  page,
-}) => {
+test('SessionsPanel renders every active session and marks the current one', async ({ page }) => {
   await forkExtraSession('employee', 'e2e-agent/ui-list-1');
   await forkExtraSession('employee', 'e2e-agent/ui-list-2');
   await loginAs(page, 'employee');
   await page.goto('/settings/security');
 
-  await expect(
-    page.getByRole('heading', { name: 'Sesi aktif', exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Sesi aktif', exact: true })).toBeVisible();
 
   const panel = page.getByTestId('sessions-panel');
   await expect(panel).toBeVisible();
@@ -129,9 +118,7 @@ test('Revoking a foreign session removes it from the list without logging the cu
     timeout: 10_000,
   });
 
-  const foreign = panel
-    .locator('[data-testid="session-row"]:not([data-current])')
-    .first();
+  const foreign = panel.locator('[data-testid="session-row"]:not([data-current])').first();
   await expect(foreign).toBeVisible();
   await foreign.getByTestId('session-revoke-btn').click();
   await foreign.getByTestId('session-revoke-confirm').click();
@@ -140,9 +127,7 @@ test('Revoking a foreign session removes it from the list without logging the cu
     timeout: 10_000,
   });
   // The remaining row IS the current one.
-  await expect(
-    panel.locator('[data-current="true"]'),
-  ).toHaveCount(1);
+  await expect(panel.locator('[data-current="true"]')).toHaveCount(1);
 
   // The dashboard shell is still reachable (we did not accidentally
   // revoke ourselves).

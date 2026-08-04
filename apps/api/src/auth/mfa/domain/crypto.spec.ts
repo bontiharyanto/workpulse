@@ -52,9 +52,7 @@ describe('mfa/domain/crypto', () => {
       const tampered = Buffer.from(enc, 'base64');
       const lastIdx = tampered.length - 1;
       tampered.writeUInt8((tampered.readUInt8(lastIdx) ^ 0x01) & 0xff, lastIdx);
-      expect(() => decryptString(tampered.toString('base64'), key)).toThrow(
-        DecryptionFailedError,
-      );
+      expect(() => decryptString(tampered.toString('base64'), key)).toThrow(DecryptionFailedError);
     });
 
     it('throws when decrypted with a different key', () => {
@@ -64,9 +62,7 @@ describe('mfa/domain/crypto', () => {
     });
 
     it('throws on obviously malformed input', () => {
-      expect(() => decryptString('not-a-bundle', key)).toThrow(
-        DecryptionFailedError,
-      );
+      expect(() => decryptString('not-a-bundle', key)).toThrow(DecryptionFailedError);
       expect(() => decryptString('', key)).toThrow(DecryptionFailedError);
     });
   });

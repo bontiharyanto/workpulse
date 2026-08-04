@@ -36,10 +36,7 @@ function buildKit(policyOverrides: Partial<RetentionPolicy> = {}): Kit {
   const retention = {
     getForCompany: jest.fn().mockResolvedValue(policy(policyOverrides)),
   } as unknown as jest.Mocked<Pick<RetentionService, 'getForCompany'>>;
-  const service = new RetentionAuditService(
-    prisma,
-    retention as unknown as RetentionService,
-  );
+  const service = new RetentionAuditService(prisma, retention as unknown as RetentionService);
   return { service, prisma, retention };
 }
 
@@ -97,18 +94,16 @@ function wireDb(
       : null,
   );
   prisma.notification.count.mockResolvedValue(overrides.notificationsPast ?? 0);
-  prisma.dataExportRequest.count.mockResolvedValue(
-    overrides.dsarArchivesPast ?? 0,
-  );
+  prisma.dataExportRequest.count.mockResolvedValue(overrides.dsarArchivesPast ?? 0);
   prisma.user.count.mockResolvedValue(overrides.terminatedPast ?? 0);
 }
 
 describe('RetentionAuditService.generateForPeriod', () => {
   it('rejects an inverted period', async () => {
     const { service } = buildKit();
-    await expect(
-      service.generateForPeriod(COMPANY, PERIOD_END, PERIOD_START),
-    ).rejects.toThrow('AUDIT_PERIOD_INVALID');
+    await expect(service.generateForPeriod(COMPANY, PERIOD_END, PERIOD_START)).rejects.toThrow(
+      'AUDIT_PERIOD_INVALID',
+    );
   });
 
   it('persists SUCCESS when all counters are clean and worker ticked', async () => {
@@ -121,11 +116,7 @@ describe('RetentionAuditService.generateForPeriod', () => {
     });
     prisma.retentionAuditReport.upsert.mockResolvedValue(fakeReport('SUCCESS'));
 
-    const res = await service.generateForPeriod(
-      COMPANY,
-      PERIOD_START,
-      PERIOD_END,
-    );
+    const res = await service.generateForPeriod(COMPANY, PERIOD_START, PERIOD_END);
 
     expect(res.status).toBe('SUCCESS');
     expect(prisma.retentionAuditReport.upsert).toHaveBeenCalledWith(
@@ -192,15 +183,9 @@ describe('RetentionAuditService.generateForPeriod', () => {
       notificationsPast: 15,
       workerLastRunAt: new Date('2026-03-15T02:00:00Z'),
     });
-    prisma.retentionAuditReport.upsert.mockResolvedValue(
-      fakeReport('GAP_DETECTED'),
-    );
+    prisma.retentionAuditReport.upsert.mockResolvedValue(fakeReport('GAP_DETECTED'));
 
-    const res = await service.generateForPeriod(
-      COMPANY,
-      PERIOD_START,
-      PERIOD_END,
-    );
+    const res = await service.generateForPeriod(COMPANY, PERIOD_START, PERIOD_END);
 
     expect(res.status).toBe('GAP_DETECTED');
     expect(prisma.retentionAuditReport.upsert).toHaveBeenCalledWith(
@@ -216,15 +201,9 @@ describe('RetentionAuditService.generateForPeriod', () => {
   it('emits WORKER_INACTIVE when the worker never ticked and policy is non-zero', async () => {
     const { service, prisma } = buildKit();
     wireDb(prisma, { workerLastRunAt: null });
-    prisma.retentionAuditReport.upsert.mockResolvedValue(
-      fakeReport('WORKER_INACTIVE'),
-    );
+    prisma.retentionAuditReport.upsert.mockResolvedValue(fakeReport('WORKER_INACTIVE'));
 
-    const res = await service.generateForPeriod(
-      COMPANY,
-      PERIOD_START,
-      PERIOD_END,
-    );
+    const res = await service.generateForPeriod(COMPANY, PERIOD_START, PERIOD_END);
 
     expect(res.status).toBe('WORKER_INACTIVE');
   });
@@ -237,11 +216,7 @@ describe('RetentionAuditService.generateForPeriod', () => {
     wireDb(prisma, { workerLastRunAt: null });
     prisma.retentionAuditReport.upsert.mockResolvedValue(fakeReport('SUCCESS'));
 
-    const res = await service.generateForPeriod(
-      COMPANY,
-      PERIOD_START,
-      PERIOD_END,
-    );
+    const res = await service.generateForPeriod(COMPANY, PERIOD_START, PERIOD_END);
 
     // Policy has no expected work → worker inactivity is NOT flagged.
     expect(res.status).toBe('SUCCESS');
@@ -254,10 +229,7 @@ describe('RetentionAuditService.generateForPeriod', () => {
 describe('RetentionAuditService.list + detail', () => {
   it('paginates + honours the status filter', async () => {
     const { service, prisma } = buildKit();
-    prisma.$transaction.mockResolvedValue([
-      [fakeReport('SUCCESS')],
-      1,
-    ] as never);
+    prisma.$transaction.mockResolvedValue([[fakeReport('SUCCESS')], 1] as never);
 
     const res = await service.list(COMPANY, {
       status: 'GAP_DETECTED',

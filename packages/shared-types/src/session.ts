@@ -26,6 +26,4 @@ export type SessionListResponse = z.infer<typeof sessionListResponseSchema>;
 export const sessionRevokeOthersResponseSchema = z.object({
   revokedCount: z.number().int().nonnegative(),
 });
-export type SessionRevokeOthersResponse = z.infer<
-  typeof sessionRevokeOthersResponseSchema
->;
+export type SessionRevokeOthersResponse = z.infer<typeof sessionRevokeOthersResponseSchema>;

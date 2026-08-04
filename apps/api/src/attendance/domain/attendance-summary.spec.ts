@@ -1,7 +1,4 @@
-import {
-  summarizeAttendance,
-  type AttendanceSummaryInput,
-} from './attendance-summary';
+import { summarizeAttendance, type AttendanceSummaryInput } from './attendance-summary';
 
 function row(overrides: Partial<AttendanceSummaryInput>): AttendanceSummaryInput {
   return {
@@ -63,9 +60,7 @@ describe('summarizeAttendance', () => {
   });
 
   it('flags both late and early on a single row when applicable', () => {
-    const s = summarizeAttendance([
-      row({ status: 'LATE', lateMinutes: 12, earlyLeaveMinutes: 8 }),
-    ]);
+    const s = summarizeAttendance([row({ status: 'LATE', lateMinutes: 12, earlyLeaveMinutes: 8 })]);
     expect(s.lateDays).toBe(1);
     expect(s.earlyLeaveDays).toBe(1);
     expect(s.onTimeDays).toBe(0);
@@ -84,10 +79,7 @@ describe('summarizeAttendance', () => {
   });
 
   it('ignores rows without clockOutAt in totalHoursWorked (still on-shift)', () => {
-    const s = summarizeAttendance([
-      row({}),
-      row({ clockOutAt: null }),
-    ]);
+    const s = summarizeAttendance([row({}), row({ clockOutAt: null })]);
     expect(s.totalHoursWorked).toBe(8);
     expect(s.presentDays).toBe(2); // Still counts as present
   });

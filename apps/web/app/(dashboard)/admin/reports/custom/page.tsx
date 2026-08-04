@@ -20,14 +20,12 @@ export default function AdminCustomReportPage(): JSX.Element {
       <RequireRole roles={['HR_MANAGER', 'SUPER_ADMIN']}>
         <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Custom Report Builder
-            </h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-2xl font-semibold tracking-tight">Custom Report Builder</h1>
+            <p className="text-muted-foreground text-sm">
               Susun laporan ad-hoc dari kombinasi <strong>dimension</strong>
               (day / department / user), <strong>metric</strong>, dan
-              <strong>window</strong>. Simpan sebagai favorit, export CSV /
-              XLSX, atau jadwalkan lewat menu Jadwal Laporan.
+              <strong>window</strong>. Simpan sebagai favorit, export CSV / XLSX, atau jadwalkan
+              lewat menu Jadwal Laporan.
             </p>
           </div>
           <CustomReportBuilder />

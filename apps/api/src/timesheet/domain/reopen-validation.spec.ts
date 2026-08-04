@@ -96,11 +96,7 @@ describe('validateReopen', () => {
       reasonRaw: null,
     });
     expect(decision.issues).toEqual(
-      expect.arrayContaining([
-        'FORBIDDEN_ROLE',
-        'STATUS_NOT_APPROVED',
-        'REASON_MISSING',
-      ]),
+      expect.arrayContaining(['FORBIDDEN_ROLE', 'STATUS_NOT_APPROVED', 'REASON_MISSING']),
     );
   });
 });

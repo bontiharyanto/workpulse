@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import type { DataExportRequest } from '@prisma/client';
 import { DataExportStatus } from '@prisma/client';
@@ -134,14 +130,12 @@ describe('DataExportService.create', () => {
 
   it('accepts the request when the last one is older than the cooldown window', async () => {
     const { service, prisma } = buildKit({ DATA_EXPORT_COOLDOWN_HOURS: '1' });
-    prisma.dataExportRequest.findFirst
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce(
-        makeRow({
-          status: DataExportStatus.READY,
-          requestedAt: new Date(Date.now() - 2 * 3_600_000), // 2h ago, cooldown=1h
-        }),
-      );
+    prisma.dataExportRequest.findFirst.mockResolvedValueOnce(null).mockResolvedValueOnce(
+      makeRow({
+        status: DataExportStatus.READY,
+        requestedAt: new Date(Date.now() - 2 * 3_600_000), // 2h ago, cooldown=1h
+      }),
+    );
     prisma.$transaction.mockImplementation(async (cb: unknown) => {
       if (typeof cb === 'function') {
         return (cb as (tx: unknown) => unknown)(prisma);
@@ -184,9 +178,7 @@ describe('DataExportService.getDownloadUrl', () => {
 
   it('404 EXPORT_NOT_FOUND for a foreign row (no existence leak)', async () => {
     const { service, prisma } = buildKit();
-    prisma.dataExportRequest.findUnique.mockResolvedValue(
-      makeRow({ userId: 'stranger' }),
-    );
+    prisma.dataExportRequest.findUnique.mockResolvedValue(makeRow({ userId: 'stranger' }));
     const err = await service.getDownloadUrl('user-1', 'req-1').catch((e) => e);
     expect(err).toBeInstanceOf(NotFoundException);
     expect((err as NotFoundException).getResponse()).toMatchObject({

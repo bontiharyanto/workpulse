@@ -40,10 +40,7 @@ export class OvertimeSchedulerService {
       // The service itself is defensive per-row; anything that bubbles up
       // here is a systemic failure (DB down, etc.). Log loudly but never
       // throw — an unhandled promise rejection would tear down the scheduler.
-      this.logger.error(
-        { err: e },
-        'overtime completion run failed with an unhandled error',
-      );
+      this.logger.error({ err: e }, 'overtime completion run failed with an unhandled error');
     } finally {
       this.running = false;
     }

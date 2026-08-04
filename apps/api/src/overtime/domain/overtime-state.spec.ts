@@ -1,10 +1,6 @@
 import type { OvertimeStatus } from '@prisma/client';
 
-import {
-  ForbiddenTransitionError,
-  IllegalTransitionError,
-  transition,
-} from './overtime-state';
+import { ForbiddenTransitionError, IllegalTransitionError, transition } from './overtime-state';
 
 describe('overtime-state.transition', () => {
   describe('approve', () => {
@@ -82,15 +78,15 @@ describe('overtime-state.transition', () => {
     });
 
     it('non-owner cannot cancel', () => {
-      expect(() =>
-        transition('PENDING_APPROVAL', { kind: 'CANCEL', actorIsOwner: false }),
-      ).toThrow(ForbiddenTransitionError);
+      expect(() => transition('PENDING_APPROVAL', { kind: 'CANCEL', actorIsOwner: false })).toThrow(
+        ForbiddenTransitionError,
+      );
     });
 
     it('cannot cancel already-approved', () => {
-      expect(() =>
-        transition('APPROVED', { kind: 'CANCEL', actorIsOwner: true }),
-      ).toThrow(IllegalTransitionError);
+      expect(() => transition('APPROVED', { kind: 'CANCEL', actorIsOwner: true })).toThrow(
+        IllegalTransitionError,
+      );
     });
   });
 

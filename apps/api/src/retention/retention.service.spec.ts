@@ -69,23 +69,21 @@ describe('RetentionService.getForCompany', () => {
 describe('RetentionService.validate', () => {
   it('rejects negative notification retention', () => {
     const { service } = buildKit();
-    expect(() =>
-      service.validate({ notificationRetentionDays: -1 }),
-    ).toThrow(BadRequestException);
+    expect(() => service.validate({ notificationRetentionDays: -1 })).toThrow(BadRequestException);
   });
 
   it('rejects out-of-range data-export retention hours', () => {
     const { service } = buildKit();
-    expect(() =>
-      service.validate({ dataExportArchiveRetentionHours: 1000 }),
-    ).toThrow(BadRequestException);
+    expect(() => service.validate({ dataExportArchiveRetentionHours: 1000 })).toThrow(
+      BadRequestException,
+    );
   });
 
   it('rejects non-integer terminatedUserAnonymizeDays', () => {
     const { service } = buildKit();
-    expect(() =>
-      service.validate({ terminatedUserAnonymizeDays: 3.5 }),
-    ).toThrow(BadRequestException);
+    expect(() => service.validate({ terminatedUserAnonymizeDays: 3.5 })).toThrow(
+      BadRequestException,
+    );
   });
 
   it('accepts values at the boundary', () => {

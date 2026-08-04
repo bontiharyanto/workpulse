@@ -89,9 +89,7 @@ describe('GeofenceService.create', () => {
 describe('GeofenceService.remove', () => {
   it('refuses to delete a geofence still referenced by shifts', async () => {
     const { service, prisma } = setup();
-    prisma.geofence.findFirst.mockResolvedValue(
-      makeRow({ shiftCount: 2 }) as never,
-    );
+    prisma.geofence.findFirst.mockResolvedValue(makeRow({ shiftCount: 2 }) as never);
     await expect(service.remove(hr, 'gf-1')).rejects.toBeInstanceOf(ConflictException);
   });
 

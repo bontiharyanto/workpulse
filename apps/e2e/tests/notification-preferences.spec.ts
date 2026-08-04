@@ -179,9 +179,7 @@ test('Effective gate: after opting out of in-app for a type, a new notification 
   const supervisor = await authenticateApi('supervisor');
 
   // Step A: record current OVERTIME_SUBMITTED count for supervisor.
-  const preList = await supervisor.api.get(
-    '/api/v1/notifications?limit=100',
-  );
+  const preList = await supervisor.api.get('/api/v1/notifications?limit=100');
   const preRows = (await preList.json()) as Array<{ type: string }>;
   const preCount = preRows.filter((r) => r.type === 'OVERTIME_SUBMITTED').length;
 
@@ -224,13 +222,9 @@ test('Effective gate: after opting out of in-app for a type, a new notification 
 
   // Step D: re-fetch supervisor list; OVERTIME_SUBMITTED count for
   // supervisor MUST NOT have grown.
-  const postList = await supervisor.api.get(
-    '/api/v1/notifications?limit=100',
-  );
+  const postList = await supervisor.api.get('/api/v1/notifications?limit=100');
   const postRows = (await postList.json()) as Array<{ type: string }>;
-  const postCount = postRows.filter(
-    (r) => r.type === 'OVERTIME_SUBMITTED',
-  ).length;
+  const postCount = postRows.filter((r) => r.type === 'OVERTIME_SUBMITTED').length;
   expect(postCount).toBe(preCount);
 
   // Step E (cleanup): restore defaults so subsequent specs behave.

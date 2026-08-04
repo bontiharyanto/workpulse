@@ -3,12 +3,7 @@ import { AnalyticsMetricKey, Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 
-import {
-  Ymd,
-  tzDayEndUtc,
-  tzDayStartUtc,
-  ymdToUtcDateOnly,
-} from './domain/period';
+import { Ymd, tzDayEndUtc, tzDayStartUtc, ymdToUtcDateOnly } from './domain/period';
 
 /**
  * Fase 33a — pure metric calculators.
@@ -74,10 +69,7 @@ export class AnalyticsComputationService {
    * (weekend, all-hands leave) return 1 so the metric doesn't drag a
    * legitimate 100% average down to 0.
    */
-  private async attendanceOnTimeRate(
-    companyId: string,
-    day: Ymd,
-  ): Promise<number> {
+  private async attendanceOnTimeRate(companyId: string, day: Ymd): Promise<number> {
     const utcDate = ymdToUtcDateOnly(day);
     const [total, onTime] = await Promise.all([
       this.prisma.attendanceRecord.count({
@@ -96,10 +88,7 @@ export class AnalyticsComputationService {
     return onTime / total;
   }
 
-  private async attendanceLateCount(
-    companyId: string,
-    day: Ymd,
-  ): Promise<number> {
+  private async attendanceLateCount(companyId: string, day: Ymd): Promise<number> {
     return this.prisma.attendanceRecord.count({
       where: {
         companyId,
@@ -110,10 +99,7 @@ export class AnalyticsComputationService {
     });
   }
 
-  private async attendanceAbsentCount(
-    companyId: string,
-    day: Ymd,
-  ): Promise<number> {
+  private async attendanceAbsentCount(companyId: string, day: Ymd): Promise<number> {
     return this.prisma.absenceRecord.count({
       where: { companyId, workDate: ymdToUtcDateOnly(day) },
     });
@@ -125,11 +111,7 @@ export class AnalyticsComputationService {
    * end of the tenant-local `day`. Reflects the queue depth as of
    * midnight-end-of-day.
    */
-  private async leavePendingCount(
-    companyId: string,
-    day: Ymd,
-    timezone: string,
-  ): Promise<number> {
+  private async leavePendingCount(companyId: string, day: Ymd, timezone: string): Promise<number> {
     return this.prisma.leaveRequest.count({
       where: {
         companyId,
@@ -145,10 +127,7 @@ export class AnalyticsComputationService {
    * (not any day in `[start, end]`) keeps each request counted exactly
    * once across the timeline.
    */
-  private async leaveDaysApproved(
-    companyId: string,
-    day: Ymd,
-  ): Promise<number> {
+  private async leaveDaysApproved(companyId: string, day: Ymd): Promise<number> {
     const rows = await this.prisma.leaveRequest.aggregate({
       _sum: { days: true },
       where: {
@@ -196,11 +175,7 @@ export class AnalyticsComputationService {
    * Headcount = active users at end-of-day. "Active" == `deletedAt` is
    * NULL OR `deletedAt` is strictly after the end-of-day UTC.
    */
-  private async headcountActive(
-    companyId: string,
-    day: Ymd,
-    timezone: string,
-  ): Promise<number> {
+  private async headcountActive(companyId: string, day: Ymd, timezone: string): Promise<number> {
     const endOfDay = tzDayEndUtc(day, timezone);
     return this.prisma.user.count({
       where: {

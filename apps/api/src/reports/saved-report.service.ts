@@ -52,10 +52,7 @@ export class SavedReportService {
     return row;
   }
 
-  async definitionFor(
-    actor: AuthenticatedUser,
-    id: string,
-  ): Promise<CustomReportDefinition> {
+  async definitionFor(actor: AuthenticatedUser, id: string): Promise<CustomReportDefinition> {
     const row = await this.detail(actor, id);
     return validateDefinition(row.definition);
   }

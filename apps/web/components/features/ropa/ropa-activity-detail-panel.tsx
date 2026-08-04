@@ -18,8 +18,7 @@ import { ApiError, ropaAdminApi } from '@/lib/api-client';
 const ERROR_COPY: Record<string, string> = {
   ROPA_NOT_EDITABLE: 'Versi ini tidak berstatus DRAFT — tidak bisa di-edit.',
   ROPA_ILLEGAL_TRANSITION: 'Transisi status tidak valid untuk versi ini.',
-  ROPA_OPEN_VERSION_EXISTS:
-    'Sudah ada versi DRAFT/REVIEW yang belum ditutup. Selesaikan dulu.',
+  ROPA_OPEN_VERSION_EXISTS: 'Sudah ada versi DRAFT/REVIEW yang belum ditutup. Selesaikan dulu.',
   THROTTLED: 'Terlalu banyak percobaan. Coba lagi sebentar.',
 };
 
@@ -37,8 +36,7 @@ const STATUS_BADGE: Record<
   },
   PUBLISHED: {
     label: 'Published',
-    className:
-      'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100',
+    className: 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100',
   },
   ARCHIVED: {
     label: 'Archived',
@@ -46,10 +44,7 @@ const STATUS_BADGE: Record<
   },
 };
 
-const LEGAL_LABEL: Record<
-  ReturnType<typeof ropaLegalBasisSchema.parse>,
-  string
-> = {
+const LEGAL_LABEL: Record<ReturnType<typeof ropaLegalBasisSchema.parse>, string> = {
   CONTRACT: 'Pelaksanaan kontrak',
   CONSENT: 'Persetujuan',
   LEGAL_OBLIGATION: 'Kewajiban hukum',
@@ -75,11 +70,7 @@ function toDefaults(v: RopaVersionResponse): UpdateRopaVersionInput {
   };
 }
 
-export function RopaActivityDetailPanel({
-  activityId,
-}: {
-  activityId: string;
-}): JSX.Element {
+export function RopaActivityDetailPanel({ activityId }: { activityId: string }): JSX.Element {
   const qc = useQueryClient();
   const detail = useQuery({
     queryKey: ['ropa-activity', activityId],
@@ -87,22 +78,18 @@ export function RopaActivityDetailPanel({
     staleTime: 10_000,
   });
 
-  const invalidate = () =>
-    qc.invalidateQueries({ queryKey: ['ropa-activity', activityId] });
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['ropa-activity', activityId] });
 
   const submitReview = useMutation({
-    mutationFn: (v: RopaVersionResponse) =>
-      ropaAdminApi.submitReview(activityId, v.id),
+    mutationFn: (v: RopaVersionResponse) => ropaAdminApi.submitReview(activityId, v.id),
     onSuccess: () => invalidate(),
   });
   const returnToDraft = useMutation({
-    mutationFn: (v: RopaVersionResponse) =>
-      ropaAdminApi.returnToDraft(activityId, v.id),
+    mutationFn: (v: RopaVersionResponse) => ropaAdminApi.returnToDraft(activityId, v.id),
     onSuccess: () => invalidate(),
   });
   const publish = useMutation({
-    mutationFn: (v: RopaVersionResponse) =>
-      ropaAdminApi.publish(activityId, v.id),
+    mutationFn: (v: RopaVersionResponse) => ropaAdminApi.publish(activityId, v.id),
     onSuccess: () => invalidate(),
   });
   const newVersion = useMutation({
@@ -124,7 +111,7 @@ export function RopaActivityDetailPanel({
       <div
         role="status"
         aria-live="polite"
-        className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground"
+        className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm"
       >
         Memuat detail…
       </div>
@@ -134,12 +121,12 @@ export function RopaActivityDetailPanel({
   if (!detail.data) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Aktivitas tidak ditemukan atau bukan milik tenant Anda.
         </p>
         <Link
           href={'/admin/ropa' as Route}
-          className="inline-flex items-center rounded-md border border-border bg-background px-3 py-2 text-sm hover:bg-muted"
+          className="border-border bg-background hover:bg-muted inline-flex items-center rounded-md border px-3 py-2 text-sm"
         >
           ← Kembali ke daftar
         </Link>
@@ -153,9 +140,7 @@ export function RopaActivityDetailPanel({
     versions.find((v) => v.status === 'REVIEW') ??
     versions.find((v) => v.status === 'DRAFT') ??
     versions[0];
-  const canOpenNew = !versions.some(
-    (v) => v.status === 'DRAFT' || v.status === 'REVIEW',
-  );
+  const canOpenNew = !versions.some((v) => v.status === 'DRAFT' || v.status === 'REVIEW');
 
   return (
     <div className="space-y-6">
@@ -163,12 +148,12 @@ export function RopaActivityDetailPanel({
         <div className="space-y-1">
           <Link
             href={'/admin/ropa' as Route}
-            className="text-xs text-muted-foreground hover:underline"
+            className="text-muted-foreground text-xs hover:underline"
           >
             ← Semua aktivitas
           </Link>
           <h2 className="text-xl font-semibold">{current?.name ?? detail.data.slug}</h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             slug: {detail.data.slug} · {versions.length} versi
           </p>
         </div>
@@ -177,7 +162,7 @@ export function RopaActivityDetailPanel({
             type="button"
             disabled={!canOpenNew || newVersion.isPending}
             onClick={() => newVersion.mutate()}
-            className="inline-flex items-center rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+            className="border-border bg-background hover:bg-muted inline-flex items-center rounded-md border px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
           >
             {newVersion.isPending ? 'Membuat…' : 'Buka versi baru (DRAFT)'}
           </button>
@@ -187,7 +172,7 @@ export function RopaActivityDetailPanel({
       {activeErrorMessage && (
         <div
           role="alert"
-          className="rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive"
+          className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-3 text-sm"
         >
           {activeErrorMessage}
         </div>
@@ -197,21 +182,16 @@ export function RopaActivityDetailPanel({
         {versions.map((v) => {
           const badge = STATUS_BADGE[v.status];
           return (
-            <li
-              key={v.id}
-              className="rounded-lg border border-border bg-card p-4"
-            >
+            <li key={v.id} className="border-border bg-card rounded-lg border p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="space-y-1">
                   <p className="font-medium">
                     v{v.version}
-                    <span
-                      className={`ml-2 rounded px-2 py-0.5 text-xs ${badge.className}`}
-                    >
+                    <span className={`ml-2 rounded px-2 py-0.5 text-xs ${badge.className}`}>
                       {badge.label}
                     </span>
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     Landasan: {LEGAL_LABEL[v.legalBasis] ?? v.legalBasis}
                   </p>
                 </div>
@@ -221,7 +201,7 @@ export function RopaActivityDetailPanel({
                       type="button"
                       disabled={submitReview.isPending}
                       onClick={() => submitReview.mutate(v)}
-                      className="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center rounded-md px-3 py-1.5 text-xs font-medium disabled:opacity-50"
                     >
                       Submit ke review
                     </button>
@@ -232,7 +212,7 @@ export function RopaActivityDetailPanel({
                         type="button"
                         disabled={returnToDraft.isPending}
                         onClick={() => returnToDraft.mutate(v)}
-                        className="inline-flex items-center rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:opacity-50"
+                        className="border-border hover:bg-muted inline-flex items-center rounded-md border px-3 py-1.5 text-xs font-medium disabled:opacity-50"
                       >
                         Kembalikan ke draft
                       </button>
@@ -250,7 +230,7 @@ export function RopaActivityDetailPanel({
               </div>
 
               <details className="mt-3">
-                <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+                <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-xs">
                   Lihat detail Art. 30 / Pasal 31
                 </summary>
                 <VersionDetail v={v} activityId={activityId} onUpdated={invalidate} />
@@ -313,9 +293,7 @@ function VersionDetail({
           {v.dataCategories.length > 0 ? v.dataCategories.join(', ') : '—'}
         </Field>
         <Field label="Kategori subjek data">
-          {v.subjectCategories.length > 0
-            ? v.subjectCategories.join(', ')
-            : '—'}
+          {v.subjectCategories.length > 0 ? v.subjectCategories.join(', ') : '—'}
         </Field>
         <Field label="Penerima data">
           {v.recipients.length > 0 ? v.recipients.join(', ') : '—'}
@@ -332,7 +310,7 @@ function VersionDetail({
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="mt-2 inline-flex items-center rounded-md border border-border px-3 py-1.5 text-xs hover:bg-muted"
+            className="border-border hover:bg-muted mt-2 inline-flex items-center rounded-md border px-3 py-1.5 text-xs"
           >
             Edit draft
           </button>
@@ -403,7 +381,7 @@ function VersionDetail({
       {inlineError && (
         <div
           role="alert"
-          className="rounded-md border border-destructive/50 bg-destructive/5 p-2 text-xs text-destructive"
+          className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-2 text-xs"
         >
           {inlineError}
         </div>
@@ -416,14 +394,14 @@ function VersionDetail({
             setEditing(false);
             form.reset(toDefaults(v));
           }}
-          className="inline-flex items-center rounded-md border border-border px-3 py-1.5 text-xs hover:bg-muted"
+          className="border-border hover:bg-muted inline-flex items-center rounded-md border px-3 py-1.5 text-xs"
         >
           Batal
         </button>
         <button
           type="submit"
           disabled={patch.isPending}
-          className="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center rounded-md px-3 py-1.5 text-xs font-medium disabled:opacity-50"
         >
           {patch.isPending ? 'Menyimpan…' : 'Simpan draft'}
         </button>
@@ -432,16 +410,10 @@ function VersionDetail({
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}): JSX.Element {
+function Field({ label, children }: { label: string; children: React.ReactNode }): JSX.Element {
   return (
     <div className="grid grid-cols-1 gap-1 sm:grid-cols-[10rem_1fr] sm:gap-3">
-      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className="text-muted-foreground text-xs font-medium">{label}</p>
       <p className="whitespace-pre-wrap text-sm">{children}</p>
     </div>
   );
@@ -472,16 +444,14 @@ function Input({
         type="text"
         value={displayed}
         onChange={(e) =>
-          form.setValue(
-            name,
-            transformOut ? transformOut(e.target.value) : e.target.value,
-            { shouldDirty: true },
-          )
+          form.setValue(name, transformOut ? transformOut(e.target.value) : e.target.value, {
+            shouldDirty: true,
+          })
         }
-        className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+        className="border-input bg-background block w-full rounded-md border px-3 py-2 text-sm"
       />
       {form.formState.errors[name] && (
-        <span role="alert" className="text-xs text-destructive">
+        <span role="alert" className="text-destructive text-xs">
           {String(form.formState.errors[name]?.message ?? '')}
         </span>
       )}
@@ -512,10 +482,10 @@ function TextArea({
             return trimmed.length === 0 ? null : v;
           },
         })}
-        className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+        className="border-input bg-background block w-full rounded-md border px-3 py-2 text-sm"
       />
       {form.formState.errors[name] && (
-        <span role="alert" className="text-xs text-destructive">
+        <span role="alert" className="text-destructive text-xs">
           {String(form.formState.errors[name]?.message ?? '')}
         </span>
       )}

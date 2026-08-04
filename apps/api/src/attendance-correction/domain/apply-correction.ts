@@ -75,10 +75,7 @@ export type ApplyCorrectionAction =
        * code.
        */
       code:
-        | 'CONFLICT_CLOCK_IN'
-        | 'CONFLICT_CLOCK_OUT'
-        | 'INVALID_TIME_ORDER'
-        | 'NO_TIMES_REQUESTED';
+        'CONFLICT_CLOCK_IN' | 'CONFLICT_CLOCK_OUT' | 'INVALID_TIME_ORDER' | 'NO_TIMES_REQUESTED';
     };
 
 export function planCorrectionApply(
@@ -129,26 +126,18 @@ export function planCorrectionApply(
     }
   }
 
-  const finalClockIn = wantsClockIn && existing.clockInAt === null
-    ? requestedClockInAt
-    : existing.clockInAt;
-  const finalClockOut = wantsClockOut && existing.clockOutAt === null
-    ? requestedClockOutAt
-    : existing.clockOutAt;
+  const finalClockIn =
+    wantsClockIn && existing.clockInAt === null ? requestedClockInAt : existing.clockInAt;
+  const finalClockOut =
+    wantsClockOut && existing.clockOutAt === null ? requestedClockOutAt : existing.clockOutAt;
 
-  if (
-    finalClockIn &&
-    finalClockOut &&
-    finalClockOut.getTime() < finalClockIn.getTime()
-  ) {
+  if (finalClockIn && finalClockOut && finalClockOut.getTime() < finalClockIn.getTime()) {
     return { kind: 'CONFLICT', code: 'INVALID_TIME_ORDER' };
   }
 
   // Determine what actually needs to be written.
-  const setClockInAt =
-    wantsClockIn && existing.clockInAt === null ? requestedClockInAt : null;
-  const setClockOutAt =
-    wantsClockOut && existing.clockOutAt === null ? requestedClockOutAt : null;
+  const setClockInAt = wantsClockIn && existing.clockInAt === null ? requestedClockInAt : null;
+  const setClockOutAt = wantsClockOut && existing.clockOutAt === null ? requestedClockOutAt : null;
 
   if (!setClockInAt && !setClockOutAt && existing.deletedAt === null) {
     // Everything the correction asked for is already correct → idempotent.

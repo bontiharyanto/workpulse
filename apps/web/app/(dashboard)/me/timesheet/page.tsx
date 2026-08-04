@@ -18,12 +18,9 @@ export default function MyTimesheetPage(): JSX.Element {
     <RequireAuth>
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-8">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Timesheet saya
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Ringkasan jam kerja, lembur, cuti, dan absen yang tercatat
-            selama periode berjalan.
+          <h1 className="text-2xl font-semibold tracking-tight">Timesheet saya</h1>
+          <p className="text-muted-foreground text-sm">
+            Ringkasan jam kerja, lembur, cuti, dan absen yang tercatat selama periode berjalan.
           </p>
         </div>
         <MyTimesheetPanel />

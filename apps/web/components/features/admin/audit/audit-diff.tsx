@@ -17,22 +17,14 @@
  *     "ditambah"; when `after` is null (deletion) all rows render as
  *     "dihapus".
  */
-export function AuditDiff({
-  before,
-  after,
-}: {
-  before: unknown;
-  after: unknown;
-}): JSX.Element {
+export function AuditDiff({ before, after }: { before: unknown; after: unknown }): JSX.Element {
   const beforeObj = isObject(before) ? before : {};
   const afterObj = isObject(after) ? after : {};
-  const keys = Array.from(
-    new Set([...Object.keys(beforeObj), ...Object.keys(afterObj)]),
-  ).sort();
+  const keys = Array.from(new Set([...Object.keys(beforeObj), ...Object.keys(afterObj)])).sort();
 
   if (keys.length === 0) {
     return (
-      <p className="text-xs text-muted-foreground">
+      <p className="text-muted-foreground text-xs">
         Tidak ada payload before/after untuk baris ini.
       </p>
     );
@@ -41,7 +33,7 @@ export function AuditDiff({
   return (
     <table className="w-full text-xs">
       <thead>
-        <tr className="text-[10px] uppercase tracking-widest text-muted-foreground">
+        <tr className="text-muted-foreground text-[10px] uppercase tracking-widest">
           <th className="px-2 py-1 text-left">Field</th>
           <th className="px-2 py-1 text-left">Sebelum</th>
           <th className="px-2 py-1 text-left">Sesudah</th>
@@ -55,29 +47,15 @@ export function AuditDiff({
           const bMissing = !(k in beforeObj);
           const aMissing = !(k in afterObj);
           const equal = !bMissing && !aMissing && deepEqual(b, a);
-          const status = bMissing
-            ? 'ditambah'
-            : aMissing
-              ? 'dihapus'
-              : equal
-                ? 'sama'
-                : 'diubah';
+          const status = bMissing ? 'ditambah' : aMissing ? 'dihapus' : equal ? 'sama' : 'diubah';
           return (
             <tr key={k} className={STATUS_ROW[status]}>
               <td className="px-2 py-1 font-mono text-[11px]">{k}</td>
-              <td className="px-2 py-1 font-mono text-[11px] break-all">
-                {bMissing ? (
-                  <span className="text-muted-foreground">—</span>
-                ) : (
-                  compact(b)
-                )}
+              <td className="break-all px-2 py-1 font-mono text-[11px]">
+                {bMissing ? <span className="text-muted-foreground">—</span> : compact(b)}
               </td>
-              <td className="px-2 py-1 font-mono text-[11px] break-all">
-                {aMissing ? (
-                  <span className="text-muted-foreground">—</span>
-                ) : (
-                  compact(a)
-                )}
+              <td className="break-all px-2 py-1 font-mono text-[11px]">
+                {aMissing ? <span className="text-muted-foreground">—</span> : compact(a)}
               </td>
               <td className="px-2 py-1">
                 <span className={STATUS_PILL[status]}>{status}</span>
@@ -100,10 +78,8 @@ const STATUS_ROW: Record<string, string> = {
 const STATUS_PILL: Record<string, string> = {
   sama: 'rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium',
   diubah: 'rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-medium text-amber-900',
-  ditambah:
-    'rounded bg-emerald-200 px-1.5 py-0.5 text-[10px] font-medium text-emerald-900',
-  dihapus:
-    'rounded bg-rose-200 px-1.5 py-0.5 text-[10px] font-medium text-rose-900',
+  ditambah: 'rounded bg-emerald-200 px-1.5 py-0.5 text-[10px] font-medium text-emerald-900',
+  dihapus: 'rounded bg-rose-200 px-1.5 py-0.5 text-[10px] font-medium text-rose-900',
 };
 
 function isObject(v: unknown): v is Record<string, unknown> {

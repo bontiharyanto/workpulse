@@ -15,7 +15,7 @@ export default function HomePage(): JSX.Element {
   }, [status, router]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+    <main className="text-muted-foreground flex min-h-screen items-center justify-center text-sm">
       Memuat...
     </main>
   );

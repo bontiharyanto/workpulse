@@ -93,16 +93,13 @@ test.describe('Fase 27 — change-password enforcement', () => {
       const { accessToken } = (await loginRes.json()) as { accessToken: string };
 
       const newPassword = `SelfPicked!${Date.now()}`;
-      const changeRes = await request.post(
-        'http://localhost:4000/api/v1/auth/change-password',
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-          data: {
-            currentPassword: temp.temporaryPassword,
-            newPassword,
-          },
+      const changeRes = await request.post('http://localhost:4000/api/v1/auth/change-password', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        data: {
+          currentPassword: temp.temporaryPassword,
+          newPassword,
         },
-      );
+      });
       expect(changeRes.ok(), await changeRes.text()).toBeTruthy();
 
       // Old refresh cookie was revoked → subsequent /auth/refresh fails.
@@ -146,16 +143,13 @@ test.describe('Fase 27 — change-password enforcement', () => {
       });
       const { accessToken } = (await loginRes.json()) as { accessToken: string };
 
-      const res = await request.post(
-        'http://localhost:4000/api/v1/auth/change-password',
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-          data: {
-            currentPassword: 'definitely-not-my-password',
-            newPassword: 'AnotherPass1!',
-          },
+      const res = await request.post('http://localhost:4000/api/v1/auth/change-password', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        data: {
+          currentPassword: 'definitely-not-my-password',
+          newPassword: 'AnotherPass1!',
         },
-      );
+      });
       expect(res.status()).toBe(401);
       const body = (await res.json()) as { code: string };
       expect(body.code).toBe('INVALID_CREDENTIALS');
@@ -192,9 +186,7 @@ test.describe('Fase 27 — change-password enforcement', () => {
       // temp password and re-arms the flag server-side.
       const admin = await authenticateApi('admin');
       try {
-        const resetRes = await admin.api.post(
-          `/api/v1/admin/users/${temp.user.id}/reset-password`,
-        );
+        const resetRes = await admin.api.post(`/api/v1/admin/users/${temp.user.id}/reset-password`);
         expect(resetRes.ok()).toBeTruthy();
         const resetBody = (await resetRes.json()) as { temporaryPassword: string };
 

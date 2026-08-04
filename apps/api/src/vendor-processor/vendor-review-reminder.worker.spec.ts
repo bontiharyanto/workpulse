@@ -55,9 +55,9 @@ interface Kit {
 function buildKit(enabled = 'true'): Kit {
   const prisma = mockDeep<PrismaService>();
   mockReset(prisma);
-  const notifications = { createMany: jest.fn().mockResolvedValue(undefined) } as unknown as jest.Mocked<
-    Pick<NotificationService, 'createMany'>
-  >;
+  const notifications = {
+    createMany: jest.fn().mockResolvedValue(undefined),
+  } as unknown as jest.Mocked<Pick<NotificationService, 'createMany'>>;
   const config = {
     get: (_key: string, fallback?: unknown) => enabled ?? fallback,
   } as unknown as ConfigService;
@@ -79,9 +79,7 @@ describe('VendorReviewReminderWorker', () => {
     });
     prisma.vendorProcessor.findMany.mockResolvedValue([target]);
     prisma.vendorReminderLog.create.mockResolvedValue({ id: 'l-1' } as never);
-    prisma.user.findMany.mockResolvedValue([
-      { id: 'u-1', email: 'hr@example.com' },
-    ] as never);
+    prisma.user.findMany.mockResolvedValue([{ id: 'u-1', email: 'hr@example.com' }] as never);
 
     const summary = await worker.runOnce(now);
 
@@ -134,9 +132,7 @@ describe('VendorReviewReminderWorker', () => {
       }),
     ]);
     prisma.vendorReminderLog.create.mockResolvedValue({ id: 'l-1' } as never);
-    prisma.user.findMany.mockResolvedValue([
-      { id: 'u-1', email: 'hr@example.com' },
-    ] as never);
+    prisma.user.findMany.mockResolvedValue([{ id: 'u-1', email: 'hr@example.com' }] as never);
 
     const summary = await worker.runOnce(now);
     expect(summary.fired).toBe(2);

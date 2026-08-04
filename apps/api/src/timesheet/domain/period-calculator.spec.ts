@@ -1,15 +1,10 @@
 import { TimesheetPeriodType, WeekStartDay } from '@prisma/client';
 
-import {
-  calculatePeriod,
-  type PeriodCalculatorConfig,
-} from './period-calculator';
+import { calculatePeriod, type PeriodCalculatorConfig } from './period-calculator';
 
 const TZ_JAKARTA = 'Asia/Jakarta';
 
-function cfg(
-  overrides: Partial<PeriodCalculatorConfig>,
-): PeriodCalculatorConfig {
+function cfg(overrides: Partial<PeriodCalculatorConfig>): PeriodCalculatorConfig {
   return {
     periodType: TimesheetPeriodType.MONTHLY,
     weekStartDay: WeekStartDay.MONDAY,
@@ -93,13 +88,9 @@ describe('calculatePeriod — BIWEEKLY', () => {
 
   it('falls back to a deterministic anchor when biweeklyAnchor is null', () => {
     const at = new Date('2026-08-14T10:00:00Z');
-    const p = calculatePeriod(
-      at,
-      cfg({ periodType: TimesheetPeriodType.BIWEEKLY }),
-    );
+    const p = calculatePeriod(at, cfg({ periodType: TimesheetPeriodType.BIWEEKLY }));
     // Anchor is 2000-01-03 (Mon). Windows are stable per-fortnight.
-    const days =
-      (p.periodEnd.getTime() - p.periodStart.getTime()) / 86_400_000;
+    const days = (p.periodEnd.getTime() - p.periodStart.getTime()) / 86_400_000;
     expect(days).toBe(13); // inclusive 14-day span
   });
 });
@@ -107,10 +98,7 @@ describe('calculatePeriod — BIWEEKLY', () => {
 describe('calculatePeriod — MONTHLY', () => {
   it('returns the calendar month around an instant in the middle', () => {
     const at = new Date('2026-08-15T10:00:00Z');
-    const p = calculatePeriod(
-      at,
-      cfg({ periodType: TimesheetPeriodType.MONTHLY }),
-    );
+    const p = calculatePeriod(at, cfg({ periodType: TimesheetPeriodType.MONTHLY }));
     expect(p.periodStart.toISOString()).toBe('2026-08-01T00:00:00.000Z');
     expect(p.periodEnd.toISOString()).toBe('2026-08-31T00:00:00.000Z');
     expect(p.label).toBe('Aug 2026');
@@ -118,10 +106,7 @@ describe('calculatePeriod — MONTHLY', () => {
 
   it('handles February correctly on a leap year', () => {
     const at = new Date('2028-02-15T10:00:00Z');
-    const p = calculatePeriod(
-      at,
-      cfg({ periodType: TimesheetPeriodType.MONTHLY }),
-    );
+    const p = calculatePeriod(at, cfg({ periodType: TimesheetPeriodType.MONTHLY }));
     expect(p.periodStart.toISOString()).toBe('2028-02-01T00:00:00.000Z');
     expect(p.periodEnd.toISOString()).toBe('2028-02-29T00:00:00.000Z');
   });
@@ -130,10 +115,7 @@ describe('calculatePeriod — MONTHLY', () => {
     // 2026-09-01T00:30 Jakarta = 2026-08-31T17:30 UTC. The calendar
     // day in Jakarta is 2026-09-01, so the period should be September.
     const at = new Date('2026-08-31T17:30:00Z');
-    const p = calculatePeriod(
-      at,
-      cfg({ periodType: TimesheetPeriodType.MONTHLY }),
-    );
+    const p = calculatePeriod(at, cfg({ periodType: TimesheetPeriodType.MONTHLY }));
     expect(p.periodStart.toISOString()).toBe('2026-09-01T00:00:00.000Z');
     expect(p.periodEnd.toISOString()).toBe('2026-09-30T00:00:00.000Z');
   });
@@ -171,10 +153,7 @@ describe('calculatePeriod — CUTOFF', () => {
 
   it('throws when cutoffDayOfMonth is missing', () => {
     expect(() =>
-      calculatePeriod(
-        new Date(),
-        cfg({ periodType: TimesheetPeriodType.CUTOFF }),
-      ),
+      calculatePeriod(new Date(), cfg({ periodType: TimesheetPeriodType.CUTOFF })),
     ).toThrow(/cutoffDayOfMonth is null/);
   });
 

@@ -76,9 +76,7 @@ describe('CompanyService.getConfig', () => {
 
   it('serialises a null base rate faithfully', async () => {
     const { service, prisma } = setup();
-    prisma.company.findFirst.mockResolvedValueOnce(
-      makeRow({ overtimeHourlyRate: null }) as never,
-    );
+    prisma.company.findFirst.mockResolvedValueOnce(makeRow({ overtimeHourlyRate: null }) as never);
     const result = await service.getConfig(hr);
     expect(result.overtimeHourlyRate).toBeNull();
   });
@@ -139,9 +137,7 @@ describe('CompanyService.updateConfig', () => {
     const { service, prisma } = setup();
     stubTx(prisma);
     prisma.company.findFirst.mockResolvedValueOnce(makeRow() as never);
-    prisma.company.update.mockResolvedValueOnce(
-      makeRow({ overtimeHourlyRate: null }) as never,
-    );
+    prisma.company.update.mockResolvedValueOnce(makeRow({ overtimeHourlyRate: null }) as never);
 
     const dto = await service.updateConfig(hr, { overtimeHourlyRate: null });
 
@@ -180,9 +176,7 @@ describe('CompanyService.updateConfig', () => {
     stubTx(prisma);
     prisma.company.findFirst.mockResolvedValueOnce(null);
 
-    await expect(service.updateConfig(hr, { name: 'x' })).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(service.updateConfig(hr, { name: 'x' })).rejects.toBeInstanceOf(NotFoundException);
     expect(prisma.company.update).not.toHaveBeenCalled();
   });
 
@@ -198,12 +192,9 @@ describe('CompanyService.updateConfig', () => {
 
     expect(dto.payrollLockedUntil).toBe('2026-07-31');
     const updateCall = prisma.company.update.mock.calls[0]?.[0] as
-      | { data: { payrollLockedUntil?: Date | null } }
-      | undefined;
+      { data: { payrollLockedUntil?: Date | null } } | undefined;
     expect(updateCall?.data.payrollLockedUntil).toBeInstanceOf(Date);
-    expect(updateCall?.data.payrollLockedUntil?.toISOString().slice(0, 10)).toBe(
-      '2026-07-31',
-    );
+    expect(updateCall?.data.payrollLockedUntil?.toISOString().slice(0, 10)).toBe('2026-07-31');
   });
 
   it('clears payrollLockedUntil when null is passed explicitly', async () => {
@@ -212,16 +203,13 @@ describe('CompanyService.updateConfig', () => {
     prisma.company.findFirst.mockResolvedValueOnce(
       makeRow({ payrollLockedUntil: new Date('2026-07-31T00:00:00Z') }) as never,
     );
-    prisma.company.update.mockResolvedValueOnce(
-      makeRow({ payrollLockedUntil: null }) as never,
-    );
+    prisma.company.update.mockResolvedValueOnce(makeRow({ payrollLockedUntil: null }) as never);
 
     const dto = await service.updateConfig(hr, { payrollLockedUntil: null });
 
     expect(dto.payrollLockedUntil).toBeNull();
     const updateCall = prisma.company.update.mock.calls[0]?.[0] as
-      | { data: { payrollLockedUntil: Date | null } }
-      | undefined;
+      { data: { payrollLockedUntil: Date | null } } | undefined;
     expect(updateCall?.data.payrollLockedUntil).toBeNull();
   });
 

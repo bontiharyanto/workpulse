@@ -5,10 +5,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-import type {
-  RopaExportHeader,
-  RopaExportRow,
-} from './renderers/ropa-export-types';
+import type { RopaExportHeader, RopaExportRow } from './renderers/ropa-export-types';
 import { renderRopaPdf } from './renderers/ropa-pdf-renderer';
 import { renderRopaXlsx } from './renderers/ropa-xlsx-renderer';
 import { RopaRegistryService } from './ropa-registry.service';
@@ -43,10 +40,7 @@ export class RopaExportService {
     private readonly registry: RopaRegistryService,
   ) {}
 
-  async buildExport(
-    actor: AuthenticatedUser,
-    format: RopaExportFormat,
-  ): Promise<RopaExportResult> {
+  async buildExport(actor: AuthenticatedUser, format: RopaExportFormat): Promise<RopaExportResult> {
     const company = await this.prisma.company.findUnique({
       where: { id: actor.companyId },
       select: { id: true, name: true },
@@ -66,9 +60,7 @@ export class RopaExportService {
     };
 
     const bytes =
-      format === 'PDF'
-        ? await renderRopaPdf(header, rows)
-        : await renderRopaXlsx(header, rows);
+      format === 'PDF' ? await renderRopaPdf(header, rows) : await renderRopaXlsx(header, rows);
 
     const sha256 = createHash('sha256').update(bytes).digest('hex');
 
@@ -92,14 +84,9 @@ export class RopaExportService {
       },
     });
 
-    const stamp = header.generatedAt
-      .toISOString()
-      .replace(/[:.]/g, '-')
-      .slice(0, 19);
+    const stamp = header.generatedAt.toISOString().replace(/[:.]/g, '-').slice(0, 19);
     const filename =
-      format === 'PDF'
-        ? `ropa-${company.id}-${stamp}.pdf`
-        : `ropa-${company.id}-${stamp}.xlsx`;
+      format === 'PDF' ? `ropa-${company.id}-${stamp}.pdf` : `ropa-${company.id}-${stamp}.xlsx`;
     const contentType =
       format === 'PDF'
         ? 'application/pdf'

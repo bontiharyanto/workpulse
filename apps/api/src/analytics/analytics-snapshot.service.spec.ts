@@ -36,16 +36,10 @@ describe('AnalyticsSnapshotService — Fase 33a', () => {
       return idx + 1;
     });
 
-    await service.snapshotOneTenant(
-      'company-1',
-      asYmd('2026-08-02'),
-      'Asia/Jakarta',
-    );
+    await service.snapshotOneTenant('company-1', asYmd('2026-08-02'), 'Asia/Jakarta');
 
     expect(computation.compute).toHaveBeenCalledTimes(METRIC_KEYS.length);
-    expect(prisma.analyticsSnapshot.upsert).toHaveBeenCalledTimes(
-      METRIC_KEYS.length,
-    );
+    expect(prisma.analyticsSnapshot.upsert).toHaveBeenCalledTimes(METRIC_KEYS.length);
 
     const firstCall = prisma.analyticsSnapshot.upsert.mock.calls[0]![0];
     expect(firstCall.where).toEqual({
@@ -55,9 +49,7 @@ describe('AnalyticsSnapshotService — Fase 33a', () => {
         metricKey: METRIC_KEYS[0],
       },
     });
-    expect(
-      Number((firstCall.create as { value: Prisma.Decimal }).value.toString()),
-    ).toBe(1);
+    expect(Number((firstCall.create as { value: Prisma.Decimal }).value.toString())).toBe(1);
   });
 
   it('backfill iterates every day in the range inclusively', async () => {
@@ -102,8 +94,6 @@ describe('AnalyticsSnapshotService — Fase 33a', () => {
 
     // Every call is an `upsert` — DB semantics guarantee no duplicates.
     // We just confirm the second run issues the same upserts.
-    expect(prisma.analyticsSnapshot.upsert).toHaveBeenCalledTimes(
-      METRIC_KEYS.length * 2,
-    );
+    expect(prisma.analyticsSnapshot.upsert).toHaveBeenCalledTimes(METRIC_KEYS.length * 2);
   });
 });

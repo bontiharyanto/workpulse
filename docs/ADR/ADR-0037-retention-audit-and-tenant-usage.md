@@ -55,8 +55,8 @@ RetentionAuditReport
 - **Notifies** all HR_MANAGER + SUPER_ADMIN of the tenant via a
   new `RETENTION_AUDIT_GAP_DETECTED` notification type when the
   report status is anything other than `SUCCESS`. Delivered in-app
-  + email through the standard `NotificationService` pipeline —
-  user preferences apply.
+  - email through the standard `NotificationService` pipeline —
+    user preferences apply.
 - **Gap detection** is a pure function
   (`retention-audit-findings.ts`) so it can be tested independently
   of Prisma.
@@ -125,8 +125,8 @@ TenantUsageSnapshot
 - **Materialised view for `TenantUsageSnapshot`** — could refresh
   a Postgres MATERIALIZED VIEW nightly. Rejected: the query is
   hetero-source (`TimesheetExport.bytes` + `DataExportRequest.fileSize`
-  + `COUNT(*)` across ~10 tables), and Prisma model gives us the
-  API surface for free.
+  - `COUNT(*)` across ~10 tables), and Prisma model gives us the
+    API surface for free.
 
 ## Consequences
 

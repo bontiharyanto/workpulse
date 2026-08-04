@@ -41,8 +41,8 @@ export default function ConsentPage(): JSX.Element {
 
   if (status === 'loading') {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-        <p className="text-sm text-muted-foreground">Memuat sesi…</p>
+      <main className="bg-muted/30 flex min-h-screen items-center justify-center px-4">
+        <p className="text-muted-foreground text-sm">Memuat sesi…</p>
       </main>
     );
   }
@@ -54,8 +54,8 @@ export default function ConsentPage(): JSX.Element {
 
   if (!pending) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-        <p className="text-sm text-muted-foreground">Mengarahkan…</p>
+      <main className="bg-muted/30 flex min-h-screen items-center justify-center px-4">
+        <p className="text-muted-foreground text-sm">Mengarahkan…</p>
       </main>
     );
   }
@@ -70,16 +70,14 @@ export default function ConsentPage(): JSX.Element {
         : null;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-10">
-      <div className="w-full max-w-2xl space-y-4 rounded-lg border bg-background p-6 shadow-sm">
+    <main className="bg-muted/30 flex min-h-screen items-center justify-center px-4 py-10">
+      <div className="bg-background w-full max-w-2xl space-y-4 rounded-lg border p-6 shadow-sm">
         <div className="space-y-1">
-          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+          <p className="text-muted-foreground text-xs font-medium uppercase tracking-widest">
             Kebijakan privasi diperbarui
           </p>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {pending.title}
-          </h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-2xl font-semibold tracking-tight">{pending.title}</h1>
+          <p className="text-muted-foreground text-sm">
             Versi v{pending.version} · Berlaku{' '}
             {new Date(pending.effectiveAt).toLocaleDateString('id-ID', {
               year: 'numeric',
@@ -89,7 +87,7 @@ export default function ConsentPage(): JSX.Element {
           </p>
         </div>
 
-        <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded bg-muted p-4 text-sm">
+        <pre className="bg-muted max-h-72 overflow-auto whitespace-pre-wrap rounded p-4 text-sm">
           {pending.body}
         </pre>
 
@@ -100,16 +98,13 @@ export default function ConsentPage(): JSX.Element {
             onChange={(e) => setAck(e.target.checked)}
             className="mt-1"
           />
-          <span>
-            Saya telah membaca dan menyetujui kebijakan privasi versi v
-            {pending.version}.
-          </span>
+          <span>Saya telah membaca dan menyetujui kebijakan privasi versi v{pending.version}.</span>
         </label>
 
         {errCopy && (
           <div
             role="alert"
-            className="rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive"
+            className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-3 text-sm"
           >
             {errCopy}
           </div>
@@ -120,7 +115,7 @@ export default function ConsentPage(): JSX.Element {
             type="button"
             onClick={() => mutation.mutate()}
             disabled={!ack || mutation.isPending}
-            className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
           >
             {mutation.isPending ? 'Menyimpan…' : 'Terima & lanjutkan'}
           </button>

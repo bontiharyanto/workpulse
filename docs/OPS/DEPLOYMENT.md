@@ -49,19 +49,20 @@ Semua secret hidup di `.env.production` (chmod 640). Tidak ada plaintext di git.
 
 **Sizing minimum** (untuk 1–10 tenant, ~500 daily active):
 
-| Sumber daya | Minimum |
-|---|---|
-| vCPU | 2 |
-| RAM | 4 GB |
-| Disk | 40 GB SSD |
-| Bandwidth | 4 TB/bulan |
-| OS | Ubuntu 22.04 / 24.04 LTS atau Debian 12 |
+| Sumber daya | Minimum                                 |
+| ----------- | --------------------------------------- |
+| vCPU        | 2                                       |
+| RAM         | 4 GB                                    |
+| Disk        | 40 GB SSD                               |
+| Bandwidth   | 4 TB/bulan                              |
+| OS          | Ubuntu 22.04 / 24.04 LTS atau Debian 12 |
 
-Rekomendasi provider: **Hetzner CX32** (~€6/bulan) atau **DigitalOcean 4 GB Droplet** (~$24/bulan) atau **IDCloudHost Small** (untuk data sovereignty ID).
+Rekomendasi provider: **Hetzner CX32** (~~€6/bulan) atau **DigitalOcean 4 GB Droplet** (~~$24/bulan) atau **IDCloudHost Small** (untuk data sovereignty ID).
 
 Untuk >10 tenant atau >2 GB DB size: upgrade RAM ke 8 GB, atau migrasi Postgres ke Neon/Supabase.
 
 **Software prasyarat**:
+
 ```bash
 sudo apt update && sudo apt install -y \
   ca-certificates curl gnupg ufw fail2ban jq
@@ -107,16 +108,16 @@ chmod 640 .env.production
 
 Edit `.env.production` dan **ROTATE** setiap value bertanda `CHANGE_ME`:
 
-| Env | Cara generate |
-|---|---|
-| `POSTGRES_PASSWORD` | `openssl rand -base64 32` |
-| `JWT_SECRET`, `JWT_REFRESH_SECRET` | `openssl rand -base64 48` |
-| `MFA_SECRET_ENCRYPTION_KEY` | `openssl rand -base64 32` |
-| `TIMESHEET_EXPORT_SIGNING_SECRET` | `openssl rand -base64 32` |
-| `S3_*` (attachments) | Cloudflare R2 dashboard → Manage R2 API Tokens |
-| `BACKUP_S3_*` | Bucket / token TERPISAH dari attachments |
-| `BACKUP_AGE_RECIPIENT` | `age-keygen -o backup-key.txt` → salin nilai `public key` |
-| `SMTP_*` | SES / SendGrid / Mailgun account |
+| Env                                | Cara generate                                             |
+| ---------------------------------- | --------------------------------------------------------- |
+| `POSTGRES_PASSWORD`                | `openssl rand -base64 32`                                 |
+| `JWT_SECRET`, `JWT_REFRESH_SECRET` | `openssl rand -base64 48`                                 |
+| `MFA_SECRET_ENCRYPTION_KEY`        | `openssl rand -base64 32`                                 |
+| `TIMESHEET_EXPORT_SIGNING_SECRET`  | `openssl rand -base64 32`                                 |
+| `S3_*` (attachments)               | Cloudflare R2 dashboard → Manage R2 API Tokens            |
+| `BACKUP_S3_*`                      | Bucket / token TERPISAH dari attachments                  |
+| `BACKUP_AGE_RECIPIENT`             | `age-keygen -o backup-key.txt` → salin nilai `public key` |
+| `SMTP_*`                           | SES / SendGrid / Mailgun account                          |
 
 **PENTING**: file `backup-key.txt` (yang berisi private key `AGE-SECRET-KEY-…`) **JANGAN** disimpan di VPS. Simpan di password manager tim dan/atau vault fisik. Tanpa private key, backup tidak bisa di-decrypt saat restore.
 

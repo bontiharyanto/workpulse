@@ -44,9 +44,7 @@ export class ReportScheduleController {
   }
 
   @Get('schedules')
-  async list(
-    @CurrentUser() actor: AuthenticatedUser,
-  ): Promise<ReportScheduleResponseDto[]> {
+  async list(@CurrentUser() actor: AuthenticatedUser): Promise<ReportScheduleResponseDto[]> {
     const rows = await this.service.list(actor);
     return rows.map(toDto);
   }
@@ -76,10 +74,7 @@ export class ReportScheduleController {
   @Throttle({ default: { limit: 15, ttl: 60_000 } })
   @Delete('schedules/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(
-    @CurrentUser() actor: AuthenticatedUser,
-    @Param('id') id: string,
-  ): Promise<void> {
+  async remove(@CurrentUser() actor: AuthenticatedUser, @Param('id') id: string): Promise<void> {
     await this.service.remove(actor, id);
   }
 

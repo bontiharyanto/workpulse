@@ -40,8 +40,8 @@ regulator-facing ledger, di jalur admin `/admin/security/breaches`.
   `remediation`), dan notifikasi refs.
 - `BreachTimelineEvent` — append-only event log:
   `CREATED / UPDATED / STATUS_ADVANCED / AUTHORITY_NOTIFIED /
-   SUBJECTS_NOTIFIED / NOTE_ADDED / DEADLINE_WARNED / EXPORTED /
-   CLOSED`. `REVOKE UPDATE, DELETE ON PUBLIC` di DB level — history
+ SUBJECTS_NOTIFIED / NOTE_ADDED / DEADLINE_WARNED / EXPORTED /
+ CLOSED`. `REVOKE UPDATE, DELETE ON PUBLIC` di DB level — history
   tidak boleh di-rewrite.
 - CHECK constraint `occurredAt IS NULL OR occurredAt <= detectedAt` +
   `affectedUserCount >= 0`.
@@ -76,7 +76,7 @@ Cron `0 */5 * * * *`:
 1. Scan incidents dengan status DETECTED/CONTAINED.
 2. Untuk masing-masing, hitung `bucketFor(hoursRemaining)`.
 3. Dedup via `BreachTimelineEvent(eventType=DEADLINE_WARNED,
-   metadata.bucket=...)` — satu warning per bucket per incident.
+metadata.bucket=...)` — satu warning per bucket per incident.
 4. Fanout ke: `assignedTo` + `reportedBy` + semua `HR_MANAGER` /
    `SUPER_ADMIN` tenant. Notification type baru:
    `BREACH_DEADLINE_WARNING`.
@@ -143,7 +143,7 @@ Renderer via `pdfkit`, sama seperti ROPA/DPIA.
   tidak terintegrasi dengan email adapter; deferred integration
   dengan anomaly detection.
 - Risk: DPO lupa transition status → mitigation via reminder worker
-  + FE countdown badge yang mencolok.
+  - FE countdown badge yang mencolok.
 
 ## Rollback
 

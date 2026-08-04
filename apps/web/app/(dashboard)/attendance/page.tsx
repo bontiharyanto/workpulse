@@ -11,9 +11,9 @@ export default function AttendancePage(): JSX.Element {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Kehadiran</h1>
-          <p className="text-sm text-muted-foreground">
-            Tekan tombol untuk memulai atau mengakhiri jam kerja. Lokasi Anda dikirim ke server untuk
-            validasi geofence.
+          <p className="text-muted-foreground text-sm">
+            Tekan tombol untuk memulai atau mengakhiri jam kerja. Lokasi Anda dikirim ke server
+            untuk validasi geofence.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -21,13 +21,13 @@ export default function AttendancePage(): JSX.Element {
           <TeamAttendanceLink />
           <Link
             href="/attendance/corrections"
-            className="whitespace-nowrap rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-muted"
+            className="border-input hover:bg-muted whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium"
           >
             Koreksi →
           </Link>
           <Link
             href="/attendance/history"
-            className="whitespace-nowrap rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-muted"
+            className="border-input hover:bg-muted whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium"
           >
             Lihat riwayat →
           </Link>

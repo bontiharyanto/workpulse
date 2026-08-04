@@ -18,12 +18,7 @@ interface Props {
  * changed (mirrors the `CompanyConfigForm` diff logic — keeps the audit
  * log tidy).
  */
-export function CompanyEditPanel({
-  target,
-  submitting,
-  onSubmit,
-  onCancel,
-}: Props): JSX.Element {
+export function CompanyEditPanel({ target, submitting, onSubmit, onCancel }: Props): JSX.Element {
   const form = useForm<{ name: string; slug: string; timezone: string }>({
     resolver: zodResolver(updateCompanyInputSchema),
     defaultValues: {
@@ -51,59 +46,47 @@ export function CompanyEditPanel({
       className="grid gap-4 md:grid-cols-2"
     >
       <div className="space-y-1">
-        <label className="text-xs font-medium uppercase tracking-wider">
-          Nama Perusahaan
-        </label>
+        <label className="text-xs font-medium uppercase tracking-wider">Nama Perusahaan</label>
         <input
           {...form.register('name')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         />
-        {errors.name && (
-          <p className="text-xs text-destructive">{errors.name.message}</p>
-        )}
+        {errors.name && <p className="text-destructive text-xs">{errors.name.message}</p>}
       </div>
 
       <div className="space-y-1">
         <label className="text-xs font-medium uppercase tracking-wider">Slug</label>
         <input
           {...form.register('slug')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 font-mono text-sm"
         />
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           Mengubah slug akan mempengaruhi URL yang bergantung padanya.
         </p>
-        {errors.slug && (
-          <p className="text-xs text-destructive">{errors.slug.message}</p>
-        )}
+        {errors.slug && <p className="text-destructive text-xs">{errors.slug.message}</p>}
       </div>
 
       <div className="space-y-1">
         <label className="text-xs font-medium uppercase tracking-wider">Timezone</label>
         <select
           {...form.register('timezone')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         >
           <option value="Asia/Jakarta">Asia/Jakarta (WIB, UTC+7)</option>
           <option value="Asia/Makassar">Asia/Makassar (WITA, UTC+8)</option>
           <option value="Asia/Jayapura">Asia/Jayapura (WIT, UTC+9)</option>
         </select>
-        {errors.timezone && (
-          <p className="text-xs text-destructive">{errors.timezone.message}</p>
-        )}
+        {errors.timezone && <p className="text-destructive text-xs">{errors.timezone.message}</p>}
       </div>
 
       <div className="col-span-full flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border px-3 py-1 text-xs"
-        >
+        <button type="button" onClick={onCancel} className="rounded-md border px-3 py-1 text-xs">
           Batal
         </button>
         <button
           type="submit"
           disabled={submitting || !form.formState.isDirty}
-          className="rounded-md bg-foreground px-3 py-1 text-xs font-medium text-background disabled:opacity-50"
+          className="bg-foreground text-background rounded-md px-3 py-1 text-xs font-medium disabled:opacity-50"
         >
           {submitting ? 'Menyimpan...' : 'Simpan perubahan'}
         </button>

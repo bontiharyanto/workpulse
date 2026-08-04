@@ -6,13 +6,13 @@ Tooling untuk mengukur baseline performance dan mendeteksi regresi antar rilis.
 
 ## Scope
 
-| Skenario | File | Beban | Tujuan |
-|---|---|---|---|
-| Smoke | `scenarios/smoke.js` | 1 VU × 30 s | Sanity check target env |
-| Clock-in Burst | `scenarios/clock-in-burst.js` | 250 req/s selama 30 s | Peak jam 08:00 (500 karyawan clock-in dalam 60 s) |
-| Dashboard Read | `scenarios/dashboard-read.js` | 40 VU × 3 min | HR viewing dashboard + list |
-| Timesheet Export | `scenarios/timesheet-export.js` | 5 VU × 2 min | Payroll async export (CSV/XLSX) |
-| Baseline Mixed | `scenarios/baseline.js` | 30 VU × 5 min, mix 70/28/2 | Release-over-release comparison |
+| Skenario         | File                            | Beban                      | Tujuan                                            |
+| ---------------- | ------------------------------- | -------------------------- | ------------------------------------------------- |
+| Smoke            | `scenarios/smoke.js`            | 1 VU × 30 s                | Sanity check target env                           |
+| Clock-in Burst   | `scenarios/clock-in-burst.js`   | 250 req/s selama 30 s      | Peak jam 08:00 (500 karyawan clock-in dalam 60 s) |
+| Dashboard Read   | `scenarios/dashboard-read.js`   | 40 VU × 3 min              | HR viewing dashboard + list                       |
+| Timesheet Export | `scenarios/timesheet-export.js` | 5 VU × 2 min               | Payroll async export (CSV/XLSX)                   |
+| Baseline Mixed   | `scenarios/baseline.js`         | 30 VU × 5 min, mix 70/28/2 | Release-over-release comparison                   |
 
 ---
 
@@ -82,14 +82,14 @@ Semua threshold latency dan error rate di-hardcode di `lib/config.js` (via env `
 
 Target lingkungan: **Hetzner CX32** (2 vCPU, 4 GB RAM), Postgres 16 self-hosted, 1 tenant × 500 seed karyawan, latency ke Frankfurt ~200 ms.
 
-| Metric | Target | Baseline aktual |
-|---|---|---|
-| Clock-in p95 latency | ≤ 600 ms | *T.B.M. — jalankan drill pertama* |
-| Clock-in error rate | ≤ 1% | *T.B.M.* |
-| Dashboard read p95 | ≤ 300 ms | *T.B.M.* |
-| Export p95 (CSV summary) | ≤ 5 s | *T.B.M.* |
-| Export p95 (XLSX detail) | ≤ 15 s | *T.B.M.* |
-| Baseline mixed error rate | ≤ 1% | *T.B.M.* |
+| Metric                    | Target   | Baseline aktual                   |
+| ------------------------- | -------- | --------------------------------- |
+| Clock-in p95 latency      | ≤ 600 ms | _T.B.M. — jalankan drill pertama_ |
+| Clock-in error rate       | ≤ 1%     | _T.B.M._                          |
+| Dashboard read p95        | ≤ 300 ms | _T.B.M._                          |
+| Export p95 (CSV summary)  | ≤ 5 s    | _T.B.M._                          |
+| Export p95 (XLSX detail)  | ≤ 15 s   | _T.B.M._                          |
+| Baseline mixed error rate | ≤ 1%     | _T.B.M._                          |
 
 **Update tabel di atas setelah run pertama** di staging. Kalau regresi > 20% dibanding baseline sebelumnya → PR yang menyebabkan wajib block sampai perf-fix / ADR justifikasi.
 
@@ -99,12 +99,12 @@ Target lingkungan: **Hetzner CX32** (2 vCPU, 4 GB RAM), Postgres 16 self-hosted,
 
 Extrapolasi berdasarkan baseline (akan di-refresh setelah run nyata):
 
-| Ukuran tenant | Karyawan aktif harian | Peak clock-in/s | RAM VPS | vCPU | Rekomendasi |
-|---|---:|---:|---:|---:|---|
-| XS | ≤ 50 | 5 | 2 GB | 1 | Hetzner CX22 |
-| S | ≤ 200 | 20 | 4 GB | 2 | Hetzner CX32 (baseline pilot) |
-| M | ≤ 1000 | 100 | 8 GB | 4 | Hetzner CX42 + Neon managed DB |
-| L | ≤ 5000 | 500 | K8s cluster | — | Multi-replica API + read replica DB |
+| Ukuran tenant | Karyawan aktif harian | Peak clock-in/s |     RAM VPS | vCPU | Rekomendasi                         |
+| ------------- | --------------------: | --------------: | ----------: | ---: | ----------------------------------- |
+| XS            |                  ≤ 50 |               5 |        2 GB |    1 | Hetzner CX22                        |
+| S             |                 ≤ 200 |              20 |        4 GB |    2 | Hetzner CX32 (baseline pilot)       |
+| M             |                ≤ 1000 |             100 |        8 GB |    4 | Hetzner CX42 + Neon managed DB      |
+| L             |                ≤ 5000 |             500 | K8s cluster |    — | Multi-replica API + read replica DB |
 
 Formula sizing longgar untuk pilot: 1 GB RAM per 250 karyawan aktif harian + margin 1 GB untuk Postgres cache.
 

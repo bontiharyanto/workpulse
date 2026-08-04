@@ -28,7 +28,7 @@ export class AuditLogPageDto {
   @ApiProperty({
     nullable: true,
     description:
-      'Opaque cursor to pass in the next call\'s `cursor` param. `null` when there are no more pages.',
+      "Opaque cursor to pass in the next call's `cursor` param. `null` when there are no more pages.",
   })
   nextCursor!: string | null;
 }

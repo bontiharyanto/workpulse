@@ -79,13 +79,9 @@ export function utcMonthRange(
   monthIndex1To12: number,
 ): { periodStart: Date; periodEnd: Date } {
   if (monthIndex1To12 < 1 || monthIndex1To12 > 12) {
-    throw new RangeError(
-      `utcMonthRange: monthIndex1To12 must be 1..12, got ${monthIndex1To12}`,
-    );
+    throw new RangeError(`utcMonthRange: monthIndex1To12 must be 1..12, got ${monthIndex1To12}`);
   }
-  const periodStart = new Date(
-    Date.UTC(year, monthIndex1To12 - 1, 1, 0, 0, 0, 0),
-  );
+  const periodStart = new Date(Date.UTC(year, monthIndex1To12 - 1, 1, 0, 0, 0, 0));
   const periodEnd = new Date(Date.UTC(year, monthIndex1To12, 1, 0, 0, 0, 0));
   return { periodStart, periodEnd };
 }

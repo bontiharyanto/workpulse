@@ -32,9 +32,7 @@ async function login(email: string, password: string): Promise<Login> {
     data: { email, password },
   });
   if (!res.ok()) {
-    throw new Error(
-      `login failed for ${email}: ${res.status()} ${await res.text()}`,
-    );
+    throw new Error(`login failed for ${email}: ${res.status()} ${await res.text()}`);
   }
   const body = (await res.json()) as { accessToken: string };
   return { ctx, accessToken: body.accessToken };
@@ -64,9 +62,7 @@ async function seedApprovedTimesheet(): Promise<{
   const now = new Date();
   // Anchor two months back — the earlier tests may have already used
   // "one month back" so we pick a distinct slot to avoid collisions.
-  const at = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 2, 15),
-  );
+  const at = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 2, 15));
   const gen = await testSupport<{ periodId: string }>('timesheet/generate', {
     email: SEED_USERS.hr.email,
     at: at.toISOString(),
@@ -81,10 +77,7 @@ async function seedApprovedTimesheet(): Promise<{
   expect(approve).toBeUndefined();
 
   // Pull the employee's approved row via /me/timesheet.
-  const emp = await login(
-    SEED_USERS.employee.email,
-    SEED_USERS.employee.password,
-  );
+  const emp = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
   try {
     const listRes = await emp.ctx.get('/api/v1/me/timesheet?limit=50', {
       headers: { Authorization: `Bearer ${emp.accessToken}` },
@@ -166,10 +159,7 @@ test.describe('Timesheet reopen (Fase 32g)', () => {
     }
 
     // Employee should see a TIMESHEET_REOPENED notification.
-    const emp = await login(
-      SEED_USERS.employee.email,
-      SEED_USERS.employee.password,
-    );
+    const emp = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
     try {
       const nRes = await emp.ctx.get('/api/v1/notifications?limit=50', {
         headers: { Authorization: `Bearer ${emp.accessToken}` },
@@ -180,9 +170,7 @@ test.describe('Timesheet reopen (Fase 32g)', () => {
         data: Record<string, unknown> | null;
       }>;
       const reopened = nItems.find(
-        (n) =>
-          n.type === 'TIMESHEET_REOPENED' &&
-          n.data?.timesheetId === seeded.timesheetId,
+        (n) => n.type === 'TIMESHEET_REOPENED' && n.data?.timesheetId === seeded.timesheetId,
       );
       expect(reopened, 'owner should get TIMESHEET_REOPENED').toBeTruthy();
     } finally {
@@ -192,10 +180,7 @@ test.describe('Timesheet reopen (Fase 32g)', () => {
 
   test('SUPERVISOR cannot reopen (403)', async () => {
     const seeded = await seedApprovedTimesheet();
-    const sup = await login(
-      SEED_USERS.supervisor.email,
-      SEED_USERS.supervisor.password,
-    );
+    const sup = await login(SEED_USERS.supervisor.email, SEED_USERS.supervisor.password);
     try {
       const res = await sup.ctx.post(
         `/api/v1/admin/timesheet/${encodeURIComponent(seeded.timesheetId)}/reopen`,
@@ -212,10 +197,7 @@ test.describe('Timesheet reopen (Fase 32g)', () => {
 
   test('EMPLOYEE cannot reopen (403)', async () => {
     const seeded = await seedApprovedTimesheet();
-    const emp = await login(
-      SEED_USERS.employee.email,
-      SEED_USERS.employee.password,
-    );
+    const emp = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
     try {
       const res = await emp.ctx.post(
         `/api/v1/admin/timesheet/${encodeURIComponent(seeded.timesheetId)}/reopen`,
@@ -314,16 +296,11 @@ test.describe('Timesheet reopen (Fase 32g)', () => {
       expect(reopenRes.status()).toBe(200);
 
       // 3. Force delivery.
-      const deliver = await hr.ctx.post(
-        '/api/v1/test-support/webhook/deliver-now',
-        {},
-      );
+      const deliver = await hr.ctx.post('/api/v1/test-support/webhook/deliver-now', {});
       expect(deliver.status()).toBe(204);
 
       // 4. Read sink.
-      const read = await hr.ctx.get(
-        `/api/v1/test-support/webhook-sink/read?bucket=${bucket}`,
-      );
+      const read = await hr.ctx.get(`/api/v1/test-support/webhook-sink/read?bucket=${bucket}`);
       expect(read.status()).toBe(200);
       const { items } = (await read.json()) as {
         items: Array<{

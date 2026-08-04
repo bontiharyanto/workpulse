@@ -1,8 +1,4 @@
-import {
-  generateRefreshSecret,
-  hashRefreshSecret,
-  secureCompareHex,
-} from './token-hash';
+import { generateRefreshSecret, hashRefreshSecret, secureCompareHex } from './token-hash';
 
 describe('token-hash', () => {
   it('generates url-safe random secrets of expected length', () => {

@@ -4,10 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 
 import { ApiError, notificationsApi } from '@/lib/api-client';
-import type {
-  NotificationPreferenceRow,
-  NotificationType,
-} from '@workpulse/shared-types';
+import type { NotificationPreferenceRow, NotificationType } from '@workpulse/shared-types';
 
 /**
  * Human-facing labels for each notification type. Keep the copy short —
@@ -204,11 +201,7 @@ const SECTIONS: Array<{ id: string; label: string; types: NotificationType[] }> 
   {
     id: 'compliance',
     label: 'Kepatuhan',
-    types: [
-      'BREACH_DEADLINE_WARNING',
-      'VENDOR_REVIEW_DUE',
-      'VENDOR_CONTRACT_EXPIRING',
-    ],
+    types: ['BREACH_DEADLINE_WARNING', 'VENDOR_REVIEW_DUE', 'VENDOR_CONTRACT_EXPIRING'],
   },
 ];
 
@@ -250,10 +243,7 @@ export function NotificationPreferencesForm(): JSX.Element {
     for (const row of data) {
       const d = draft[row.type];
       if (!d) continue;
-      if (
-        d.emailEnabled !== row.emailEnabled ||
-        d.inAppEnabled !== row.inAppEnabled
-      ) {
+      if (d.emailEnabled !== row.emailEnabled || d.inAppEnabled !== row.inAppEnabled) {
         return true;
       }
     }
@@ -287,25 +277,19 @@ export function NotificationPreferencesForm(): JSX.Element {
   });
 
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground">Memuat preferensi…</p>;
+    return <p className="text-muted-foreground text-sm">Memuat preferensi…</p>;
   }
   if (isError || !data) {
     return (
-      <p role="alert" className="text-sm text-destructive">
-        Gagal memuat preferensi:{' '}
-        {error instanceof Error ? error.message : 'unknown error'}
+      <p role="alert" className="text-destructive text-sm">
+        Gagal memuat preferensi: {error instanceof Error ? error.message : 'unknown error'}
       </p>
     );
   }
 
-  const byType = new Map<NotificationType, NotificationPreferenceRow>(
-    data.map((r) => [r.type, r]),
-  );
+  const byType = new Map<NotificationType, NotificationPreferenceRow>(data.map((r) => [r.type, r]));
 
-  const toggle = (
-    type: NotificationType,
-    channel: 'emailEnabled' | 'inAppEnabled',
-  ): void => {
+  const toggle = (type: NotificationType, channel: 'emailEnabled' | 'inAppEnabled'): void => {
     setStatus(null);
     setDraft((prev) => ({
       ...prev,
@@ -333,9 +317,9 @@ export function NotificationPreferencesForm(): JSX.Element {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border bg-muted/40 p-3 text-xs text-muted-foreground">
-        Notifikasi wajib (mis. konfirmasi reset password) tidak dapat
-        dinonaktifkan — keamanan mengharuskannya tetap terkirim.
+      <div className="bg-muted/40 text-muted-foreground rounded-lg border p-3 text-xs">
+        Notifikasi wajib (mis. konfirmasi reset password) tidak dapat dinonaktifkan — keamanan
+        mengharuskannya tetap terkirim.
       </div>
 
       {SECTIONS.map((section) => {
@@ -349,13 +333,13 @@ export function NotificationPreferencesForm(): JSX.Element {
             className="overflow-hidden rounded-lg border"
             aria-labelledby={`prefs-${section.id}`}
           >
-            <header className="border-b bg-muted/50 px-4 py-2">
+            <header className="bg-muted/50 border-b px-4 py-2">
               <h3 id={`prefs-${section.id}`} className="text-sm font-semibold">
                 {section.label}
               </h3>
             </header>
             <table className="w-full text-sm">
-              <thead className="text-[11px] uppercase tracking-widest text-muted-foreground">
+              <thead className="text-muted-foreground text-[11px] uppercase tracking-widest">
                 <tr>
                   <th className="px-4 py-2 text-left font-medium">Jenis</th>
                   <th className="w-24 px-2 py-2 text-center font-medium">In-app</th>
@@ -377,7 +361,7 @@ export function NotificationPreferencesForm(): JSX.Element {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground">{meta.hint}</p>
+                        <p className="text-muted-foreground text-xs">{meta.hint}</p>
                       </td>
                       <td className="px-2 py-2 text-center">
                         <label className="inline-flex items-center gap-2 text-xs">
@@ -412,9 +396,7 @@ export function NotificationPreferencesForm(): JSX.Element {
 
       <div className="flex items-center justify-between gap-3">
         <div className="text-xs">
-          {status === 'saved' && (
-            <span className="text-emerald-700">Preferensi tersimpan.</span>
-          )}
+          {status === 'saved' && <span className="text-emerald-700">Preferensi tersimpan.</span>}
           {status === 'error' && errorMsg && (
             <span role="alert" className="text-destructive">
               {errorMsg}
@@ -424,7 +406,7 @@ export function NotificationPreferencesForm(): JSX.Element {
         <div className="flex gap-2">
           <button
             type="button"
-            className="rounded-md border border-input px-3 py-2 text-xs font-medium hover:bg-muted disabled:opacity-50"
+            className="border-input hover:bg-muted rounded-md border px-3 py-2 text-xs font-medium disabled:opacity-50"
             onClick={handleReset}
             disabled={!dirty || save.isPending}
           >
@@ -432,7 +414,7 @@ export function NotificationPreferencesForm(): JSX.Element {
           </button>
           <button
             type="button"
-            className="rounded-md bg-foreground px-3 py-2 text-xs font-medium text-background shadow disabled:opacity-50"
+            className="bg-foreground text-background rounded-md px-3 py-2 text-xs font-medium shadow disabled:opacity-50"
             onClick={() => save.mutate()}
             disabled={!dirty || save.isPending}
           >

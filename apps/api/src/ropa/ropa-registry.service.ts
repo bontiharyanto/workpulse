@@ -17,11 +17,7 @@ import type {
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-import {
-  IllegalRopaTransitionError,
-  isEditable,
-  transition,
-} from './domain/version-state-machine';
+import { IllegalRopaTransitionError, isEditable, transition } from './domain/version-state-machine';
 import { ROPA_SEED_BLUEPRINTS } from './domain/seed-catalogue';
 
 /**
@@ -131,10 +127,7 @@ export class RopaRegistryService {
     });
   }
 
-  async detail(
-    actor: AuthenticatedUser,
-    activityId: string,
-  ): Promise<RopaDetail> {
+  async detail(actor: AuthenticatedUser, activityId: string): Promise<RopaDetail> {
     const activity = await this.prisma.ropaActivity.findFirst({
       where: { id: activityId, companyId: actor.companyId },
       include: {
@@ -152,9 +145,9 @@ export class RopaRegistryService {
     };
   }
 
-  async listPublishedForExport(companyId: string): Promise<
-    Array<RopaActivityVersion & { activity: { slug: string } }>
-  > {
+  async listPublishedForExport(
+    companyId: string,
+  ): Promise<Array<RopaActivityVersion & { activity: { slug: string } }>> {
     return this.prisma.ropaActivityVersion.findMany({
       where: { companyId, status: 'PUBLISHED' },
       include: { activity: { select: { slug: true } } },
@@ -186,10 +179,7 @@ export class RopaRegistryService {
           },
         });
       } catch (err) {
-        if (
-          isPrismaError(err) &&
-          (err as { code?: string }).code === 'P2002'
-        ) {
+        if (isPrismaError(err) && (err as { code?: string }).code === 'P2002') {
           throw new ConflictException({
             statusCode: 409,
             code: 'ROPA_SLUG_TAKEN',
@@ -320,16 +310,13 @@ export class RopaRegistryService {
       data.dataCategories = { set: normaliseTags(patch.dataCategories) };
     if (patch.subjectCategories !== undefined)
       data.subjectCategories = { set: normaliseTags(patch.subjectCategories) };
-    if (patch.recipients !== undefined)
-      data.recipients = { set: normaliseTags(patch.recipients) };
-    if (patch.retentionPeriod !== undefined)
-      data.retentionPeriod = patch.retentionPeriod.trim();
+    if (patch.recipients !== undefined) data.recipients = { set: normaliseTags(patch.recipients) };
+    if (patch.retentionPeriod !== undefined) data.retentionPeriod = patch.retentionPeriod.trim();
     if (patch.crossBorderTransfer !== undefined)
       data.crossBorderTransfer = patch.crossBorderTransfer;
     if (patch.crossBorderDetail !== undefined)
       data.crossBorderDetail = nullableTrim(patch.crossBorderDetail);
-    if (patch.securityMeasures !== undefined)
-      data.securityMeasures = patch.securityMeasures.trim();
+    if (patch.securityMeasures !== undefined) data.securityMeasures = patch.securityMeasures.trim();
     if (patch.notes !== undefined) data.notes = nullableTrim(patch.notes);
 
     if (Object.keys(data).length === 0) {
@@ -487,10 +474,7 @@ export class RopaRegistryService {
    * a PUBLISHED row. Copies the field values from `currentVersion` (or
    * the latest ARCHIVED as fallback) so DPO doesn't retype the whole thing.
    */
-  async newVersion(
-    actor: AuthenticatedUser,
-    activityId: string,
-  ): Promise<RopaActivityVersion> {
+  async newVersion(actor: AuthenticatedUser, activityId: string): Promise<RopaActivityVersion> {
     const activity = await this.prisma.ropaActivity.findFirst({
       where: { id: activityId, companyId: actor.companyId },
       include: {
@@ -524,8 +508,7 @@ export class RopaRegistryService {
           'Tidak ada versi sebelumnya untuk dijadikan template. Gunakan `POST /admin/ropa/activities` untuk membuat versi pertama.',
       });
     }
-    const nextVersion =
-      Math.max(0, ...activity.versions.map((v) => v.version)) + 1;
+    const nextVersion = Math.max(0, ...activity.versions.map((v) => v.version)) + 1;
 
     return this.prisma.$transaction(async (tx) => {
       const created = await tx.ropaActivityVersion.create({

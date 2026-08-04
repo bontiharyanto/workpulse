@@ -9,12 +9,9 @@ import { ApiError, dataExportApi } from '@/lib/api-client';
 const ERROR_COPY: Record<string, string> = {
   EXPORT_ALREADY_PENDING:
     'Permintaan ekspor sudah berjalan. Tunggu sampai selesai sebelum mengajukan yang baru.',
-  EXPORT_COOLDOWN:
-    'Permintaan ekspor hanya bisa dilakukan sekali per 24 jam.',
-  EXPORT_NOT_READY:
-    'Arsip masih diproses. Coba lagi sebentar.',
-  EXPORT_FAILED:
-    'Pembuatan arsip sebelumnya gagal. Silakan ajukan ulang.',
+  EXPORT_COOLDOWN: 'Permintaan ekspor hanya bisa dilakukan sekali per 24 jam.',
+  EXPORT_NOT_READY: 'Arsip masih diproses. Coba lagi sebentar.',
+  EXPORT_FAILED: 'Pembuatan arsip sebelumnya gagal. Silakan ajukan ulang.',
   EXPORT_EXPIRED:
     'Arsip sudah kedaluwarsa (batas 24 jam terlewat). Silakan ajukan permintaan baru.',
   THROTTLED: 'Terlalu banyak percobaan. Coba lagi sebentar.',
@@ -61,9 +58,7 @@ export function DataExportPanel(): JSX.Element {
     queryFn: () => dataExportApi.list(),
     refetchInterval: (query) => {
       const rows = query.state.data ?? [];
-      const inFlight = rows.some(
-        (r) => r.status === 'PENDING' || r.status === 'PROCESSING',
-      );
+      const inFlight = rows.some((r) => r.status === 'PENDING' || r.status === 'PROCESSING');
       return inFlight ? 5_000 : false;
     },
     staleTime: 5_000,
@@ -100,9 +95,7 @@ export function DataExportPanel(): JSX.Element {
   });
 
   const rows = requests.data ?? [];
-  const hasInFlight = rows.some(
-    (r) => r.status === 'PENDING' || r.status === 'PROCESSING',
-  );
+  const hasInFlight = rows.some((r) => r.status === 'PENDING' || r.status === 'PROCESSING');
 
   return (
     <section
@@ -112,16 +105,12 @@ export function DataExportPanel(): JSX.Element {
     >
       <div className="flex items-baseline justify-between gap-4">
         <div>
-          <h2
-            id="data-export-heading"
-            className="text-lg font-semibold tracking-tight"
-          >
+          <h2 id="data-export-heading" className="text-lg font-semibold tracking-tight">
             Ekspor data pribadi
           </h2>
-          <p className="text-sm text-muted-foreground">
-            Unduh salinan seluruh data pribadi Anda dalam satu berkas ZIP
-            berisi file JSON per tabel. Batas satu permintaan per 24 jam.
-            Arsip yang siap tersedia selama 24 jam.
+          <p className="text-muted-foreground text-sm">
+            Unduh salinan seluruh data pribadi Anda dalam satu berkas ZIP berisi file JSON per
+            tabel. Batas satu permintaan per 24 jam. Arsip yang siap tersedia selama 24 jam.
           </p>
         </div>
         <button
@@ -129,7 +118,7 @@ export function DataExportPanel(): JSX.Element {
           onClick={() => createMutation.mutate()}
           disabled={createMutation.isPending || hasInFlight}
           data-testid="data-export-create"
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium disabled:opacity-50"
         >
           {createMutation.isPending
             ? 'Mengirim...'
@@ -140,15 +129,15 @@ export function DataExportPanel(): JSX.Element {
       </div>
 
       {inlineError && (
-        <p role="alert" className="text-xs text-destructive">
+        <p role="alert" className="text-destructive text-xs">
           {inlineError}
         </p>
       )}
 
       {requests.isLoading ? (
-        <p className="text-sm text-muted-foreground">Memuat riwayat...</p>
+        <p className="text-muted-foreground text-sm">Memuat riwayat...</p>
       ) : rows.length === 0 ? (
-        <p className="rounded-md border border-dashed border-input p-4 text-sm text-muted-foreground">
+        <p className="border-input text-muted-foreground rounded-md border border-dashed p-4 text-sm">
           Belum ada permintaan ekspor. Klik tombol di atas untuk memulai.
         </p>
       ) : (
@@ -158,33 +147,27 @@ export function DataExportPanel(): JSX.Element {
               key={row.id}
               data-testid="data-export-row"
               data-status={row.status}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-input p-3"
+              className="border-input flex flex-wrap items-center justify-between gap-3 rounded-md border p-3"
             >
               <div className="min-w-0 flex-1 space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span
-                    className={statusPillClass(STATUS_COPY[row.status].tone)}
-                  >
+                  <span className={statusPillClass(STATUS_COPY[row.status].tone)}>
                     {STATUS_COPY[row.status].label}
                   </span>
-                  <p className="text-sm">
-                    Diminta {formatDate(row.requestedAt)}
-                  </p>
+                  <p className="text-sm">Diminta {formatDate(row.requestedAt)}</p>
                   {row.fileSize !== null && row.fileSize !== undefined && (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-muted-foreground text-xs">
                       · {formatSize(row.fileSize)}
                     </span>
                   )}
                 </div>
                 {row.status === 'READY' && row.expiresAt && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     Berlaku sampai {formatDate(row.expiresAt)}
                   </p>
                 )}
                 {row.status === 'FAILED' && row.failureReason && (
-                  <p className="text-xs text-destructive">
-                    Alasan: {row.failureReason}
-                  </p>
+                  <p className="text-destructive text-xs">Alasan: {row.failureReason}</p>
                 )}
               </div>
               {row.status === 'READY' && (
@@ -193,7 +176,7 @@ export function DataExportPanel(): JSX.Element {
                   onClick={() => downloadMutation.mutate(row.id)}
                   disabled={downloadMutation.isPending}
                   data-testid="data-export-download"
-                  className="rounded-md border border-primary/40 bg-primary/5 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10 disabled:opacity-50"
+                  className="border-primary/40 bg-primary/5 text-primary hover:bg-primary/10 rounded-md border px-3 py-1 text-xs font-medium disabled:opacity-50"
                 >
                   {downloadMutation.isPending ? 'Menyiapkan...' : 'Unduh'}
                 </button>
@@ -207,8 +190,7 @@ export function DataExportPanel(): JSX.Element {
 }
 
 function statusPillClass(tone: 'neutral' | 'progress' | 'ok' | 'error'): string {
-  const base =
-    'rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider';
+  const base = 'rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider';
   switch (tone) {
     case 'ok':
       return `${base} bg-emerald-100 text-emerald-900`;

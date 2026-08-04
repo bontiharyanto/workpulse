@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -53,9 +45,7 @@ export class AttendanceCorrectionController {
   @Get('mine')
   @Roles('EMPLOYEE', 'SUPERVISOR', 'HR_MANAGER')
   @ApiOkResponse({ type: CorrectionResponseDto, isArray: true })
-  async listMine(
-    @CurrentUser() user: AuthenticatedUser,
-  ): Promise<CorrectionResponseDto[]> {
+  async listMine(@CurrentUser() user: AuthenticatedUser): Promise<CorrectionResponseDto[]> {
     const rows = await this.service.listMine(user);
     const hydrated = await this.service.hydrate(rows);
     return Promise.all(hydrated.map((h) => this.toDto(h)));
@@ -64,9 +54,7 @@ export class AttendanceCorrectionController {
   @Get('approvals/pending')
   @Roles('SUPERVISOR', 'HR_MANAGER', 'SUPER_ADMIN')
   @ApiOkResponse({ type: CorrectionResponseDto, isArray: true })
-  async listApprovals(
-    @CurrentUser() user: AuthenticatedUser,
-  ): Promise<CorrectionResponseDto[]> {
+  async listApprovals(@CurrentUser() user: AuthenticatedUser): Promise<CorrectionResponseDto[]> {
     const rows = await this.service.listPendingApprovals(user);
     const hydrated = await this.service.hydrate(rows, { includeRequester: true });
     return Promise.all(hydrated.map((h) => this.toDto(h)));
@@ -109,12 +97,8 @@ export class AttendanceCorrectionController {
       userId: r.userId,
       userFullName: h.userFullName,
       workDate: r.workDate.toISOString().slice(0, 10),
-      requestedClockInAt: r.requestedClockInAt
-        ? r.requestedClockInAt.toISOString()
-        : null,
-      requestedClockOutAt: r.requestedClockOutAt
-        ? r.requestedClockOutAt.toISOString()
-        : null,
+      requestedClockInAt: r.requestedClockInAt ? r.requestedClockInAt.toISOString() : null,
+      requestedClockOutAt: r.requestedClockOutAt ? r.requestedClockOutAt.toISOString() : null,
       reason: r.reason,
       attachmentUrl,
       status: r.status,

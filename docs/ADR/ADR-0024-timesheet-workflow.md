@@ -13,7 +13,7 @@ in that surface answers three real HR needs, however:
 
 1. **Who signed off on the payroll numbers for this period?** — the
    audit story stops at "the generator ran".
-2. **What happens when an AttendanceCorrection is approved *after*
+2. **What happens when an AttendanceCorrection is approved _after_
    HR already reviewed the timesheet?** — the totals silently drift.
 3. **Break time is unpaid, but Fase 32a's `regularHours` includes it.**
 
@@ -40,13 +40,13 @@ to unit-test and easy to reason about.
 
 **Actor rules:**
 
-| Action                | Required actor                                     |
-|-----------------------|----------------------------------------------------|
-| `SUBMIT`              | Timesheet owner. `DRAFT` or `REJECTED`.            |
-| `SUPERVISOR_APPROVE`  | Direct supervisor of the owner, OR HR / SUPER_ADMIN. |
-| `SUPERVISOR_REJECT`   | Same as above. **Note is required.**               |
-| `HR_APPROVE`          | `HR_MANAGER` or `SUPER_ADMIN`.                     |
-| `HR_REJECT`           | Same. **Note is required.**                        |
+| Action               | Required actor                                       |
+| -------------------- | ---------------------------------------------------- |
+| `SUBMIT`             | Timesheet owner. `DRAFT` or `REJECTED`.              |
+| `SUPERVISOR_APPROVE` | Direct supervisor of the owner, OR HR / SUPER_ADMIN. |
+| `SUPERVISOR_REJECT`  | Same as above. **Note is required.**                 |
+| `HR_APPROVE`         | `HR_MANAGER` or `SUPER_ADMIN`.                       |
+| `HR_REJECT`          | Same. **Note is required.**                          |
 
 Rejection notes are required at the state-machine level because an
 employee cannot fix a rejection they don't understand — a missing note
@@ -55,15 +55,15 @@ turns HR review into a black-box loop.
 ### 2. Auto-regenerate on AttendanceCorrection
 
 When an `AttendanceCorrection` is approved (Fase 26), the affected
-day's clock-in/out changes and the timesheet totals *must* follow.
+day's clock-in/out changes and the timesheet totals _must_ follow.
 Options considered:
 
-| Option                                              | Verdict           |
-|-----------------------------------------------------|-------------------|
-| Refuse the correction if a timesheet exists         | Too aggressive — DRAFTs are meant to be edited. |
-| Auto-regenerate always                              | Chosen for DRAFT / REJECTED / PENDING_*.        |
-| Auto-regenerate only if DRAFT                       | Rejected — silently drops a pending review.     |
-| Refuse the correction if the timesheet is APPROVED  | Chosen — payroll seal is non-negotiable.        |
+| Option                                             | Verdict                                         |
+| -------------------------------------------------- | ----------------------------------------------- |
+| Refuse the correction if a timesheet exists        | Too aggressive — DRAFTs are meant to be edited. |
+| Auto-regenerate always                             | Chosen for DRAFT / REJECTED / PENDING_*.        |
+| Auto-regenerate only if DRAFT                      | Rejected — silently drops a pending review.     |
+| Refuse the correction if the timesheet is APPROVED | Chosen — payroll seal is non-negotiable.        |
 
 **Implementation:**
 
@@ -135,7 +135,7 @@ New endpoints:
 Extended endpoints:
 
 - `GET /admin/timesheet` accepts `status=DRAFT|PENDING_SUPERVISOR|
-  PENDING_HR|APPROVED|REJECTED`. The queue view filters by this.
+PENDING_HR|APPROVED|REJECTED`. The queue view filters by this.
 - `POST /admin/timesheet/generate` returns
   `timesheetsSkippedApproved` alongside `timesheetsGenerated`.
 
@@ -176,7 +176,7 @@ Extended endpoints:
 - **On-behalf-of submit by HR.** If an employee is unavailable and HR
   needs to close a period, HR uses `Generate` + manual approval
   (workflow-tier bypass via `HR_APPROVE` on any state has been
-  intentionally *not* wired — it stays a two-step process for the
+  intentionally _not_ wired — it stays a two-step process for the
   audit story). Deferred to 32c.
 - **Per-day approval / entry-level locks.** Whole-period only.
 - **Configurable break windows per day / per user.** The shift-level

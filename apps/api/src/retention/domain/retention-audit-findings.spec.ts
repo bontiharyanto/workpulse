@@ -101,9 +101,7 @@ describe('deriveRetentionAudit', () => {
       periodEnd: PERIOD_END,
     });
     expect(res.status).toBe('GAP_DETECTED');
-    const finding = res.findings.find(
-      (f) => f.kind === 'notifications_past_retention',
-    );
+    const finding = res.findings.find((f) => f.kind === 'notifications_past_retention');
     expect(finding?.count).toBe(42);
     expect(finding?.severity).toBe('warning');
   });
@@ -117,9 +115,7 @@ describe('deriveRetentionAudit', () => {
       periodEnd: PERIOD_END,
     });
     expect(res.status).toBe('GAP_DETECTED');
-    const finding = res.findings.find(
-      (f) => f.kind === 'dsar_archives_past_retention',
-    );
+    const finding = res.findings.find((f) => f.kind === 'dsar_archives_past_retention');
     expect(finding?.severity).toBe('critical');
     expect(finding?.count).toBe(3);
   });

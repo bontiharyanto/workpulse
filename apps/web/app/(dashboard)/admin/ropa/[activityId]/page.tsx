@@ -13,9 +13,7 @@ interface PageProps {
   params: Promise<{ activityId: string }>;
 }
 
-export default async function AdminRopaActivityPage({
-  params,
-}: PageProps): Promise<JSX.Element> {
+export default async function AdminRopaActivityPage({ params }: PageProps): Promise<JSX.Element> {
   const { activityId } = await params;
   return (
     <RequireAuth>

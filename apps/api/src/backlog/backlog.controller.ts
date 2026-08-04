@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  Query,
-} from '@nestjs/common';
+import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -11,11 +6,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 import { BacklogService } from './backlog.service';
-import type {
-  BacklogItem,
-  BacklogSummary,
-  ModuleBacklog,
-} from './backlog.service';
+import type { BacklogItem, BacklogSummary, ModuleBacklog } from './backlog.service';
 import { BacklogSummaryDto } from './dto/backlog.dto';
 
 @ApiTags('admin-backlog')
@@ -40,7 +31,8 @@ export class BacklogController {
     @Query('thresholdDays') thresholdRaw?: string,
     @Query('topN') topNRaw?: string,
   ): Promise<BacklogSummaryDto> {
-    const staleAfterDays = thresholdRaw === undefined ? undefined : parseIntStrict(thresholdRaw, 'thresholdDays');
+    const staleAfterDays =
+      thresholdRaw === undefined ? undefined : parseIntStrict(thresholdRaw, 'thresholdDays');
     const topN = topNRaw === undefined ? undefined : parseIntStrict(topNRaw, 'topN');
 
     const summary = await this.service.getBacklog({

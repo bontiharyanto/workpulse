@@ -113,10 +113,7 @@ export class BreachService {
     });
   }
 
-  async detail(
-    actor: AuthenticatedUser,
-    id: string,
-  ): Promise<IncidentWithTimeline> {
+  async detail(actor: AuthenticatedUser, id: string): Promise<IncidentWithTimeline> {
     const row = await this.prisma.breachIncident.findFirst({
       where: { id, companyId: actor.companyId },
       include: INCLUDE_FULL,
@@ -127,10 +124,7 @@ export class BreachService {
 
   // -------- Create / update / assign --------
 
-  async create(
-    actor: AuthenticatedUser,
-    input: CreateInput,
-  ): Promise<IncidentWithTimeline> {
+  async create(actor: AuthenticatedUser, input: CreateInput): Promise<IncidentWithTimeline> {
     this.assertPastOrPresent(input.detectedAt, 'detectedAt');
     if (input.occurredAt) {
       if (input.occurredAt.getTime() > input.detectedAt.getTime()) {
@@ -442,15 +436,12 @@ export class BreachService {
       status: nextStatus,
     };
     if (payload.containedAt) updateData.containedAt = payload.containedAt;
-    if (payload.authorityNotifiedAt)
-      updateData.authorityNotifiedAt = payload.authorityNotifiedAt;
+    if (payload.authorityNotifiedAt) updateData.authorityNotifiedAt = payload.authorityNotifiedAt;
     if (payload.authorityNotificationRef)
       updateData.authorityNotificationRef = payload.authorityNotificationRef;
-    if (payload.subjectsNotifiedAt)
-      updateData.subjectsNotifiedAt = payload.subjectsNotifiedAt;
+    if (payload.subjectsNotifiedAt) updateData.subjectsNotifiedAt = payload.subjectsNotifiedAt;
     if (payload.subjectNotificationTemplate)
-      updateData.subjectNotificationTemplate =
-        payload.subjectNotificationTemplate;
+      updateData.subjectNotificationTemplate = payload.subjectNotificationTemplate;
     if (payload.closedAt) updateData.closedAt = payload.closedAt;
     if (payload.remediation) updateData.remediation = payload.remediation;
 
@@ -459,8 +450,7 @@ export class BreachService {
         where: { id },
         data: updateData,
       });
-      const timelineType =
-        payload.timelineEventType ?? BreachTimelineEventType.STATUS_ADVANCED;
+      const timelineType = payload.timelineEventType ?? BreachTimelineEventType.STATUS_ADVANCED;
       await this.appendTimeline(tx, {
         incidentId: id,
         companyId: actor.companyId,
@@ -493,10 +483,7 @@ export class BreachService {
     return this.detail(actor, id);
   }
 
-  private async loadWritable(
-    actor: AuthenticatedUser,
-    id: string,
-  ): Promise<BreachIncident> {
+  private async loadWritable(actor: AuthenticatedUser, id: string): Promise<BreachIncident> {
     const row = await this.prisma.breachIncident.findFirst({
       where: { id, companyId: actor.companyId },
     });
@@ -507,10 +494,7 @@ export class BreachService {
     return row;
   }
 
-  private async assertUserInSameTenant(
-    companyId: string,
-    userId: string,
-  ): Promise<void> {
+  private async assertUserInSameTenant(companyId: string, userId: string): Promise<void> {
     const user = await this.prisma.user.findFirst({
       where: { id: userId, companyId },
       select: { id: true },

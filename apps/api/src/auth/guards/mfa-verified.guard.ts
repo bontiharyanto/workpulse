@@ -38,10 +38,10 @@ export class MfaVerifiedGuard implements CanActivate {
     ]);
     if (isPublic) return true;
 
-    const allowUnverified = this.reflector.getAllAndOverride<boolean>(
-      ALLOW_UNVERIFIED_MFA_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const allowUnverified = this.reflector.getAllAndOverride<boolean>(ALLOW_UNVERIFIED_MFA_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
     if (allowUnverified) return true;
 
     // Routes that let a temp-password user through also let a pre-MFA
@@ -62,8 +62,7 @@ export class MfaVerifiedGuard implements CanActivate {
       throw new ForbiddenException({
         statusCode: 403,
         code: 'MFA_REQUIRED',
-        message:
-          'Verifikasi kode MFA Anda untuk melanjutkan. Kunjungi /login/mfa.',
+        message: 'Verifikasi kode MFA Anda untuk melanjutkan. Kunjungi /login/mfa.',
       });
     }
 

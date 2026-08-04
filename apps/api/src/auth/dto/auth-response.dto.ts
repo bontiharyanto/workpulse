@@ -33,7 +33,7 @@ export class AuthenticatedUserDto {
   @ApiProperty({
     nullable: true,
     description:
-      'Non-null when the caller has NOT accepted the tenant\'s currently-active privacy policy. The FE MUST redirect to `/consent` and POST `/me/consent` before any non-`/auth/*`, non-`/me/consent/*` endpoint will accept the caller. Null if there is no active policy OR the user already accepted it.',
+      "Non-null when the caller has NOT accepted the tenant's currently-active privacy policy. The FE MUST redirect to `/consent` and POST `/me/consent` before any non-`/auth/*`, non-`/me/consent/*` endpoint will accept the caller. Null if there is no active policy OR the user already accepted it.",
   })
   pendingConsent!: PendingConsentDto | null;
 }

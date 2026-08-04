@@ -17,18 +17,15 @@ export default async function ResetPasswordPage({
   const resolved = await searchParams;
   const token = typeof resolved.token === 'string' ? resolved.token : null;
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-      <div className="w-full max-w-sm rounded-lg border bg-background p-6 shadow-sm">
+    <main className="bg-muted/30 flex min-h-screen items-center justify-center px-4">
+      <div className="bg-background w-full max-w-sm rounded-lg border p-6 shadow-sm">
         <div className="mb-6 space-y-1">
-          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+          <p className="text-muted-foreground text-xs font-medium uppercase tracking-widest">
             Workpulse
           </p>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Pilih password baru
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Setelah menyimpan, semua sesi lama pada semua perangkat akan
-            keluar otomatis.
+          <h1 className="text-2xl font-semibold tracking-tight">Pilih password baru</h1>
+          <p className="text-muted-foreground text-sm">
+            Setelah menyimpan, semua sesi lama pada semua perangkat akan keluar otomatis.
           </p>
         </div>
         <ResetPasswordForm token={token} />

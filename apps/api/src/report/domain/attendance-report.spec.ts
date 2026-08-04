@@ -95,10 +95,7 @@ describe('toAttendanceReportRows', () => {
   });
 
   it('coerces unknown status to ON_TIME (defensive)', () => {
-    const [row] = toAttendanceReportRows(
-      [{ ...jakartaRecord, status: 'GIBBERISH' }],
-      JKT,
-    );
+    const [row] = toAttendanceReportRows([{ ...jakartaRecord, status: 'GIBBERISH' }], JKT);
     expect(row?.status).toBe('ON_TIME');
   });
 });

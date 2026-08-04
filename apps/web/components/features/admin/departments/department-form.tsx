@@ -47,11 +47,11 @@ export function DepartmentForm({
         <input
           id="dept-name"
           {...form.register('name')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
           placeholder="Engineering"
         />
         {form.formState.errors.name && (
-          <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
+          <p className="text-destructive text-xs">{form.formState.errors.name.message}</p>
         )}
       </div>
 
@@ -62,7 +62,7 @@ export function DepartmentForm({
         <select
           id="dept-parent"
           {...form.register('parentId')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
         >
           <option value="">— tidak ada —</option>
           {selectableParents.map((p) => (
@@ -74,17 +74,13 @@ export function DepartmentForm({
       </div>
 
       <div className="flex justify-end gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border px-3 py-1 text-xs"
-        >
+        <button type="button" onClick={onCancel} className="rounded-md border px-3 py-1 text-xs">
           Batal
         </button>
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-md bg-foreground px-3 py-1 text-xs font-medium text-background disabled:opacity-50"
+          className="bg-foreground text-background rounded-md px-3 py-1 text-xs font-medium disabled:opacity-50"
         >
           {submitting ? 'Menyimpan...' : initial ? 'Simpan perubahan' : 'Buat departemen'}
         </button>

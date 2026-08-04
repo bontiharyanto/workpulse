@@ -6,13 +6,13 @@ di-commit ke git** — jangan pakai `prisma db push` untuk perubahan permanen.
 
 ## TL;DR — perintah yang sering dipakai
 
-| Perintah | Kapan dipakai |
-|---|---|
-| `pnpm --filter @workpulse/api prisma:migrate` | Dev flow: baru saja edit `schema.prisma` |
+| Perintah                                                  | Kapan dipakai                                                          |
+| --------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `pnpm --filter @workpulse/api prisma:migrate`             | Dev flow: baru saja edit `schema.prisma`                               |
 | `pnpm --filter @workpulse/api prisma:migrate:create-only` | Butuh edit migration.sql secara manual (partial unique, raw SQL, dsb.) |
-| `pnpm --filter @workpulse/api prisma:migrate:deploy` | Production/staging deploy |
-| `pnpm --filter @workpulse/api prisma:migrate:status` | Cek migration mana yang belum di-apply |
-| `pnpm --filter @workpulse/api prisma:migrate:reset` | **DEV ONLY** — hapus DB, apply ulang semua migration, run seed |
+| `pnpm --filter @workpulse/api prisma:migrate:deploy`      | Production/staging deploy                                              |
+| `pnpm --filter @workpulse/api prisma:migrate:status`      | Cek migration mana yang belum di-apply                                 |
+| `pnpm --filter @workpulse/api prisma:migrate:reset`       | **DEV ONLY** — hapus DB, apply ulang semua migration, run seed         |
 
 ## Alur Standar (99% kasus)
 
@@ -36,6 +36,7 @@ Kenapa: `prisma migrate deploy` membandingkan checksum file dengan yang tersimpa
 di tabel `_prisma_migrations`. Modifikasi in-place → deploy gagal di production.
 
 Jika migration terlanjur dirilis dengan bug:
+
 - **Ringan** (mis. rename kolom): buat migration baru yang meng-undo/rename.
 - **Berat** (mis. data loss): koordinasi dengan tim ops untuk downtime + manual fix.
 
@@ -88,8 +89,8 @@ Setiap kali menambahkan raw SQL yang tidak dimodel Prisma, **tambahkan entri
 di sini**. Ini adalah checklist bagi reviewer PR untuk mengingatkan
 "jangan biarkan `prisma migrate dev` men-DROP ini".
 
-| Object | Type | Migration | Alasan Tidak Dimodel |
-|---|---|---|---|
+| Object                                        | Type                 | Migration                                                | Alasan Tidak Dimodel                                                                                                            |
+| --------------------------------------------- | -------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `OvertimeRequest_userId_workDate_active_uidx` | Partial UNIQUE INDEX | `20260801190000_add_overtime_indexes_and_partial_unique` | Prisma DSL belum support partial unique; melindungi race concurrent submit sambil mengizinkan retry setelah REJECTED/CANCELLED. |
 
 ## Production Deploy Checklist
@@ -112,15 +113,15 @@ nullable dulu, isi data, baru NOT NULL di migration terpisah kemudian).
 
 ## Zero-Downtime Rules of Thumb
 
-| Perubahan | Aman? | Catatan |
-|---|---|---|
-| Tambah kolom nullable | ✅ | Kode lama abaikan; kode baru mulai mengisi. |
-| Tambah kolom NOT NULL dengan DEFAULT | ✅ | Postgres 11+ tidak rewrite tabel. |
-| Tambah kolom NOT NULL tanpa DEFAULT | ❌ | Butuh 2-step: nullable → backfill → NOT NULL. |
-| Tambah index concurrent | ✅ | Manual raw SQL `CREATE INDEX CONCURRENTLY` — tidak lock tabel. |
-| DROP kolom | ⚠️ | Kode yang masih SELECT kolom itu akan error. Rilis kode dulu, migration kemudian. |
-| RENAME kolom/tabel | ❌ | Sama seperti DROP. Pakai 2-step: add new + backfill + drop old. |
-| ALTER TYPE enum add value | ✅ | Postgres 12+ non-blocking untuk ADD (tapi DROP masih locking). |
+| Perubahan                            | Aman? | Catatan                                                                           |
+| ------------------------------------ | ----- | --------------------------------------------------------------------------------- |
+| Tambah kolom nullable                | ✅    | Kode lama abaikan; kode baru mulai mengisi.                                       |
+| Tambah kolom NOT NULL dengan DEFAULT | ✅    | Postgres 11+ tidak rewrite tabel.                                                 |
+| Tambah kolom NOT NULL tanpa DEFAULT  | ❌    | Butuh 2-step: nullable → backfill → NOT NULL.                                     |
+| Tambah index concurrent              | ✅    | Manual raw SQL `CREATE INDEX CONCURRENTLY` — tidak lock tabel.                    |
+| DROP kolom                           | ⚠️    | Kode yang masih SELECT kolom itu akan error. Rilis kode dulu, migration kemudian. |
+| RENAME kolom/tabel                   | ❌    | Sama seperti DROP. Pakai 2-step: add new + backfill + drop old.                   |
+| ALTER TYPE enum add value            | ✅    | Postgres 12+ non-blocking untuk ADD (tapi DROP masih locking).                    |
 
 ## Seed Data
 
@@ -149,6 +150,7 @@ Jalankan SQL manual di Postgres untuk debug. Jangan langsung `--force`.
 ### `P3018 A migration failed to apply` di production
 
 **JANGAN** ubah migration file yang sudah gagal. Sebaliknya:
+
 1. Fix root cause (mis. bug SQL) di migration baru.
 2. Jalankan `prisma migrate resolve --applied <failed_migration_name>` untuk
    menandai yang gagal sebagai "applied" (kalau data-nya sudah manual di-fix).
@@ -157,7 +159,9 @@ Jalankan SQL manual di Postgres untuk debug. Jangan langsung `--force`.
 ### `_prisma_migrations` table missing atau corrupt
 
 Sudah pernah pakai `prisma db push` di database yang sama. Jalankan:
+
 ```
 prisma migrate resolve --applied 20260801184814_init
 ```
+
 untuk register init migration sebagai applied tanpa re-run SQL.

@@ -18,15 +18,13 @@ interface Props {
 export function RequireRole({ roles, children }: Props): JSX.Element {
   const { user, status } = useAuth();
   if (status !== 'authenticated' || !user) {
-    return (
-      <div className="text-sm text-muted-foreground">Memuat sesi...</div>
-    );
+    return <div className="text-muted-foreground text-sm">Memuat sesi...</div>;
   }
   if (!roles.includes(user.role)) {
     return (
       <div
         role="alert"
-        className="rounded-md border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive"
+        className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border p-4 text-sm"
       >
         Anda tidak memiliki akses ke halaman ini.
       </div>

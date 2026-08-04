@@ -3,10 +3,7 @@ import { createHash } from 'node:crypto';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Prisma, ReportSchedule } from '@prisma/client';
 
-import {
-  EMAIL_ADAPTER,
-  type EmailAdapter,
-} from '../notification/email/email-adapter';
+import { EMAIL_ADAPTER, type EmailAdapter } from '../notification/email/email-adapter';
 import { PrismaService } from '../prisma/prisma.service';
 
 import { labelFor } from './domain/report-registry';
@@ -91,29 +88,16 @@ export class ReportSchedulerService {
     });
   }
 
-  private async dispatch(
-    schedule: ReportSchedule,
-    now: Date,
-  ): Promise<void> {
+  private async dispatch(schedule: ReportSchedule, now: Date): Promise<void> {
     if (schedule.recipients.length === 0) {
-      this.logger.warn(
-        `Schedule ${schedule.id} has no recipients — marking FAILED`,
-      );
-      await this.recordFailure(
-        schedule,
-        now,
-        'Schedule has no recipients',
-      );
+      this.logger.warn(`Schedule ${schedule.id} has no recipients — marking FAILED`);
+      await this.recordFailure(schedule, now, 'Schedule has no recipients');
       await this.scheduleService.advanceCursor(schedule.id, now);
       return;
     }
 
     if (schedule.reportType === 'CUSTOM' && !schedule.savedReportId) {
-      await this.recordFailure(
-        schedule,
-        now,
-        'CUSTOM reportType requires savedReportId',
-      );
+      await this.recordFailure(schedule, now, 'CUSTOM reportType requires savedReportId');
       await this.scheduleService.advanceCursor(schedule.id, now);
       return;
     }
@@ -134,12 +118,9 @@ export class ReportSchedulerService {
     let mimeType: string;
     let summary: string;
     try {
-      const rendered = await this.renderer.render(
-        schedule.companyId,
-        schedule.reportType,
-        now,
-        { savedReportId: schedule.savedReportId },
-      );
+      const rendered = await this.renderer.render(schedule.companyId, schedule.reportType, now, {
+        savedReportId: schedule.savedReportId,
+      });
       bytes = rendered.bytes;
       filename = rendered.filename;
       mimeType = rendered.mimeType;
@@ -162,9 +143,7 @@ export class ReportSchedulerService {
     try {
       await this.email.send({
         to: schedule.recipients.join(', '),
-        subject: `${labelFor(schedule.reportType)} — ${now
-          .toISOString()
-          .slice(0, 10)}`,
+        subject: `${labelFor(schedule.reportType)} — ${now.toISOString().slice(0, 10)}`,
         body:
           `${summary}\n\nDikirim otomatis oleh Workpulse scheduler.\n` +
           `Schedule: ${schedule.name}\n` +
@@ -215,11 +194,7 @@ export class ReportSchedulerService {
     await this.scheduleService.advanceCursor(schedule.id, now);
   }
 
-  private async recordFailure(
-    schedule: ReportSchedule,
-    now: Date,
-    error: string,
-  ): Promise<void> {
+  private async recordFailure(schedule: ReportSchedule, now: Date, error: string): Promise<void> {
     await this.prisma.reportDelivery.create({
       data: {
         companyId: schedule.companyId,

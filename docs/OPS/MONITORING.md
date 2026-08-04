@@ -6,14 +6,14 @@ Panduan observability untuk pilot SMB Indonesia. Setup ini "cukup baik" untuk 1�
 
 ## 1. Stack Observability
 
-| Kapabilitas | Tool | Cost | Setup |
-|---|---|---:|---|
-| Error tracking (5xx, JS crash, unhandled promise) | Sentry (SaaS Free tier — 5k events/bulan) | Free | Sudah wired, tinggal set `SENTRY_DSN` |
-| Performance / latency tracing | Sentry Performance | Free (10% sampling) | `SENTRY_TRACES_SAMPLE_RATE=0.1` di prod |
-| Structured logs | pino → stdout → Docker json-file driver | Free | Bawaan |
-| Log aggregation (opsional Phase 2) | Loki / Grafana Cloud / Datadog | Opsional | Kirim json log via Vector agent |
-| Uptime monitoring (external ping) | BetterStack (Free 10 monitor) atau UptimeRobot | Free | Manual setup, lihat §5 |
-| Dependency health | `/api/v1/health/deep` (baru di Fase Beta) | — | Live sekarang |
+| Kapabilitas                                       | Tool                                           |                Cost | Setup                                   |
+| ------------------------------------------------- | ---------------------------------------------- | ------------------: | --------------------------------------- |
+| Error tracking (5xx, JS crash, unhandled promise) | Sentry (SaaS Free tier — 5k events/bulan)      |                Free | Sudah wired, tinggal set `SENTRY_DSN`   |
+| Performance / latency tracing                     | Sentry Performance                             | Free (10% sampling) | `SENTRY_TRACES_SAMPLE_RATE=0.1` di prod |
+| Structured logs                                   | pino → stdout → Docker json-file driver        |                Free | Bawaan                                  |
+| Log aggregation (opsional Phase 2)                | Loki / Grafana Cloud / Datadog                 |            Opsional | Kirim json log via Vector agent         |
+| Uptime monitoring (external ping)                 | BetterStack (Free 10 monitor) atau UptimeRobot |                Free | Manual setup, lihat §5                  |
+| Dependency health                                 | `/api/v1/health/deep` (baru di Fase Beta)      |                   — | Live sekarang                           |
 
 Untuk pilot **tidak wajib** Grafana Cloud / Prometheus scraping. Sentry sudah menyediakan p50/p95/p99 per endpoint. Dashboard SLO custom bisa ditunda ke Milestone Enterprise GA.
 
@@ -24,6 +24,7 @@ Untuk pilot **tidak wajib** Grafana Cloud / Prometheus scraping. Sentry sudah me
 ### 2.1. `GET /api/v1/health` — shallow
 
 Dipakai oleh:
+
 - Docker `HEALTHCHECK` di Dockerfile.
 - Caddy internal liveness (`/caddy-health`).
 - Load balancer / autoscaler kalau nanti dimasukkan.
@@ -33,6 +34,7 @@ Selalu balikin 200 kalau proses masih hidup. **Bukan** untuk external alerting.
 ### 2.2. `GET /api/v1/health/deep` — dependency probe
 
 Payload:
+
 ```json
 {
   "status": "ok" | "degraded" | "down",
@@ -58,17 +60,18 @@ Payload:
 
 Aturan HTTP status:
 
-| Overall status | HTTP | Meaning | On-call action |
-|---|---:|---|---|
-| `ok` | 200 | Semua dep sehat | — |
-| `degraded` | 503 | Storage unreachable — attachment upload fail, tapi core attendance masih jalan | Investigate storage vendor. Update stakeholder kalau > 15 menit. |
-| `down` | 503 | Database unreachable — semua tulis gagal | **PAGE ON-CALL SEKARANG.** Ikuti `docs/OPS/INCIDENT-RESPONSE.md` §"Database unreachable". |
+| Overall status | HTTP | Meaning                                                                        | On-call action                                                                            |
+| -------------- | ---: | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `ok`           |  200 | Semua dep sehat                                                                | —                                                                                         |
+| `degraded`     |  503 | Storage unreachable — attachment upload fail, tapi core attendance masih jalan | Investigate storage vendor. Update stakeholder kalau > 15 menit.                          |
+| `down`         |  503 | Database unreachable — semua tulis gagal                                       | **PAGE ON-CALL SEKARANG.** Ikuti `docs/OPS/INCIDENT-RESPONSE.md` §"Database unreachable". |
 
 External uptime monitor **wajib** point ke `/api/v1/health/deep` (bukan `/health`). Interval 60s cocok untuk Free tier.
 
 ### 2.3. Sentry Signals
 
 Otomatis di-capture dari `apps/api/src/instrument.ts`:
+
 - Unhandled 5xx exceptions.
 - Slow transactions > `SENTRY_TRACES_SAMPLE_RATE` sample (default 10% di prod).
 - Manual `Sentry.captureException(err)` di service layer (spot-check dulu — banyak service masih rely on auto-instrument).
@@ -81,14 +84,14 @@ Otomatis di-capture dari `apps/api/src/instrument.ts`:
 
 Baseline SLO untuk pilot Beta (dipublikasikan ke tenant dalam SLA):
 
-| Metric | Target | Threshold alert |
-|---|---:|---|
-| Uptime bulanan | **≥ 99.5%** | 1 alert setelah > 6 menit downtime/hari |
-| p95 read latency | **≤ 300 ms** | Sentry alert kalau p95 > 500 ms selama 10 menit |
-| p95 write latency | **≤ 600 ms** | Sentry alert kalau p95 > 1000 ms selama 10 menit |
-| 5xx error rate | **≤ 0.1%** | Sentry alert kalau > 0.5% selama 5 menit |
-| Backup success (H+1) | **100%** untuk lookback 7 hari | Heartbeat monitor kalau > 25 jam tanpa heartbeat |
-| MFA enroll rate (HR/Admin) | **100%** | Cron internal (tidak eksternal — HR akan bugbot user) |
+| Metric                     |                         Target | Threshold alert                                       |
+| -------------------------- | -----------------------------: | ----------------------------------------------------- |
+| Uptime bulanan             |                    **≥ 99.5%** | 1 alert setelah > 6 menit downtime/hari               |
+| p95 read latency           |                   **≤ 300 ms** | Sentry alert kalau p95 > 500 ms selama 10 menit       |
+| p95 write latency          |                   **≤ 600 ms** | Sentry alert kalau p95 > 1000 ms selama 10 menit      |
+| 5xx error rate             |                     **≤ 0.1%** | Sentry alert kalau > 0.5% selama 5 menit              |
+| Backup success (H+1)       | **100%** untuk lookback 7 hari | Heartbeat monitor kalau > 25 jam tanpa heartbeat      |
+| MFA enroll rate (HR/Admin) |                       **100%** | Cron internal (tidak eksternal — HR akan bugbot user) |
 
 Kalau breach: file P1 ticket, notify tenant primary contact dalam 30 menit, publikasi post-mortem dalam 5 hari kerja.
 
@@ -124,12 +127,12 @@ Untuk Beta cukup manual — jangan tambah CI step baru sampai tim > 3 orang.
 
 Setup di Sentry UI (Projects → Alerts → Create Alert):
 
-| Nama | Condition | Actions |
-|---|---|---|
-| **[P0] 5xx surge** | `event.level:error` count > 20 dalam 5 menit | Slack #ops + PagerDuty on-call |
-| **[P1] p95 latency degradation** | `transaction.duration:p95(all)` > 1000 ms selama 15 menit | Slack #ops |
-| **[P1] Prisma error spike** | `error.type:PrismaClientKnownRequestError` count > 10 dalam 10 menit | Slack #ops |
-| **[P2] Sentry event volume weekly** | Event count > 4k dalam 7 hari (mendekati Free quota) | Email admin |
+| Nama                                | Condition                                                            | Actions                        |
+| ----------------------------------- | -------------------------------------------------------------------- | ------------------------------ |
+| **[P0] 5xx surge**                  | `event.level:error` count > 20 dalam 5 menit                         | Slack #ops + PagerDuty on-call |
+| **[P1] p95 latency degradation**    | `transaction.duration:p95(all)` > 1000 ms selama 15 menit            | Slack #ops                     |
+| **[P1] Prisma error spike**         | `error.type:PrismaClientKnownRequestError` count > 10 dalam 10 menit | Slack #ops                     |
+| **[P2] Sentry event volume weekly** | Event count > 4k dalam 7 hari (mendekati Free quota)                 | Email admin                    |
 
 ---
 
@@ -161,6 +164,7 @@ Untuk pilot, `docker compose logs -f api` sudah cukup. Kalau tim mulai butuh sea
 **Opsi murah**: Grafana Cloud Free tier (50 GB logs/bulan, retention 14 hari).
 
 Setup ringkas:
+
 ```bash
 # Install Grafana Alloy (bekas "grafana-agent") sebagai systemd service di VPS.
 # Alloy scrape docker container logs + kirim ke Grafana Cloud.
@@ -199,7 +203,7 @@ Tunggu sampai tim butuh — jangan install sebelum ada pain nyata.
 
 ## 7. Dashboard KPI (di dalam Workpulse sendiri)
 
-Selain infrastruktur, produk sudah punya **Executive KPI Dashboard** (Fase 33a) yang membantu ops memantau *business health*:
+Selain infrastruktur, produk sudah punya **Executive KPI Dashboard** (Fase 33a) yang membantu ops memantau _business health_:
 
 - `/admin/analytics/dashboard` — attendance on-time rate, late count, headcount active.
 - `/admin/reports/scheduled` — status delivery report email otomatis.

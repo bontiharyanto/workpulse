@@ -43,9 +43,7 @@ export class DpiaAdminController {
   constructor(private readonly service: DpiaService) {}
 
   @Get('assessments')
-  async list(
-    @CurrentUser() actor: AuthenticatedUser,
-  ): Promise<DpiaAssessmentListItemDto[]> {
+  async list(@CurrentUser() actor: AuthenticatedUser): Promise<DpiaAssessmentListItemDto[]> {
     const rows = await this.service.list(actor);
     return rows.map((r) => toListItemDto(r));
   }
@@ -75,9 +73,7 @@ export class DpiaAdminController {
     @Param('id') id: string,
     @Body() body: UpdateDpiaAssessmentDto,
   ): Promise<DpiaAssessmentResponseDto> {
-    return toAssessmentDto(
-      await this.service.updateAssessment(actor, id, body),
-    );
+    return toAssessmentDto(await this.service.updateAssessment(actor, id, body));
   }
 
   @Throttle({ default: { limit: 30, ttl: 60_000 } })
@@ -120,9 +116,7 @@ export class DpiaAdminController {
     @Param('id') assessmentId: string,
     @Body() body: CreateDpiaRiskItemDto,
   ): Promise<DpiaAssessmentResponseDto> {
-    return toAssessmentDto(
-      await this.service.addRiskItem(actor, assessmentId, body),
-    );
+    return toAssessmentDto(await this.service.addRiskItem(actor, assessmentId, body));
   }
 
   @Throttle({ default: { limit: 60, ttl: 60_000 } })
@@ -145,8 +139,6 @@ export class DpiaAdminController {
     @Param('id') assessmentId: string,
     @Param('riskItemId') riskItemId: string,
   ): Promise<DpiaAssessmentResponseDto> {
-    return toAssessmentDto(
-      await this.service.removeRiskItem(actor, assessmentId, riskItemId),
-    );
+    return toAssessmentDto(await this.service.removeRiskItem(actor, assessmentId, riskItemId));
   }
 }

@@ -109,10 +109,7 @@ describe('HttpExceptionFilter', () => {
 
   it('shortcuts "message-as-code" when caller supplies only a plain string message', () => {
     const { host, res } = makeHost();
-    const exc = new HttpException(
-      { message: 'INVALID_CREDENTIALS' },
-      HttpStatus.UNAUTHORIZED,
-    );
+    const exc = new HttpException({ message: 'INVALID_CREDENTIALS' }, HttpStatus.UNAUTHORIZED);
 
     filter.catch(exc, host);
 

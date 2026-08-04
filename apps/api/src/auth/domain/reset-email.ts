@@ -28,9 +28,7 @@ export interface BuildResetLinkEmailInput {
   expiresInMinutes: number;
 }
 
-export function buildResetLinkEmail(
-  input: BuildResetLinkEmailInput,
-): ResetLinkEmailContent {
+export function buildResetLinkEmail(input: BuildResetLinkEmailInput): ResetLinkEmailContent {
   const { toEmail, displayName, resetUrl, expiresInMinutes } = input;
   const greetingName = displayName.trim() || 'Rekan Workpulse';
   const body = [

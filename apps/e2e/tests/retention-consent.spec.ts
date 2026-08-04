@@ -34,9 +34,7 @@ async function login(email: string, password: string): Promise<LoginedContext> {
     data: { email, password },
   });
   if (!res.ok()) {
-    throw new Error(
-      `login failed for ${email}: ${res.status()} ${await res.text()}`,
-    );
+    throw new Error(`login failed for ${email}: ${res.status()} ${await res.text()}`);
   }
   const body = (await res.json()) as { accessToken: string };
   return { ctx, accessToken: body.accessToken };
@@ -66,10 +64,7 @@ async function primeRetention(email: string): Promise<void> {
   }
 }
 
-async function ageNotifications(
-  email: string,
-  ageDays: number,
-): Promise<void> {
+async function ageNotifications(email: string, ageDays: number): Promise<void> {
   const { request } = await import('@playwright/test');
   const ctx = await request.newContext({ baseURL: API_URL });
   try {
@@ -133,10 +128,7 @@ test('HR can read + update the tenant retention policy', async () => {
 });
 
 test('non-HR is forbidden from touching retention', async () => {
-  const employee = await login(
-    SEED_USERS.employee.email,
-    SEED_USERS.employee.password,
-  );
+  const employee = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
   const res = await employee.ctx.get('/api/v1/admin/privacy/retention', {
     headers: { Authorization: `Bearer ${employee.accessToken}` },
   });
@@ -160,10 +152,7 @@ test('retention update rejects out-of-bounds values', async () => {
 
 test('retention worker prunes notifications older than the retention window', async () => {
   const hr = await login(SEED_USERS.hr.email, SEED_USERS.hr.password);
-  const employee = await login(
-    SEED_USERS.employee.email,
-    SEED_USERS.employee.password,
-  );
+  const employee = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
 
   await primeRetention(SEED_USERS.employee.email);
 
@@ -231,10 +220,7 @@ test('after publishing a new policy every non-consenting user sees pendingConsen
   expect(policy.version).toBe(version);
 
   // A fresh login as an employee → pendingConsent surfaces.
-  const employee = await login(
-    SEED_USERS.employee.email,
-    SEED_USERS.employee.password,
-  );
+  const employee = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
   const meRes = await employee.ctx.get('/api/v1/auth/me', {
     headers: { Authorization: `Bearer ${employee.accessToken}` },
   });
@@ -317,10 +303,7 @@ test('publishing the same version twice returns 409', async () => {
 });
 
 test('non-HR is forbidden from publishing a policy', async () => {
-  const employee = await login(
-    SEED_USERS.employee.email,
-    SEED_USERS.employee.password,
-  );
+  const employee = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
   const res = await employee.ctx.post('/api/v1/admin/privacy/policies', {
     headers: { Authorization: `Bearer ${employee.accessToken}` },
     data: { version: 'nope', title: 't', body: 'b' },

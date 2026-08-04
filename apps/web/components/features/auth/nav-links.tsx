@@ -23,10 +23,7 @@ export function NavLinks(): JSX.Element | null {
       <Link href="/overtime" className="text-muted-foreground hover:text-foreground">
         Lembur
       </Link>
-      <Link
-        href={'/me/timesheet' as Route}
-        className="text-muted-foreground hover:text-foreground"
-      >
+      <Link href={'/me/timesheet' as Route} className="text-muted-foreground hover:text-foreground">
         Timesheet
       </Link>
       {canApprove && (
@@ -44,10 +41,7 @@ export function NavLinks(): JSX.Element | null {
           Admin
         </Link>
       )}
-      <Link
-        href="/settings/notifications"
-        className="text-muted-foreground hover:text-foreground"
-      >
+      <Link href="/settings/notifications" className="text-muted-foreground hover:text-foreground">
         Notifikasi
       </Link>
     </>

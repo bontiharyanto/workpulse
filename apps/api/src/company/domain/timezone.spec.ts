@@ -1,17 +1,8 @@
-import {
-  InvalidTimezoneError,
-  assertValidTimezone,
-  isValidTimezone,
-} from './timezone';
+import { InvalidTimezoneError, assertValidTimezone, isValidTimezone } from './timezone';
 
 describe('timezone', () => {
   describe('isValidTimezone', () => {
-    it.each([
-      'Asia/Jakarta',
-      'UTC',
-      'Europe/London',
-      'America/Los_Angeles',
-    ])('accepts %s', (tz) => {
+    it.each(['Asia/Jakarta', 'UTC', 'Europe/London', 'America/Los_Angeles'])('accepts %s', (tz) => {
       expect(isValidTimezone(tz)).toBe(true);
     });
 

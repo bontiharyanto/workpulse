@@ -71,9 +71,7 @@ export class WebhookReceiverController {
     const list = WebhookReceiverController.buckets.get(bucket) ?? [];
     list.push({
       receivedAt: new Date().toISOString(),
-      headers: Object.fromEntries(
-        Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v]),
-      ),
+      headers: Object.fromEntries(Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v])),
       rawBody,
       body: parsed,
     });
@@ -83,9 +81,7 @@ export class WebhookReceiverController {
 
   @Get('read')
   @Public()
-  async read(
-    @Query('bucket') bucket: string | undefined,
-  ): Promise<{ items: CapturedRequest[] }> {
+  async read(@Query('bucket') bucket: string | undefined): Promise<{ items: CapturedRequest[] }> {
     this.assertEnabled();
     if (!bucket) throw new ForbiddenException('bucket required');
     return { items: WebhookReceiverController.buckets.get(bucket) ?? [] };

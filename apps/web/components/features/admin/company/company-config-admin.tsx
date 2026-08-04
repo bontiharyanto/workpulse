@@ -42,7 +42,7 @@ export function CompanyConfigAdmin(): JSX.Element {
 
   if (query.isLoading) {
     return (
-      <div className="rounded-md border bg-muted/40 p-4 text-sm text-muted-foreground">
+      <div className="bg-muted/40 text-muted-foreground rounded-md border p-4 text-sm">
         Memuat konfigurasi…
       </div>
     );
@@ -52,7 +52,7 @@ export function CompanyConfigAdmin(): JSX.Element {
     return (
       <div
         role="alert"
-        className="rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
+        className="border-destructive/30 bg-destructive/5 text-destructive rounded-md border p-4 text-sm"
       >
         Gagal memuat konfigurasi. Coba muat ulang halaman.
       </div>
@@ -67,7 +67,7 @@ export function CompanyConfigAdmin(): JSX.Element {
           className={
             flash.kind === 'ok'
               ? 'rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3 text-xs text-emerald-700 dark:text-emerald-300'
-              : 'rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive'
+              : 'border-destructive/30 bg-destructive/5 text-destructive rounded-md border p-3 text-xs'
           }
         >
           {flash.text}

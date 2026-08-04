@@ -59,8 +59,8 @@ export function AdminSubnav(): JSX.Element {
             href={t.href}
             className={
               active
-                ? '-mb-px border-b-2 border-foreground px-3 py-2 font-medium'
-                : '-mb-px border-b-2 border-transparent px-3 py-2 text-muted-foreground hover:text-foreground'
+                ? 'border-foreground -mb-px border-b-2 px-3 py-2 font-medium'
+                : 'text-muted-foreground hover:text-foreground -mb-px border-b-2 border-transparent px-3 py-2'
             }
           >
             {t.label}

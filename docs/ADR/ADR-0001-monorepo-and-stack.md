@@ -15,6 +15,7 @@ Workpulse akan berkembang cepat: multiple modul bisnis (kehadiran, cuti, izin, l
 ## Decision
 
 ### 1. Monorepo dengan pnpm workspaces + Turborepo
+
 - **Rasional:**
   - Type-sharing FE↔BE lebih rapi tanpa versioning package terpisah (schema Zod jadi single source of truth di `packages/shared-types`).
   - Perubahan lintas-layer (endpoint baru + form baru) bisa jadi satu PR.
@@ -24,6 +25,7 @@ Workpulse akan berkembang cepat: multiple modul bisnis (kehadiran, cuti, izin, l
   - Nx → powerful tapi lebih opinionated & generator-heavy; Turbo cukup untuk kebutuhan.
 
 ### 2. Backend: NestJS + Prisma + PostgreSQL
+
 - **Rasional:**
   - NestJS memberikan struktur (Modules, DI, Guards, Interceptors) yang sesuai untuk aplikasi enterprise besar dengan tim yang tumbuh.
   - Prisma memberikan type-safety end-to-end dan migrasi yang aman.
@@ -33,6 +35,7 @@ Workpulse akan berkembang cepat: multiple modul bisnis (kehadiran, cuti, izin, l
   - Fastify plain → sama seperti di atas.
 
 ### 3. Frontend: Next.js App Router + Tailwind + Shadcn + TanStack Query
+
 - **Rasional:**
   - RSC untuk data-fetching awal → less client JS.
   - Shadcn + Radix → accessible primitives yang bisa dikustom sepenuhnya.
@@ -42,18 +45,22 @@ Workpulse akan berkembang cepat: multiple modul bisnis (kehadiran, cuti, izin, l
   - Remix → matang tapi ecosystem UI/mutation < Next.
 
 ### 4. Struktur DDD di dalam modul backend
+
 Setiap feature module memiliki subfolder `domain/` berisi pure functions & value objects (geofence, timing, saldo). Ini membuat:
+
 - Unit test cepat (tanpa Nest bootstrap).
 - Logika bisnis tidak menempel pada framework atau ORM.
 
 ## Consequences
 
 **Positif:**
+
 - Iterasi lintas-stack cepat.
 - Type-safety kuat dari DB → API → UI.
 - Test domain layer bisa berjalan < 1 detik.
 
 **Negatif / Trade-off:**
+
 - Onboarding developer baru perlu memahami: pnpm workspaces, Turborepo pipelines, Nest DI, Prisma. Investasi awal ~1 minggu.
 - Monorepo → CI harus pintar (Turbo cache, affected-only test) agar tidak lambat setelah repo membesar.
 

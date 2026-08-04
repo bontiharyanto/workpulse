@@ -86,9 +86,7 @@ test('EMPLOYEE: GET /notifications/archive returns rows for the caller + newest-
 
 test('HR: unreadOnly=true excludes any row with a non-null readAt', async () => {
   const { api } = await authenticateApi('hr');
-  const res = await api.get(
-    '/api/v1/notifications/archive?unreadOnly=true&limit=50',
-  );
+  const res = await api.get('/api/v1/notifications/archive?unreadOnly=true&limit=50');
   expect(res.status()).toBe(200);
   const body = (await res.json()) as ArchivePage;
   for (const row of body.rows) {
@@ -133,9 +131,7 @@ test('HR: cursor pagination — page 2 keys off page 1, no overlap', async () =>
 
 test('HR: invalid archive cursor returns 400 INVALID_CURSOR', async () => {
   const { api } = await authenticateApi('hr');
-  const res = await api.get(
-    '/api/v1/notifications/archive?cursor=not-a-real-cursor',
-  );
+  const res = await api.get('/api/v1/notifications/archive?cursor=not-a-real-cursor');
   expect(res.status()).toBe(400);
   await api.dispose();
 });
@@ -149,9 +145,7 @@ test('EMPLOYEE: mark-all-read drops the unreadOnly archive to empty', async () =
   const { marked } = (await clearRes.json()) as { marked: number };
   expect(marked).toBeGreaterThanOrEqual(0);
 
-  const after = await api.get(
-    '/api/v1/notifications/archive?unreadOnly=true&limit=50',
-  );
+  const after = await api.get('/api/v1/notifications/archive?unreadOnly=true&limit=50');
   expect(after.status()).toBe(200);
   const body = (await after.json()) as ArchivePage;
   expect(body.rows.length).toBe(0);

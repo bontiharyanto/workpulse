@@ -28,8 +28,8 @@ function mkCtx(user: AuthenticatedUser | undefined): ExecutionContext {
     getType: () => 'http',
     getArgs: () => [],
     getArgByIndex: () => undefined,
-    switchToRpc: () => ({} as never),
-    switchToWs: () => ({} as never),
+    switchToRpc: () => ({}) as never,
+    switchToWs: () => ({}) as never,
   } as unknown as ExecutionContext;
 }
 
@@ -63,9 +63,11 @@ describe('MustChangePasswordGuard', () => {
   });
 
   it('short-circuits allow when route is @AllowMustChangePassword()', () => {
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation((key: unknown) =>
-      key === ALLOW_MUST_CHANGE_PASSWORD_KEY ? true : false,
-    );
+    jest
+      .spyOn(reflector, 'getAllAndOverride')
+      .mockImplementation((key: unknown) =>
+        key === ALLOW_MUST_CHANGE_PASSWORD_KEY ? true : false,
+      );
 
     expect(guard.canActivate(mkCtx(baseUser({ mustChangePassword: true })))).toBe(true);
   });
@@ -101,9 +103,11 @@ describe('MustChangePasswordGuard', () => {
   it('honors @AllowMustChangePassword() even for temp-password callers', () => {
     // Both @Public() (false) and @AllowMustChange (true) — the allow-list
     // wins because the guard checks it explicitly before the flag.
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation((key: unknown) =>
-      key === ALLOW_MUST_CHANGE_PASSWORD_KEY ? true : false,
-    );
+    jest
+      .spyOn(reflector, 'getAllAndOverride')
+      .mockImplementation((key: unknown) =>
+        key === ALLOW_MUST_CHANGE_PASSWORD_KEY ? true : false,
+      );
 
     expect(guard.canActivate(mkCtx(baseUser({ mustChangePassword: true })))).toBe(true);
   });

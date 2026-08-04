@@ -53,7 +53,9 @@ describe('renderXlsx (Fase 32c)', () => {
     );
 
     const wb = new ExcelJS.Workbook();
-    await wb.xlsx.load(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer);
+    await wb.xlsx.load(
+      buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer,
+    );
     const ws = wb.worksheets[0];
     if (!ws) throw new Error('no worksheet');
     expect(ws.name).toBe('Payroll — Summary');

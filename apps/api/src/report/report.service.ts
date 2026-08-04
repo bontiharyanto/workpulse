@@ -6,18 +6,9 @@ import type { Prisma } from '@prisma/client';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { PrismaService } from '../prisma/prisma.service';
 
-import {
-  summarize,
-  toAttendanceReportRows,
-} from './domain/attendance-report';
-import {
-  summarizeLeave,
-  toLeaveSummaryRows,
-} from './domain/leave-summary-report';
-import {
-  summarizeOvertime,
-  toOvertimeReportRows,
-} from './domain/overtime-report';
+import { summarize, toAttendanceReportRows } from './domain/attendance-report';
+import { summarizeLeave, toLeaveSummaryRows } from './domain/leave-summary-report';
+import { summarizeOvertime, toOvertimeReportRows } from './domain/overtime-report';
 import type { ReportFormatLiteral } from './dto/attendance-report.dto';
 import type { OvertimeStatusLiteral } from './dto/overtime-report.dto';
 import { renderAttendanceExcel } from './renderers/attendance-excel.renderer';
@@ -288,9 +279,7 @@ export class ReportService {
       }),
     ]);
 
-    const holidaySet = new Set(
-      holidays.map((h) => h.date.toISOString().slice(0, 10)),
-    );
+    const holidaySet = new Set(holidays.map((h) => h.date.toISOString().slice(0, 10)));
 
     const rows = toOvertimeReportRows(raws, holidaySet);
     const totals = summarizeOvertime(rows);
@@ -325,11 +314,7 @@ export class ReportService {
   // Internals
   // ==================================================================
 
-  private assertDateWindow(
-    startDate: string,
-    endDate: string,
-    format: ReportFormatLiteral,
-  ): void {
+  private assertDateWindow(startDate: string, endDate: string, format: ReportFormatLiteral): void {
     if (endDate < startDate) {
       throw new BadRequestException('REPORT_RANGE_INVALID');
     }
@@ -338,15 +323,11 @@ export class ReportService {
     const days = Math.floor((end - start) / 86_400_000) + 1;
     const cap = format === 'xlsx' ? MAX_DAYS_XLSX : MAX_DAYS_PDF;
     if (days > cap) {
-      throw new BadRequestException(
-        `REPORT_RANGE_TOO_LARGE:${format}:max=${cap}:actual=${days}`,
-      );
+      throw new BadRequestException(`REPORT_RANGE_TOO_LARGE:${format}:max=${cap}:actual=${days}`);
     }
   }
 
-  private async loadCompany(
-    companyId: string,
-  ): Promise<{ name: string; timezone: string }> {
+  private async loadCompany(companyId: string): Promise<{ name: string; timezone: string }> {
     const row = await this.prisma.company.findUniqueOrThrow({
       where: { id: companyId },
       select: { name: true, timezone: true },
@@ -355,5 +336,4 @@ export class ReportService {
   }
 }
 
-const XLSX_MIME =
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';

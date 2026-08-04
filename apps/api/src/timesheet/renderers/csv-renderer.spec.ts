@@ -1,7 +1,4 @@
-import type {
-  PayrollColumn,
-  PayrollRow,
-} from '../domain/payroll-rows';
+import type { PayrollColumn, PayrollRow } from '../domain/payroll-rows';
 
 import { renderCsv } from './csv-renderer';
 
@@ -89,9 +86,7 @@ describe('renderCsv (Fase 32c)', () => {
   });
 
   it('handles unicode content correctly (Indonesian names, symbols)', () => {
-    const buf = renderCsv(cols, [
-      buildRow({ employeeName: 'Yusuf Nur Iman · Rp💰' }),
-    ]);
+    const buf = renderCsv(cols, [buildRow({ employeeName: 'Yusuf Nur Iman · Rp💰' })]);
     const body = buf.toString('utf8').replace('\uFEFF', '');
     expect(body).toContain('Yusuf Nur Iman · Rp💰');
   });

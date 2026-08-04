@@ -162,8 +162,7 @@ export class UpdateTimesheetConfigDto {
 export class GenerateTimesheetDto {
   @ApiProperty({
     required: false,
-    description:
-      'ISO 8601 instant used to select the period to (re)generate. Defaults to now.',
+    description: 'ISO 8601 instant used to select the period to (re)generate. Defaults to now.',
   })
   @IsOptional()
   @IsISO8601()
@@ -178,8 +177,7 @@ export class GenerateTimesheetResponseDto {
   timesheetsGenerated!: number;
 
   @ApiProperty({
-    description:
-      'Users whose timesheet in this period is already APPROVED and was left untouched.',
+    description: 'Users whose timesheet in this period is already APPROVED and was left untouched.',
   })
   timesheetsSkippedApproved!: number;
 }
@@ -349,10 +347,7 @@ export class TimesheetPeriodListDto {
 // ---------------------- Workflow (Fase 32b) ----------------------
 
 export type TimesheetDecideAction =
-  | 'SUPERVISOR_APPROVE'
-  | 'SUPERVISOR_REJECT'
-  | 'HR_APPROVE'
-  | 'HR_REJECT';
+  'SUPERVISOR_APPROVE' | 'SUPERVISOR_REJECT' | 'HR_APPROVE' | 'HR_REJECT';
 
 const decideActionValues = [
   'SUPERVISOR_APPROVE',
@@ -369,8 +364,7 @@ export class DecideTimesheetDto {
   @ApiProperty({
     required: false,
     nullable: true,
-    description:
-      'Required when the action is a REJECT — surfaced to the employee.',
+    description: 'Required when the action is a REJECT — surfaced to the employee.',
     maxLength: 500,
   })
   @IsOptional()
@@ -400,7 +394,9 @@ export class ReopenTimesheetResponseDto {
   @ApiProperty({ enum: TimesheetStatus })
   status!: TimesheetStatus;
 
-  @ApiProperty({ description: 'Total reopen events for this timesheet, including the one just fired.' })
+  @ApiProperty({
+    description: 'Total reopen events for this timesheet, including the one just fired.',
+  })
   reopenCount!: number;
 }
 

@@ -101,11 +101,7 @@ export interface AnalyticsWindow {
   days: WindowDays;
 }
 
-export function buildWindow(
-  now: Date,
-  timezone: string,
-  days: WindowDays,
-): AnalyticsWindow {
+export function buildWindow(now: Date, timezone: string, days: WindowDays): AnalyticsWindow {
   const today = todayInTz(now, timezone);
   const from = daysBefore(today, days - 1);
   return { from, to: today, today, days };
@@ -152,11 +148,7 @@ export function enumerateDays(from: Ymd, to: Ymd): Ymd[] {
  */
 export function ymdToUtcDateOnly(ymd: Ymd): Date {
   return new Date(
-    Date.UTC(
-      Number(ymd.slice(0, 4)),
-      Number(ymd.slice(5, 7)) - 1,
-      Number(ymd.slice(8, 10)),
-    ),
+    Date.UTC(Number(ymd.slice(0, 4)), Number(ymd.slice(5, 7)) - 1, Number(ymd.slice(8, 10))),
   );
 }
 
@@ -193,9 +185,7 @@ export function tzDayStartUtc(ymd: Ymd, timezone: string): Date {
       return new Date(hi);
     }
   }
-  throw new Error(
-    `tzDayStartUtc: could not resolve ${ymd} in timezone ${timezone}`,
-  );
+  throw new Error(`tzDayStartUtc: could not resolve ${ymd} in timezone ${timezone}`);
 }
 
 /**

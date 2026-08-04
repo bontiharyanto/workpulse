@@ -20,13 +20,10 @@ export default function AdminPoliciesPage(): JSX.Element {
       <RequireRole roles={['HR_MANAGER', 'SUPER_ADMIN']}>
         <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Kebijakan privasi
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Kelola versi kebijakan privasi yang akan ditampilkan kepada
-              seluruh pengguna. Publikasi versi baru akan meminta setiap
-              pengguna menerima ulang.
+            <h1 className="text-2xl font-semibold tracking-tight">Kebijakan privasi</h1>
+            <p className="text-muted-foreground text-sm">
+              Kelola versi kebijakan privasi yang akan ditampilkan kepada seluruh pengguna.
+              Publikasi versi baru akan meminta setiap pengguna menerima ulang.
             </p>
           </div>
           <PrivacyPoliciesPanel />

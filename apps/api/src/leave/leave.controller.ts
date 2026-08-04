@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { LeaveBalance, LeaveType } from '@prisma/client';
 
@@ -46,9 +37,15 @@ export class LeaveController {
   @Get('types')
   @Roles('EMPLOYEE', 'SUPERVISOR', 'HR_MANAGER', 'SUPER_ADMIN')
   @ApiOkResponse({ description: "Available leave types in the caller's company" })
-  listTypes(
-    @CurrentUser() user: AuthenticatedUser,
-  ): Promise<Array<{ id: string; code: string; name: string; kind: LeaveType['kind']; requiresAttachment: boolean }>> {
+  listTypes(@CurrentUser() user: AuthenticatedUser): Promise<
+    Array<{
+      id: string;
+      code: string;
+      name: string;
+      kind: LeaveType['kind'];
+      requiresAttachment: boolean;
+    }>
+  > {
     return this.leave.listAvailableTypes(user);
   }
 
@@ -72,9 +69,7 @@ export class LeaveController {
     @Query('year') year?: string,
   ): Promise<LeaveBalanceDto[]> {
     const rows = await this.leave.getBalances(user, year ? Number(year) : undefined);
-    return rows.map((b) =>
-      toBalanceDto(b, (b as unknown as { leaveType: LeaveType }).leaveType),
-    );
+    return rows.map((b) => toBalanceDto(b, (b as unknown as { leaveType: LeaveType }).leaveType));
   }
 
   @Get('approvals/pending')

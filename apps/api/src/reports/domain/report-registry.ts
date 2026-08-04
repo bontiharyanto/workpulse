@@ -34,8 +34,7 @@ export const REPORT_REGISTRY: ReadonlyArray<ReportRegistryEntry> = [
   {
     type: 'TIMESHEET_SUMMARY',
     label: 'Timesheet — ringkasan periode aktif',
-    description:
-      'Rekap timesheet karyawan pada periode berjalan (hours, absensi, overtime).',
+    description: 'Rekap timesheet karyawan pada periode berjalan (hours, absensi, overtime).',
   },
   {
     type: 'ROPA',
@@ -46,8 +45,7 @@ export const REPORT_REGISTRY: ReadonlyArray<ReportRegistryEntry> = [
   {
     type: 'DPIA',
     label: 'DPIA — semua APPROVED',
-    description:
-      'Kompilasi assessment DPIA yang berstatus APPROVED beserta risk register-nya.',
+    description: 'Kompilasi assessment DPIA yang berstatus APPROVED beserta risk register-nya.',
   },
   {
     type: 'ANALYTICS_SNAPSHOT',
@@ -58,7 +56,5 @@ export const REPORT_REGISTRY: ReadonlyArray<ReportRegistryEntry> = [
 ];
 
 export function labelFor(type: ScheduledReportType): string {
-  return (
-    REPORT_REGISTRY.find((r) => r.type === type)?.label ?? String(type)
-  );
+  return REPORT_REGISTRY.find((r) => r.type === type)?.label ?? String(type);
 }

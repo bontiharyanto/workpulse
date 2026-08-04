@@ -10,10 +10,7 @@ import { LeaveStatus, Prisma as PrismaNs } from '@prisma/client';
 
 import { AttachmentService } from '../attachment/attachment.service';
 import { isOwnedAttachmentKey } from '../attachment/domain/attachment-key';
-import {
-  PayrollLockedError,
-  assertPayrollNotLocked,
-} from '../common/domain/payroll-lock';
+import { PayrollLockedError, assertPayrollNotLocked } from '../common/domain/payroll-lock';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import {
   leaveApprovedByHr,
@@ -88,13 +85,20 @@ export class LeaveService {
     if (leaveType.requiresAttachment && !input.attachmentKey) {
       throw new BadRequestException('ATTACHMENT_REQUIRED');
     }
-    if (input.attachmentKey && !isOwnedAttachmentKey(input.attachmentKey, user.companyId, user.id)) {
+    if (
+      input.attachmentKey &&
+      !isOwnedAttachmentKey(input.attachmentKey, user.companyId, user.id)
+    ) {
       // The attachment key must belong to *this* user — a stolen key from
       // another user's presign response is rejected here.
       throw new BadRequestException('ATTACHMENT_KEY_INVALID');
     }
 
-    const holidays = await this.loadCompanyHolidayDates(user.companyId, input.startDate, input.endDate);
+    const holidays = await this.loadCompanyHolidayDates(
+      user.companyId,
+      input.startDate,
+      input.endDate,
+    );
     const days = countBusinessDays(input.startDate, input.endDate, { holidays });
     if (days <= 0) {
       throw new BadRequestException('ZERO_BUSINESS_DAYS');
@@ -266,9 +270,14 @@ export class LeaveService {
             supervisorId: isSupervisorStage ? actor.id : existing.supervisorId,
             supervisorAt: isSupervisorStage ? now : existing.supervisorAt,
             supervisorNote: isSupervisorStage ? input.note : existing.supervisorNote,
-            hrManagerId: !isSupervisorStage && planned.next !== 'PENDING_HR' ? actor.id : existing.hrManagerId,
-            hrManagerAt: !isSupervisorStage && planned.next !== 'PENDING_HR' ? now : existing.hrManagerAt,
-            hrManagerNote: !isSupervisorStage && planned.next !== 'PENDING_HR' ? input.note : existing.hrManagerNote,
+            hrManagerId:
+              !isSupervisorStage && planned.next !== 'PENDING_HR' ? actor.id : existing.hrManagerId,
+            hrManagerAt:
+              !isSupervisorStage && planned.next !== 'PENDING_HR' ? now : existing.hrManagerAt,
+            hrManagerNote:
+              !isSupervisorStage && planned.next !== 'PENDING_HR'
+                ? input.note
+                : existing.hrManagerNote,
           },
         });
 
@@ -276,7 +285,8 @@ export class LeaveService {
           data: {
             companyId: actor.companyId,
             actorId: actor.id,
-            action: input.action === 'APPROVE' ? 'LEAVE_REQUEST_APPROVED' : 'LEAVE_REQUEST_REJECTED',
+            action:
+              input.action === 'APPROVE' ? 'LEAVE_REQUEST_APPROVED' : 'LEAVE_REQUEST_REJECTED',
             entityType: 'LeaveRequest',
             entityId: updated.id,
             beforeJson: existing as unknown as Prisma.InputJsonValue,
@@ -476,7 +486,13 @@ export class LeaveService {
   }
 
   async listAvailableTypes(user: AuthenticatedUser): Promise<
-    Array<{ id: string; code: string; name: string; kind: LeaveType['kind']; requiresAttachment: boolean }>
+    Array<{
+      id: string;
+      code: string;
+      name: string;
+      kind: LeaveType['kind'];
+      requiresAttachment: boolean;
+    }>
   > {
     return this.prisma.leaveType.findMany({
       where: { companyId: user.companyId, deletedAt: null },

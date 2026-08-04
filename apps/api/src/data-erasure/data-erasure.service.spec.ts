@@ -118,9 +118,7 @@ describe('DataErasureService.create', () => {
     prisma.dataErasureRequest.findFirst.mockResolvedValue(
       makeRow({ status: DataErasureStatus.APPROVED_SCHEDULED }),
     );
-    await expect(service.create('user-1', 'company-1')).rejects.toBeInstanceOf(
-      ConflictException,
-    );
+    await expect(service.create('user-1', 'company-1')).rejects.toBeInstanceOf(ConflictException);
   });
 
   it('rejects when user is soft-deleted', async () => {
@@ -131,9 +129,7 @@ describe('DataErasureService.create', () => {
       fullName: 'Andi',
       deletedAt: new Date(),
     } as never);
-    await expect(service.create('user-1', 'company-1')).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(service.create('user-1', 'company-1')).rejects.toBeInstanceOf(NotFoundException);
   });
 });
 
@@ -170,9 +166,7 @@ describe('DataErasureService.cancel', () => {
   it('404s when a different user tries to cancel the row', async () => {
     const { service, prisma } = buildKit();
     prisma.dataErasureRequest.findUnique.mockResolvedValue(makeRow());
-    await expect(service.cancel('other-user', 'era-1')).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(service.cancel('other-user', 'era-1')).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('409s once the request has been EXECUTED', async () => {
@@ -180,9 +174,7 @@ describe('DataErasureService.cancel', () => {
     prisma.dataErasureRequest.findUnique.mockResolvedValue(
       makeRow({ status: DataErasureStatus.EXECUTED }),
     );
-    await expect(service.cancel('user-1', 'era-1')).rejects.toBeInstanceOf(
-      ConflictException,
-    );
+    await expect(service.cancel('user-1', 'era-1')).rejects.toBeInstanceOf(ConflictException);
   });
 });
 
@@ -235,23 +227,15 @@ describe('DataErasureService.approve', () => {
   it('rejects when actor is not HR_MANAGER or SUPER_ADMIN', async () => {
     const { service } = buildKit();
     await expect(
-      service.approve(
-        { id: 'sup-1', role: 'SUPERVISOR', companyId: 'company-1' },
-        'era-1',
-      ),
+      service.approve({ id: 'sup-1', role: 'SUPERVISOR', companyId: 'company-1' }, 'era-1'),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it('403s when HR tries to approve their own request', async () => {
     const { service, prisma } = buildKit();
-    prisma.dataErasureRequest.findUnique.mockResolvedValue(
-      makeRow({ userId: 'hr-1' }),
-    );
+    prisma.dataErasureRequest.findUnique.mockResolvedValue(makeRow({ userId: 'hr-1' }));
     await expect(
-      service.approve(
-        { id: 'hr-1', role: 'HR_MANAGER', companyId: 'company-1' },
-        'era-1',
-      ),
+      service.approve({ id: 'hr-1', role: 'HR_MANAGER', companyId: 'company-1' }, 'era-1'),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
@@ -285,23 +269,15 @@ describe('DataErasureService.approve', () => {
       makeRow({ status: DataErasureStatus.EXECUTED }),
     );
     await expect(
-      service.approve(
-        { id: 'hr-1', role: 'HR_MANAGER', companyId: 'company-1' },
-        'era-1',
-      ),
+      service.approve({ id: 'hr-1', role: 'HR_MANAGER', companyId: 'company-1' }, 'era-1'),
     ).rejects.toBeInstanceOf(ConflictException);
   });
 
   it('404s across tenants', async () => {
     const { service, prisma } = buildKit();
-    prisma.dataErasureRequest.findUnique.mockResolvedValue(
-      makeRow({ companyId: 'other-tenant' }),
-    );
+    prisma.dataErasureRequest.findUnique.mockResolvedValue(makeRow({ companyId: 'other-tenant' }));
     await expect(
-      service.approve(
-        { id: 'hr-1', role: 'HR_MANAGER', companyId: 'company-1' },
-        'era-1',
-      ),
+      service.approve({ id: 'hr-1', role: 'HR_MANAGER', companyId: 'company-1' }, 'era-1'),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 });
@@ -310,11 +286,7 @@ describe('DataErasureService.reject', () => {
   it('requires a note', async () => {
     const { service } = buildKit();
     await expect(
-      service.reject(
-        { id: 'hr-1', role: 'HR_MANAGER', companyId: 'company-1' },
-        'era-1',
-        '',
-      ),
+      service.reject({ id: 'hr-1', role: 'HR_MANAGER', companyId: 'company-1' }, 'era-1', ''),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 

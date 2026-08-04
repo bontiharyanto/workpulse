@@ -46,9 +46,8 @@ export function MfaVerifyForm({ redirectTo }: { redirectTo: string }): JSX.Eleme
 
   const onSubmit = form.handleSubmit(async (values) => {
     setSubmitError(null);
-    const payload: MfaVerifyInput = mode === 'totp'
-      ? { code: values.code?.trim() }
-      : { backupCode: values.backupCode?.trim() };
+    const payload: MfaVerifyInput =
+      mode === 'totp' ? { code: values.code?.trim() } : { backupCode: values.backupCode?.trim() };
     try {
       const res = await mfaApi.verify(payload);
       await completeMfa({
@@ -79,8 +78,8 @@ export function MfaVerifyForm({ redirectTo }: { redirectTo: string }): JSX.Eleme
           }}
           className={
             mode === 'totp'
-              ? 'rounded-md border border-primary bg-primary/10 px-3 py-1 font-medium text-primary'
-              : 'rounded-md border border-input px-3 py-1 text-muted-foreground'
+              ? 'border-primary bg-primary/10 text-primary rounded-md border px-3 py-1 font-medium'
+              : 'border-input text-muted-foreground rounded-md border px-3 py-1'
           }
         >
           Kode aplikasi
@@ -94,8 +93,8 @@ export function MfaVerifyForm({ redirectTo }: { redirectTo: string }): JSX.Eleme
           }}
           className={
             mode === 'backup'
-              ? 'rounded-md border border-primary bg-primary/10 px-3 py-1 font-medium text-primary'
-              : 'rounded-md border border-input px-3 py-1 text-muted-foreground'
+              ? 'border-primary bg-primary/10 text-primary rounded-md border px-3 py-1 font-medium'
+              : 'border-input text-muted-foreground rounded-md border px-3 py-1'
           }
         >
           Backup code
@@ -115,11 +114,11 @@ export function MfaVerifyForm({ redirectTo }: { redirectTo: string }): JSX.Eleme
             autoFocus
             maxLength={6}
             aria-invalid={Boolean(form.formState.errors.code) || undefined}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-center text-lg font-mono tracking-widest shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-center font-mono text-lg tracking-widest shadow-sm focus:outline-none focus:ring-2"
             {...form.register('code')}
           />
           {form.formState.errors.code && (
-            <p role="alert" className="text-xs text-destructive">
+            <p role="alert" className="text-destructive text-xs">
               {form.formState.errors.code.message}
             </p>
           )}
@@ -136,15 +135,15 @@ export function MfaVerifyForm({ redirectTo }: { redirectTo: string }): JSX.Eleme
             autoFocus
             autoComplete="off"
             aria-invalid={Boolean(form.formState.errors.backupCode) || undefined}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-center font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-center font-mono shadow-sm focus:outline-none focus:ring-2"
             {...form.register('backupCode')}
           />
           {form.formState.errors.backupCode && (
-            <p role="alert" className="text-xs text-destructive">
+            <p role="alert" className="text-destructive text-xs">
               {form.formState.errors.backupCode.message}
             </p>
           )}
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Setiap backup code hanya bisa digunakan satu kali.
           </p>
         </div>
@@ -153,7 +152,7 @@ export function MfaVerifyForm({ redirectTo }: { redirectTo: string }): JSX.Eleme
       {submitError && (
         <p
           role="alert"
-          className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
         >
           {submitError}
         </p>
@@ -162,7 +161,7 @@ export function MfaVerifyForm({ redirectTo }: { redirectTo: string }): JSX.Eleme
       <button
         type="submit"
         disabled={form.formState.isSubmitting}
-        className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:opacity-90 disabled:opacity-50"
+        className="bg-primary text-primary-foreground w-full rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90 disabled:opacity-50"
       >
         {form.formState.isSubmitting ? 'Memverifikasi...' : 'Verifikasi'}
       </button>

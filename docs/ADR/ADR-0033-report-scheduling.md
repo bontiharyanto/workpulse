@@ -9,8 +9,8 @@
 
 Ops teams (payroll, DPO, finance) want scheduled emails with the same
 PDF reports we already surface via the admin dashboards. Common ask
-was *"send me the timesheet summary every Monday 06:00 UTC"* and
-*"forward the latest ROPA snapshot to the DPO monthly"*.
+was _"send me the timesheet summary every Monday 06:00 UTC"_ and
+_"forward the latest ROPA snapshot to the DPO monthly"_.
 
 Before 33c there was no ergonomic way to deliver these — one-off
 exports live behind a login-gated admin console, and vendors kept

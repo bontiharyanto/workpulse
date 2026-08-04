@@ -13,31 +13,24 @@ import type {
 
 import { ApiError, reportScheduleAdminApi } from '@/lib/api-client';
 
-const STATUS_BADGE: Record<
-  ReportDeliveryResponse['status'],
-  { label: string; className: string }
-> = {
-  PENDING: { label: 'Pending', className: 'bg-muted text-muted-foreground' },
-  DISPATCHING: {
-    label: 'Dispatching',
-    className: 'bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-100',
-  },
-  DELIVERED: {
-    label: 'Delivered',
-    className:
-      'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100',
-  },
-  FAILED: {
-    label: 'Failed',
-    className: 'bg-red-100 text-red-900 dark:bg-red-950 dark:text-red-100',
-  },
-};
+const STATUS_BADGE: Record<ReportDeliveryResponse['status'], { label: string; className: string }> =
+  {
+    PENDING: { label: 'Pending', className: 'bg-muted text-muted-foreground' },
+    DISPATCHING: {
+      label: 'Dispatching',
+      className: 'bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-100',
+    },
+    DELIVERED: {
+      label: 'Delivered',
+      className: 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100',
+    },
+    FAILED: {
+      label: 'Failed',
+      className: 'bg-red-100 text-red-900 dark:bg-red-950 dark:text-red-100',
+    },
+  };
 
-const FREQUENCIES: readonly ReportFrequency[] = [
-  'DAILY',
-  'WEEKLY',
-  'MONTHLY',
-];
+const FREQUENCIES: readonly ReportFrequency[] = ['DAILY', 'WEEKLY', 'MONTHLY'];
 
 const WEEKLY_DAYS = [
   ['Minggu', 0],
@@ -99,7 +92,7 @@ export function ReportSchedulesPanel(): JSX.Element {
         <h2 className="text-lg font-semibold">Jadwal laporan</h2>
         <button
           type="button"
-          className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground"
+          className="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-xs font-medium"
           onClick={() => {
             setShowCreate((v) => !v);
             setBanner(null);
@@ -120,7 +113,7 @@ export function ReportSchedulesPanel(): JSX.Element {
         />
       )}
 
-      <div className="overflow-x-auto rounded-md border border-border">
+      <div className="border-border overflow-x-auto rounded-md border">
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-left text-xs">
             <tr>
@@ -135,26 +128,20 @@ export function ReportSchedulesPanel(): JSX.Element {
           </thead>
           <tbody>
             {list.data?.map((r) => (
-              <tr key={r.id} className="border-t border-border align-top">
+              <tr key={r.id} className="border-border border-t align-top">
                 <td className="px-2 py-1.5 font-medium">{r.name}</td>
                 <td className="px-2 py-1.5">{r.reportType}</td>
                 <td className="px-2 py-1.5">
                   {r.frequency}
                   {r.cadenceDay !== null && (
-                    <span className="ml-1 text-muted-foreground">
-                      · d={r.cadenceDay}
-                    </span>
+                    <span className="text-muted-foreground ml-1">· d={r.cadenceDay}</span>
                   )}
-                  <span className="ml-1 text-muted-foreground">
-                    · {r.cadenceHour}h
-                  </span>
+                  <span className="text-muted-foreground ml-1">· {r.cadenceHour}h</span>
                 </td>
                 <td className="px-2 py-1.5 font-mono text-xs">
                   {r.nextRunAt.slice(0, 16).replace('T', ' ')}
                 </td>
-                <td className="px-2 py-1.5 text-xs">
-                  {r.recipients.length} email
-                </td>
+                <td className="px-2 py-1.5 text-xs">{r.recipients.length} email</td>
                 <td className="px-2 py-1.5">
                   <span
                     className={`rounded px-1.5 py-0.5 text-[10px] ${
@@ -199,7 +186,7 @@ export function ReportSchedulesPanel(): JSX.Element {
             ))}
             {list.data && list.data.length === 0 && (
               <tr>
-                <td className="px-2 py-6 text-center text-sm text-muted-foreground" colSpan={7}>
+                <td className="text-muted-foreground px-2 py-6 text-center text-sm" colSpan={7}>
                   Belum ada jadwal. Klik "+ Jadwal baru".
                 </td>
               </tr>
@@ -209,14 +196,10 @@ export function ReportSchedulesPanel(): JSX.Element {
       </div>
 
       {selectedId && deliveries.data && (
-        <section className="space-y-2 rounded-md border border-border p-3">
+        <section className="border-border space-y-2 rounded-md border p-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold">Delivery log</h3>
-            <button
-              type="button"
-              className="text-xs underline"
-              onClick={() => setSelectedId(null)}
-            >
+            <button type="button" className="text-xs underline" onClick={() => setSelectedId(null)}>
               Tutup
             </button>
           </div>
@@ -234,14 +217,12 @@ export function ReportSchedulesPanel(): JSX.Element {
               </thead>
               <tbody>
                 {deliveries.data.map((d) => (
-                  <tr key={d.id} className="border-t border-border">
+                  <tr key={d.id} className="border-border border-t">
                     <td className="px-2 py-1 font-mono">
                       {d.createdAt.slice(0, 19).replace('T', ' ')}
                     </td>
                     <td className="px-2 py-1">
-                      <span
-                        className={`rounded px-1.5 py-0.5 ${STATUS_BADGE[d.status].className}`}
-                      >
+                      <span className={`rounded px-1.5 py-0.5 ${STATUS_BADGE[d.status].className}`}>
                         {STATUS_BADGE[d.status].label}
                       </span>
                     </td>
@@ -250,9 +231,7 @@ export function ReportSchedulesPanel(): JSX.Element {
                     </td>
                     <td className="px-2 py-1">{d.payloadBytes ?? '—'}</td>
                     <td className="px-2 py-1">{d.attempts}</td>
-                    <td className="px-2 py-1 text-muted-foreground">
-                      {d.errorSnippet ?? '—'}
-                    </td>
+                    <td className="text-muted-foreground px-2 py-1">{d.errorSnippet ?? '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -316,7 +295,7 @@ function CreateForm({
 
   return (
     <form
-      className="grid gap-3 rounded-md border border-border p-3 md:grid-cols-2"
+      className="border-border grid gap-3 rounded-md border p-3 md:grid-cols-2"
       onSubmit={(e) => {
         e.preventDefault();
         create.mutate();
@@ -326,7 +305,7 @@ function CreateForm({
         <label className="mb-1 block text-xs font-medium">Nama jadwal</label>
         <input
           type="text"
-          className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+          className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
@@ -336,7 +315,7 @@ function CreateForm({
       <div>
         <label className="mb-1 block text-xs font-medium">Report type</label>
         <select
-          className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+          className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm"
           value={reportType}
           onChange={(e) => setReportType(e.target.value as typeof reportType)}
         >
@@ -352,7 +331,7 @@ function CreateForm({
       <div>
         <label className="mb-1 block text-xs font-medium">Frekuensi</label>
         <select
-          className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+          className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm"
           value={frequency}
           onChange={(e) => setFrequency(e.target.value as ReportFrequency)}
         >
@@ -367,7 +346,7 @@ function CreateForm({
         <div>
           <label className="mb-1 block text-xs font-medium">Hari</label>
           <select
-            className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+            className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm"
             value={cadenceDay}
             onChange={(e) => setCadenceDay(Number(e.target.value))}
           >
@@ -388,21 +367,19 @@ function CreateForm({
             max={28}
             value={cadenceDay || 1}
             onChange={(e) => setCadenceDay(Number(e.target.value))}
-            className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+            className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm"
           />
         </div>
       )}
       <div>
-        <label className="mb-1 block text-xs font-medium">
-          Jam kirim (UTC, 0..23)
-        </label>
+        <label className="mb-1 block text-xs font-medium">Jam kirim (UTC, 0..23)</label>
         <input
           type="number"
           min={0}
           max={23}
           value={cadenceHour}
           onChange={(e) => setCadenceHour(Number(e.target.value))}
-          className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+          className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm"
         />
       </div>
       <div className="md:col-span-2">
@@ -410,7 +387,7 @@ function CreateForm({
           Recipients (email, pisahkan koma / newline, max 20)
         </label>
         <textarea
-          className="min-h-[60px] w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm font-mono"
+          className="border-input bg-background min-h-[60px] w-full rounded-md border px-2 py-1.5 font-mono text-sm"
           value={recipients}
           onChange={(e) => setRecipients(e.target.value)}
           placeholder="dpo@company.com, payroll@company.com"
@@ -420,7 +397,7 @@ function CreateForm({
       <div className="md:col-span-2">
         <button
           type="submit"
-          className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground disabled:opacity-50"
+          className="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-sm font-medium disabled:opacity-50"
           disabled={create.isPending}
         >
           {create.isPending ? 'Membuat…' : 'Buat jadwal'}

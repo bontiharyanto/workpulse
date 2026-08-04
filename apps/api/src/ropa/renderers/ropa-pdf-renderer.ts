@@ -61,11 +61,7 @@ export async function renderRopaPdf(
   });
 }
 
-function drawTitleBlock(
-  doc: PDFKit.PDFDocument,
-  header: RopaExportHeader,
-  count: number,
-): void {
+function drawTitleBlock(doc: PDFKit.PDFDocument, header: RopaExportHeader, count: number): void {
   doc
     .fillColor('#000')
     .font('Helvetica-Bold')
@@ -77,19 +73,11 @@ function drawTitleBlock(
     .fillColor('#333')
     .text('Register Kegiatan Pemrosesan Data Pribadi');
   doc.moveDown(0.5);
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(12)
-    .fillColor('#000')
-    .text(header.companyName);
+  doc.font('Helvetica-Bold').fontSize(12).fillColor('#000').text(header.companyName);
   doc.font('Helvetica').fontSize(9).fillColor('#555');
-  doc.text(
-    `Dicetak: ${header.generatedAt.toISOString()} · Oleh: ${header.generatedByEmail}`,
-  );
+  doc.text(`Dicetak: ${header.generatedAt.toISOString()} · Oleh: ${header.generatedByEmail}`);
   doc.text(`Total aktivitas terpublikasi: ${count}`);
-  doc.text(
-    'Landasan hukum: Pasal 31 UU 27/2022 PDP; GDPR Art. 30 (untuk paralel EU).',
-  );
+  doc.text('Landasan hukum: Pasal 31 UU 27/2022 PDP; GDPR Art. 30 (untuk paralel EU).');
   doc.moveDown(0.8);
   doc
     .strokeColor('#999')
@@ -102,11 +90,7 @@ function drawTitleBlock(
 
 function drawActivity(doc: PDFKit.PDFDocument, row: RopaExportRow): void {
   const left = doc.page.margins.left;
-  doc
-    .fillColor('#000')
-    .font('Helvetica-Bold')
-    .fontSize(14)
-    .text(row.name, left);
+  doc.fillColor('#000').font('Helvetica-Bold').fontSize(14).text(row.name, left);
   doc
     .font('Helvetica')
     .fontSize(9)
@@ -120,9 +104,7 @@ function drawActivity(doc: PDFKit.PDFDocument, row: RopaExportRow): void {
   field(
     doc,
     'Landasan Hukum',
-    row.legalBasisDetail
-      ? `${row.legalBasis} — ${row.legalBasisDetail}`
-      : row.legalBasis,
+    row.legalBasisDetail ? `${row.legalBasis} — ${row.legalBasisDetail}` : row.legalBasis,
   );
   field(doc, 'Kategori Data', formatList(row.dataCategories));
   field(doc, 'Kategori Subjek Data', formatList(row.subjectCategories));
@@ -141,11 +123,7 @@ function drawActivity(doc: PDFKit.PDFDocument, row: RopaExportRow): void {
 
 function field(doc: PDFKit.PDFDocument, label: string, value: string): void {
   doc.moveDown(0.35);
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(10)
-    .fillColor('#000')
-    .text(label, { continued: false });
+  doc.font('Helvetica-Bold').fontSize(10).fillColor('#000').text(label, { continued: false });
   doc.font('Helvetica').fontSize(10).fillColor('#222').text(value, {
     align: 'left',
     lineGap: 1,

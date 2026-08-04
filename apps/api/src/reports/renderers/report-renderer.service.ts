@@ -11,10 +11,7 @@ import { renderRopaPdf } from '../../ropa/renderers/ropa-pdf-renderer';
 import { RopaExportService } from '../../ropa/ropa-export.service';
 import { renderDpiaPdf } from '../../dpia/renderers/dpia-pdf-renderer';
 
-import {
-  metricDescriptor,
-  validateDefinition,
-} from '../domain/custom-report-definition';
+import { metricDescriptor, validateDefinition } from '../domain/custom-report-definition';
 import { ReportBuilderService } from '../report-builder.service';
 import { SavedReportService } from '../saved-report.service';
 
@@ -108,10 +105,7 @@ export class ReportRendererService {
     void this.savedReport;
   }
 
-  private async renderRopa(
-    companyId: string,
-    now: Date,
-  ): Promise<RenderedReport> {
+  private async renderRopa(companyId: string, now: Date): Promise<RenderedReport> {
     // Reuse the existing ROPA renderer with the same buffer-first shape.
     // We call directly into the low-level `renderRopaPdf` because we
     // want to bypass the "audit-before-stream" wrapper — the scheduler
@@ -147,10 +141,7 @@ export class ReportRendererService {
     };
   }
 
-  private async renderDpia(
-    companyId: string,
-    now: Date,
-  ): Promise<RenderedReport> {
+  private async renderDpia(companyId: string, now: Date): Promise<RenderedReport> {
     // A single DPIA per PDF is the norm from the export endpoint. For
     // the scheduled digest we pick the most-recent APPROVED — DPOs
     // asked for "the latest signed DPIA per month", not a compilation.
@@ -179,8 +170,7 @@ export class ReportRendererService {
         companyName: company?.name ?? '(unknown)',
         generatedAt: now,
         ropaActivitySlug: activity?.slug ?? 'unknown',
-        ropaActivityName:
-          activity?.currentVersion?.name ?? activity?.slug ?? 'unknown',
+        ropaActivityName: activity?.currentVersion?.name ?? activity?.slug ?? 'unknown',
       },
       latest,
     );
@@ -192,10 +182,7 @@ export class ReportRendererService {
     };
   }
 
-  private async renderTimesheetSummary(
-    companyId: string,
-    now: Date,
-  ): Promise<RenderedReport> {
+  private async renderTimesheetSummary(companyId: string, now: Date): Promise<RenderedReport> {
     // Deliberately narrow shape: count of DRAFT + PENDING + APPROVED
     // timesheets and hours totals across all users for the previous
     // 30 days. A full XLSX is available via the timesheet export
@@ -226,10 +213,7 @@ export class ReportRendererService {
     };
   }
 
-  private async renderAnalyticsSnapshot(
-    companyId: string,
-    now: Date,
-  ): Promise<RenderedReport> {
+  private async renderAnalyticsSnapshot(companyId: string, now: Date): Promise<RenderedReport> {
     const since = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const rows = await this.prisma.analyticsSnapshot.findMany({
       where: { companyId, date: { gte: since } },
@@ -251,16 +235,9 @@ export class ReportRendererService {
       byMetric.set(r.metricKey, bucket);
     }
     for (const [k, v] of byMetric) {
-      grouped.push([
-        k,
-        `avg = ${(v.sum / v.count).toFixed(2)} (n=${v.count} hari)`,
-      ]);
+      grouped.push([k, `avg = ${(v.sum / v.count).toFixed(2)} (n=${v.count} hari)`]);
     }
-    const bytes = await renderKeyValuePdf(
-      'Analytics Snapshot (30 hari terakhir)',
-      grouped,
-      now,
-    );
+    const bytes = await renderKeyValuePdf('Analytics Snapshot (30 hari terakhir)', grouped, now);
     void this.analytics;
     return {
       filename: `analytics-snapshot-${now.toISOString().slice(0, 10)}.pdf`,
@@ -286,12 +263,8 @@ function summariseTimesheets(
   for (const r of rows) {
     statusCounts.set(r.status, (statusCounts.get(r.status) ?? 0) + 1);
     // Prisma Decimal → number via string round-trip.
-    regular += Number(
-      (r.totalRegularHours as { toString(): string }).toString(),
-    );
-    overtime += Number(
-      (r.totalOvertimeHours as { toString(): string }).toString(),
-    );
+    regular += Number((r.totalRegularHours as { toString(): string }).toString());
+    overtime += Number((r.totalOvertimeHours as { toString(): string }).toString());
   }
   const out: Record<string, string> = {
     'Total timesheets': String(rows.length),

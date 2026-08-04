@@ -48,10 +48,7 @@ export class HealthDeepService {
   ) {}
 
   async check(): Promise<DeepCheckResult> {
-    const [database, storage] = await Promise.all([
-      this.checkDatabase(),
-      this.checkStorage(),
-    ]);
+    const [database, storage] = await Promise.all([this.checkDatabase(), this.checkStorage()]);
 
     const overall: DeepCheckResult['status'] = (() => {
       if (database.status === 'down') return 'down';

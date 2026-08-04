@@ -29,9 +29,7 @@ test('SUPER_ADMIN: create → reveal → edit → guarded delete flow', async ({
   await expect(tenantTab).toBeVisible();
   await tenantTab.click();
   await page.waitForURL(/\/admin\/companies/);
-  await expect(
-    page.getByRole('heading', { name: 'Tenant', exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Tenant', exact: true })).toBeVisible();
 
   // ---- Open create panel ------------------------------------------------
   await page.getByTestId('add-company-btn').click();
@@ -79,35 +77,25 @@ test('SUPER_ADMIN: create → reveal → edit → guarded delete flow', async ({
   const renamed = `${name} Renamed`;
   const nameInput = editPanel.getByRole('textbox').first();
   await nameInput.fill(renamed);
-  await editPanel
-    .getByRole('button', { name: /Simpan perubahan/i })
-    .click();
+  await editPanel.getByRole('button', { name: /Simpan perubahan/i }).click();
   await expect(editPanel).toBeHidden();
   await expect(table).toContainText(renamed);
 
   // ---- Guarded soft-delete (active HR user remains) ---------------------
   const renamedRow = table.locator('tr').filter({ hasText: renamed }).first();
   page.once('dialog', (dialog) => void dialog.accept());
-  await renamedRow
-    .getByRole('button', { name: 'Nonaktifkan', exact: true })
-    .click();
+  await renamedRow.getByRole('button', { name: 'Nonaktifkan', exact: true }).click();
   // The API refuses with COMPANY_HAS_ACTIVE_USERS → the UI surfaces the
   // mapped Indonesian copy.
-  await expect(page.getByTestId('company-error')).toContainText(
-    /karyawan aktif/i,
-  );
+  await expect(page.getByTestId('company-error')).toContainText(/karyawan aktif/i);
   // The row is still active (nothing was actually deleted).
   await expect(renamedRow).toContainText('Aktif');
 });
 
-test('SUPER_ADMIN: cannot soft-delete its own tenant (button disabled)', async ({
-  page,
-}) => {
+test('SUPER_ADMIN: cannot soft-delete its own tenant (button disabled)', async ({ page }) => {
   await loginAs(page, 'admin');
   await page.goto('/admin/companies');
-  await expect(
-    page.getByRole('heading', { name: 'Tenant', exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Tenant', exact: true })).toBeVisible();
 
   // The seeded SUPER_ADMIN belongs to the Acme tenant (see
   // `apps/api/prisma/seed.ts`). Locate that row and confirm the delete
@@ -129,12 +117,8 @@ test('SUPER_ADMIN: cannot soft-delete its own tenant (button disabled)', async (
 test('HR: the Tenant tab is NOT rendered in the admin subnav', async ({ page }) => {
   await loginAs(page, 'hr');
   await page.goto('/admin/users');
-  await expect(
-    page.getByRole('heading', { name: 'Karyawan' }).first(),
-  ).toBeVisible();
-  await expect(
-    page.getByRole('link', { name: 'Tenant', exact: true }),
-  ).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Karyawan' }).first()).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Tenant', exact: true })).toHaveCount(0);
 });
 
 test('HR: direct navigation to /admin/companies renders an access-denied panel', async ({
@@ -145,8 +129,6 @@ test('HR: direct navigation to /admin/companies renders an access-denied panel',
   // The <RequireRole> guard renders a role-alert with the standard copy.
   // Next.js's own `#__next-route-announcer__` is also `role="alert"`, so
   // we filter by the localized copy to disambiguate.
-  await expect(
-    page.getByRole('alert').filter({ hasText: /tidak memiliki akses/i }),
-  ).toBeVisible();
+  await expect(page.getByRole('alert').filter({ hasText: /tidak memiliki akses/i })).toBeVisible();
   await expect(page.getByTestId('company-admin-root')).toHaveCount(0);
 });

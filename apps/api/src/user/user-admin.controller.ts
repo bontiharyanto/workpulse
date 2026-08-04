@@ -37,10 +37,7 @@ export class UserAdminController {
   }
 
   @Get(':id')
-  get(
-    @CurrentUser() actor: AuthenticatedUser,
-    @Param('id') id: string,
-  ): Promise<AdminUserDto> {
+  get(@CurrentUser() actor: AuthenticatedUser, @Param('id') id: string): Promise<AdminUserDto> {
     return this.service.get(actor, id);
   }
 

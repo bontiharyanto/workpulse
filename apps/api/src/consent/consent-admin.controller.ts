@@ -26,9 +26,7 @@ export class ConsentAdminController {
   @Get()
   @ApiBearerAuth()
   @ApiOkResponse({ type: PrivacyPolicyListResponseDto })
-  async list(
-    @CurrentUser() actor: AuthenticatedUser,
-  ): Promise<PrivacyPolicyListResponseDto> {
+  async list(@CurrentUser() actor: AuthenticatedUser): Promise<PrivacyPolicyListResponseDto> {
     const rows = await this.service.listForCompany(actor.companyId);
     return {
       items: rows.map((p) => ({

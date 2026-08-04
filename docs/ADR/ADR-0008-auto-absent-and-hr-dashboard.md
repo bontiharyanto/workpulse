@@ -8,11 +8,11 @@
 
 ## Context
 
-Sampai fase ini, "user tidak hadir pada hari kerja" adalah *inferensi*
+Sampai fase ini, "user tidak hadir pada hari kerja" adalah _inferensi_
 yang dikerjakan oleh setiap konsumer:
 
 - Team-attendance domain menghitung `NOT_CLOCKED_IN` dari `roster ×
-  attendance` di memory.
+attendance` di memory.
 - Monthly summary tidak memiliki `absentDays` — user melihat 20 hari
   hadir tanpa tahu berapa hari absen tak-terekam.
 - HR tidak punya "dashboard company-wide" — mereka harus buka

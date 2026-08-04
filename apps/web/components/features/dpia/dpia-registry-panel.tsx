@@ -15,8 +15,7 @@ import { ApiError, dpiaAdminApi, ropaAdminApi, saveBlob } from '@/lib/api-client
 const STATUS_BADGE: Record<DpiaStatus, { label: string; className: string }> = {
   DRAFT: {
     label: 'Draft',
-    className:
-      'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-100',
+    className: 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-100',
   },
   REVIEW: {
     label: 'Review',
@@ -24,8 +23,7 @@ const STATUS_BADGE: Record<DpiaStatus, { label: string; className: string }> = {
   },
   APPROVED: {
     label: 'Approved',
-    className:
-      'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100',
+    className: 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100',
   },
   ARCHIVED: {
     label: 'Archived',
@@ -35,8 +33,7 @@ const STATUS_BADGE: Record<DpiaStatus, { label: string; className: string }> = {
 
 const LEVEL_BADGE: Record<DpiaRiskLevel, string> = {
   LOW: 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100',
-  MEDIUM:
-    'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-100',
+  MEDIUM: 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-100',
   HIGH: 'bg-orange-100 text-orange-900 dark:bg-orange-950 dark:text-orange-100',
   CRITICAL: 'bg-red-100 text-red-900 dark:bg-red-950 dark:text-red-100',
 };
@@ -47,8 +44,7 @@ const ERROR_COPY: Record<string, string> = {
   DPIA_HAS_NO_RISK_ITEMS: 'Tambahkan minimal satu risiko sebelum approve.',
   DPIA_RESIDUAL_EXCEEDS_INHERENT:
     'Residual tidak boleh lebih besar dari inherent — mitigasi tidak bisa memperburuk risiko.',
-  DPIA_RISK_AXIS_OUT_OF_RANGE:
-    'Likelihood/impact harus bilangan 1..5.',
+  DPIA_RISK_AXIS_OUT_OF_RANGE: 'Likelihood/impact harus bilangan 1..5.',
   ROPA_ACTIVITY_NOT_FOUND: 'Aktivitas ROPA tidak ditemukan di tenant Anda.',
 };
 
@@ -97,7 +93,7 @@ export function DpiaRegistryPanel(): JSX.Element {
           <h2 className="text-lg font-semibold">Assessment</h2>
           <button
             type="button"
-            className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:opacity-90"
+            className="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-xs font-medium shadow-sm hover:opacity-90"
             onClick={() => {
               setShowCreate((v) => !v);
               setBanner(null);
@@ -122,14 +118,12 @@ export function DpiaRegistryPanel(): JSX.Element {
           />
         )}
         <ul className="space-y-2">
-          {list.isLoading && (
-            <li className="text-sm text-muted-foreground">Memuat…</li>
-          )}
+          {list.isLoading && <li className="text-muted-foreground text-sm">Memuat…</li>}
           {list.data?.map((row) => (
             <li key={row.id}>
               <button
                 type="button"
-                className={`w-full rounded-md border p-3 text-left transition hover:border-primary ${
+                className={`hover:border-primary w-full rounded-md border p-3 text-left transition ${
                   row.id === selectedId ? 'border-primary bg-muted/40' : 'border-border'
                 }`}
                 onClick={() => setSelectedId(row.id)}
@@ -142,7 +136,7 @@ export function DpiaRegistryPanel(): JSX.Element {
                     {STATUS_BADGE[row.status].label}
                   </span>
                 </div>
-                <div className="mt-1 text-xs text-muted-foreground">
+                <div className="text-muted-foreground mt-1 text-xs">
                   {row.ropaActivityName ?? row.ropaActivitySlug}
                 </div>
                 <div className="mt-2 flex items-center gap-2 text-[11px]">
@@ -151,15 +145,13 @@ export function DpiaRegistryPanel(): JSX.Element {
                   >
                     residual: {row.summaryResidualLevel}
                   </span>
-                  <span className="text-muted-foreground">
-                    {row.riskItemCount} risk item
-                  </span>
+                  <span className="text-muted-foreground">{row.riskItemCount} risk item</span>
                 </div>
               </button>
             </li>
           ))}
           {list.data && list.data.length === 0 && !showCreate && (
-            <li className="text-sm text-muted-foreground">
+            <li className="text-muted-foreground text-sm">
               Belum ada DPIA. Klik "+ DPIA baru" untuk memulai.
             </li>
           )}
@@ -168,16 +160,12 @@ export function DpiaRegistryPanel(): JSX.Element {
 
       <section className="space-y-3">
         {!selectedId && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Pilih DPIA di panel kiri untuk melihat register risiko.
           </p>
         )}
         {detail.data && (
-          <DpiaDetail
-            data={detail.data}
-            onError={showApiError}
-            onChanged={invalidate}
-          />
+          <DpiaDetail data={detail.data} onError={showApiError} onChanged={invalidate} />
         )}
       </section>
     </div>
@@ -216,7 +204,7 @@ function CreateForm({
 
   return (
     <form
-      className="space-y-3 rounded-md border border-border p-3"
+      className="border-border space-y-3 rounded-md border p-3"
       onSubmit={(e) => {
         e.preventDefault();
         create.mutate();
@@ -225,7 +213,7 @@ function CreateForm({
       <div>
         <label className="mb-1 block text-xs font-medium">Aktivitas ROPA</label>
         <select
-          className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+          className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm"
           value={ropaActivityId}
           onChange={(e) => setRopaActivityId(e.target.value)}
           required
@@ -249,7 +237,7 @@ function CreateForm({
       <button
         type="submit"
         disabled={create.isPending}
-        className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground disabled:opacity-50"
+        className="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-sm font-medium disabled:opacity-50"
       >
         {create.isPending ? 'Membuat…' : 'Buat DPIA'}
       </button>
@@ -297,7 +285,7 @@ function DpiaDetail({
       <header className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h3 className="text-lg font-semibold">{data.title}</h3>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Status: <strong>{data.status}</strong> · residual tertinggi:{' '}
             <span
               className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${LEVEL_BADGE[data.summaryResidualLevel]}`}
@@ -356,32 +344,18 @@ function DpiaDetail({
       </section>
 
       <section className="space-y-2">
-        <h4 className="text-sm font-semibold">
-          Risk register ({data.riskItems.length})
-        </h4>
+        <h4 className="text-sm font-semibold">Risk register ({data.riskItems.length})</h4>
         <RiskTable rows={data.riskItems} />
-        {editable && (
-          <AddRiskForm
-            assessmentId={data.id}
-            onChanged={onChanged}
-            onError={onError}
-          />
-        )}
+        {editable && <AddRiskForm assessmentId={data.id} onChanged={onChanged} onError={onError} />}
       </section>
     </div>
   );
 }
 
-function Panel({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}): JSX.Element {
+function Panel({ label, children }: { label: string; children: React.ReactNode }): JSX.Element {
   return (
-    <div className="rounded-md border border-border p-3">
-      <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+    <div className="border-border rounded-md border p-3">
+      <div className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
         {label}
       </div>
       <div className="mt-1 whitespace-pre-wrap text-sm">{children}</div>
@@ -389,18 +363,12 @@ function Panel({
   );
 }
 
-function RiskTable({
-  rows,
-}: {
-  rows: DpiaAssessmentResponse['riskItems'];
-}): JSX.Element {
+function RiskTable({ rows }: { rows: DpiaAssessmentResponse['riskItems'] }): JSX.Element {
   if (rows.length === 0) {
-    return (
-      <p className="text-xs text-muted-foreground">Belum ada risiko.</p>
-    );
+    return <p className="text-muted-foreground text-xs">Belum ada risiko.</p>;
   }
   return (
-    <div className="overflow-x-auto rounded-md border border-border">
+    <div className="border-border overflow-x-auto rounded-md border">
       <table className="w-full text-xs">
         <thead className="bg-muted/40 text-left">
           <tr>
@@ -413,7 +381,7 @@ function RiskTable({
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.id} className="border-t border-border align-top">
+            <tr key={r.id} className="border-border border-t align-top">
               <td className="px-2 py-1 font-mono">{r.ordinal}</td>
               <td className="px-2 py-1">
                 <div className="font-medium">{r.title}</div>
@@ -425,18 +393,18 @@ function RiskTable({
                 >
                   {r.inherentLevel}
                 </span>
-                <div className="mt-0.5 text-[10px] text-muted-foreground">
+                <div className="text-muted-foreground mt-0.5 text-[10px]">
                   L{r.likelihood}×I{r.impact}={r.inherentScore}
                 </div>
               </td>
-              <td className="px-2 py-1 whitespace-pre-wrap">{r.mitigations}</td>
+              <td className="whitespace-pre-wrap px-2 py-1">{r.mitigations}</td>
               <td className="px-2 py-1">
                 <span
                   className={`inline-block rounded px-1.5 py-0.5 font-medium ${LEVEL_BADGE[r.residualLevel]}`}
                 >
                   {r.residualLevel}
                 </span>
-                <div className="mt-0.5 text-[10px] text-muted-foreground">
+                <div className="text-muted-foreground mt-0.5 text-[10px]">
                   L{r.residualLikelihood}×I{r.residualImpact}={r.residualScore}
                 </div>
               </td>
@@ -487,42 +455,33 @@ function AddRiskForm({
 
   return (
     <form
-      className="space-y-2 rounded-md border border-dashed border-border p-3"
+      className="border-border space-y-2 rounded-md border border-dashed p-3"
       onSubmit={(e) => {
         e.preventDefault();
         add.mutate();
       }}
     >
-      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <div className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
         Tambah risiko
       </div>
       <TextInput label="Judul risiko" value={title} onChange={setTitle} minLength={4} />
-      <TextArea
-        label="Deskripsi"
-        value={description}
-        onChange={setDescription}
-        minLength={10}
-      />
+      <TextArea label="Deskripsi" value={description} onChange={setDescription} minLength={10} />
       <div className="grid grid-cols-2 gap-2">
-        <NumberField label="Inherent likelihood (1..5)" value={likelihood} onChange={setLikelihood} />
+        <NumberField
+          label="Inherent likelihood (1..5)"
+          value={likelihood}
+          onChange={setLikelihood}
+        />
         <NumberField label="Inherent impact (1..5)" value={impact} onChange={setImpact} />
       </div>
       <TextArea label="Mitigasi" value={mitigations} onChange={setMitigations} minLength={10} />
       <div className="grid grid-cols-2 gap-2">
-        <NumberField
-          label="Residual likelihood (≤ inherent)"
-          value={resLik}
-          onChange={setResLik}
-        />
-        <NumberField
-          label="Residual impact (≤ inherent)"
-          value={resImp}
-          onChange={setResImp}
-        />
+        <NumberField label="Residual likelihood (≤ inherent)" value={resLik} onChange={setResLik} />
+        <NumberField label="Residual impact (≤ inherent)" value={resImp} onChange={setResImp} />
       </div>
       <button
         type="submit"
-        className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:opacity-50"
+        className="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-xs font-medium disabled:opacity-50"
         disabled={add.isPending}
       >
         {add.isPending ? 'Menambah…' : 'Tambah risiko'}
@@ -547,7 +506,7 @@ function TextInput({
       <label className="mb-1 block text-xs font-medium">{label}</label>
       <input
         type="text"
-        className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+        className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         minLength={minLength}
@@ -572,7 +531,7 @@ function TextArea({
     <div>
       <label className="mb-1 block text-xs font-medium">{label}</label>
       <textarea
-        className="min-h-[80px] w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+        className="border-input bg-background min-h-[80px] w-full rounded-md border px-2 py-1.5 text-sm"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         minLength={minLength}
@@ -600,7 +559,7 @@ function NumberField({
         max={5}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+        className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm"
       />
     </div>
   );

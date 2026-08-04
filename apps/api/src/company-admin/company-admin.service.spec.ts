@@ -267,9 +267,9 @@ describe('CompanyAdminService.update', () => {
   it('rejects when the new slug is already used by another tenant', async () => {
     const { service, prisma } = setup();
     prisma.company.findFirst.mockResolvedValueOnce({ id: 'other-tenant' } as never);
-    await expect(
-      service.update(superAdmin, 'co-1', { slug: 'taken' }),
-    ).rejects.toBeInstanceOf(ConflictException);
+    await expect(service.update(superAdmin, 'co-1', { slug: 'taken' })).rejects.toBeInstanceOf(
+      ConflictException,
+    );
   });
 
   it('persists changes and writes an audit log', async () => {
@@ -306,9 +306,9 @@ describe('CompanyAdminService.update', () => {
 describe('CompanyAdminService.softDelete', () => {
   it('refuses to delete the caller\u2019s own tenant', async () => {
     const { service } = setup();
-    await expect(
-      service.softDelete(superAdmin, superAdmin.companyId),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(service.softDelete(superAdmin, superAdmin.companyId)).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
   });
 
   it('throws when the target tenant is already deleted', async () => {
@@ -326,9 +326,7 @@ describe('CompanyAdminService.softDelete', () => {
     const { service, prisma } = setup();
     prisma.company.findUnique.mockResolvedValueOnce({ id: 'co-x', deletedAt: null } as never);
     prisma.user.count.mockResolvedValueOnce(3);
-    await expect(service.softDelete(superAdmin, 'co-x')).rejects.toBeInstanceOf(
-      ConflictException,
-    );
+    await expect(service.softDelete(superAdmin, 'co-x')).rejects.toBeInstanceOf(ConflictException);
   });
 
   it('soft-deletes and writes an audit log', async () => {
@@ -358,17 +356,13 @@ describe('CompanyAdminService.restore', () => {
   it('throws when the target is not deleted', async () => {
     const { service, prisma } = setup();
     prisma.company.findUnique.mockResolvedValueOnce({ id: 'co-x', deletedAt: null } as never);
-    await expect(service.restore(superAdmin, 'co-x')).rejects.toBeInstanceOf(
-      BadRequestException,
-    );
+    await expect(service.restore(superAdmin, 'co-x')).rejects.toBeInstanceOf(BadRequestException);
   });
 
   it('throws when the target does not exist', async () => {
     const { service, prisma } = setup();
     prisma.company.findUnique.mockResolvedValueOnce(null);
-    await expect(service.restore(superAdmin, 'missing')).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(service.restore(superAdmin, 'missing')).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('restores and writes an audit log', async () => {

@@ -5,12 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 import { AnalyticsComputationService } from './analytics-computation.service';
 import { METRIC_KEYS } from './domain/metric-keys';
-import {
-  Ymd,
-  daysBefore,
-  enumerateDays,
-  todayInTz,
-} from './domain/period';
+import { Ymd, daysBefore, enumerateDays, todayInTz } from './domain/period';
 
 /**
  * Fase 33a — snapshot writer.
@@ -80,18 +75,9 @@ export class AnalyticsSnapshotService {
    * DB — each metric is cheap enough that the extra latency is
    * negligible compared to the pool safety.
    */
-  async snapshotOneTenant(
-    companyId: string,
-    day: Ymd,
-    timezone: string,
-  ): Promise<void> {
+  async snapshotOneTenant(companyId: string, day: Ymd, timezone: string): Promise<void> {
     for (const key of METRIC_KEYS) {
-      const value = await this.computation.compute(
-        companyId,
-        day,
-        timezone,
-        key,
-      );
+      const value = await this.computation.compute(companyId, day, timezone, key);
       await this.upsert(companyId, day, key, value);
     }
   }
@@ -120,11 +106,7 @@ export class AnalyticsSnapshotService {
     value: number,
   ): Promise<void> {
     const dateOnly = new Date(
-      Date.UTC(
-        Number(day.slice(0, 4)),
-        Number(day.slice(5, 7)) - 1,
-        Number(day.slice(8, 10)),
-      ),
+      Date.UTC(Number(day.slice(0, 4)), Number(day.slice(5, 7)) - 1, Number(day.slice(8, 10))),
     );
     const decimal = new Prisma.Decimal(this.round4(value));
     await this.prisma.analyticsSnapshot.upsert({

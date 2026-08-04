@@ -1,9 +1,4 @@
-import {
-  createCipheriv,
-  createDecipheriv,
-  randomBytes,
-  timingSafeEqual,
-} from 'node:crypto';
+import { createCipheriv, createDecipheriv, randomBytes, timingSafeEqual } from 'node:crypto';
 
 /**
  * AES-256-GCM app-layer encryption for small secrets stored in the DB
@@ -63,9 +58,7 @@ export function decodeEncryptionKey(base64Key: string): Buffer {
     throw new InvalidEncryptionKeyError('not valid base64');
   }
   if (decoded.length !== KEY_LENGTH) {
-    throw new InvalidEncryptionKeyError(
-      `expected ${KEY_LENGTH} bytes, got ${decoded.length}`,
-    );
+    throw new InvalidEncryptionKeyError(`expected ${KEY_LENGTH} bytes, got ${decoded.length}`);
   }
   return decoded;
 }
@@ -82,16 +75,11 @@ export function decodeEncryptionKey(base64Key: string): Buffer {
  */
 export function encryptString(plaintext: string, key: Buffer): string {
   if (key.length !== KEY_LENGTH) {
-    throw new InvalidEncryptionKeyError(
-      `expected ${KEY_LENGTH}-byte key, got ${key.length}`,
-    );
+    throw new InvalidEncryptionKeyError(`expected ${KEY_LENGTH}-byte key, got ${key.length}`);
   }
   const iv = randomBytes(IV_LENGTH);
   const cipher = createCipheriv(ALGO, key, iv);
-  const enc = Buffer.concat([
-    cipher.update(plaintext, 'utf8'),
-    cipher.final(),
-  ]);
+  const enc = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
   const tag = cipher.getAuthTag();
   return Buffer.concat([iv, enc, tag]).toString('base64');
 }
@@ -107,9 +95,7 @@ export function encryptString(plaintext: string, key: Buffer): string {
  */
 export function decryptString(bundle: string, key: Buffer): string {
   if (key.length !== KEY_LENGTH) {
-    throw new InvalidEncryptionKeyError(
-      `expected ${KEY_LENGTH}-byte key, got ${key.length}`,
-    );
+    throw new InvalidEncryptionKeyError(`expected ${KEY_LENGTH}-byte key, got ${key.length}`);
   }
   let buf: Buffer;
   try {

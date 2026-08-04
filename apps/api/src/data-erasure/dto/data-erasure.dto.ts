@@ -4,8 +4,7 @@ import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 export class CreateErasureRequestDto {
   @ApiProperty({
     required: false,
-    description:
-      'Alasan permintaan penghapusan. Bebas, opsional, maksimal 1000 karakter.',
+    description: 'Alasan permintaan penghapusan. Bebas, opsional, maksimal 1000 karakter.',
   })
   @IsOptional()
   @IsString()
@@ -16,8 +15,7 @@ export class CreateErasureRequestDto {
 export class DecideErasureDto {
   @ApiProperty({
     required: false,
-    description:
-      'Catatan keputusan. Wajib untuk penolakan, opsional untuk persetujuan.',
+    description: 'Catatan keputusan. Wajib untuk penolakan, opsional untuk persetujuan.',
   })
   @IsOptional()
   @IsString()
@@ -40,22 +38,10 @@ export class DataErasureRequestDto {
   id!: string;
 
   @ApiProperty({
-    enum: [
-      'PENDING_APPROVAL',
-      'APPROVED_SCHEDULED',
-      'EXECUTED',
-      'REJECTED',
-      'CANCELLED',
-      'FAILED',
-    ],
+    enum: ['PENDING_APPROVAL', 'APPROVED_SCHEDULED', 'EXECUTED', 'REJECTED', 'CANCELLED', 'FAILED'],
   })
   status!:
-    | 'PENDING_APPROVAL'
-    | 'APPROVED_SCHEDULED'
-    | 'EXECUTED'
-    | 'REJECTED'
-    | 'CANCELLED'
-    | 'FAILED';
+    'PENDING_APPROVAL' | 'APPROVED_SCHEDULED' | 'EXECUTED' | 'REJECTED' | 'CANCELLED' | 'FAILED';
 
   @ApiProperty({ nullable: true })
   reason!: string | null;

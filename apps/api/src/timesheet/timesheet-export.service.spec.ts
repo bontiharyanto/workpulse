@@ -23,14 +23,12 @@ interface Kit {
 function buildKit(): Kit {
   const prisma = mockDeep<PrismaService>();
   mockReset(prisma);
-  (prisma.$transaction as unknown as jest.Mock).mockImplementation(
-    async (arg: unknown) => {
-      if (typeof arg === 'function') {
-        return (arg as (tx: PrismaService) => unknown)(prisma);
-      }
-      return Promise.all(arg as Promise<unknown>[]);
-    },
-  );
+  (prisma.$transaction as unknown as jest.Mock).mockImplementation(async (arg: unknown) => {
+    if (typeof arg === 'function') {
+      return (arg as (tx: PrismaService) => unknown)(prisma);
+    }
+    return Promise.all(arg as Promise<unknown>[]);
+  });
   const webhookDispatcher = { enqueue: jest.fn().mockResolvedValue(undefined) };
   const service = new TimesheetExportService(
     prisma as unknown as PrismaService,
@@ -131,9 +129,7 @@ describe('TimesheetExportService (Fase 32c)', () => {
   it('renders CSV, computes SHA-256, and writes an audit row', async () => {
     const { service, prisma } = buildKit();
     prisma.timesheetPeriod.findFirst.mockResolvedValue(makePeriod() as never);
-    prisma.timesheet.findMany.mockResolvedValue(
-      [makeTimesheet('a'), makeTimesheet('b')] as never,
-    );
+    prisma.timesheet.findMany.mockResolvedValue([makeTimesheet('a'), makeTimesheet('b')] as never);
     (prisma.timesheetExport.create as unknown as jest.Mock).mockImplementation(
       async ({ data }: { data: Record<string, unknown> }) => ({
         id: 'export-1',
@@ -162,9 +158,7 @@ describe('TimesheetExportService (Fase 32c)', () => {
 
     // The hash on the response matches the payload actually returned.
     const { createHash } = await import('node:crypto');
-    const localHash = createHash('sha256')
-      .update(result.payload)
-      .digest('hex');
+    const localHash = createHash('sha256').update(result.payload).digest('hex');
     expect(result.export.payloadSha256).toBe(localHash);
     expect(result.export.rowCount).toBe(2);
     expect(result.contentType).toContain('text/csv');
@@ -174,9 +168,7 @@ describe('TimesheetExportService (Fase 32c)', () => {
   it('produces byte-identical CSV payloads for repeated calls with same input (idempotence)', async () => {
     const { service, prisma } = buildKit();
     prisma.timesheetPeriod.findFirst.mockResolvedValue(makePeriod() as never);
-    prisma.timesheet.findMany.mockResolvedValue(
-      [makeTimesheet('a')] as never,
-    );
+    prisma.timesheet.findMany.mockResolvedValue([makeTimesheet('a')] as never);
     (prisma.timesheetExport.create as unknown as jest.Mock).mockImplementation(
       async ({ data }: { data: Record<string, unknown> }) => ({
         id: 'export-1',

@@ -39,10 +39,7 @@ async function pruneErasures(emails: string[]): Promise<void> {
 }
 
 test.beforeAll(async () => {
-  await pruneErasures([
-    SEED_USERS.supervisor.email,
-    SEED_USERS.hr.email,
-  ]);
+  await pruneErasures([SEED_USERS.supervisor.email, SEED_USERS.hr.email]);
 });
 
 async function loginViaUi(
@@ -62,11 +59,7 @@ test('employee submits an erasure request through the /settings/privacy panel', 
 }) => {
   await pruneErasures([SEED_USERS.supervisor.email]);
 
-  await loginViaUi(
-    page,
-    SEED_USERS.supervisor.email,
-    SEED_USERS.supervisor.password,
-  );
+  await loginViaUi(page, SEED_USERS.supervisor.email, SEED_USERS.supervisor.password);
   await page.goto('/settings/privacy');
 
   const panel = page.getByTestId('data-erasure-panel');
@@ -116,14 +109,8 @@ test('HR approves the request via the admin queue', async ({ page }) => {
   );
 });
 
-test('user can cancel the scheduled erasure from /settings/privacy', async ({
-  page,
-}) => {
-  await loginViaUi(
-    page,
-    SEED_USERS.supervisor.email,
-    SEED_USERS.supervisor.password,
-  );
+test('user can cancel the scheduled erasure from /settings/privacy', async ({ page }) => {
+  await loginViaUi(page, SEED_USERS.supervisor.email, SEED_USERS.supervisor.password);
   await page.goto('/settings/privacy');
 
   const panel = page.getByTestId('data-erasure-panel');
@@ -131,7 +118,8 @@ test('user can cancel the scheduled erasure from /settings/privacy', async ({
   await expect(row).toHaveAttribute('data-status', 'APPROVED_SCHEDULED');
 
   await row.getByTestId('erasure-cancel').click();
-  await expect(
-    panel.getByTestId('erasure-row').first(),
-  ).toHaveAttribute('data-status', 'CANCELLED');
+  await expect(panel.getByTestId('erasure-row').first()).toHaveAttribute(
+    'data-status',
+    'CANCELLED',
+  );
 });

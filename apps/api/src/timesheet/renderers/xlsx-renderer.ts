@@ -1,9 +1,6 @@
 import ExcelJS from 'exceljs';
 
-import type {
-  PayrollColumn,
-  PayrollRow,
-} from '../domain/payroll-rows';
+import type { PayrollColumn, PayrollRow } from '../domain/payroll-rows';
 
 export interface XlsxHeader {
   companyName: string;
@@ -52,10 +49,12 @@ export async function renderXlsx(
   title.font = { bold: true, size: 14 };
 
   ws.mergeCells(2, 1, 2, colCount);
-  ws.getCell(2, 1).value = `${header.periodLabel} (${header.periodStart} → ${header.periodEnd}) · Mode: ${header.mode}`;
+  ws.getCell(2, 1).value =
+    `${header.periodLabel} (${header.periodStart} → ${header.periodEnd}) · Mode: ${header.mode}`;
 
   ws.mergeCells(3, 1, 3, colCount);
-  ws.getCell(3, 1).value = `Dicetak: ${header.generatedAt.toISOString()} · Oleh: ${header.generatedByEmail}`;
+  ws.getCell(3, 1).value =
+    `Dicetak: ${header.generatedAt.toISOString()} · Oleh: ${header.generatedByEmail}`;
   ws.getCell(3, 1).font = { italic: true, color: { argb: 'FF666666' } };
 
   // Row 4 blank spacer, row 5 = header row (matches ExcelJS's default

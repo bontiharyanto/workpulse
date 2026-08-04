@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { Prisma, TenantUsageSnapshot } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
@@ -62,14 +57,13 @@ export class TenantUsageService {
       throw new BadRequestException('USAGE_PERIOD_INVALID');
     }
 
-    const [storage, dbRows, notificationsCreated, webhookDeliveries, users] =
-      await Promise.all([
-        this.collectStorage(companyId, periodStart, periodEnd),
-        this.collectDbRows(companyId),
-        this.collectNotifications(companyId, periodStart, periodEnd),
-        this.collectWebhookDeliveries(companyId, periodStart, periodEnd),
-        this.collectUsers(companyId, periodStart, periodEnd),
-      ]);
+    const [storage, dbRows, notificationsCreated, webhookDeliveries, users] = await Promise.all([
+      this.collectStorage(companyId, periodStart, periodEnd),
+      this.collectDbRows(companyId),
+      this.collectNotifications(companyId, periodStart, periodEnd),
+      this.collectWebhookDeliveries(companyId, periodStart, periodEnd),
+      this.collectUsers(companyId, periodStart, periodEnd),
+    ]);
 
     const dbRowsTotal = computeDbRowsTotal(dbRows);
     const storageTotalBytes = computeStorageTotal(storage);
@@ -181,10 +175,7 @@ export class TenantUsageService {
     return { rows, total, page, pageSize };
   }
 
-  async detail(
-    companyId: string | null,
-    snapshotId: string,
-  ): Promise<TenantUsageSnapshot> {
+  async detail(companyId: string | null, snapshotId: string): Promise<TenantUsageSnapshot> {
     const row = await this.prisma.tenantUsageSnapshot.findFirst({
       where: {
         id: snapshotId,
@@ -196,9 +187,7 @@ export class TenantUsageService {
     return row;
   }
 
-  async latestForCompany(
-    companyId: string,
-  ): Promise<TenantUsageSnapshot | null> {
+  async latestForCompany(companyId: string): Promise<TenantUsageSnapshot | null> {
     return this.prisma.tenantUsageSnapshot.findFirst({
       where: { companyId },
       orderBy: { periodStart: 'desc' },

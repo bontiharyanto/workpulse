@@ -25,9 +25,7 @@ test('supervisor: team view renders roster on both tabs', async ({ page }) => {
   await loginAs(page, 'supervisor');
   await page.goto('/attendance/team');
 
-  await expect(
-    page.getByRole('heading', { name: 'Kehadiran Tim', exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Kehadiran Tim', exact: true })).toBeVisible();
 
   // ---- Hari ini tab (default) --------------------------------------------
   const todayHeader = page.getByRole('columnheader', { name: 'Status', exact: true });
@@ -39,9 +37,7 @@ test('supervisor: team view renders roster on both tabs', async ({ page }) => {
   // <div>s), so `exact: true` on the fullName alone can't match — use
   // `hasText` filtering instead, which does a substring search.
   const employeeName = SEED_USERS.employee.fullName;
-  const nameCellToday = page
-    .getByRole('cell')
-    .filter({ hasText: employeeName });
+  const nameCellToday = page.getByRole('cell').filter({ hasText: employeeName });
   await expect(nameCellToday.first()).toBeVisible({ timeout: 10_000 });
 
   // ---- Rekap tab ---------------------------------------------------------
@@ -52,9 +48,7 @@ test('supervisor: team view renders roster on both tabs', async ({ page }) => {
   await expect(page.getByRole('button', { name: '14h', exact: true })).toBeVisible();
 
   // Employee row is still present in the summary reducer output.
-  const nameCellRekap = page
-    .getByRole('cell')
-    .filter({ hasText: employeeName });
+  const nameCellRekap = page.getByRole('cell').filter({ hasText: employeeName });
   await expect(nameCellRekap.first()).toBeVisible({ timeout: 10_000 });
 });
 

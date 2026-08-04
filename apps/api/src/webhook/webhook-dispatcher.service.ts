@@ -36,15 +36,15 @@ export interface EnqueueInput {
  *   2. **Idempotent enqueue.** `(endpointId, eventType, sourceId)` is a
  *      unique index. Re-firing the same event (e.g. export re-run) is
  *      a no-op instead of a duplicate delivery.
-   *   3. **Sign at delivery-time, not enqueue-time.** Postgres `jsonb`
-   *      does NOT preserve key order, so we can't freeze a
-   *      byte-identical signature at enqueue and still match on read
-   *      after a retry. The worker computes the HMAC over
-   *      `JSON.stringify(delivery.payloadJson)` at each attempt — this
-   *      means the signature timestamp reflects actual send time,
-   *      matching the Stripe pattern and letting vendors enforce a
-   *      tight (5-minute) tolerance window.
-   */
+ *   3. **Sign at delivery-time, not enqueue-time.** Postgres `jsonb`
+ *      does NOT preserve key order, so we can't freeze a
+ *      byte-identical signature at enqueue and still match on read
+ *      after a retry. The worker computes the HMAC over
+ *      `JSON.stringify(delivery.payloadJson)` at each attempt — this
+ *      means the signature timestamp reflects actual send time,
+ *      matching the Stripe pattern and letting vendors enforce a
+ *      tight (5-minute) tolerance window.
+ */
 @Injectable()
 export class WebhookDispatcher {
   private readonly logger = new Logger(WebhookDispatcher.name);

@@ -91,23 +91,21 @@ export function MfaManagementPanel(): JSX.Element {
   });
 
   if (status.isLoading) {
-    return <p className="text-sm text-muted-foreground">Memuat status MFA...</p>;
+    return <p className="text-muted-foreground text-sm">Memuat status MFA...</p>;
   }
   if (status.error || !status.data) {
-    return (
-      <p className="text-sm text-destructive">Tidak dapat memuat status MFA.</p>
-    );
+    return <p className="text-destructive text-sm">Tidak dapat memuat status MFA.</p>;
   }
 
   const s = status.data;
 
   return (
     <div className="space-y-6">
-      <section className="space-y-3 rounded-md border border-input bg-background p-4">
+      <section className="border-input bg-background space-y-3 rounded-md border p-4">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium">Status MFA</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               {s.enabled
                 ? `Aktif sejak ${s.enabledAt ? new Date(s.enabledAt).toLocaleString('id-ID') : '-'} · ${s.remainingBackupCodes} backup codes tersisa.`
                 : 'MFA belum diaktifkan pada akun Anda.'}
@@ -117,7 +115,7 @@ export function MfaManagementPanel(): JSX.Element {
             className={
               s.enabled
                 ? 'rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-900'
-                : 'rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground'
+                : 'bg-muted text-muted-foreground rounded-full px-3 py-1 text-xs font-medium'
             }
           >
             {s.enabled ? 'Aktif' : 'Nonaktif'}
@@ -128,9 +126,9 @@ export function MfaManagementPanel(): JSX.Element {
       {!s.enabled ? (
         <section className="space-y-3">
           <h2 className="text-lg font-semibold tracking-tight">Aktifkan MFA</h2>
-          <p className="text-sm text-muted-foreground">
-            Tambahkan lapisan keamanan kedua untuk akun Anda. Setelah aktif,
-            login akan meminta kode dari aplikasi authenticator.
+          <p className="text-muted-foreground text-sm">
+            Tambahkan lapisan keamanan kedua untuk akun Anda. Setelah aktif, login akan meminta kode
+            dari aplikasi authenticator.
           </p>
           <MfaEnrollmentPanel
             variant="voluntary"
@@ -140,19 +138,16 @@ export function MfaManagementPanel(): JSX.Element {
             }}
           />
           {newCodes && (
-            <MfaBackupCodesReveal
-              codes={newCodes}
-              onAcknowledged={() => setNewCodes(null)}
-            />
+            <MfaBackupCodesReveal codes={newCodes} onAcknowledged={() => setNewCodes(null)} />
           )}
         </section>
       ) : (
         <>
           <section className="space-y-3">
             <h2 className="text-lg font-semibold tracking-tight">Regenerasi backup codes</h2>
-            <p className="text-sm text-muted-foreground">
-              Buat batch backup codes baru. Semua code lama akan langsung
-              tidak berlaku. Butuh konfirmasi TOTP.
+            <p className="text-muted-foreground text-sm">
+              Buat batch backup codes baru. Semua code lama akan langsung tidak berlaku. Butuh
+              konfirmasi TOTP.
             </p>
             <form
               onSubmit={regenForm.handleSubmit((v) =>
@@ -167,38 +162,37 @@ export function MfaManagementPanel(): JSX.Element {
                 maxLength={6}
                 placeholder="Kode 6 digit"
                 aria-label="Kode TOTP untuk regenerasi backup codes"
-                className="w-32 rounded-md border border-input bg-background px-3 py-2 text-center font-mono text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="border-input bg-background focus:ring-ring w-32 rounded-md border px-3 py-2 text-center font-mono text-sm shadow-sm focus:outline-none focus:ring-2"
                 {...regenForm.register('code')}
               />
               <button
                 type="submit"
                 disabled={regenerateMutation.isPending}
-                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:opacity-90 disabled:opacity-50"
+                className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90 disabled:opacity-50"
               >
                 {regenerateMutation.isPending ? 'Regenerasi...' : 'Regenerasi'}
               </button>
             </form>
             {regenForm.formState.errors.code && (
-              <p role="alert" className="text-xs text-destructive">
+              <p role="alert" className="text-destructive text-xs">
                 {regenForm.formState.errors.code.message}
               </p>
             )}
             {regenError && (
-              <p role="alert" className="text-xs text-destructive">{regenError}</p>
+              <p role="alert" className="text-destructive text-xs">
+                {regenError}
+              </p>
             )}
             {newCodes && (
-              <MfaBackupCodesReveal
-                codes={newCodes}
-                onAcknowledged={() => setNewCodes(null)}
-              />
+              <MfaBackupCodesReveal codes={newCodes} onAcknowledged={() => setNewCodes(null)} />
             )}
           </section>
 
-          <section className="space-y-3 border-t border-input pt-4">
+          <section className="border-input space-y-3 border-t pt-4">
             <h2 className="text-lg font-semibold tracking-tight">Nonaktifkan MFA</h2>
-            <p className="text-sm text-muted-foreground">
-              Butuh password saat ini dan kode TOTP. Setelah dinonaktifkan,
-              semua sesi login akan di-logout — Anda harus login ulang.
+            <p className="text-muted-foreground text-sm">
+              Butuh password saat ini dan kode TOTP. Setelah dinonaktifkan, semua sesi login akan
+              di-logout — Anda harus login ulang.
             </p>
             <form
               onSubmit={disableForm.handleSubmit((v) => disableMutation.mutate(v))}
@@ -213,11 +207,11 @@ export function MfaManagementPanel(): JSX.Element {
                   id="disable-pw"
                   type="password"
                   autoComplete="current-password"
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2"
                   {...disableForm.register('currentPassword')}
                 />
                 {disableForm.formState.errors.currentPassword && (
-                  <p role="alert" className="text-xs text-destructive">
+                  <p role="alert" className="text-destructive text-xs">
                     {disableForm.formState.errors.currentPassword.message}
                   </p>
                 )}
@@ -231,22 +225,24 @@ export function MfaManagementPanel(): JSX.Element {
                   type="text"
                   inputMode="numeric"
                   maxLength={6}
-                  className="w-32 rounded-md border border-input bg-background px-3 py-2 text-center font-mono text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="border-input bg-background focus:ring-ring w-32 rounded-md border px-3 py-2 text-center font-mono text-sm shadow-sm focus:outline-none focus:ring-2"
                   {...disableForm.register('code')}
                 />
                 {disableForm.formState.errors.code && (
-                  <p role="alert" className="text-xs text-destructive">
+                  <p role="alert" className="text-destructive text-xs">
                     {disableForm.formState.errors.code.message}
                   </p>
                 )}
               </div>
               {disableError && (
-                <p role="alert" className="text-xs text-destructive">{disableError}</p>
+                <p role="alert" className="text-destructive text-xs">
+                  {disableError}
+                </p>
               )}
               <button
                 type="submit"
                 disabled={disableMutation.isPending}
-                className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive/20 disabled:opacity-50"
+                className="border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 rounded-md border px-4 py-2 text-sm font-medium disabled:opacity-50"
               >
                 {disableMutation.isPending ? 'Menonaktifkan...' : 'Nonaktifkan MFA'}
               </button>

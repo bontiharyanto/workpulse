@@ -95,9 +95,7 @@ export class NotificationPreferenceService {
       where: { userId: actor.id },
       select: { type: true, emailEnabled: true, inAppEnabled: true },
     });
-    const byType = new Map<NotificationType, PreferenceRow>(
-      rows.map((r) => [r.type, r]),
-    );
+    const byType = new Map<NotificationType, PreferenceRow>(rows.map((r) => [r.type, r]));
     return NotificationPreferenceService.ALL_TYPES.map((type) => {
       const effective = resolveEffective(type, byType.get(type) ?? null);
       return {

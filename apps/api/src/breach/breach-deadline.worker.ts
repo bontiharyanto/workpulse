@@ -1,22 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
-import {
-  BreachStatus,
-  BreachTimelineEventType,
-  User,
-} from '@prisma/client';
+import { BreachStatus, BreachTimelineEventType, User } from '@prisma/client';
 
 import { NotificationService } from '../notification/notification.service';
 import { breachDeadlineWarning } from '../notification/domain/templates';
 import { PrismaService } from '../prisma/prisma.service';
 
 import { BreachService } from './breach.service';
-import {
-  DEADLINE_REMINDER_BUCKETS,
-  DeadlineBucket,
-  snapshot,
-} from './domain/deadline';
+import { DEADLINE_REMINDER_BUCKETS, DeadlineBucket, snapshot } from './domain/deadline';
 
 /**
  * Fase 31g — deadline reminder cron.
@@ -47,9 +39,7 @@ export class BreachDeadlineWorker {
     private readonly notifications: NotificationService,
     config: ConfigService,
   ) {
-    this.enabled =
-      config.get<string>('BREACH_REMINDER_WORKER_ENABLED', 'true') !==
-      'false';
+    this.enabled = config.get<string>('BREACH_REMINDER_WORKER_ENABLED', 'true') !== 'false';
   }
 
   @Cron('0 */5 * * * *', { name: 'breach-deadline-tick' })
@@ -66,9 +56,7 @@ export class BreachDeadlineWorker {
         this.logger.log(`breach-deadline-tick fired ${fired} reminders`);
       }
     } catch (err) {
-      this.logger.error(
-        `breach-deadline-tick threw: ${(err as Error).message}`,
-      );
+      this.logger.error(`breach-deadline-tick threw: ${(err as Error).message}`);
     } finally {
       this.tickRunning = false;
     }
@@ -135,9 +123,7 @@ export class BreachDeadlineWorker {
    * by `hoursRemaining`. If OVERDUE, we fire OVERDUE and skip lower
    * ones. Otherwise we fire each threshold as it is crossed.
    */
-  private dueBucket(
-    hoursRemaining: number,
-  ): 'WARNING' | 'CRITICAL' | 'OVERDUE' | null {
+  private dueBucket(hoursRemaining: number): 'WARNING' | 'CRITICAL' | 'OVERDUE' | null {
     // Reverse the fanout list so OVERDUE wins first, then CRITICAL,
     // then WARNING — a single tick only fires one bucket per incident.
     for (const cfg of [...DEADLINE_REMINDER_BUCKETS].reverse()) {
@@ -148,10 +134,7 @@ export class BreachDeadlineWorker {
     return null;
   }
 
-  private async wasFired(
-    incidentId: string,
-    bucket: DeadlineBucket,
-  ): Promise<boolean> {
+  private async wasFired(incidentId: string, bucket: DeadlineBucket): Promise<boolean> {
     const rows = await this.prisma.breachTimelineEvent.findMany({
       where: {
         incidentId,
@@ -179,28 +162,21 @@ export class BreachDeadlineWorker {
   }): Promise<void> {
     // HR_MANAGER + SUPER_ADMIN of the tenant — dpo channel is closer to
     // the audience for a breach than the ordinary supervisor chain.
-    const dpos: Pick<User, 'id' | 'email'>[] =
-      await this.prisma.user.findMany({
-        where: {
-          companyId: input.incident.companyId,
-          deletedAt: null,
-          role: { in: ['HR_MANAGER', 'SUPER_ADMIN'] },
-        },
-        select: { id: true, email: true },
-      });
+    const dpos: Pick<User, 'id' | 'email'>[] = await this.prisma.user.findMany({
+      where: {
+        companyId: input.incident.companyId,
+        deletedAt: null,
+        role: { in: ['HR_MANAGER', 'SUPER_ADMIN'] },
+      },
+      select: { id: true, email: true },
+    });
 
     const recipients = new Map<string, string>();
     for (const u of dpos) recipients.set(u.id, u.email);
     if (input.incident.assignedTo)
-      recipients.set(
-        input.incident.assignedTo.id,
-        input.incident.assignedTo.email,
-      );
+      recipients.set(input.incident.assignedTo.id, input.incident.assignedTo.email);
     if (input.incident.reportedBy)
-      recipients.set(
-        input.incident.reportedBy.id,
-        input.incident.reportedBy.email,
-      );
+      recipients.set(input.incident.reportedBy.id, input.incident.reportedBy.email);
 
     const content = breachDeadlineWarning({
       incidentId: input.incident.id,
@@ -210,14 +186,12 @@ export class BreachDeadlineWorker {
       deadlineAt: input.deadlineAt.toISOString(),
     });
 
-    const inputs = Array.from(recipients.entries()).map(
-      ([recipientId, recipientEmail]) => ({
-        companyId: input.incident.companyId,
-        recipientId,
-        content,
-        recipientEmail,
-      }),
-    );
+    const inputs = Array.from(recipients.entries()).map(([recipientId, recipientEmail]) => ({
+      companyId: input.incident.companyId,
+      recipientId,
+      content,
+      recipientEmail,
+    }));
     await this.notifications.createMany(inputs);
   }
 }

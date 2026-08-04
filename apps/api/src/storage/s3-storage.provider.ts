@@ -86,9 +86,7 @@ export class S3StorageProvider implements StorageProvider {
     };
   }
 
-  async presignGet(
-    input: PresignGetInput,
-  ): Promise<{ url: string; expiresIn: number }> {
+  async presignGet(input: PresignGetInput): Promise<{ url: string; expiresIn: number }> {
     this.assertEnabled();
     const cmd = new GetObjectCommand({
       Bucket: this.bucket,
@@ -117,9 +115,7 @@ export class S3StorageProvider implements StorageProvider {
   async deleteObject(key: string): Promise<void> {
     this.assertEnabled();
     try {
-      await this.client.send(
-        new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
-      );
+      await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
     } catch (err) {
       // Idempotency: absent objects raise `NoSuchKey`; a retention
       // sweep re-running on an already-deleted export MUST NOT throw.
@@ -143,10 +139,9 @@ export class S3StorageProvider implements StorageProvider {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 3000);
       try {
-        await this.client.send(
-          new HeadBucketCommand({ Bucket: this.bucket }),
-          { abortSignal: controller.signal },
-        );
+        await this.client.send(new HeadBucketCommand({ Bucket: this.bucket }), {
+          abortSignal: controller.signal,
+        });
         return { ok: true, latencyMs: Date.now() - started };
       } finally {
         clearTimeout(timer);

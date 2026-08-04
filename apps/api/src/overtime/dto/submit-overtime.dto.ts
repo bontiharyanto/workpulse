@@ -1,5 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsISO8601, IsNumber, IsString, Matches, Max, MaxLength, Min, MinLength } from 'class-validator';
+import {
+  IsISO8601,
+  IsNumber,
+  IsString,
+  Matches,
+  Max,
+  MaxLength,
+  Min,
+  MinLength,
+} from 'class-validator';
 
 export class SubmitOvertimeDto {
   @ApiProperty({ example: '2026-08-01', description: 'Calendar date YYYY-MM-DD' })

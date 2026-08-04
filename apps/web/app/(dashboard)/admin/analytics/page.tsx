@@ -20,13 +20,10 @@ export default function AdminAnalyticsPage(): JSX.Element {
       <RequireRole roles={['HR_MANAGER', 'SUPER_ADMIN']}>
         <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Executive KPI Dashboard
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Ringkasan operasional lintas modul: kehadiran, cuti, lembur, dan
-              headcount. Data historis dari snapshot semalaman + hari ini
-              real-time.
+            <h1 className="text-2xl font-semibold tracking-tight">Executive KPI Dashboard</h1>
+            <p className="text-muted-foreground text-sm">
+              Ringkasan operasional lintas modul: kehadiran, cuti, lembur, dan headcount. Data
+              historis dari snapshot semalaman + hari ini real-time.
             </p>
           </div>
           <ExecutiveDashboard />

@@ -21,11 +21,7 @@ import type { RopaVersionStatus } from '@prisma/client';
  * (must go through REVIEW so the two-step gate cannot be bypassed).
  */
 
-export type RopaTransition =
-  | 'SUBMIT_REVIEW'
-  | 'RETURN_TO_DRAFT'
-  | 'PUBLISH'
-  | 'ARCHIVE';
+export type RopaTransition = 'SUBMIT_REVIEW' | 'RETURN_TO_DRAFT' | 'PUBLISH' | 'ARCHIVE';
 
 export class IllegalRopaTransitionError extends Error {
   readonly code = 'ROPA_ILLEGAL_TRANSITION' as const;
@@ -42,10 +38,7 @@ export class IllegalRopaTransitionError extends Error {
  * `IllegalRopaTransitionError`. Callers map the error to a `409 Conflict`
  * with the `code` embedded so the FE can display a localised message.
  */
-export function transition(
-  from: RopaVersionStatus,
-  action: RopaTransition,
-): RopaVersionStatus {
+export function transition(from: RopaVersionStatus, action: RopaTransition): RopaVersionStatus {
   switch (action) {
     case 'SUBMIT_REVIEW':
       if (from === 'DRAFT') return 'REVIEW';

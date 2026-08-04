@@ -45,19 +45,13 @@ export const updateRetentionPolicyInputSchema = z.object({
     .max(retentionBounds.terminatedUser.max)
     .optional(),
 });
-export type UpdateRetentionPolicyInput = z.infer<
-  typeof updateRetentionPolicyInputSchema
->;
+export type UpdateRetentionPolicyInput = z.infer<typeof updateRetentionPolicyInputSchema>;
 
 // ---------------------------------------------------------------------------
 // OPS-6 — Retention Enforcement Audit
 // ---------------------------------------------------------------------------
 
-export const retentionAuditStatusSchema = z.enum([
-  'SUCCESS',
-  'GAP_DETECTED',
-  'WORKER_INACTIVE',
-]);
+export const retentionAuditStatusSchema = z.enum(['SUCCESS', 'GAP_DETECTED', 'WORKER_INACTIVE']);
 export type RetentionAuditStatus = z.infer<typeof retentionAuditStatusSchema>;
 
 export const retentionAuditFindingKindSchema = z.enum([
@@ -66,9 +60,7 @@ export const retentionAuditFindingKindSchema = z.enum([
   'terminated_users_past_retention',
   'worker_inactive_during_period',
 ]);
-export type RetentionAuditFindingKind = z.infer<
-  typeof retentionAuditFindingKindSchema
->;
+export type RetentionAuditFindingKind = z.infer<typeof retentionAuditFindingKindSchema>;
 
 export const retentionAuditFindingSchema = z.object({
   kind: retentionAuditFindingKindSchema,
@@ -76,18 +68,14 @@ export const retentionAuditFindingSchema = z.object({
   count: z.number().int().optional(),
   message: z.string(),
 });
-export type RetentionAuditFinding = z.infer<
-  typeof retentionAuditFindingSchema
->;
+export type RetentionAuditFinding = z.infer<typeof retentionAuditFindingSchema>;
 
 export const retentionAuditPolicySnapshotSchema = z.object({
   notificationRetentionDays: z.number().int(),
   dataExportArchiveRetentionHours: z.number().int(),
   terminatedUserAnonymizeDays: z.number().int(),
 });
-export type RetentionAuditPolicySnapshot = z.infer<
-  typeof retentionAuditPolicySnapshotSchema
->;
+export type RetentionAuditPolicySnapshot = z.infer<typeof retentionAuditPolicySnapshotSchema>;
 
 export const retentionAuditReportSchema = z.object({
   id: z.string(),
@@ -107,9 +95,7 @@ export const retentionAuditReportSchema = z.object({
   findings: z.array(retentionAuditFindingSchema),
   notes: z.string().nullable(),
 });
-export type RetentionAuditReportDto = z.infer<
-  typeof retentionAuditReportSchema
->;
+export type RetentionAuditReportDto = z.infer<typeof retentionAuditReportSchema>;
 
 export const retentionAuditListResponseSchema = z.object({
   rows: z.array(retentionAuditReportSchema),
@@ -117,14 +103,10 @@ export const retentionAuditListResponseSchema = z.object({
   page: z.number().int(),
   pageSize: z.number().int(),
 });
-export type RetentionAuditListResponseDto = z.infer<
-  typeof retentionAuditListResponseSchema
->;
+export type RetentionAuditListResponseDto = z.infer<typeof retentionAuditListResponseSchema>;
 
 export const regenerateRetentionAuditInputSchema = z.object({
   year: z.number().int().min(2000).max(2100),
   month: z.number().int().min(1).max(12),
 });
-export type RegenerateRetentionAuditInput = z.infer<
-  typeof regenerateRetentionAuditInputSchema
->;
+export type RegenerateRetentionAuditInput = z.infer<typeof regenerateRetentionAuditInputSchema>;

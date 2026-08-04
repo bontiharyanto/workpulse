@@ -24,13 +24,11 @@ export default function AdminTenantUsagePage(): JSX.Element {
       <RequireRole roles={['HR_MANAGER', 'SUPER_ADMIN']}>
         <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Penggunaan tenant
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Snapshot bulanan footprint tenant: storage, baris DB, volume
-              notifikasi & webhook, dan user aktif. Menjadi dasar untuk
-              perencanaan kapasitas serta tier billing di masa depan.
+            <h1 className="text-2xl font-semibold tracking-tight">Penggunaan tenant</h1>
+            <p className="text-muted-foreground text-sm">
+              Snapshot bulanan footprint tenant: storage, baris DB, volume notifikasi & webhook, dan
+              user aktif. Menjadi dasar untuk perencanaan kapasitas serta tier billing di masa
+              depan.
             </p>
           </div>
           <TenantUsagePanel />

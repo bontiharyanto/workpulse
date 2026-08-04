@@ -15,15 +15,9 @@ import { DpiaStatus } from '@prisma/client';
  * be bypassed (matches the ROPA workflow shipped in ADR-0030).
  */
 
-export type DpiaTransition =
-  | 'SUBMIT_REVIEW'
-  | 'RETURN_TO_DRAFT'
-  | 'APPROVE'
-  | 'ARCHIVE';
+export type DpiaTransition = 'SUBMIT_REVIEW' | 'RETURN_TO_DRAFT' | 'APPROVE' | 'ARCHIVE';
 
-const LEGAL: ReadonlyArray<
-  readonly [DpiaStatus, DpiaTransition, DpiaStatus]
-> = [
+const LEGAL: ReadonlyArray<readonly [DpiaStatus, DpiaTransition, DpiaStatus]> = [
   [DpiaStatus.DRAFT, 'SUBMIT_REVIEW', DpiaStatus.REVIEW],
   [DpiaStatus.REVIEW, 'RETURN_TO_DRAFT', DpiaStatus.DRAFT],
   [DpiaStatus.REVIEW, 'APPROVE', DpiaStatus.APPROVED],
@@ -37,10 +31,7 @@ export class IllegalDpiaTransitionError extends Error {
   }
 }
 
-export function transition(
-  from: DpiaStatus,
-  action: DpiaTransition,
-): DpiaStatus {
+export function transition(from: DpiaStatus, action: DpiaTransition): DpiaStatus {
   for (const [f, a, to] of LEGAL) {
     if (f === from && a === action) return to;
   }

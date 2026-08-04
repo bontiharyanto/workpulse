@@ -60,10 +60,7 @@ export class CompanyAdminController {
   @Get(':id')
   @ApiOperation({ summary: 'Fetch a single tenant by id.' })
   @ApiOkResponse({ type: CompanyAdminDto })
-  get(
-    @CurrentUser() actor: AuthenticatedUser,
-    @Param('id') id: string,
-  ): Promise<CompanyAdminDto> {
+  get(@CurrentUser() actor: AuthenticatedUser, @Param('id') id: string): Promise<CompanyAdminDto> {
     return this.service.get(actor, id);
   }
 

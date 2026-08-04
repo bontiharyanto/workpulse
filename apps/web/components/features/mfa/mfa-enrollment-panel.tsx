@@ -101,8 +101,8 @@ export function MfaEnrollmentPanel({ onConfirmed, variant }: Props): JSX.Element
           role="status"
           className="rounded-md border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900"
         >
-          Peran Anda mewajibkan aktivasi MFA sebelum menggunakan aplikasi.
-          Selesaikan langkah di bawah untuk melanjutkan.
+          Peran Anda mewajibkan aktivasi MFA sebelum menggunakan aplikasi. Selesaikan langkah di
+          bawah untuk melanjutkan.
         </div>
       )}
 
@@ -111,14 +111,14 @@ export function MfaEnrollmentPanel({ onConfirmed, variant }: Props): JSX.Element
           type="button"
           onClick={() => startMutation.mutate()}
           disabled={startMutation.isPending}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:opacity-90 disabled:opacity-50"
+          className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90 disabled:opacity-50"
         >
           {startMutation.isPending ? 'Menghasilkan QR...' : 'Mulai aktifkan MFA'}
         </button>
       )}
 
       {enrollment && (
-        <div className="space-y-4 rounded-md border border-input bg-background p-4">
+        <div className="border-input bg-background space-y-4 rounded-md border p-4">
           <div className="space-y-2">
             <p className="text-sm font-medium">Langkah 1 — Scan QR</p>
             <div className="flex justify-center">
@@ -128,14 +128,14 @@ export function MfaEnrollmentPanel({ onConfirmed, variant }: Props): JSX.Element
                 alt="QR code untuk enrollment MFA"
                 width={240}
                 height={240}
-                className="rounded-md border border-input"
+                className="border-input rounded-md border"
               />
             </div>
-            <details className="text-xs text-muted-foreground">
+            <details className="text-muted-foreground text-xs">
               <summary className="cursor-pointer underline underline-offset-4">
                 Tidak bisa scan? Ketik secret manual.
               </summary>
-              <p className="mt-2 select-all break-all rounded-md border border-input bg-muted/50 p-2 font-mono">
+              <p className="border-input bg-muted/50 mt-2 select-all break-all rounded-md border p-2 font-mono">
                 {enrollment.secret}
               </p>
             </details>
@@ -153,11 +153,11 @@ export function MfaEnrollmentPanel({ onConfirmed, variant }: Props): JSX.Element
                 autoComplete="one-time-code"
                 maxLength={6}
                 aria-invalid={Boolean(form.formState.errors.code) || undefined}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-center text-lg font-mono tracking-widest shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-center font-mono text-lg tracking-widest shadow-sm focus:outline-none focus:ring-2"
                 {...form.register('code')}
               />
               {form.formState.errors.code && (
-                <p role="alert" className="text-xs text-destructive">
+                <p role="alert" className="text-destructive text-xs">
                   {form.formState.errors.code.message}
                 </p>
               )}
@@ -166,7 +166,7 @@ export function MfaEnrollmentPanel({ onConfirmed, variant }: Props): JSX.Element
             <button
               type="submit"
               disabled={confirmMutation.isPending}
-              className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:opacity-90 disabled:opacity-50"
+              className="bg-primary text-primary-foreground w-full rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90 disabled:opacity-50"
             >
               {confirmMutation.isPending ? 'Mengaktifkan...' : 'Aktifkan MFA'}
             </button>
@@ -177,7 +177,7 @@ export function MfaEnrollmentPanel({ onConfirmed, variant }: Props): JSX.Element
       {error && (
         <p
           role="alert"
-          className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
         >
           {error}
         </p>
@@ -202,13 +202,14 @@ export function MfaBackupCodesReveal({
     <div className="space-y-3 rounded-md border border-emerald-300/60 bg-emerald-50 p-4 text-sm text-emerald-900">
       <p className="font-medium">Simpan backup codes berikut</p>
       <p className="text-xs">
-        Daftar ini <strong>hanya tampil sekali</strong>. Gunakan salah satu
-        code ini untuk masuk jika kehilangan akses ke aplikasi authenticator.
-        Setiap code hanya bisa digunakan satu kali.
+        Daftar ini <strong>hanya tampil sekali</strong>. Gunakan salah satu code ini untuk masuk
+        jika kehilangan akses ke aplikasi authenticator. Setiap code hanya bisa digunakan satu kali.
       </p>
-      <ul className="grid grid-cols-2 gap-2 rounded-md border border-emerald-300/70 bg-background p-3 font-mono text-xs text-foreground">
+      <ul className="bg-background text-foreground grid grid-cols-2 gap-2 rounded-md border border-emerald-300/70 p-3 font-mono text-xs">
         {codes.map((c) => (
-          <li key={c} className="tracking-wider">{c}</li>
+          <li key={c} className="tracking-wider">
+            {c}
+          </li>
         ))}
       </ul>
       <div className="flex gap-2">
@@ -233,7 +234,9 @@ export function MfaBackupCodesReveal({
   );
 }
 
-export function useMfaStatus(): ReturnType<typeof useQuery<Awaited<ReturnType<typeof mfaApi.status>>>> {
+export function useMfaStatus(): ReturnType<
+  typeof useQuery<Awaited<ReturnType<typeof mfaApi.status>>>
+> {
   return useQuery({
     queryKey: ['mfa-status'],
     queryFn: () => mfaApi.status(),

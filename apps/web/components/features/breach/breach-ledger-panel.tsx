@@ -35,8 +35,7 @@ export function BreachLedgerPanel(): JSX.Element {
   const detail = useQuery<BreachIncidentResponse>({
     enabled: selectedId != null,
     queryKey: ['breach', 'detail', selectedId],
-    queryFn: () =>
-      breachLedgerAdminApi.detail(selectedId as string),
+    queryFn: () => breachLedgerAdminApi.detail(selectedId as string),
     refetchInterval: 60_000,
   });
 
@@ -58,11 +57,7 @@ export function BreachLedgerPanel(): JSX.Element {
           }}
           onError={showApiError}
         />
-        <IncidentList
-          rows={list.data ?? []}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-        />
+        <IncidentList rows={list.data ?? []} selectedId={selectedId} onSelect={setSelectedId} />
       </aside>
       <main className="space-y-4">
         {banner && (
@@ -71,15 +66,10 @@ export function BreachLedgerPanel(): JSX.Element {
           </div>
         )}
         {detail.data ? (
-          <IncidentDetail
-            incident={detail.data}
-            onMutated={invalidate}
-            onError={showApiError}
-          />
+          <IncidentDetail incident={detail.data} onMutated={invalidate} onError={showApiError} />
         ) : (
-          <div className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground">
-            Pilih insiden di kiri untuk melihat detail, timeline, dan
-            tindakan lifecycle.
+          <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm">
+            Pilih insiden di kiri untuk melihat detail, timeline, dan tindakan lifecycle.
           </div>
         )}
       </main>
@@ -99,32 +89,28 @@ function IncidentList({
   onSelect: (id: string) => void;
 }): JSX.Element {
   return (
-    <section className="rounded-md border border-border">
-      <div className="border-b border-border bg-muted/40 px-3 py-2 text-xs font-semibold uppercase tracking-wide">
+    <section className="border-border rounded-md border">
+      <div className="border-border bg-muted/40 border-b px-3 py-2 text-xs font-semibold uppercase tracking-wide">
         Incident Register
       </div>
-      <ul className="divide-y divide-border">
+      <ul className="divide-border divide-y">
         {rows.length === 0 && (
-          <li className="px-3 py-4 text-xs text-muted-foreground">
-            Belum ada breach incident.
-          </li>
+          <li className="text-muted-foreground px-3 py-4 text-xs">Belum ada breach incident.</li>
         )}
         {rows.map((r) => (
           <li key={r.id}>
             <button
               type="button"
-              className={`block w-full px-3 py-2 text-left text-xs hover:bg-muted/60 ${
+              className={`hover:bg-muted/60 block w-full px-3 py-2 text-left text-xs ${
                 r.id === selectedId ? 'bg-muted/60' : ''
               }`}
               onClick={() => onSelect(r.id)}
             >
               <div className="flex items-center justify-between gap-2">
-                <div className="min-w-0 flex-1 truncate font-medium">
-                  {r.title}
-                </div>
+                <div className="min-w-0 flex-1 truncate font-medium">{r.title}</div>
                 <SeverityChip severity={r.severity} />
               </div>
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+              <div className="text-muted-foreground mt-1 flex flex-wrap items-center gap-2 text-[10px]">
                 <span>{r.status}</span>
                 <span>·</span>
                 <span>{r.category}</span>
@@ -174,7 +160,7 @@ function CreateForm({
     return (
       <button
         type="button"
-        className="w-full rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground"
+        className="bg-primary text-primary-foreground w-full rounded-md px-3 py-1.5 text-sm font-medium"
         onClick={() => setOpen(true)}
       >
         + Report New Incident
@@ -184,7 +170,7 @@ function CreateForm({
 
   return (
     <form
-      className="space-y-2 rounded-md border border-border p-3 text-xs"
+      className="border-border space-y-2 rounded-md border p-3 text-xs"
       onSubmit={(e) => {
         e.preventDefault();
         create.mutate();
@@ -195,7 +181,7 @@ function CreateForm({
         Judul
         <input
           type="text"
-          className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+          className="border-input bg-background mt-1 w-full rounded-md border px-2 py-1.5 text-sm"
           value={form.title}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
           required
@@ -206,11 +192,9 @@ function CreateForm({
       <label className="block">
         Deskripsi
         <textarea
-          className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+          className="border-input bg-background mt-1 w-full rounded-md border px-2 py-1.5 text-sm"
           value={form.description}
-          onChange={(e) =>
-            setForm({ ...form, description: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
           rows={4}
           required
           minLength={20}
@@ -221,7 +205,7 @@ function CreateForm({
         <label className="block">
           Severity
           <select
-            className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+            className="border-input bg-background mt-1 w-full rounded-md border px-2 py-1.5 text-sm"
             value={form.severity}
             onChange={(e) =>
               setForm({
@@ -240,7 +224,7 @@ function CreateForm({
         <label className="block">
           Kategori
           <select
-            className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+            className="border-input bg-background mt-1 w-full rounded-md border px-2 py-1.5 text-sm"
             value={form.category}
             onChange={(e) =>
               setForm({
@@ -249,14 +233,7 @@ function CreateForm({
               })
             }
           >
-            {(
-              [
-                'CONFIDENTIALITY',
-                'INTEGRITY',
-                'AVAILABILITY',
-                'MIXED',
-              ] as const
-            ).map((c) => (
+            {(['CONFIDENTIALITY', 'INTEGRITY', 'AVAILABILITY', 'MIXED'] as const).map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>
@@ -268,7 +245,7 @@ function CreateForm({
         Detected At (UTC)
         <input
           type="datetime-local"
-          className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+          className="border-input bg-background mt-1 w-full rounded-md border px-2 py-1.5 text-sm"
           value={toLocalDatetime(form.detectedAt)}
           onChange={(e) =>
             setForm({
@@ -289,7 +266,7 @@ function CreateForm({
         </button>
         <button
           type="submit"
-          className="rounded-md bg-primary px-3 py-1.5 font-medium text-primary-foreground disabled:opacity-50"
+          className="bg-primary text-primary-foreground rounded-md px-3 py-1.5 font-medium disabled:opacity-50"
           disabled={create.isPending}
         >
           {create.isPending ? 'Menyimpan…' : 'Simpan'}
@@ -312,16 +289,13 @@ function IncidentDetail({
 }): JSX.Element {
   const [note, setNote] = useState('');
   const [authorityRef, setAuthorityRef] = useState('');
-  const [authorityNotifiedAt, setAuthorityNotifiedAt] = useState(
-    new Date().toISOString(),
-  );
+  const [authorityNotifiedAt, setAuthorityNotifiedAt] = useState(new Date().toISOString());
   const [subjectTemplate, setSubjectTemplate] = useState('');
   const [postMortem, setPostMortem] = useState('');
   const [freeNote, setFreeNote] = useState('');
 
   const contain = useMutation({
-    mutationFn: (n: string) =>
-      breachLedgerAdminApi.markContained(incident.id, n),
+    mutationFn: (n: string) => breachLedgerAdminApi.markContained(incident.id, n),
     onSuccess: onMutated,
     onError,
   });
@@ -353,8 +327,7 @@ function IncidentDetail({
     onError,
   });
   const addNote = useMutation({
-    mutationFn: () =>
-      breachLedgerAdminApi.appendNote(incident.id, { note: freeNote }),
+    mutationFn: () => breachLedgerAdminApi.appendNote(incident.id, { note: freeNote }),
     onSuccess: () => {
       setFreeNote('');
       onMutated();
@@ -362,10 +335,8 @@ function IncidentDetail({
     onError,
   });
 
-  const canContain =
-    incident.status === 'DETECTED' && !incident.closedAt;
-  const canNotifyAuthority =
-    incident.status === 'DETECTED' || incident.status === 'CONTAINED';
+  const canContain = incident.status === 'DETECTED' && !incident.closedAt;
+  const canNotifyAuthority = incident.status === 'DETECTED' || incident.status === 'CONTAINED';
   const canNotifySubjects = incident.status === 'NOTIFIED_AUTHORITY';
   const canClose =
     incident.status !== 'CLOSED' &&
@@ -380,7 +351,7 @@ function IncidentDetail({
           <h2 className="text-lg font-semibold">{incident.title}</h2>
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <SeverityChip severity={incident.severity} />
-            <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide">
+            <span className="border-border rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide">
               {incident.status}
             </span>
             <span className="text-muted-foreground">
@@ -403,42 +374,28 @@ function IncidentDetail({
         </button>
       </header>
 
-      <section className="space-y-1 rounded-md border border-border p-3 text-sm">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <section className="border-border space-y-1 rounded-md border p-3 text-sm">
+        <h3 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
           Deskripsi
         </h3>
         <p className="whitespace-pre-wrap">{incident.description}</p>
       </section>
 
-      <section className="grid gap-2 rounded-md border border-border p-3 text-xs sm:grid-cols-2">
+      <section className="border-border grid gap-2 rounded-md border p-3 text-xs sm:grid-cols-2">
         <KV label="Kategori" value={incident.category} />
         <KV label="Subjek terdampak" value={String(incident.affectedUserCount)} />
-        <KV
-          label="Sistem"
-          value={incident.affectedSystems.join(', ') || '—'}
-        />
-        <KV
-          label="Kategori data"
-          value={incident.affectedDataCategories.join(', ') || '—'}
-        />
+        <KV label="Sistem" value={incident.affectedSystems.join(', ') || '—'} />
+        <KV label="Kategori data" value={incident.affectedDataCategories.join(', ') || '—'} />
         <KV label="Reporter" value={incident.reportedByEmail ?? '—'} />
         <KV label="Assignee" value={incident.assignedToEmail ?? '—'} />
         <KV
           label="Occurred"
-          value={
-            incident.occurredAt
-              ? incident.occurredAt.slice(0, 19).replace('T', ' ')
-              : '—'
-          }
+          value={incident.occurredAt ? incident.occurredAt.slice(0, 19).replace('T', ' ') : '—'}
         />
         <KV label="Detected" value={incident.detectedAt.slice(0, 19).replace('T', ' ')} />
         <KV
           label="Contained"
-          value={
-            incident.containedAt
-              ? incident.containedAt.slice(0, 19).replace('T', ' ')
-              : '—'
-          }
+          value={incident.containedAt ? incident.containedAt.slice(0, 19).replace('T', ' ') : '—'}
         />
         <KV
           label="Authority notified"
@@ -459,8 +416,8 @@ function IncidentDetail({
         <KV label="Authority ref" value={incident.authorityNotificationRef ?? '—'} />
       </section>
 
-      <section className="space-y-3 rounded-md border border-border p-3">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <section className="border-border space-y-3 rounded-md border p-3">
+        <h3 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
           Lifecycle Actions
         </h3>
 
@@ -468,7 +425,7 @@ function IncidentDetail({
           <div className="space-y-1">
             <label className="text-xs font-medium">Containment note</label>
             <textarea
-              className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+              className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm"
               rows={2}
               value={note}
               onChange={(e) => setNote(e.target.value)}
@@ -488,7 +445,7 @@ function IncidentDetail({
           <div className="space-y-1">
             <label className="text-xs font-medium">Authority notification</label>
             <input
-              className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+              className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm"
               placeholder="Nomor referensi Kominfo / regulator"
               value={authorityRef}
               onChange={(e) => setAuthorityRef(e.target.value)}
@@ -496,11 +453,9 @@ function IncidentDetail({
             />
             <input
               type="datetime-local"
-              className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+              className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm"
               value={toLocalDatetime(authorityNotifiedAt)}
-              onChange={(e) =>
-                setAuthorityNotifiedAt(new Date(e.target.value).toISOString())
-              }
+              onChange={(e) => setAuthorityNotifiedAt(new Date(e.target.value).toISOString())}
             />
             <button
               type="button"
@@ -515,11 +470,9 @@ function IncidentDetail({
 
         {canNotifySubjects && (
           <div className="space-y-1">
-            <label className="text-xs font-medium">
-              Subject notification template (verbatim)
-            </label>
+            <label className="text-xs font-medium">Subject notification template (verbatim)</label>
             <textarea
-              className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+              className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm"
               rows={3}
               value={subjectTemplate}
               onChange={(e) => setSubjectTemplate(e.target.value)}
@@ -528,9 +481,7 @@ function IncidentDetail({
               type="button"
               className="rounded-md border px-3 py-1.5 text-xs"
               onClick={() => notifySubjects.mutate()}
-              disabled={
-                notifySubjects.isPending || subjectTemplate.trim().length < 20
-              }
+              disabled={notifySubjects.isPending || subjectTemplate.trim().length < 20}
             >
               Record Subject Notification
             </button>
@@ -541,7 +492,7 @@ function IncidentDetail({
           <div className="space-y-1">
             <label className="text-xs font-medium">Post-mortem summary</label>
             <textarea
-              className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+              className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm"
               rows={3}
               value={postMortem}
               onChange={(e) => setPostMortem(e.target.value)}
@@ -561,7 +512,7 @@ function IncidentDetail({
           <div className="space-y-1">
             <label className="text-xs font-medium">Append note</label>
             <textarea
-              className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+              className="border-input bg-background w-full rounded-md border px-2 py-1.5 text-sm"
               rows={2}
               value={freeNote}
               onChange={(e) => setFreeNote(e.target.value)}
@@ -578,26 +529,24 @@ function IncidentDetail({
         )}
       </section>
 
-      <section className="rounded-md border border-border">
-        <div className="border-b border-border bg-muted/40 px-3 py-2 text-xs font-semibold uppercase tracking-wide">
+      <section className="border-border rounded-md border">
+        <div className="border-border bg-muted/40 border-b px-3 py-2 text-xs font-semibold uppercase tracking-wide">
           Timeline (append-only)
         </div>
-        <ol className="divide-y divide-border">
+        <ol className="divide-border divide-y">
           {incident.timeline.map((ev) => (
             <li key={ev.id} className="space-y-0.5 px-3 py-2 text-xs">
               <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-[10px] text-muted-foreground">
+                <span className="text-muted-foreground font-mono text-[10px]">
                   {ev.occurredAt.slice(0, 19).replace('T', ' ')} UTC
                 </span>
-                <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide">
+                <span className="border-border rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide">
                   {ev.eventType}
                 </span>
               </div>
               <p className="whitespace-pre-wrap">{ev.note}</p>
               {ev.actorEmail && (
-                <p className="text-[10px] text-muted-foreground">
-                  by {ev.actorEmail}
-                </p>
+                <p className="text-muted-foreground text-[10px]">by {ev.actorEmail}</p>
               )}
             </li>
           ))}
@@ -612,23 +561,16 @@ function IncidentDetail({
 function KV({ label, value }: { label: string; value: string }): JSX.Element {
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-        {label}
-      </div>
+      <div className="text-muted-foreground text-[10px] uppercase tracking-wide">{label}</div>
       <div className="font-medium">{value}</div>
     </div>
   );
 }
 
-function SeverityChip({
-  severity,
-}: {
-  severity: BreachSeverity;
-}): JSX.Element {
+function SeverityChip({ severity }: { severity: BreachSeverity }): JSX.Element {
   const colours: Record<BreachSeverity, string> = {
     LOW: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100',
-    MEDIUM:
-      'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100',
+    MEDIUM: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100',
     HIGH: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100',
     CRITICAL: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
   };
@@ -653,17 +595,15 @@ function DeadlineBadge({
 }): JSX.Element {
   if (!deadline.active) {
     return (
-      <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+      <span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-2 py-0.5 text-[10px]">
         deadline sudah tercapai
       </span>
     );
   }
   const bucketClass: Record<BreachDeadlineBucket, string> = {
     SAFE: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100',
-    WARNING:
-      'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100',
-    CRITICAL:
-      'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100',
+    WARNING: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100',
+    CRITICAL: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100',
     OVERDUE: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
   };
   const label = deadline.overdue

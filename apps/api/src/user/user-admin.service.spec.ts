@@ -215,16 +215,14 @@ describe('UserAdminService.update', () => {
   it('forbids HR_MANAGER from promoting anyone to SUPER_ADMIN', async () => {
     const { service, prisma } = setup();
     prisma.user.findFirst.mockResolvedValue(makeUser({ role: 'EMPLOYEE' }) as never);
-    await expect(
-      service.update(hr, 'user-new', { role: 'SUPER_ADMIN' }),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(service.update(hr, 'user-new', { role: 'SUPER_ADMIN' })).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
   });
 
   it('forbids self role change', async () => {
     const { service, prisma } = setup();
-    prisma.user.findFirst.mockResolvedValue(
-      makeUser({ id: hr.id, role: 'HR_MANAGER' }) as never,
-    );
+    prisma.user.findFirst.mockResolvedValue(makeUser({ id: hr.id, role: 'HR_MANAGER' }) as never);
     await expect(service.update(hr, hr.id, { role: 'EMPLOYEE' })).rejects.toBeInstanceOf(
       ForbiddenException,
     );
@@ -265,18 +263,14 @@ describe('UserAdminService.update', () => {
 describe('UserAdminService.deactivate', () => {
   it('forbids self-deactivate', async () => {
     const { service, prisma } = setup();
-    prisma.user.findFirst.mockResolvedValue(
-      makeUser({ id: hr.id, role: 'HR_MANAGER' }) as never,
-    );
+    prisma.user.findFirst.mockResolvedValue(makeUser({ id: hr.id, role: 'HR_MANAGER' }) as never);
     await expect(service.deactivate(hr, hr.id)).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it('soft-deletes, terminates, revokes tokens', async () => {
     const { service, prisma, tokens } = setup();
     stubTransaction(prisma);
-    prisma.user.findFirst.mockResolvedValue(
-      makeUser({ id: 'u1', role: 'EMPLOYEE' }) as never,
-    );
+    prisma.user.findFirst.mockResolvedValue(makeUser({ id: 'u1', role: 'EMPLOYEE' }) as never);
     prisma.user.update.mockResolvedValue(
       makeUser({ id: 'u1', role: 'EMPLOYEE', deletedAt: new Date() }) as never,
     );
@@ -303,9 +297,7 @@ describe('UserAdminService.resetPassword', () => {
   it('rotates password + revokes all refresh tokens + audit log', async () => {
     const { service, prisma, passwords, tokens } = setup();
     stubTransaction(prisma);
-    prisma.user.findFirst.mockResolvedValue(
-      makeUser({ id: 'u1', role: 'EMPLOYEE' }) as never,
-    );
+    prisma.user.findFirst.mockResolvedValue(makeUser({ id: 'u1', role: 'EMPLOYEE' }) as never);
     prisma.user.update.mockResolvedValue(makeUser({ id: 'u1' }) as never);
 
     const out = await service.resetPassword(hr, 'u1');

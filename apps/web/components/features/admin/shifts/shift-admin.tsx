@@ -43,7 +43,8 @@ export function ShiftAdmin(): JSX.Element {
   });
 
   const updateMut = useMutation({
-    mutationFn: (v: { id: string; input: UpdateShiftInput }) => shiftsAdminApi.update(v.id, v.input),
+    mutationFn: (v: { id: string; input: UpdateShiftInput }) =>
+      shiftsAdminApi.update(v.id, v.input),
     onSuccess: () => {
       setErrorText(null);
       setEditing(null);
@@ -75,21 +76,24 @@ export function ShiftAdmin(): JSX.Element {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold">Shift</h2>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               Template jam kerja. Assignment per-karyawan diatur di panel bawah.
             </p>
           </div>
           <button
             type="button"
             onClick={() => setEditing('new')}
-            className="rounded-md bg-foreground px-3 py-1 text-xs font-medium text-background"
+            className="bg-foreground text-background rounded-md px-3 py-1 text-xs font-medium"
           >
             + Tambah
           </button>
         </div>
 
         {errorText && (
-          <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          <p
+            role="alert"
+            className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
+          >
             {errorText}
           </p>
         )}
@@ -113,15 +117,15 @@ export function ShiftAdmin(): JSX.Element {
         )}
 
         {shifts.isLoading ? (
-          <p className="text-sm text-muted-foreground">Memuat...</p>
+          <p className="text-muted-foreground text-sm">Memuat...</p>
         ) : rows.length === 0 ? (
-          <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+          <p className="text-muted-foreground rounded-md border border-dashed p-6 text-center text-sm">
             Belum ada shift. Tambahkan minimal satu shift default.
           </p>
         ) : (
           <div className="overflow-hidden rounded-lg border">
             <table className="w-full text-sm">
-              <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
+              <thead className="bg-muted/40 text-muted-foreground text-xs uppercase tracking-wider">
                 <tr>
                   <th className="px-3 py-2 text-left">Nama</th>
                   <th className="px-3 py-2 text-left">Tipe</th>
@@ -139,7 +143,7 @@ export function ShiftAdmin(): JSX.Element {
                   return (
                     <tr key={r.id}>
                       <td className="px-3 py-2 font-medium">{r.name}</td>
-                      <td className="px-3 py-2 text-xs text-muted-foreground">{r.type}</td>
+                      <td className="text-muted-foreground px-3 py-2 text-xs">{r.type}</td>
                       <td className="px-3 py-2 tabular-nums">
                         {r.startTime} – {r.endTime}
                       </td>
@@ -162,9 +166,10 @@ export function ShiftAdmin(): JSX.Element {
                             disabled={busy || disabledDel}
                             title={disabledDel ? 'Masih ada assignment aktif' : undefined}
                             onClick={() => {
-                              if (window.confirm(`Hapus shift "${r.name}"?`)) deleteMut.mutate(r.id);
+                              if (window.confirm(`Hapus shift "${r.name}"?`))
+                                deleteMut.mutate(r.id);
                             }}
-                            className="rounded-md border border-destructive px-2 py-1 text-xs text-destructive disabled:opacity-40"
+                            className="border-destructive text-destructive rounded-md border px-2 py-1 text-xs disabled:opacity-40"
                           >
                             {busy ? 'Menghapus...' : 'Hapus'}
                           </button>

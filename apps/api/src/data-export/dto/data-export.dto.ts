@@ -28,8 +28,7 @@ export class DataExportRequestDto {
 
   @ApiProperty({
     nullable: true,
-    description:
-      'When `status=FAILED`. Human-readable, safe to render. Never leaks stack traces.',
+    description: 'When `status=FAILED`. Human-readable, safe to render. Never leaks stack traces.',
   })
   failureReason!: string | null;
 

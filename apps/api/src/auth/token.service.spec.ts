@@ -39,7 +39,9 @@ function buildTokenService(): {
   const prisma = mockDeep<PrismaService>();
   const jwt = mockDeep<JwtService>();
   const config = {
-    get: jest.fn((key: string, def?: unknown) => (key === 'JWT_EXPIRES_IN' ? '15m' : key === 'JWT_REFRESH_EXPIRES_IN' ? '7d' : def)),
+    get: jest.fn((key: string, def?: unknown) =>
+      key === 'JWT_EXPIRES_IN' ? '15m' : key === 'JWT_REFRESH_EXPIRES_IN' ? '7d' : def,
+    ),
   } as unknown as ConfigService;
 
   jwt.sign.mockReturnValue('signed.jwt.token');

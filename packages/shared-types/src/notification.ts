@@ -83,9 +83,7 @@ export const notificationArchiveQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).optional(),
   cursor: z.string().optional(),
 });
-export type NotificationArchiveQuery = z.infer<
-  typeof notificationArchiveQuerySchema
->;
+export type NotificationArchiveQuery = z.infer<typeof notificationArchiveQuerySchema>;
 
 // ---------------------------------------------------------------------------
 // Preferences (Fase 22)
@@ -102,9 +100,7 @@ export const notificationPreferenceRowSchema = z.object({
   inAppEnabled: z.boolean(),
   mandatory: z.boolean(),
 });
-export type NotificationPreferenceRow = z.infer<
-  typeof notificationPreferenceRowSchema
->;
+export type NotificationPreferenceRow = z.infer<typeof notificationPreferenceRowSchema>;
 
 export const notificationPreferenceUpdateItemSchema = z.object({
   type: notificationTypeSchema,

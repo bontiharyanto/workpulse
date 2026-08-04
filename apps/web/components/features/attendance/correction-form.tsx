@@ -62,9 +62,7 @@ export function CorrectionForm(): JSX.Element {
   return (
     <form onSubmit={onSubmit} className="space-y-4 rounded-lg border p-6 shadow-sm">
       <header className="space-y-0.5">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">
-          Ajukan koreksi
-        </p>
+        <p className="text-muted-foreground text-xs uppercase tracking-widest">Ajukan koreksi</p>
         <p className="text-sm font-medium">
           Isi tanggal dan jam yang seharusnya tercatat, lampirkan alasan.
         </p>
@@ -72,60 +70,54 @@ export function CorrectionForm(): JSX.Element {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <label className="space-y-1 text-sm">
-          <span className="text-xs font-medium text-muted-foreground">Tanggal</span>
+          <span className="text-muted-foreground text-xs font-medium">Tanggal</span>
           <input
             type="date"
             value={workDate}
             max={today}
             onChange={(e) => setWorkDate(e.target.value)}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
             required
           />
         </label>
 
         <label className="space-y-1 text-sm">
-          <span className="text-xs font-medium text-muted-foreground">
-            Jam masuk (opsional)
-          </span>
+          <span className="text-muted-foreground text-xs font-medium">Jam masuk (opsional)</span>
           <input
             type="time"
             value={clockIn}
             onChange={(e) => setClockIn(e.target.value)}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm tabular-nums"
+            className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm tabular-nums"
           />
         </label>
 
         <label className="space-y-1 text-sm">
-          <span className="text-xs font-medium text-muted-foreground">
-            Jam pulang (opsional)
-          </span>
+          <span className="text-muted-foreground text-xs font-medium">Jam pulang (opsional)</span>
           <input
             type="time"
             value={clockOut}
             onChange={(e) => setClockOut(e.target.value)}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm tabular-nums"
+            className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm tabular-nums"
           />
         </label>
       </div>
 
       <label className="block space-y-1 text-sm">
-        <span className="text-xs font-medium text-muted-foreground">Alasan</span>
+        <span className="text-muted-foreground text-xs font-medium">Alasan</span>
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           rows={3}
           maxLength={500}
           placeholder="Contoh: lupa clock-in karena rapat pagi mendadak."
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
           required
         />
       </label>
 
-      {inlineError ? (
-        <p className="text-sm text-destructive">{inlineError}</p>
-      ) : null}
+      {inlineError ? <p className="text-destructive text-sm">{inlineError}</p> : null}
       {submit.isError ? (
-        <p className="text-sm text-destructive">{formatApiError(submit.error)}</p>
+        <p className="text-destructive text-sm">{formatApiError(submit.error)}</p>
       ) : null}
       {submit.isSuccess ? (
         <p className="text-sm text-emerald-700">
@@ -136,7 +128,7 @@ export function CorrectionForm(): JSX.Element {
       <button
         type="submit"
         disabled={submit.isPending}
-        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60"
+        className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium disabled:opacity-60"
       >
         {submit.isPending ? 'Mengirim...' : 'Kirim koreksi'}
       </button>

@@ -60,7 +60,10 @@ export function generateBackupCodes(count: number): string[] {
  * won't match anything.
  */
 export function normalizeBackupCode(input: string): string {
-  return input.trim().replace(/[\s\-_]+/g, '').toUpperCase();
+  return input
+    .trim()
+    .replace(/[\s\-_]+/g, '')
+    .toUpperCase();
 }
 
 /**

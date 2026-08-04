@@ -21,27 +21,26 @@ function setup(): {
 const NOW = new Date('2026-08-10T02:00:00Z');
 const WORK_DATE = new Date('2026-08-01T00:00:00Z'); // > grace(2) days before NOW
 
-function makeCandidate(overrides: Partial<{
-  id: string;
-  status: string;
-  workDate: Date;
-  graceDays: number;
-  userId: string;
-  payrollLockedUntil: Date | null;
-}> = {}) {
+function makeCandidate(
+  overrides: Partial<{
+    id: string;
+    status: string;
+    workDate: Date;
+    graceDays: number;
+    userId: string;
+    payrollLockedUntil: Date | null;
+  }> = {},
+) {
   return {
     id: overrides.id ?? 'ot-1',
     companyId: 'co-1',
     userId: overrides.userId ?? 'u-1',
     workDate: overrides.workDate ?? WORK_DATE,
-    hours: { toString: () => '3' } as unknown as ReturnType<
-      typeof toDecimal
-    >,
+    hours: { toString: () => '3' } as unknown as ReturnType<typeof toDecimal>,
     status: overrides.status ?? 'APPROVED',
     company: {
       overtimeCompleteGraceDays: overrides.graceDays ?? 2,
-      payrollLockedUntil:
-        'payrollLockedUntil' in overrides ? overrides.payrollLockedUntil : null,
+      payrollLockedUntil: 'payrollLockedUntil' in overrides ? overrides.payrollLockedUntil : null,
     },
     user: { email: 'emp@a.test', fullName: 'Employee' },
   };
@@ -53,7 +52,13 @@ function toDecimal(): { toString: () => string } {
   return { toString: () => '0' };
 }
 
-function makeAttendance(overrides: Partial<{ clockInAt: Date | null; clockOutAt: Date | null; deletedAt: Date | null }> = {}) {
+function makeAttendance(
+  overrides: Partial<{
+    clockInAt: Date | null;
+    clockOutAt: Date | null;
+    deletedAt: Date | null;
+  }> = {},
+) {
   // Note: `??` would treat an explicit `null` override as "missing" and fall
   // back to the default. Use `in` checks so callers can force nullability.
   return {

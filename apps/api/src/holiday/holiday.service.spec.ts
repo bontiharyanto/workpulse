@@ -118,18 +118,16 @@ describe('HolidayService.update', () => {
   it('rejects cross-tenant lookup with NotFound', async () => {
     const { service, prisma } = setup();
     prisma.holiday.findFirst.mockResolvedValue(null as never);
-    await expect(
-      service.update(hr, 'other-h', { name: 'X' }),
-    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.update(hr, 'other-h', { name: 'X' })).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('writes before/after audit for a rename', async () => {
     const { service, prisma } = setup();
     stubTx(prisma);
     prisma.holiday.findFirst.mockResolvedValue(makeRow() as never);
-    prisma.holiday.update.mockResolvedValue(
-      makeRow({ name: 'Tahun Baru Masehi' }) as never,
-    );
+    prisma.holiday.update.mockResolvedValue(makeRow({ name: 'Tahun Baru Masehi' }) as never);
 
     await service.update(hr, 'h-1', { name: 'Tahun Baru Masehi' });
 

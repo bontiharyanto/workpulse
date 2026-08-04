@@ -66,10 +66,7 @@ interface ExportRow {
   fileSize: number | null;
 }
 
-async function listExports(
-  ctx: APIRequestContext,
-  accessToken: string,
-): Promise<ExportRow[]> {
+async function listExports(ctx: APIRequestContext, accessToken: string): Promise<ExportRow[]> {
   const res = await ctx.get('/api/v1/me/data-export', {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
@@ -90,9 +87,7 @@ async function waitForStatus(
     const target = rows.find((r) => r.id === id);
     if (target && target.status === wanted) return target;
     if (target && (target.status === 'FAILED' || target.status === 'EXPIRED')) {
-      throw new Error(
-        `expected ${wanted} but request settled to ${target.status}`,
-      );
+      throw new Error(`expected ${wanted} but request settled to ${target.status}`);
     }
     await new Promise((r) => setTimeout(r, WORKER_POLL_MS));
   }
@@ -115,10 +110,9 @@ test('DSAR happy path: create → worker builds ZIP → list shows READY → dow
   expect(ready.fileSize).toBeGreaterThan(0);
 
   // Download endpoint mints a fresh presigned URL.
-  const dl = await ctx.get(
-    `/api/v1/me/data-export/${encodeURIComponent(requestId)}/download`,
-    { headers: { Authorization: `Bearer ${accessToken}` } },
-  );
+  const dl = await ctx.get(`/api/v1/me/data-export/${encodeURIComponent(requestId)}/download`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
   expect(dl.ok(), await dl.text()).toBe(true);
   const dlBody = (await dl.json()) as { downloadUrl: string; expiresIn: number };
   expect(dlBody.downloadUrl).toMatch(/^https?:\/\//);
@@ -137,7 +131,7 @@ test('DSAR rate limit: second create while cooldown is active → 409 EXPORT_COO
   expect(['EXPORT_COOLDOWN', 'EXPORT_ALREADY_PENDING']).toContain(body.code);
 });
 
-test('DSAR ownership: another user cannot download a stranger\'s export', async () => {
+test("DSAR ownership: another user cannot download a stranger's export", async () => {
   // Log in as admin, capture the latest READY row.
   const { ctx: adminCtx, accessToken: adminToken } = await loginContext();
   const rows = await listExports(adminCtx, adminToken);

@@ -39,7 +39,8 @@ describe('MfaVerifiedGuard', () => {
 
   it('lets requests through when @AllowUnverifiedMfa is set', () => {
     const ctx = buildContext({ mfaPassed: false });
-    jest.spyOn(reflector, 'getAllAndOverride')
+    jest
+      .spyOn(reflector, 'getAllAndOverride')
       .mockReturnValueOnce(false) // public
       .mockReturnValueOnce(true); // allow-unverified-mfa
     expect(guard.canActivate(ctx)).toBe(true);
@@ -47,7 +48,8 @@ describe('MfaVerifiedGuard', () => {
 
   it('lets requests through when @AllowMustChangePassword is set', () => {
     const ctx = buildContext({ mfaPassed: false });
-    jest.spyOn(reflector, 'getAllAndOverride')
+    jest
+      .spyOn(reflector, 'getAllAndOverride')
       .mockReturnValueOnce(false) // public
       .mockReturnValueOnce(false) // allow-unverified-mfa
       .mockReturnValueOnce(true); // allow-must-change-password
@@ -86,4 +88,3 @@ describe('MfaVerifiedGuard', () => {
     expect(guard.canActivate(ctx)).toBe(true);
   });
 });
-

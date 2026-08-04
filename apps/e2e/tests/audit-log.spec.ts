@@ -41,9 +41,7 @@ interface AuditPage {
  * works — we use a config PATCH that no-ops when payrollLockedUntil
  * is already null (idempotent + safe).
  */
-async function primeAuditRows(
-  api: import('@playwright/test').APIRequestContext,
-): Promise<void> {
+async function primeAuditRows(api: import('@playwright/test').APIRequestContext): Promise<void> {
   // Fire a small config bump to guarantee at least 2 audit rows even
   // when the tenant is otherwise quiet. Value change is trivial: flip
   // absentScanGraceHours between 6 and 7. Two writes = one back to
@@ -96,9 +94,7 @@ test('HR: filter by action returns only rows with that action', async () => {
   const { api } = await authenticateApi('hr');
   await primeAuditRows(api);
 
-  const res = await api.get(
-    '/api/v1/admin/audit-log?action=COMPANY_CONFIG_UPDATED&limit=25',
-  );
+  const res = await api.get('/api/v1/admin/audit-log?action=COMPANY_CONFIG_UPDATED&limit=25');
   expect(res.status()).toBe(200);
   const body = (await res.json()) as AuditPage;
   // Might be empty on a very quiet tenant, but the property under
@@ -111,9 +107,7 @@ test('HR: filter by action returns only rows with that action', async () => {
 
 test('HR: filter by entityType returns only rows for that entity', async () => {
   const { api } = await authenticateApi('hr');
-  const res = await api.get(
-    '/api/v1/admin/audit-log?entityType=Company&limit=25',
-  );
+  const res = await api.get('/api/v1/admin/audit-log?entityType=Company&limit=25');
   expect(res.status()).toBe(200);
   const body = (await res.json()) as AuditPage;
   for (const row of body.rows) {

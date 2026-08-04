@@ -32,9 +32,11 @@ function makeEmail(): FakeEmail {
   };
 }
 
-function setup(overrides: {
-  effective?: { emailEnabled: boolean; inAppEnabled: boolean };
-} = {}): {
+function setup(
+  overrides: {
+    effective?: { emailEnabled: boolean; inAppEnabled: boolean };
+  } = {},
+): {
   service: NotificationService;
   prisma: DeepMockProxy<PrismaService>;
   email: FakeEmail;
@@ -298,10 +300,7 @@ describe('NotificationService.listPaginated', () => {
 
     const call = prisma.notification.findMany.mock.calls[0]?.[0];
     expect(call?.where).toMatchObject({ recipientId: 'u-1' });
-    expect(call?.orderBy).toEqual([
-      { createdAt: 'desc' },
-      { id: 'desc' },
-    ]);
+    expect(call?.orderBy).toEqual([{ createdAt: 'desc' }, { id: 'desc' }]);
   });
 
   it('overfetches by 1 to detect hasMore', async () => {
@@ -357,9 +356,7 @@ describe('NotificationService.listPaginated', () => {
     expect(page.rows).toHaveLength(3);
     expect(page.nextCursor).not.toBeNull();
 
-    const decoded = JSON.parse(
-      Buffer.from(page.nextCursor!, 'base64url').toString('utf8'),
-    );
+    const decoded = JSON.parse(Buffer.from(page.nextCursor!, 'base64url').toString('utf8'));
     // Anchor MUST be n3 (the last row we're returning), not n4 (the
     // overfetched, dropped row) — otherwise page 2 would skip n3.
     expect(decoded.id).toBe('n3');
@@ -395,9 +392,9 @@ describe('NotificationService.listPaginated', () => {
 
   it('rejects a malformed cursor with 400 INVALID_CURSOR', async () => {
     const { service } = setup();
-    await expect(
-      service.listPaginated(actor, { cursor: 'not-real-b64' }),
-    ).rejects.toBeInstanceOf(BadRequestException);
+    await expect(service.listPaginated(actor, { cursor: 'not-real-b64' })).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
   });
 
   it('projects readAt as ISO string (or null) — matches the flat `list` shape', async () => {

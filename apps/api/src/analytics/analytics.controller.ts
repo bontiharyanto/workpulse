@@ -47,11 +47,7 @@ export class AnalyticsController {
     @CurrentUser() actor: AuthenticatedUser,
     @Query() query: TimeseriesQueryDto,
   ): Promise<TimeseriesResponseDto> {
-    const result = await this.service.getTimeseries(
-      actor,
-      query.metricKey,
-      query.windowDays,
-    );
+    const result = await this.service.getTimeseries(actor, query.metricKey, query.windowDays);
     return result as TimeseriesResponseDto;
   }
 }

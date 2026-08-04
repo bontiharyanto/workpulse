@@ -58,10 +58,7 @@ function buildKit(overrides: Partial<typeof userRow> = {}): Kit {
 
   const config = {
     get: jest.fn(
-      (
-        key: string,
-        def?: string | number | boolean,
-      ): string | number | boolean | undefined => {
+      (key: string, def?: string | number | boolean): string | number | boolean | undefined => {
         switch (key) {
           case 'MFA_SECRET_ENCRYPTION_KEY':
             return TEST_KEY_BASE64;
@@ -82,7 +79,8 @@ function buildKit(overrides: Partial<typeof userRow> = {}): Kit {
 
   // Default happy-path user; overrides mutate the object per test.
   prisma.user.findFirst.mockResolvedValue({ ...userRow, ...overrides } as never);
-  prisma.$transaction.mockImplementation(((cb: (tx: PrismaService) => unknown) => cb(prisma)) as never);
+  prisma.$transaction.mockImplementation(((cb: (tx: PrismaService) => unknown) =>
+    cb(prisma)) as never);
 
   return { service, prisma, tokens, password };
 }
@@ -108,9 +106,7 @@ describe('MfaService', () => {
 
     it('refuses to overwrite an active MFA config', async () => {
       const { service } = buildKit({ mfaEnabledAt: new Date() });
-      await expect(service.startEnrollment(userRow.id)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.startEnrollment(userRow.id)).rejects.toThrow(BadRequestException);
     });
 
     it('fails if the encryption key is missing (dev env)', async () => {
@@ -179,9 +175,9 @@ describe('MfaService', () => {
       const { service } = buildKit({
         mfaSecret: encryptString(pendingSecret, TEST_KEY),
       });
-      await expect(
-        service.confirmEnrollment(userRow.id, '000000', {}),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.confirmEnrollment(userRow.id, '000000', {})).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('refuses double-activation', async () => {
@@ -191,9 +187,9 @@ describe('MfaService', () => {
         mfaEnabledAt: new Date(),
       });
       const code = authenticator.generate(pendingSecret);
-      await expect(
-        service.confirmEnrollment(userRow.id, code, {}),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.confirmEnrollment(userRow.id, code, {})).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -220,12 +216,7 @@ describe('MfaService', () => {
       tokens.rotateForMfaStepUp.mockResolvedValue(pair);
 
       const code = authenticator.generate(secret);
-      const result = await service.verifyStepUp(
-        userRow.id,
-        { code },
-        'raw-refresh',
-        {},
-      );
+      const result = await service.verifyStepUp(userRow.id, { code }, 'raw-refresh', {});
 
       expect(result.usedBackupCode).toBe(false);
       expect(result.accessToken).toBe('new.jwt');
@@ -235,20 +226,15 @@ describe('MfaService', () => {
 
     it('rejects when neither code nor backupCode is provided', async () => {
       const { service } = stepUpKit();
-      await expect(
-        service.verifyStepUp(userRow.id, {}, 'raw', {}),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.verifyStepUp(userRow.id, {}, 'raw', {})).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('rejects when both code and backupCode are provided', async () => {
       const { service } = stepUpKit();
       await expect(
-        service.verifyStepUp(
-          userRow.id,
-          { code: '123456', backupCode: 'ABCD123456' },
-          'raw',
-          {},
-        ),
+        service.verifyStepUp(userRow.id, { code: '123456', backupCode: 'ABCD123456' }, 'raw', {}),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -296,20 +282,15 @@ describe('MfaService', () => {
       const { service, prisma } = stepUpKit();
       prisma.mfaBackupCode.findFirst.mockResolvedValue(null);
       await expect(
-        service.verifyStepUp(
-          userRow.id,
-          { backupCode: 'ABCDEFGH12' },
-          'raw',
-          {},
-        ),
+        service.verifyStepUp(userRow.id, { backupCode: 'ABCDEFGH12' }, 'raw', {}),
       ).rejects.toThrow(UnauthorizedException);
     });
 
     it('rejects when the account has no MFA active', async () => {
       const { service } = buildKit({ mfaSecret: null, mfaEnabledAt: null });
-      await expect(
-        service.verifyStepUp(userRow.id, { code: '123456' }, 'raw', {}),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.verifyStepUp(userRow.id, { code: '123456' }, 'raw', {})).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 
@@ -385,9 +366,9 @@ describe('MfaService', () => {
 
     it('rejects when MFA is not active', async () => {
       const { service } = buildKit({ mfaSecret: null, mfaEnabledAt: null });
-      await expect(
-        service.regenerateBackupCodes(userRow.id, '123456', {}),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.regenerateBackupCodes(userRow.id, '123456', {})).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 

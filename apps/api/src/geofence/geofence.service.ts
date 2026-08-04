@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Geofence, Prisma } from '@prisma/client';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
@@ -42,10 +38,7 @@ export class GeofenceService {
     return this.toDto(row);
   }
 
-  async create(
-    actor: AuthenticatedUser,
-    input: CreateGeofenceInput,
-  ): Promise<GeofenceResponseDto> {
+  async create(actor: AuthenticatedUser, input: CreateGeofenceInput): Promise<GeofenceResponseDto> {
     const created = await this.prisma.$transaction(async (tx) => {
       const row = await tx.geofence.create({
         data: {
@@ -143,9 +136,7 @@ export class GeofenceService {
     return row;
   }
 
-  private toDto(
-    row: Geofence & { _count: { shifts: number } },
-  ): GeofenceResponseDto {
+  private toDto(row: Geofence & { _count: { shifts: number } }): GeofenceResponseDto {
     return {
       id: row.id,
       companyId: row.companyId,

@@ -29,20 +29,25 @@ Kami memakai **JWT access token pendek (15m) + opaque refresh token panjang (7d)
 ## Rationale
 
 ### Why not access token in localStorage?
+
 XSS attack surface luas (npm dependency, ekstensi browser). Token di `localStorage` mudah diambil `document.cookie` bypass tidak berlaku. In-memory access token + HttpOnly refresh cookie = worst case, XSS hanya bisa melakukan aksi selama halaman tersebut hidup, tidak bisa mengekspor token.
 
 ### Why opaque refresh, bukan JWT refresh?
+
 - Revokabilitas: menghapus row di DB langsung invalidate. JWT refresh butuh blacklist atau versioning.
 - Reuse detection: opaque + row per token memungkinkan tracking `familyId` untuk deteksi replay attack.
 - Ukuran cookie lebih kecil.
 
 ### Why familyId + reuse detection?
+
 Skenario: attacker mencuri refresh cookie, memakainya untuk mendapat access + refresh baru. Legitimate user kemudian me-refresh dengan cookie lama → token lama sudah `ROTATED` → sistem menganggap ada reuse → **revoke seluruh family** (token attacker termasuk). User legitimate ter-logout dan aware bahwa ada anomali. Ini pola standar dari OAuth 2.1 draft.
 
 ### Why SameSite=Lax bukan Strict?
+
 `Lax` mengizinkan navigasi top-level (misal user klik link email masuk aplikasi) sambil tetap memblokir CSRF pada mutating requests. `Strict` terlalu ketat untuk UX SSO/deep-link.
 
 ### Why not include CSRF token?
+
 Endpoint yang butuh state-changing sudah pakai `Authorization: Bearer <access-token>`, yang tidak dikirim otomatis oleh browser. Refresh endpoint `/auth/refresh` menerima cookie tapi hanya untuk **memperbaharui token**, tidak berdampak bisnis. Ini kombinasi standar Bearer-header + HttpOnly cookie yang menghilangkan kebutuhan CSRF token untuk sebagian besar endpoint. Endpoint yang menggunakan cookie sebagai satu-satunya credential (kalau kelak ada) akan mendapat CSRF token guard.
 
 ## Alternatives Considered
@@ -62,12 +67,14 @@ Endpoint yang butuh state-changing sudah pakai `Authorization: Bearer <access-to
 ## Consequences
 
 **Positif:**
+
 - Model auth production-grade di fase 1.
 - Deteksi replay attack sudah built-in.
 - Access token exposure surface minimal.
 - Kompatibel dengan mobile client (SecureStore untuk refresh).
 
 **Negatif / Trade-off:**
+
 - Reload page = satu roundtrip ekstra ke `/auth/refresh`. Diterima untuk security gain.
 - MVP: route protection sisi client (`RequireAuth` component). Middleware Next.js belum bisa membaca HttpOnly cookie tanpa validasi ke API — akan direalisasi di fase 2 (server-side gate memvalidasi ke `/auth/me`).
 

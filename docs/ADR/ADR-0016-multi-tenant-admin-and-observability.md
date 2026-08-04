@@ -7,7 +7,7 @@
 
 ## Context
 
-Workpulse has always been *multi-tenant capable* at the schema layer — every
+Workpulse has always been _multi-tenant capable_ at the schema layer — every
 row carries a `companyId`, every guard forces isolation on it. What was
 missing was the operational tooling to actually manage those tenants:
 
@@ -36,24 +36,24 @@ New module at `apps/api/src/company-admin/`, mounted under `/admin/companies`
 (plural). Deliberately **separate from** the existing `/admin/company`
 (singular) which is tenant-scoped and open to HR:
 
-| Path                                   | Role gate                | Scope             |
-| -------------------------------------- | ------------------------ | ----------------- |
-| `/admin/company` (singular)            | `HR_MANAGER`, `SUPER_ADMIN` | Own tenant only |
-| `/admin/companies` (plural, this ADR)  | `SUPER_ADMIN` only       | **Cross-tenant**  |
+| Path                                  | Role gate                   | Scope            |
+| ------------------------------------- | --------------------------- | ---------------- |
+| `/admin/company` (singular)           | `HR_MANAGER`, `SUPER_ADMIN` | Own tenant only  |
+| `/admin/companies` (plural, this ADR) | `SUPER_ADMIN` only          | **Cross-tenant** |
 
 Distinct paths make it impossible for a mis-configured guard to fall from
 one to the other — the URL itself encodes intent.
 
 Endpoints:
 
-| Method | Path                                | Effect                                                          |
-| ------ | ----------------------------------- | --------------------------------------------------------------- |
-| `POST` | `/admin/companies`                  | Create tenant + bootstrap (see §2). Returns temp password once. |
-| `GET`  | `/admin/companies`                  | List, offset-paginated, search on `name`/`slug`.                |
-| `GET`  | `/admin/companies/:id`              | Detail with `userCount` + `departmentCount`.                    |
-| `PATCH`| `/admin/companies/:id`              | Update `name`/`slug`/`timezone`. Slug uniqueness re-checked.    |
-| `DELETE`| `/admin/companies/:id`             | Soft-delete. Refuses when active users remain.                  |
-| `POST` | `/admin/companies/:id/restore`      | Restore a soft-deleted tenant.                                  |
+| Method   | Path                           | Effect                                                          |
+| -------- | ------------------------------ | --------------------------------------------------------------- |
+| `POST`   | `/admin/companies`             | Create tenant + bootstrap (see §2). Returns temp password once. |
+| `GET`    | `/admin/companies`             | List, offset-paginated, search on `name`/`slug`.                |
+| `GET`    | `/admin/companies/:id`         | Detail with `userCount` + `departmentCount`.                    |
+| `PATCH`  | `/admin/companies/:id`         | Update `name`/`slug`/`timezone`. Slug uniqueness re-checked.    |
+| `DELETE` | `/admin/companies/:id`         | Soft-delete. Refuses when active users remain.                  |
+| `POST`   | `/admin/companies/:id/restore` | Restore a soft-deleted tenant.                                  |
 
 ### 2. Bootstrap transaction
 
@@ -138,7 +138,7 @@ Loaded from `src/instrument.ts` — imported as the **very first line** of
   denials are business signal, not on-call noise.
 - **`AllExceptionsFilter` calls `Sentry.captureException`** for any
   unhandled non-HttpException. `HttpException` still routes through
-  `HttpExceptionFilter` and is *not* captured (matches the beforeSend
+  `HttpExceptionFilter` and is _not_ captured (matches the beforeSend
   filter).
 - Optional performance tracing controlled by `SENTRY_TRACES_SAMPLE_RATE`
   (default 0).
@@ -148,12 +148,12 @@ Loaded from `src/instrument.ts` — imported as the **very first line** of
 Added to `env.validation.ts` (validated at boot):
 
 ```ts
-LOG_LEVEL:                 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'  // default: info
-LOG_PRETTY:                'true' | 'false'                                          // default: false
-SENTRY_DSN:                string | undefined
-SENTRY_ENVIRONMENT:        string | undefined                                        // defaults to NODE_ENV
-SENTRY_RELEASE:            string | undefined                                        // typically git SHA
-SENTRY_TRACES_SAMPLE_RATE: number                                                    // 0..1, default 0
+LOG_LEVEL: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'; // default: info
+LOG_PRETTY: 'true' | 'false'; // default: false
+SENTRY_DSN: string | undefined;
+SENTRY_ENVIRONMENT: string | undefined; // defaults to NODE_ENV
+SENTRY_RELEASE: string | undefined; // typically git SHA
+SENTRY_TRACES_SAMPLE_RATE: number; // 0..1, default 0
 ```
 
 All optional — the API boots identically to before when none are set.
@@ -237,7 +237,7 @@ component state is cleared when the reveal panel is dismissed.
 - **Unit** — `apps/api/src/company-admin/company-admin.service.spec.ts`
   (RBAC gate for every method, bootstrap correctness, slug/email uniqueness,
   self-delete refusal, active-user guardrail) + `slug.spec.ts` (derivation
-  + uniqueness bumping). 37 tests, all green.
+  - uniqueness bumping). 37 tests, all green.
 - **E2E API** — `apps/e2e/tests/company-admin.spec.ts`. 9 tests:
   lifecycle, duplicate slug, duplicate email, invalid timezone, self-delete
   refusal, RBAC for HR/SUPERVISOR/EMPLOYEE (each hits every endpoint),

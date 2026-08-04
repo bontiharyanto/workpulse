@@ -33,11 +33,11 @@ A single row per Company (unique constraint on `companyId`) with
 three integer fields. Hard-coded safety bounds in
 `RetentionService`:
 
-| Field | Range | Default | Zero-semantics |
-|---|---|---|---|
-| `notificationRetentionDays` | 0–730 | 90 | 0 → never prune |
-| `dataExportArchiveRetentionHours` | 1–168 | 24 | — |
-| `terminatedUserAnonymizeDays` | 0–3650 | 0 | 0 → auto-erasure off |
+| Field                             | Range  | Default | Zero-semantics       |
+| --------------------------------- | ------ | ------- | -------------------- |
+| `notificationRetentionDays`       | 0–730  | 90      | 0 → never prune      |
+| `dataExportArchiveRetentionHours` | 1–168  | 24      | —                    |
+| `terminatedUserAnonymizeDays`     | 0–3650 | 0       | 0 → auto-erasure off |
 
 Reads lazily upsert the fallback row so a brand-new tenant sees
 sensible defaults without a data-migration step.
@@ -145,7 +145,7 @@ this null.
   authentication with a business-rule check and makes the code
   path for anonymous callers slower.
 - **Store consent acceptance as a boolean column on `User`.**
-  Rejected — you cannot prove *when* the user accepted *which*
+  Rejected — you cannot prove _when_ the user accepted _which_
   version. A ledger with `ip` + `userAgent` per row is what
   legal actually needs.
 

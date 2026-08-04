@@ -20,12 +20,7 @@ export const vendorCategorySchema = z.enum([
 ]);
 export type VendorCategory = z.infer<typeof vendorCategorySchema>;
 
-export const vendorStatusSchema = z.enum([
-  'UNDER_REVIEW',
-  'ACTIVE',
-  'DEPRECATED',
-  'TERMINATED',
-]);
+export const vendorStatusSchema = z.enum(['UNDER_REVIEW', 'ACTIVE', 'DEPRECATED', 'TERMINATED']);
 export type VendorStatus = z.infer<typeof vendorStatusSchema>;
 
 export const vendorDataVolumeSchema = z.enum(['LOW', 'MEDIUM', 'HIGH', 'MASSIVE']);

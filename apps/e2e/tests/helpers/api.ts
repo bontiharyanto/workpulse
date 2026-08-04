@@ -27,18 +27,14 @@ export interface AuthenticatedApi {
  * (RBAC-gated endpoints, idempotency probes) — it keeps those specs
  * fast + resistant to unrelated UI churn.
  */
-export async function authenticateApi(
-  key: SeedUserKey,
-): Promise<AuthenticatedApi> {
+export async function authenticateApi(key: SeedUserKey): Promise<AuthenticatedApi> {
   const user = SEED_USERS[key];
   const login = await request.newContext({ baseURL: API_URL });
   const res = await login.post('/api/v1/auth/login', {
     data: { email: user.email, password: user.password },
   });
   if (!res.ok()) {
-    throw new Error(
-      `authenticateApi(${key}) failed: ${res.status()} ${await res.text()}`,
-    );
+    throw new Error(`authenticateApi(${key}) failed: ${res.status()} ${await res.text()}`);
   }
   const body = (await res.json()) as { accessToken?: string };
   await login.dispose();

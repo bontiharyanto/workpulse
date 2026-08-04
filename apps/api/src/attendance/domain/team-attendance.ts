@@ -121,10 +121,7 @@ export function buildTeamDailyView(
   for (const r of records) byUser.set(r.userId, r);
   const absenceByUser = new Map<string, AbsenceOverlay>();
   for (const a of options.absences ?? []) absenceByUser.set(a.userId, a);
-  const absentIds = new Set<string>([
-    ...absenceByUser.keys(),
-    ...toSet(options.absentUserIds),
-  ]);
+  const absentIds = new Set<string>([...absenceByUser.keys(), ...toSet(options.absentUserIds)]);
   const onLeaveIds = toSet(options.onLeaveUserIds);
 
   const rows: TeamMemberDailyRow[] = roster.map((m) => {
@@ -197,10 +194,7 @@ const SEVERITY: Record<TeamAttendanceStatus, number> = {
   ON_TIME: 5,
 };
 
-function compareByExceptionSeverity(
-  a: TeamMemberDailyRow,
-  b: TeamMemberDailyRow,
-): number {
+function compareByExceptionSeverity(a: TeamMemberDailyRow, b: TeamMemberDailyRow): number {
   const diff = SEVERITY[a.status] - SEVERITY[b.status];
   if (diff !== 0) return diff;
   return a.fullName.localeCompare(b.fullName, 'id');
@@ -305,9 +299,7 @@ export function buildTeamSummary(
   for (const row of acc.values()) {
     row.totalHoursWorked = round2((hoursMsByUser.get(row.userId) ?? 0) / 3_600_000);
     row.onTimeRatePercent =
-      row.presentDays === 0
-        ? null
-        : Math.round((row.onTimeDays / row.presentDays) * 1000) / 10;
+      row.presentDays === 0 ? null : Math.round((row.onTimeDays / row.presentDays) * 1000) / 10;
   }
 
   // Sort by the same "exceptions on top" ordering — worst on-time rate

@@ -209,8 +209,7 @@ interface RequestOptions extends Omit<RequestInit, 'body'> {
   _retried?: boolean;
 }
 
-const baseUrl = (): string =>
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+const baseUrl = (): string => process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 let refreshInFlight: Promise<string | null> | null = null;
 
@@ -286,8 +285,7 @@ export const authApi = {
     apiRequest<LoginResponse>('/auth/login', { method: 'POST', json: body, skipAuth: true }),
   refresh: (): Promise<RefreshResponse> =>
     apiRequest<RefreshResponse>('/auth/refresh', { method: 'POST', skipAuth: true }),
-  logout: (): Promise<void> =>
-    apiRequest<void>('/auth/logout', { method: 'POST', skipAuth: true }),
+  logout: (): Promise<void> => apiRequest<void>('/auth/logout', { method: 'POST', skipAuth: true }),
   me: (): Promise<LoginResponse['user']> =>
     apiRequest<LoginResponse['user']>('/auth/me', { method: 'GET' }),
   forgotPassword: (body: ForgotPasswordInput): Promise<ForgotPasswordResponse> =>
@@ -317,8 +315,7 @@ export const authApi = {
  * for HR/SA users mid-enrollment.
  */
 export const mfaApi = {
-  status: (): Promise<MfaStatus> =>
-    apiRequest<MfaStatus>('/auth/mfa/status', { method: 'GET' }),
+  status: (): Promise<MfaStatus> => apiRequest<MfaStatus>('/auth/mfa/status', { method: 'GET' }),
   enrollStart: (): Promise<MfaEnrollStartResponse> =>
     apiRequest<MfaEnrollStartResponse>('/auth/mfa/enroll/start', { method: 'POST' }),
   enrollConfirm: (body: MfaEnrollConfirmInput): Promise<MfaEnrollConfirmResponse> =>
@@ -331,9 +328,7 @@ export const mfaApi = {
       method: 'POST',
       json: body,
     }),
-  regenerateBackupCodes: (
-    body: MfaBackupCodesInput,
-  ): Promise<MfaBackupCodesResponse> =>
+  regenerateBackupCodes: (body: MfaBackupCodesInput): Promise<MfaBackupCodesResponse> =>
     apiRequest<MfaBackupCodesResponse>('/auth/mfa/backup-codes/regenerate', {
       method: 'POST',
       json: body,
@@ -376,10 +371,9 @@ export const dataExportApi = {
       (r) => r.requests,
     ),
   downloadUrl: (id: string): Promise<DataExportDownloadResponse> =>
-    apiRequest<DataExportDownloadResponse>(
-      `/me/data-export/${encodeURIComponent(id)}/download`,
-      { method: 'GET' },
-    ),
+    apiRequest<DataExportDownloadResponse>(`/me/data-export/${encodeURIComponent(id)}/download`, {
+      method: 'GET',
+    }),
 };
 
 export const dataErasureApi = {
@@ -393,10 +387,9 @@ export const dataErasureApi = {
       method: 'GET',
     }).then((r) => r.requests),
   cancel: (id: string): Promise<DataErasureRequestRow> =>
-    apiRequest<DataErasureRequestRow>(
-      `/me/data-erasure/${encodeURIComponent(id)}/cancel`,
-      { method: 'POST' },
-    ),
+    apiRequest<DataErasureRequestRow>(`/me/data-erasure/${encodeURIComponent(id)}/cancel`, {
+      method: 'POST',
+    }),
 };
 
 export const retentionApi = {
@@ -412,11 +405,13 @@ export const retentionApi = {
 };
 
 export const retentionAuditApi = {
-  list: (opts: {
-    status?: RetentionAuditStatus;
-    page?: number;
-    pageSize?: number;
-  } = {}): Promise<RetentionAuditListResponseDto> => {
+  list: (
+    opts: {
+      status?: RetentionAuditStatus;
+      page?: number;
+      pageSize?: number;
+    } = {},
+  ): Promise<RetentionAuditListResponseDto> => {
     const params = new URLSearchParams();
     if (opts.status) params.set('status', opts.status);
     if (opts.page) params.set('page', String(opts.page));
@@ -428,30 +423,28 @@ export const retentionAuditApi = {
     );
   },
   latest: (): Promise<RetentionAuditReportDto | null> =>
-    apiRequest<RetentionAuditReportDto | null>(
-      '/admin/privacy/retention/audit-reports/latest',
-      { method: 'GET' },
-    ),
+    apiRequest<RetentionAuditReportDto | null>('/admin/privacy/retention/audit-reports/latest', {
+      method: 'GET',
+    }),
   detail: (id: string): Promise<RetentionAuditReportDto> =>
-    apiRequest<RetentionAuditReportDto>(
-      `/admin/privacy/retention/audit-reports/${id}`,
-      { method: 'GET' },
-    ),
-  regenerate: (
-    body: RegenerateRetentionAuditInput,
-  ): Promise<RetentionAuditReportDto> =>
-    apiRequest<RetentionAuditReportDto>(
-      '/admin/privacy/retention/audit-reports/regenerate',
-      { method: 'POST', json: body },
-    ),
+    apiRequest<RetentionAuditReportDto>(`/admin/privacy/retention/audit-reports/${id}`, {
+      method: 'GET',
+    }),
+  regenerate: (body: RegenerateRetentionAuditInput): Promise<RetentionAuditReportDto> =>
+    apiRequest<RetentionAuditReportDto>('/admin/privacy/retention/audit-reports/regenerate', {
+      method: 'POST',
+      json: body,
+    }),
 };
 
 export const tenantUsageApi = {
-  list: (opts: {
-    companyId?: string;
-    page?: number;
-    pageSize?: number;
-  } = {}): Promise<TenantUsageListResponseDto> => {
+  list: (
+    opts: {
+      companyId?: string;
+      page?: number;
+      pageSize?: number;
+    } = {},
+  ): Promise<TenantUsageListResponseDto> => {
     const params = new URLSearchParams();
     if (opts.companyId) params.set('companyId', opts.companyId);
     if (opts.page) params.set('page', String(opts.page));
@@ -470,9 +463,7 @@ export const tenantUsageApi = {
     apiRequest<TenantUsageSnapshotDto>(`/admin/usage/snapshots/${id}`, {
       method: 'GET',
     }),
-  regenerate: (
-    body: RegenerateTenantUsageInput,
-  ): Promise<TenantUsageSnapshotDto> =>
+  regenerate: (body: RegenerateTenantUsageInput): Promise<TenantUsageSnapshotDto> =>
     apiRequest<TenantUsageSnapshotDto>('/admin/usage/regenerate', {
       method: 'POST',
       json: body,
@@ -487,10 +478,9 @@ export const vendorProcessorApi = {
     if (query.cursor) params.set('cursor', query.cursor);
     if (query.limit) params.set('limit', String(query.limit));
     const qs = params.toString();
-    return apiRequest<ListVendorsResponseDto>(
-      `/admin/privacy/vendors${qs ? `?${qs}` : ''}`,
-      { method: 'GET' },
-    );
+    return apiRequest<ListVendorsResponseDto>(`/admin/privacy/vendors${qs ? `?${qs}` : ''}`, {
+      method: 'GET',
+    });
   },
   detail: (id: string): Promise<VendorDetailDto> =>
     apiRequest<VendorDetailDto>(`/admin/privacy/vendors/${id}`, {
@@ -506,14 +496,11 @@ export const vendorProcessorApi = {
       method: 'PATCH',
       json: body,
     }),
-  markReviewed: (
-    id: string,
-    body: MarkVendorReviewedInput,
-  ): Promise<VendorDetailDto> =>
-    apiRequest<VendorDetailDto>(
-      `/admin/privacy/vendors/${id}/mark-reviewed`,
-      { method: 'POST', json: body },
-    ),
+  markReviewed: (id: string, body: MarkVendorReviewedInput): Promise<VendorDetailDto> =>
+    apiRequest<VendorDetailDto>(`/admin/privacy/vendors/${id}/mark-reviewed`, {
+      method: 'POST',
+      json: body,
+    }),
   terminate: (id: string, body: TerminateVendorInput): Promise<VendorDetailDto> =>
     apiRequest<VendorDetailDto>(`/admin/privacy/vendors/${id}/terminate`, {
       method: 'POST',
@@ -525,10 +512,9 @@ export const vendorProcessorApi = {
       json: body,
     }),
   unlinkRopa: (id: string, linkId: string): Promise<VendorDetailDto> =>
-    apiRequest<VendorDetailDto>(
-      `/admin/privacy/vendors/${id}/ropa-links/${linkId}`,
-      { method: 'DELETE' },
-    ),
+    apiRequest<VendorDetailDto>(`/admin/privacy/vendors/${id}/ropa-links/${linkId}`, {
+      method: 'DELETE',
+    }),
 };
 
 export const privacyPolicyAdminApi = {
@@ -575,19 +561,18 @@ export const timesheetSelfApi = {
       method: 'GET',
     }),
   list: (limit = 12): Promise<TimesheetSummaryDto[]> =>
-    apiRequest<TimesheetSummaryDto[]>(
-      `/me/timesheet?limit=${encodeURIComponent(limit)}`,
-      { method: 'GET' },
-    ),
+    apiRequest<TimesheetSummaryDto[]>(`/me/timesheet?limit=${encodeURIComponent(limit)}`, {
+      method: 'GET',
+    }),
   detail: (id: string): Promise<TimesheetViewDto> =>
     apiRequest<TimesheetViewDto>(`/me/timesheet/${encodeURIComponent(id)}`, {
       method: 'GET',
     }),
   submit: (id: string): Promise<void> =>
-    apiRequest<void>(
-      `/me/timesheet/${encodeURIComponent(id)}/submit`,
-      { method: 'POST', json: {} },
-    ),
+    apiRequest<void>(`/me/timesheet/${encodeURIComponent(id)}/submit`, {
+      method: 'POST',
+      json: {},
+    }),
 };
 
 export const timesheetAdminApi = {
@@ -595,52 +580,45 @@ export const timesheetAdminApi = {
     apiRequest<TimesheetPeriodListDto>('/admin/timesheet/periods', {
       method: 'GET',
     }),
-  list: (filter: {
-    periodId?: string;
-    userId?: string;
-    departmentId?: string;
-    status?: TimesheetStatus;
-    limit?: number;
-    offset?: number;
-  } = {}): Promise<TimesheetListDto> => {
+  list: (
+    filter: {
+      periodId?: string;
+      userId?: string;
+      departmentId?: string;
+      status?: TimesheetStatus;
+      limit?: number;
+      offset?: number;
+    } = {},
+  ): Promise<TimesheetListDto> => {
     const params = new URLSearchParams();
     if (filter.periodId) params.set('periodId', filter.periodId);
     if (filter.userId) params.set('userId', filter.userId);
     if (filter.departmentId) params.set('departmentId', filter.departmentId);
     if (filter.status) params.set('status', filter.status);
     if (filter.limit !== undefined) params.set('limit', String(filter.limit));
-    if (filter.offset !== undefined)
-      params.set('offset', String(filter.offset));
+    if (filter.offset !== undefined) params.set('offset', String(filter.offset));
     const qs = params.toString();
-    return apiRequest<TimesheetListDto>(
-      `/admin/timesheet${qs ? `?${qs}` : ''}`,
-      { method: 'GET' },
-    );
+    return apiRequest<TimesheetListDto>(`/admin/timesheet${qs ? `?${qs}` : ''}`, { method: 'GET' });
   },
   detail: (id: string): Promise<TimesheetViewDto> =>
     apiRequest<TimesheetViewDto>(`/admin/timesheet/${encodeURIComponent(id)}`, {
       method: 'GET',
     }),
-  generate: (
-    body: GenerateTimesheetInput = {},
-  ): Promise<GenerateTimesheetResponse> =>
+  generate: (body: GenerateTimesheetInput = {}): Promise<GenerateTimesheetResponse> =>
     apiRequest<GenerateTimesheetResponse>('/admin/timesheet/generate', {
       method: 'POST',
       json: body,
     }),
   decide: (id: string, body: DecideTimesheetInput): Promise<void> =>
-    apiRequest<void>(
-      `/admin/timesheet/${encodeURIComponent(id)}/decide`,
-      { method: 'POST', json: body },
-    ),
-  reopen: (
-    id: string,
-    body: ReopenTimesheetInput,
-  ): Promise<ReopenTimesheetResponse> =>
-    apiRequest<ReopenTimesheetResponse>(
-      `/admin/timesheet/${encodeURIComponent(id)}/reopen`,
-      { method: 'POST', json: body },
-    ),
+    apiRequest<void>(`/admin/timesheet/${encodeURIComponent(id)}/decide`, {
+      method: 'POST',
+      json: body,
+    }),
+  reopen: (id: string, body: ReopenTimesheetInput): Promise<ReopenTimesheetResponse> =>
+    apiRequest<ReopenTimesheetResponse>(`/admin/timesheet/${encodeURIComponent(id)}/reopen`, {
+      method: 'POST',
+      json: body,
+    }),
 };
 
 export const dataErasureAdminApi = {
@@ -652,22 +630,16 @@ export const dataErasureAdminApi = {
     apiRequest<DataErasureAdminListResponse>('/admin/data-erasure', {
       method: 'GET',
     }).then((r) => r.requests),
-  approve: (
-    id: string,
-    body: { note?: string } = {},
-  ): Promise<DataErasureAdminRequestRow> =>
+  approve: (id: string, body: { note?: string } = {}): Promise<DataErasureAdminRequestRow> =>
     apiRequest<DataErasureAdminRequestRow>(
       `/admin/data-erasure/${encodeURIComponent(id)}/approve`,
       { method: 'POST', json: body },
     ),
-  reject: (
-    id: string,
-    body: { note: string },
-  ): Promise<DataErasureAdminRequestRow> =>
-    apiRequest<DataErasureAdminRequestRow>(
-      `/admin/data-erasure/${encodeURIComponent(id)}/reject`,
-      { method: 'POST', json: body },
-    ),
+  reject: (id: string, body: { note: string }): Promise<DataErasureAdminRequestRow> =>
+    apiRequest<DataErasureAdminRequestRow>(`/admin/data-erasure/${encodeURIComponent(id)}/reject`, {
+      method: 'POST',
+      json: body,
+    }),
 };
 
 export const attendanceApi = {
@@ -734,13 +706,11 @@ export const attendanceApi = {
    * SUPER_ADMIN ops: reset the absence-scanner cursor for the caller's
    * tenant. See ADR-0010 §Follow-ups for the operational context.
    */
-  resetScannerCursor: (
-    body: ResetScannerCursorInput = {},
-  ): Promise<ResetScannerCursorResponse> =>
-    apiRequest<ResetScannerCursorResponse>(
-      '/attendance/scanner/reset-cursor',
-      { method: 'POST', json: body },
-    ),
+  resetScannerCursor: (body: ResetScannerCursorInput = {}): Promise<ResetScannerCursorResponse> =>
+    apiRequest<ResetScannerCursorResponse>('/attendance/scanner/reset-cursor', {
+      method: 'POST',
+      json: body,
+    }),
 };
 
 export const attendanceCorrectionsApi = {
@@ -754,23 +724,18 @@ export const attendanceCorrectionsApi = {
       method: 'GET',
     }),
   listPendingApprovals: (): Promise<AttendanceCorrection[]> =>
-    apiRequest<AttendanceCorrection[]>(
-      '/attendance/corrections/approvals/pending',
-      { method: 'GET' },
-    ),
-  decide: (
-    id: string,
-    body: AttendanceCorrectionDecision,
-  ): Promise<AttendanceCorrection> =>
-    apiRequest<AttendanceCorrection>(
-      `/attendance/corrections/${encodeURIComponent(id)}/decision`,
-      { method: 'POST', json: body },
-    ),
+    apiRequest<AttendanceCorrection[]>('/attendance/corrections/approvals/pending', {
+      method: 'GET',
+    }),
+  decide: (id: string, body: AttendanceCorrectionDecision): Promise<AttendanceCorrection> =>
+    apiRequest<AttendanceCorrection>(`/attendance/corrections/${encodeURIComponent(id)}/decision`, {
+      method: 'POST',
+      json: body,
+    }),
   cancel: (id: string): Promise<AttendanceCorrection> =>
-    apiRequest<AttendanceCorrection>(
-      `/attendance/corrections/${encodeURIComponent(id)}/cancel`,
-      { method: 'POST' },
-    ),
+    apiRequest<AttendanceCorrection>(`/attendance/corrections/${encodeURIComponent(id)}/cancel`, {
+      method: 'POST',
+    }),
 };
 
 export const leaveApi = {
@@ -847,8 +812,7 @@ export const usersAdminApi = {
 // ----- Admin: Geofences -----------------------------------------------------
 
 export const geofencesAdminApi = {
-  list: (): Promise<Geofence[]> =>
-    apiRequest<Geofence[]>('/admin/geofences', { method: 'GET' }),
+  list: (): Promise<Geofence[]> => apiRequest<Geofence[]>('/admin/geofences', { method: 'GET' }),
   get: (id: string): Promise<Geofence> =>
     apiRequest<Geofence>(`/admin/geofences/${id}`, { method: 'GET' }),
   create: (body: CreateGeofenceInput): Promise<Geofence> =>
@@ -862,8 +826,7 @@ export const geofencesAdminApi = {
 // ----- Admin: Shifts + Assignments ------------------------------------------
 
 export const shiftsAdminApi = {
-  list: (): Promise<Shift[]> =>
-    apiRequest<Shift[]>('/admin/shifts', { method: 'GET' }),
+  list: (): Promise<Shift[]> => apiRequest<Shift[]>('/admin/shifts', { method: 'GET' }),
   create: (body: CreateShiftInput): Promise<Shift> =>
     apiRequest<Shift>('/admin/shifts', { method: 'POST', json: body }),
   update: (id: string, body: UpdateShiftInput): Promise<Shift> =>
@@ -945,7 +908,6 @@ async function handleBlobResponse(
   retry: () => Promise<BlobResult>,
   retried: boolean,
 ): Promise<BlobResult> {
-
   if (res.status === 401 && !retried) {
     const refreshed = await tryRefreshAccessToken();
     if (refreshed) return retry();
@@ -991,14 +953,11 @@ export const timesheetExportApi = {
       `/admin/timesheet/exports?limit=${encodeURIComponent(limit)}`,
       { method: 'GET' },
     ),
-  createShare: (
-    exportId: string,
-    body: CreateExportShareInput,
-  ): Promise<ExportShareUrl> =>
-    apiRequest<ExportShareUrl>(
-      `/admin/timesheet/exports/${encodeURIComponent(exportId)}/shares`,
-      { method: 'POST', json: body },
-    ),
+  createShare: (exportId: string, body: CreateExportShareInput): Promise<ExportShareUrl> =>
+    apiRequest<ExportShareUrl>(`/admin/timesheet/exports/${encodeURIComponent(exportId)}/shares`, {
+      method: 'POST',
+      json: body,
+    }),
   listShares: (exportId: string): Promise<ExportShareListDto> =>
     apiRequest<ExportShareListDto>(
       `/admin/timesheet/exports/${encodeURIComponent(exportId)}/shares`,
@@ -1020,10 +979,10 @@ export const webhookApi = {
       json: body,
     }),
   update: (id: string, body: UpdateWebhookInput): Promise<WebhookEndpointRow> =>
-    apiRequest<WebhookEndpointRow>(
-      `/admin/webhooks/${encodeURIComponent(id)}`,
-      { method: 'PATCH', json: body },
-    ),
+    apiRequest<WebhookEndpointRow>(`/admin/webhooks/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      json: body,
+    }),
   remove: (id: string): Promise<void> =>
     apiRequest<void>(`/admin/webhooks/${encodeURIComponent(id)}`, {
       method: 'DELETE',
@@ -1034,18 +993,13 @@ export const webhookApi = {
       { method: 'POST', json: {} },
     ),
   testFire: (id: string): Promise<{ enqueued: true }> =>
-    apiRequest<{ enqueued: true }>(
-      `/admin/webhooks/${encodeURIComponent(id)}/test-fire`,
-      { method: 'POST', json: {} },
-    ),
+    apiRequest<{ enqueued: true }>(`/admin/webhooks/${encodeURIComponent(id)}/test-fire`, {
+      method: 'POST',
+      json: {},
+    }),
   deliveries: (endpointId?: string): Promise<WebhookDeliveryListDto> => {
-    const qs = endpointId
-      ? `?endpointId=${encodeURIComponent(endpointId)}&limit=50`
-      : '?limit=50';
-    return apiRequest<WebhookDeliveryListDto>(
-      `/admin/webhooks/deliveries${qs}`,
-      { method: 'GET' },
-    );
+    const qs = endpointId ? `?endpointId=${encodeURIComponent(endpointId)}&limit=50` : '?limit=50';
+    return apiRequest<WebhookDeliveryListDto>(`/admin/webhooks/deliveries${qs}`, { method: 'GET' });
   },
 };
 
@@ -1148,7 +1102,9 @@ export function uploadFileWithPresign(
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve();
       } else {
-        reject(new Error(`S3 upload failed with HTTP ${xhr.status}: ${xhr.responseText.slice(0, 200)}`));
+        reject(
+          new Error(`S3 upload failed with HTTP ${xhr.status}: ${xhr.responseText.slice(0, 200)}`),
+        );
       }
     });
     xhr.addEventListener('error', () => reject(new Error('S3 upload network error')));
@@ -1161,10 +1117,7 @@ export function uploadFileWithPresign(
 
 export const holidaysAdminApi = {
   list: (year?: number): Promise<Holiday[]> =>
-    apiRequest<Holiday[]>(
-      `/admin/holidays${year ? `?year=${year}` : ''}`,
-      { method: 'GET' },
-    ),
+    apiRequest<Holiday[]>(`/admin/holidays${year ? `?year=${year}` : ''}`, { method: 'GET' }),
   create: (body: CreateHolidayInput): Promise<Holiday> =>
     apiRequest<Holiday>('/admin/holidays', { method: 'POST', json: body }),
   update: (id: string, body: UpdateHolidayInput): Promise<Holiday> =>
@@ -1185,12 +1138,9 @@ export const holidaysAdminApi = {
  * supervisors keep their scoped per-module views.
  */
 export const backlogAdminApi = {
-  get: (
-    q: { thresholdDays?: number; topN?: number } = {},
-  ): Promise<BacklogSummary> => {
+  get: (q: { thresholdDays?: number; topN?: number } = {}): Promise<BacklogSummary> => {
     const params = new URLSearchParams();
-    if (q.thresholdDays !== undefined)
-      params.set('thresholdDays', String(q.thresholdDays));
+    if (q.thresholdDays !== undefined) params.set('thresholdDays', String(q.thresholdDays));
     if (q.topN !== undefined) params.set('topN', String(q.topN));
     const suffix = params.toString() ? `?${params.toString()}` : '';
     return apiRequest<BacklogSummary>(`/admin/approvals/backlog${suffix}`, {
@@ -1218,8 +1168,7 @@ export const auditAdminApi = {
     if (filters.from) params.set('from', filters.from);
     if (filters.to) params.set('to', filters.to);
     if (filters.cursor) params.set('cursor', filters.cursor);
-    if (filters.limit !== undefined)
-      params.set('limit', String(filters.limit));
+    if (filters.limit !== undefined) params.set('limit', String(filters.limit));
     const suffix = params.toString() ? `?${params.toString()}` : '';
     return apiRequest<AuditLogPage>(`/admin/audit-log${suffix}`, {
       method: 'GET',
@@ -1231,9 +1180,7 @@ export const auditAdminApi = {
    * always returns the full matching set (up to the server-side cap
    * documented in ADR-0013).
    */
-  exportNdjson: (
-    filters: Omit<AuditLogFilters, 'cursor' | 'limit'> = {},
-  ): Promise<BlobResult> => {
+  exportNdjson: (filters: Omit<AuditLogFilters, 'cursor' | 'limit'> = {}): Promise<BlobResult> => {
     const params = new URLSearchParams();
     if (filters.entityType) params.set('entityType', filters.entityType);
     if (filters.entityId) params.set('entityId', filters.entityId);
@@ -1249,8 +1196,7 @@ export const auditAdminApi = {
 // ----- Admin: Company Config ------------------------------------------------
 
 export const companyAdminApi = {
-  get: (): Promise<CompanyConfig> =>
-    apiRequest<CompanyConfig>('/admin/company', { method: 'GET' }),
+  get: (): Promise<CompanyConfig> => apiRequest<CompanyConfig>('/admin/company', { method: 'GET' }),
   update: (body: CompanyConfigUpdateInput): Promise<CompanyConfig> =>
     apiRequest<CompanyConfig>('/admin/company', { method: 'PATCH', json: body }),
 };
@@ -1298,10 +1244,9 @@ export const companiesAdminApi = {
       method: 'DELETE',
     }),
   restore: (id: string): Promise<CompanyAdmin> =>
-    apiRequest<CompanyAdmin>(
-      `/admin/companies/${encodeURIComponent(id)}/restore`,
-      { method: 'POST' },
-    ),
+    apiRequest<CompanyAdmin>(`/admin/companies/${encodeURIComponent(id)}/restore`, {
+      method: 'POST',
+    }),
 };
 
 // ----- Admin: ROPA (Fase 31d) ---------------------------------------------
@@ -1312,10 +1257,9 @@ export const ropaAdminApi = {
       method: 'GET',
     }),
   detail: (id: string): Promise<RopaActivityDetail> =>
-    apiRequest<RopaActivityDetail>(
-      `/admin/ropa/activities/${encodeURIComponent(id)}`,
-      { method: 'GET' },
-    ),
+    apiRequest<RopaActivityDetail>(`/admin/ropa/activities/${encodeURIComponent(id)}`, {
+      method: 'GET',
+    }),
   create: (body: CreateRopaActivityInput): Promise<RopaVersionResponse> =>
     apiRequest<RopaVersionResponse>('/admin/ropa/activities', {
       method: 'POST',
@@ -1335,26 +1279,17 @@ export const ropaAdminApi = {
       `/admin/ropa/activities/${encodeURIComponent(activityId)}/versions/${encodeURIComponent(versionId)}`,
       { method: 'PATCH', json: body },
     ),
-  submitReview: (
-    activityId: string,
-    versionId: string,
-  ): Promise<RopaVersionResponse> =>
+  submitReview: (activityId: string, versionId: string): Promise<RopaVersionResponse> =>
     apiRequest<RopaVersionResponse>(
       `/admin/ropa/activities/${encodeURIComponent(activityId)}/versions/${encodeURIComponent(versionId)}/submit-review`,
       { method: 'POST', json: {} },
     ),
-  returnToDraft: (
-    activityId: string,
-    versionId: string,
-  ): Promise<RopaVersionResponse> =>
+  returnToDraft: (activityId: string, versionId: string): Promise<RopaVersionResponse> =>
     apiRequest<RopaVersionResponse>(
       `/admin/ropa/activities/${encodeURIComponent(activityId)}/versions/${encodeURIComponent(versionId)}/return-to-draft`,
       { method: 'POST', json: {} },
     ),
-  publish: (
-    activityId: string,
-    versionId: string,
-  ): Promise<RopaVersionResponse> =>
+  publish: (activityId: string, versionId: string): Promise<RopaVersionResponse> =>
     apiRequest<RopaVersionResponse>(
       `/admin/ropa/activities/${encodeURIComponent(activityId)}/versions/${encodeURIComponent(versionId)}/publish`,
       { method: 'POST', json: {} },
@@ -1365,8 +1300,7 @@ export const ropaAdminApi = {
       { method: 'POST', json: {} },
     ),
   exportPdf: (): Promise<BlobResult> => requestGetBlob('/admin/ropa/export.pdf'),
-  exportXlsx: (): Promise<BlobResult> =>
-    requestGetBlob('/admin/ropa/export.xlsx'),
+  exportXlsx: (): Promise<BlobResult> => requestGetBlob('/admin/ropa/export.xlsx'),
 };
 
 // ----- Admin: DPIA (Fase 31e) ---------------------------------------------
@@ -1382,23 +1316,19 @@ export const dpiaAdminApi = {
       method: 'GET',
     }),
   detail: (id: string): Promise<DpiaAssessmentResponse> =>
-    apiRequest<DpiaAssessmentResponse>(
-      `/admin/dpia/assessments/${encodeURIComponent(id)}`,
-      { method: 'GET' },
-    ),
+    apiRequest<DpiaAssessmentResponse>(`/admin/dpia/assessments/${encodeURIComponent(id)}`, {
+      method: 'GET',
+    }),
   create: (body: CreateDpiaAssessmentInput): Promise<DpiaAssessmentResponse> =>
     apiRequest<DpiaAssessmentResponse>('/admin/dpia/assessments', {
       method: 'POST',
       json: body,
     }),
-  patch: (
-    id: string,
-    body: UpdateDpiaAssessmentInput,
-  ): Promise<DpiaAssessmentResponse> =>
-    apiRequest<DpiaAssessmentResponse>(
-      `/admin/dpia/assessments/${encodeURIComponent(id)}`,
-      { method: 'PATCH', json: body },
-    ),
+  patch: (id: string, body: UpdateDpiaAssessmentInput): Promise<DpiaAssessmentResponse> =>
+    apiRequest<DpiaAssessmentResponse>(`/admin/dpia/assessments/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      json: body,
+    }),
   submitReview: (id: string): Promise<DpiaAssessmentResponse> =>
     apiRequest<DpiaAssessmentResponse>(
       `/admin/dpia/assessments/${encodeURIComponent(id)}/submit-review`,
@@ -1414,10 +1344,7 @@ export const dpiaAdminApi = {
       `/admin/dpia/assessments/${encodeURIComponent(id)}/approve`,
       { method: 'POST', json: {} },
     ),
-  addRisk: (
-    id: string,
-    body: CreateDpiaRiskItemInput,
-  ): Promise<DpiaAssessmentResponse> =>
+  addRisk: (id: string, body: CreateDpiaRiskItemInput): Promise<DpiaAssessmentResponse> =>
     apiRequest<DpiaAssessmentResponse>(
       `/admin/dpia/assessments/${encodeURIComponent(id)}/risk-items`,
       { method: 'POST', json: body },
@@ -1431,18 +1358,13 @@ export const dpiaAdminApi = {
       `/admin/dpia/assessments/${encodeURIComponent(id)}/risk-items/${encodeURIComponent(riskItemId)}`,
       { method: 'PATCH', json: body },
     ),
-  removeRisk: (
-    id: string,
-    riskItemId: string,
-  ): Promise<DpiaAssessmentResponse> =>
+  removeRisk: (id: string, riskItemId: string): Promise<DpiaAssessmentResponse> =>
     apiRequest<DpiaAssessmentResponse>(
       `/admin/dpia/assessments/${encodeURIComponent(id)}/risk-items/${encodeURIComponent(riskItemId)}`,
       { method: 'DELETE' },
     ),
   exportPdf: (id: string): Promise<BlobResult> =>
-    requestGetBlob(
-      `/admin/dpia/assessments/${encodeURIComponent(id)}/export.pdf`,
-    ),
+    requestGetBlob(`/admin/dpia/assessments/${encodeURIComponent(id)}/export.pdf`),
 };
 
 // ----- Admin: Scheduled Reports (Fase 33c) ---------------------------------
@@ -1466,19 +1388,13 @@ export const reportScheduleAdminApi = {
       method: 'POST',
       json: body,
     }),
-  update: (
-    id: string,
-    body: UpdateReportScheduleInput,
-  ): Promise<ReportScheduleResponse> =>
-    apiRequest<ReportScheduleResponse>(
-      `/admin/reports/schedules/${encodeURIComponent(id)}`,
-      { method: 'PATCH', json: body },
-    ),
+  update: (id: string, body: UpdateReportScheduleInput): Promise<ReportScheduleResponse> =>
+    apiRequest<ReportScheduleResponse>(`/admin/reports/schedules/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      json: body,
+    }),
   remove: (id: string): Promise<void> =>
-    apiRequest<void>(
-      `/admin/reports/schedules/${encodeURIComponent(id)}`,
-      { method: 'DELETE' },
-    ),
+    apiRequest<void>(`/admin/reports/schedules/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   deliveries: (id: string): Promise<ReportDeliveryResponse[]> =>
     apiRequest<ReportDeliveryResponse[]>(
       `/admin/reports/schedules/${encodeURIComponent(id)}/deliveries`,
@@ -1508,36 +1424,25 @@ export const customReportAdminApi = {
       method: 'GET',
     }),
   detailSaved: (id: string): Promise<SavedReportResponse> =>
-    apiRequest<SavedReportResponse>(
-      `/admin/reports/custom/saved/${encodeURIComponent(id)}`,
-      { method: 'GET' },
-    ),
+    apiRequest<SavedReportResponse>(`/admin/reports/custom/saved/${encodeURIComponent(id)}`, {
+      method: 'GET',
+    }),
   createSaved: (body: CreateSavedReportInput): Promise<SavedReportResponse> =>
     apiRequest<SavedReportResponse>('/admin/reports/custom/saved', {
       method: 'POST',
       json: body,
     }),
-  updateSaved: (
-    id: string,
-    body: UpdateSavedReportInput,
-  ): Promise<SavedReportResponse> =>
-    apiRequest<SavedReportResponse>(
-      `/admin/reports/custom/saved/${encodeURIComponent(id)}`,
-      { method: 'PATCH', json: body },
-    ),
+  updateSaved: (id: string, body: UpdateSavedReportInput): Promise<SavedReportResponse> =>
+    apiRequest<SavedReportResponse>(`/admin/reports/custom/saved/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      json: body,
+    }),
   removeSaved: (id: string): Promise<void> =>
-    apiRequest<void>(
-      `/admin/reports/custom/saved/${encodeURIComponent(id)}`,
-      { method: 'DELETE' },
-    ),
+    apiRequest<void>(`/admin/reports/custom/saved/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   exportCsv: (id: string): Promise<BlobResult> =>
-    requestGetBlob(
-      `/admin/reports/custom/saved/${encodeURIComponent(id)}/export.csv`,
-    ),
+    requestGetBlob(`/admin/reports/custom/saved/${encodeURIComponent(id)}/export.csv`),
   exportXlsx: (id: string): Promise<BlobResult> =>
-    requestGetBlob(
-      `/admin/reports/custom/saved/${encodeURIComponent(id)}/export.xlsx`,
-    ),
+    requestGetBlob(`/admin/reports/custom/saved/${encodeURIComponent(id)}/export.xlsx`),
 };
 
 // ----- Admin: Breach Notification Ledger (Fase 31g) ----------------------
@@ -1553,69 +1458,46 @@ export const breachLedgerAdminApi = {
       method: 'GET',
     }),
   detail: (id: string): Promise<BreachIncidentResponse> =>
-    apiRequest<BreachIncidentResponse>(
-      `/admin/security/breaches/${encodeURIComponent(id)}`,
-      { method: 'GET' },
-    ),
-  create: (
-    body: CreateBreachIncidentInput,
-  ): Promise<BreachIncidentResponse> =>
+    apiRequest<BreachIncidentResponse>(`/admin/security/breaches/${encodeURIComponent(id)}`, {
+      method: 'GET',
+    }),
+  create: (body: CreateBreachIncidentInput): Promise<BreachIncidentResponse> =>
     apiRequest<BreachIncidentResponse>('/admin/security/breaches', {
       method: 'POST',
       json: body,
     }),
-  update: (
-    id: string,
-    body: UpdateBreachIncidentInput,
-  ): Promise<BreachIncidentResponse> =>
-    apiRequest<BreachIncidentResponse>(
-      `/admin/security/breaches/${encodeURIComponent(id)}`,
-      { method: 'PATCH', json: body },
-    ),
-  markContained: (
-    id: string,
-    note: string,
-  ): Promise<BreachIncidentResponse> =>
+  update: (id: string, body: UpdateBreachIncidentInput): Promise<BreachIncidentResponse> =>
+    apiRequest<BreachIncidentResponse>(`/admin/security/breaches/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      json: body,
+    }),
+  markContained: (id: string, note: string): Promise<BreachIncidentResponse> =>
     apiRequest<BreachIncidentResponse>(
       `/admin/security/breaches/${encodeURIComponent(id)}/mark-contained`,
       { method: 'POST', json: { note } satisfies AppendBreachNoteInput },
     ),
-  notifyAuthority: (
-    id: string,
-    body: NotifyAuthorityInput,
-  ): Promise<BreachIncidentResponse> =>
+  notifyAuthority: (id: string, body: NotifyAuthorityInput): Promise<BreachIncidentResponse> =>
     apiRequest<BreachIncidentResponse>(
       `/admin/security/breaches/${encodeURIComponent(id)}/notify-authority`,
       { method: 'POST', json: body },
     ),
-  notifySubjects: (
-    id: string,
-    body: NotifySubjectsInput,
-  ): Promise<BreachIncidentResponse> =>
+  notifySubjects: (id: string, body: NotifySubjectsInput): Promise<BreachIncidentResponse> =>
     apiRequest<BreachIncidentResponse>(
       `/admin/security/breaches/${encodeURIComponent(id)}/notify-subjects`,
       { method: 'POST', json: body },
     ),
-  close: (
-    id: string,
-    body: CloseBreachInput,
-  ): Promise<BreachIncidentResponse> =>
-    apiRequest<BreachIncidentResponse>(
-      `/admin/security/breaches/${encodeURIComponent(id)}/close`,
-      { method: 'POST', json: body },
-    ),
-  appendNote: (
-    id: string,
-    body: AppendBreachNoteInput,
-  ): Promise<BreachIncidentResponse> =>
-    apiRequest<BreachIncidentResponse>(
-      `/admin/security/breaches/${encodeURIComponent(id)}/notes`,
-      { method: 'POST', json: body },
-    ),
+  close: (id: string, body: CloseBreachInput): Promise<BreachIncidentResponse> =>
+    apiRequest<BreachIncidentResponse>(`/admin/security/breaches/${encodeURIComponent(id)}/close`, {
+      method: 'POST',
+      json: body,
+    }),
+  appendNote: (id: string, body: AppendBreachNoteInput): Promise<BreachIncidentResponse> =>
+    apiRequest<BreachIncidentResponse>(`/admin/security/breaches/${encodeURIComponent(id)}/notes`, {
+      method: 'POST',
+      json: body,
+    }),
   exportPdf: (id: string): Promise<BlobResult> =>
-    requestGetBlob(
-      `/admin/security/breaches/${encodeURIComponent(id)}/export.pdf`,
-    ),
+    requestGetBlob(`/admin/security/breaches/${encodeURIComponent(id)}/export.pdf`),
 };
 
 // ----- Notifications -------------------------------------------------------
@@ -1686,9 +1568,7 @@ export const notificationsApi = {
  * response and hydrates icons + colours via the metric descriptor list.
  */
 export const analyticsAdminApi = {
-  dashboard: (
-    opts: { windowDays?: AnalyticsWindowDays } = {},
-  ): Promise<DashboardResponse> => {
+  dashboard: (opts: { windowDays?: AnalyticsWindowDays } = {}): Promise<DashboardResponse> => {
     const params = new URLSearchParams();
     if (opts.windowDays) params.set('windowDays', String(opts.windowDays));
     const suffix = params.toString() ? `?${params.toString()}` : '';
@@ -1703,9 +1583,8 @@ export const analyticsAdminApi = {
     const params = new URLSearchParams();
     params.set('metricKey', opts.metricKey);
     if (opts.windowDays) params.set('windowDays', String(opts.windowDays));
-    return apiRequest<TimeseriesResponse>(
-      `/admin/analytics/timeseries?${params.toString()}`,
-      { method: 'GET' },
-    );
+    return apiRequest<TimeseriesResponse>(`/admin/analytics/timeseries?${params.toString()}`, {
+      method: 'GET',
+    });
   },
 };

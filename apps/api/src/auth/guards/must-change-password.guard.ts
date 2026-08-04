@@ -31,10 +31,10 @@ export class MustChangePasswordGuard implements CanActivate {
     ]);
     if (isPublic) return true;
 
-    const isAllowed = this.reflector.getAllAndOverride<boolean>(
-      ALLOW_MUST_CHANGE_PASSWORD_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const isAllowed = this.reflector.getAllAndOverride<boolean>(ALLOW_MUST_CHANGE_PASSWORD_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
     if (isAllowed) return true;
 
     const req = context.switchToHttp().getRequest<Request & { user?: AuthenticatedUser }>();

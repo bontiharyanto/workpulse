@@ -207,9 +207,7 @@ describe('DataExportWorker.tick', () => {
       .mockResolvedValueOnce([] as never);
     prisma.dataExportRequest.update.mockResolvedValueOnce(claimed);
     prisma.auditLog.create.mockResolvedValue({} as never);
-    assembleModule.assembleExportArchive.mockRejectedValueOnce(
-      new Error('boom during snapshot'),
-    );
+    assembleModule.assembleExportArchive.mockRejectedValueOnce(new Error('boom during snapshot'));
 
     await worker.tick();
 

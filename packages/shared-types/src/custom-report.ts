@@ -5,11 +5,7 @@ import { z } from 'zod';
  * Mirrors `apps/api/src/reports/domain/custom-report-definition.ts`.
  */
 
-export const customReportDimensionSchema = z.enum([
-  'DAY',
-  'DEPARTMENT',
-  'USER',
-]);
+export const customReportDimensionSchema = z.enum(['DAY', 'DEPARTMENT', 'USER']);
 export type CustomReportDimension = z.infer<typeof customReportDimensionSchema>;
 
 export const customReportMetricSchema = z.enum([
@@ -28,18 +24,11 @@ export const customReportDefinitionSchema = z.object({
   dimension: customReportDimensionSchema,
   metric: customReportMetricSchema,
   filter: z.object({
-    windowDays: z.union([
-      z.literal(7),
-      z.literal(30),
-      z.literal(90),
-      z.literal(365),
-    ]),
+    windowDays: z.union([z.literal(7), z.literal(30), z.literal(90), z.literal(365)]),
     departmentId: z.string().optional(),
   }),
 });
-export type CustomReportDefinition = z.infer<
-  typeof customReportDefinitionSchema
->;
+export type CustomReportDefinition = z.infer<typeof customReportDefinitionSchema>;
 
 export const customReportRowSchema = z.object({
   key: z.string(),
@@ -69,9 +58,7 @@ export const customReportCatalogueSchema = z.object({
     }),
   ),
 });
-export type CustomReportCatalogue = z.infer<
-  typeof customReportCatalogueSchema
->;
+export type CustomReportCatalogue = z.infer<typeof customReportCatalogueSchema>;
 
 export const savedReportResponseSchema = z.object({
   id: z.string(),
@@ -90,15 +77,11 @@ export const createSavedReportInputSchema = z.object({
   description: z.string().trim().max(500).optional(),
   definition: z.record(z.unknown()),
 });
-export type CreateSavedReportInput = z.infer<
-  typeof createSavedReportInputSchema
->;
+export type CreateSavedReportInput = z.infer<typeof createSavedReportInputSchema>;
 
 export const updateSavedReportInputSchema = z.object({
   name: z.string().trim().min(3).max(120).optional(),
   description: z.string().trim().max(500).optional(),
   definition: z.record(z.unknown()).optional(),
 });
-export type UpdateSavedReportInput = z.infer<
-  typeof updateSavedReportInputSchema
->;
+export type UpdateSavedReportInput = z.infer<typeof updateSavedReportInputSchema>;

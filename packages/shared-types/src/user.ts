@@ -3,12 +3,7 @@ import { z } from 'zod';
 import { userRoleSchema } from './auth.js';
 import { isoDateTimeSchema } from './common.js';
 
-export const employmentStatusSchema = z.enum([
-  'ACTIVE',
-  'ON_LEAVE',
-  'SUSPENDED',
-  'TERMINATED',
-]);
+export const employmentStatusSchema = z.enum(['ACTIVE', 'ON_LEAVE', 'SUSPENDED', 'TERMINATED']);
 export type EmploymentStatus = z.infer<typeof employmentStatusSchema>;
 
 /** Admin-facing user summary — never carries password fields. */
@@ -31,19 +26,12 @@ export const adminUserSchema = z.object({
 export type AdminUser = z.infer<typeof adminUserSchema>;
 
 export const createUserSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .email({ message: 'Format email tidak valid' })
-    .max(255),
+  email: z.string().trim().toLowerCase().email({ message: 'Format email tidak valid' }).max(255),
   fullName: z.string().trim().min(2, 'Nama minimal 2 karakter').max(200),
   role: userRoleSchema,
   departmentId: z.string().min(1).nullish(),
   supervisorId: z.string().min(1).nullish(),
-  hiredAt: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/u, 'Format tanggal harus YYYY-MM-DD'),
+  hiredAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/u, 'Format tanggal harus YYYY-MM-DD'),
 });
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 

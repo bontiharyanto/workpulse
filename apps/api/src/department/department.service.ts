@@ -173,10 +173,7 @@ export class DepartmentService {
   // Internals
   // ------------------------------------------------------------------
 
-  private async assertParentInCompany(
-    companyId: string,
-    parentId: string | null,
-  ): Promise<void> {
+  private async assertParentInCompany(companyId: string, parentId: string | null): Promise<void> {
     if (!parentId) return;
     const parent = await this.prisma.department.findFirst({
       where: { id: parentId, companyId, deletedAt: null },

@@ -131,37 +131,204 @@ const STAFF: PersonSeed[] = [
 // 25 employees spread across the 5 departments.
 const EMPLOYEES: PersonSeed[] = [
   // ---- Engineering (5, supervisor = lead@acme.test) ----
-  { email: 'siti.eng@acme.test', fullName: 'Siti Nurhaliza', role: UserRole.EMPLOYEE, department: 'Engineering', hiredAt: '2024-01-08', supervisorEmail: 'lead@acme.test' },
-  { email: 'andi.eng@acme.test', fullName: 'Andi Prasetyo', role: UserRole.EMPLOYEE, department: 'Engineering', hiredAt: '2024-02-14', supervisorEmail: 'lead@acme.test' },
-  { email: 'tono.eng@acme.test', fullName: 'Tono Hermawan', role: UserRole.EMPLOYEE, department: 'Engineering', hiredAt: '2024-03-20', supervisorEmail: 'lead@acme.test' },
-  { email: 'sri.eng@acme.test', fullName: 'Sri Rahayu', role: UserRole.EMPLOYEE, department: 'Engineering', hiredAt: '2025-05-02', supervisorEmail: 'lead@acme.test' },
-  { email: 'indah.eng@acme.test', fullName: 'Indah Permatasari', role: UserRole.EMPLOYEE, department: 'Engineering', hiredAt: '2025-08-15', supervisorEmail: 'lead@acme.test' },
+  {
+    email: 'siti.eng@acme.test',
+    fullName: 'Siti Nurhaliza',
+    role: UserRole.EMPLOYEE,
+    department: 'Engineering',
+    hiredAt: '2024-01-08',
+    supervisorEmail: 'lead@acme.test',
+  },
+  {
+    email: 'andi.eng@acme.test',
+    fullName: 'Andi Prasetyo',
+    role: UserRole.EMPLOYEE,
+    department: 'Engineering',
+    hiredAt: '2024-02-14',
+    supervisorEmail: 'lead@acme.test',
+  },
+  {
+    email: 'tono.eng@acme.test',
+    fullName: 'Tono Hermawan',
+    role: UserRole.EMPLOYEE,
+    department: 'Engineering',
+    hiredAt: '2024-03-20',
+    supervisorEmail: 'lead@acme.test',
+  },
+  {
+    email: 'sri.eng@acme.test',
+    fullName: 'Sri Rahayu',
+    role: UserRole.EMPLOYEE,
+    department: 'Engineering',
+    hiredAt: '2025-05-02',
+    supervisorEmail: 'lead@acme.test',
+  },
+  {
+    email: 'indah.eng@acme.test',
+    fullName: 'Indah Permatasari',
+    role: UserRole.EMPLOYEE,
+    department: 'Engineering',
+    hiredAt: '2025-08-15',
+    supervisorEmail: 'lead@acme.test',
+  },
 
   // ---- Finance (5) ----
-  { email: 'rio.fin@acme.test', fullName: 'Rio Setiawan', role: UserRole.EMPLOYEE, department: 'Finance', hiredAt: '2023-11-05', supervisorEmail: 'budi.finance@acme.test' },
-  { email: 'maya.fin@acme.test', fullName: 'Maya Puspita', role: UserRole.EMPLOYEE, department: 'Finance', hiredAt: '2024-04-11', supervisorEmail: 'budi.finance@acme.test' },
-  { email: 'hendra.fin@acme.test', fullName: 'Hendra Kusuma', role: UserRole.EMPLOYEE, department: 'Finance', hiredAt: '2024-07-22', supervisorEmail: 'budi.finance@acme.test' },
-  { email: 'putri.fin@acme.test', fullName: 'Putri Ayu Lestari', role: UserRole.EMPLOYEE, department: 'Finance', hiredAt: '2025-01-16', supervisorEmail: 'budi.finance@acme.test' },
-  { email: 'dimas.fin@acme.test', fullName: 'Dimas Aditya', role: UserRole.EMPLOYEE, department: 'Finance', hiredAt: '2025-09-01', supervisorEmail: 'budi.finance@acme.test' },
+  {
+    email: 'rio.fin@acme.test',
+    fullName: 'Rio Setiawan',
+    role: UserRole.EMPLOYEE,
+    department: 'Finance',
+    hiredAt: '2023-11-05',
+    supervisorEmail: 'budi.finance@acme.test',
+  },
+  {
+    email: 'maya.fin@acme.test',
+    fullName: 'Maya Puspita',
+    role: UserRole.EMPLOYEE,
+    department: 'Finance',
+    hiredAt: '2024-04-11',
+    supervisorEmail: 'budi.finance@acme.test',
+  },
+  {
+    email: 'hendra.fin@acme.test',
+    fullName: 'Hendra Kusuma',
+    role: UserRole.EMPLOYEE,
+    department: 'Finance',
+    hiredAt: '2024-07-22',
+    supervisorEmail: 'budi.finance@acme.test',
+  },
+  {
+    email: 'putri.fin@acme.test',
+    fullName: 'Putri Ayu Lestari',
+    role: UserRole.EMPLOYEE,
+    department: 'Finance',
+    hiredAt: '2025-01-16',
+    supervisorEmail: 'budi.finance@acme.test',
+  },
+  {
+    email: 'dimas.fin@acme.test',
+    fullName: 'Dimas Aditya',
+    role: UserRole.EMPLOYEE,
+    department: 'Finance',
+    hiredAt: '2025-09-01',
+    supervisorEmail: 'budi.finance@acme.test',
+  },
 
   // ---- Marketing (5) ----
-  { email: 'lina.mkt@acme.test', fullName: 'Lina Marlina', role: UserRole.EMPLOYEE, department: 'Marketing', hiredAt: '2023-09-14', supervisorEmail: 'dewi.marketing@acme.test' },
-  { email: 'bagus.mkt@acme.test', fullName: 'Bagus Pratama', role: UserRole.EMPLOYEE, department: 'Marketing', hiredAt: '2024-05-30', supervisorEmail: 'dewi.marketing@acme.test' },
-  { email: 'retno.mkt@acme.test', fullName: 'Retno Widyawati', role: UserRole.EMPLOYEE, department: 'Marketing', hiredAt: '2024-08-19', supervisorEmail: 'dewi.marketing@acme.test' },
-  { email: 'joko.mkt@acme.test', fullName: 'Joko Susilo', role: UserRole.EMPLOYEE, department: 'Marketing', hiredAt: '2025-02-24', supervisorEmail: 'dewi.marketing@acme.test' },
-  { email: 'ayu.mkt@acme.test', fullName: 'Ayu Wandira', role: UserRole.EMPLOYEE, department: 'Marketing', hiredAt: '2025-11-07', supervisorEmail: 'dewi.marketing@acme.test' },
+  {
+    email: 'lina.mkt@acme.test',
+    fullName: 'Lina Marlina',
+    role: UserRole.EMPLOYEE,
+    department: 'Marketing',
+    hiredAt: '2023-09-14',
+    supervisorEmail: 'dewi.marketing@acme.test',
+  },
+  {
+    email: 'bagus.mkt@acme.test',
+    fullName: 'Bagus Pratama',
+    role: UserRole.EMPLOYEE,
+    department: 'Marketing',
+    hiredAt: '2024-05-30',
+    supervisorEmail: 'dewi.marketing@acme.test',
+  },
+  {
+    email: 'retno.mkt@acme.test',
+    fullName: 'Retno Widyawati',
+    role: UserRole.EMPLOYEE,
+    department: 'Marketing',
+    hiredAt: '2024-08-19',
+    supervisorEmail: 'dewi.marketing@acme.test',
+  },
+  {
+    email: 'joko.mkt@acme.test',
+    fullName: 'Joko Susilo',
+    role: UserRole.EMPLOYEE,
+    department: 'Marketing',
+    hiredAt: '2025-02-24',
+    supervisorEmail: 'dewi.marketing@acme.test',
+  },
+  {
+    email: 'ayu.mkt@acme.test',
+    fullName: 'Ayu Wandira',
+    role: UserRole.EMPLOYEE,
+    department: 'Marketing',
+    hiredAt: '2025-11-07',
+    supervisorEmail: 'dewi.marketing@acme.test',
+  },
 
   // ---- Operations (6, mixed shifts to exercise scheduling) ----
-  { email: 'reza.ops@acme.test', fullName: 'Reza Firmansyah', role: UserRole.EMPLOYEE, department: 'Operations', hiredAt: '2023-07-04', supervisorEmail: 'agus.ops@acme.test', shift: 'Morning 7-4' },
-  { email: 'dian.ops@acme.test', fullName: 'Dian Sastro', role: UserRole.EMPLOYEE, department: 'Operations', hiredAt: '2024-03-12', supervisorEmail: 'agus.ops@acme.test', shift: 'Morning 7-4' },
-  { email: 'arief.ops@acme.test', fullName: 'Arief Budiman', role: UserRole.EMPLOYEE, department: 'Operations', hiredAt: '2024-06-18', supervisorEmail: 'agus.ops@acme.test', shift: 'Afternoon 12-9' },
-  { email: 'nur.ops@acme.test', fullName: 'Nur Aisyah', role: UserRole.EMPLOYEE, department: 'Operations', hiredAt: '2024-10-08', supervisorEmail: 'agus.ops@acme.test', shift: 'Afternoon 12-9' },
-  { email: 'iqbal.ops@acme.test', fullName: 'Iqbal Rahman', role: UserRole.EMPLOYEE, department: 'Operations', hiredAt: '2025-04-03', supervisorEmail: 'agus.ops@acme.test', shift: 'Night 22-7' },
-  { email: 'tia.ops@acme.test', fullName: 'Tia Ramadhani', role: UserRole.EMPLOYEE, department: 'Operations', hiredAt: '2025-06-21', supervisorEmail: 'agus.ops@acme.test', shift: 'Night 22-7' },
+  {
+    email: 'reza.ops@acme.test',
+    fullName: 'Reza Firmansyah',
+    role: UserRole.EMPLOYEE,
+    department: 'Operations',
+    hiredAt: '2023-07-04',
+    supervisorEmail: 'agus.ops@acme.test',
+    shift: 'Morning 7-4',
+  },
+  {
+    email: 'dian.ops@acme.test',
+    fullName: 'Dian Sastro',
+    role: UserRole.EMPLOYEE,
+    department: 'Operations',
+    hiredAt: '2024-03-12',
+    supervisorEmail: 'agus.ops@acme.test',
+    shift: 'Morning 7-4',
+  },
+  {
+    email: 'arief.ops@acme.test',
+    fullName: 'Arief Budiman',
+    role: UserRole.EMPLOYEE,
+    department: 'Operations',
+    hiredAt: '2024-06-18',
+    supervisorEmail: 'agus.ops@acme.test',
+    shift: 'Afternoon 12-9',
+  },
+  {
+    email: 'nur.ops@acme.test',
+    fullName: 'Nur Aisyah',
+    role: UserRole.EMPLOYEE,
+    department: 'Operations',
+    hiredAt: '2024-10-08',
+    supervisorEmail: 'agus.ops@acme.test',
+    shift: 'Afternoon 12-9',
+  },
+  {
+    email: 'iqbal.ops@acme.test',
+    fullName: 'Iqbal Rahman',
+    role: UserRole.EMPLOYEE,
+    department: 'Operations',
+    hiredAt: '2025-04-03',
+    supervisorEmail: 'agus.ops@acme.test',
+    shift: 'Night 22-7',
+  },
+  {
+    email: 'tia.ops@acme.test',
+    fullName: 'Tia Ramadhani',
+    role: UserRole.EMPLOYEE,
+    department: 'Operations',
+    hiredAt: '2025-06-21',
+    supervisorEmail: 'agus.ops@acme.test',
+    shift: 'Night 22-7',
+  },
 
   // ---- People & Culture (2) ----
-  { email: 'eka.hr@acme.test', fullName: 'Eka Puspa Sari', role: UserRole.EMPLOYEE, department: 'People & Culture', hiredAt: '2024-01-22', supervisorEmail: 'sinta.hr@acme.test' },
-  { email: 'farah.hr@acme.test', fullName: 'Farah Diba', role: UserRole.EMPLOYEE, department: 'People & Culture', hiredAt: '2025-03-10', supervisorEmail: 'sinta.hr@acme.test' },
+  {
+    email: 'eka.hr@acme.test',
+    fullName: 'Eka Puspa Sari',
+    role: UserRole.EMPLOYEE,
+    department: 'People & Culture',
+    hiredAt: '2024-01-22',
+    supervisorEmail: 'sinta.hr@acme.test',
+  },
+  {
+    email: 'farah.hr@acme.test',
+    fullName: 'Farah Diba',
+    role: UserRole.EMPLOYEE,
+    department: 'People & Culture',
+    hiredAt: '2025-03-10',
+    supervisorEmail: 'sinta.hr@acme.test',
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -395,9 +562,7 @@ async function main(): Promise<void> {
   if (lead) userByEmail.set('lead@acme.test', { id: lead.id, role: UserRole.SUPERVISOR });
 
   for (const person of EMPLOYEES) {
-    const supervisor = person.supervisorEmail
-      ? userByEmail.get(person.supervisorEmail)
-      : undefined;
+    const supervisor = person.supervisorEmail ? userByEmail.get(person.supervisorEmail) : undefined;
     const user = await prisma.user.upsert({
       where: { companyId_email: { companyId: company.id, email: person.email } },
       create: {
@@ -497,13 +662,14 @@ async function main(): Promise<void> {
   for (const email of historyEmails) {
     const user = userByEmail.get(email);
     if (!user) continue;
-    const person =
-      allPersons.find((p) => p.email === email) ??
-      { shift: 'Regular 9-6' as const };
+    const person = allPersons.find((p) => p.email === email) ?? { shift: 'Regular 9-6' as const };
     const shiftName = person.shift ?? 'Regular 9-6';
     const shiftDef = SHIFTS.find((s) => s.name === shiftName)!;
     const shiftId = shiftByName.get(shiftName)!;
-    const [shiftStartH, shiftStartM] = shiftDef.startTime.split(':').map(Number) as [number, number];
+    const [shiftStartH, shiftStartM] = shiftDef.startTime.split(':').map(Number) as [
+      number,
+      number,
+    ];
     const [shiftEndH, shiftEndM] = shiftDef.endTime.split(':').map(Number) as [number, number];
     // Cheap deterministic hash: sum of char codes mod pattern length.
     const seed = email.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
@@ -575,11 +741,46 @@ async function main(): Promise<void> {
     stage: 'PENDING_SUPERVISOR' | 'PENDING_HR';
   };
   const leaveRequests: LeaveSeed[] = [
-    { userEmail: 'siti.eng@acme.test', leaveTypeId: annual.id, startOffsetDays: 7, days: 3, reason: 'Family gathering out of town', stage: 'PENDING_SUPERVISOR' },
-    { userEmail: 'rio.fin@acme.test', leaveTypeId: annual.id, startOffsetDays: 14, days: 2, reason: 'Personal appointment', stage: 'PENDING_SUPERVISOR' },
-    { userEmail: 'lina.mkt@acme.test', leaveTypeId: sick.id, startOffsetDays: -1, days: 1, reason: 'Flu, doctor advised rest', stage: 'PENDING_SUPERVISOR' },
-    { userEmail: 'reza.ops@acme.test', leaveTypeId: annual.id, startOffsetDays: 21, days: 5, reason: 'Annual vacation', stage: 'PENDING_HR' },
-    { userEmail: 'eka.hr@acme.test', leaveTypeId: permit.id, startOffsetDays: 3, days: 1, reason: 'School meeting for child', stage: 'PENDING_HR' },
+    {
+      userEmail: 'siti.eng@acme.test',
+      leaveTypeId: annual.id,
+      startOffsetDays: 7,
+      days: 3,
+      reason: 'Family gathering out of town',
+      stage: 'PENDING_SUPERVISOR',
+    },
+    {
+      userEmail: 'rio.fin@acme.test',
+      leaveTypeId: annual.id,
+      startOffsetDays: 14,
+      days: 2,
+      reason: 'Personal appointment',
+      stage: 'PENDING_SUPERVISOR',
+    },
+    {
+      userEmail: 'lina.mkt@acme.test',
+      leaveTypeId: sick.id,
+      startOffsetDays: -1,
+      days: 1,
+      reason: 'Flu, doctor advised rest',
+      stage: 'PENDING_SUPERVISOR',
+    },
+    {
+      userEmail: 'reza.ops@acme.test',
+      leaveTypeId: annual.id,
+      startOffsetDays: 21,
+      days: 5,
+      reason: 'Annual vacation',
+      stage: 'PENDING_HR',
+    },
+    {
+      userEmail: 'eka.hr@acme.test',
+      leaveTypeId: permit.id,
+      startOffsetDays: 3,
+      days: 1,
+      reason: 'School meeting for child',
+      stage: 'PENDING_HR',
+    },
   ];
 
   for (const req of leaveRequests) {
@@ -625,13 +826,14 @@ async function main(): Promise<void> {
           companyId: company.id,
           userId: user.id,
           leaveTypeId: req.leaveTypeId,
-          status: req.stage === 'PENDING_HR' ? LeaveStatus.PENDING_HR : LeaveStatus.PENDING_SUPERVISOR,
+          status:
+            req.stage === 'PENDING_HR' ? LeaveStatus.PENDING_HR : LeaveStatus.PENDING_SUPERVISOR,
           startDate,
           endDate,
           days: req.days,
           reason: req.reason,
           // For PENDING_HR we simulate that the supervisor already approved.
-          supervisorId: req.stage === 'PENDING_HR' ? supervisor?.supervisorId ?? null : null,
+          supervisorId: req.stage === 'PENDING_HR' ? (supervisor?.supervisorId ?? null) : null,
           supervisorAt: req.stage === 'PENDING_HR' ? new Date() : null,
           supervisorNote: req.stage === 'PENDING_HR' ? 'Approved by supervisor (UAT seed)' : null,
         },
@@ -649,9 +851,24 @@ async function main(): Promise<void> {
     reason: string;
   };
   const otRequests: OtSeed[] = [
-    { userEmail: 'andi.eng@acme.test', workDateOffsetDays: 2, hours: '2.5', reason: 'Release cutover support' },
-    { userEmail: 'maya.fin@acme.test', workDateOffsetDays: 3, hours: '3.0', reason: 'Month-end reconciliation' },
-    { userEmail: 'dian.ops@acme.test', workDateOffsetDays: 1, hours: '1.5', reason: 'Warehouse stocktake' },
+    {
+      userEmail: 'andi.eng@acme.test',
+      workDateOffsetDays: 2,
+      hours: '2.5',
+      reason: 'Release cutover support',
+    },
+    {
+      userEmail: 'maya.fin@acme.test',
+      workDateOffsetDays: 3,
+      hours: '3.0',
+      reason: 'Month-end reconciliation',
+    },
+    {
+      userEmail: 'dian.ops@acme.test',
+      workDateOffsetDays: 1,
+      hours: '1.5',
+      reason: 'Warehouse stocktake',
+    },
   ];
 
   for (const ot of otRequests) {
@@ -663,7 +880,9 @@ async function main(): Promise<void> {
       where: {
         userId: user.id,
         workDate,
-        status: { in: [OvertimeStatus.PENDING_APPROVAL, OvertimeStatus.APPROVED, OvertimeStatus.COMPLETED] },
+        status: {
+          in: [OvertimeStatus.PENDING_APPROVAL, OvertimeStatus.APPROVED, OvertimeStatus.COMPLETED],
+        },
       },
       select: { id: true },
     });

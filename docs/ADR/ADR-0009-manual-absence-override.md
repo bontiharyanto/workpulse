@@ -59,7 +59,7 @@ flow can be represented either as many `MANUAL_HR` rows (each with a
 distinct `markedById`) or as a new enum variant IF and only if
 downstream systems must differentiate. YAGNI for now.
 
-### D3. Idempotency = *duplicate → 409*, not *upsert*
+### D3. Idempotency = _duplicate → 409_, not _upsert_
 
 `POST` on a pre-existing `(userId, workDate)` returns **409 CONFLICT**,
 NOT a silent upsert. Rationale:
@@ -124,10 +124,10 @@ mix of "" vs `null` in analytics.
   to `WHERE deletedAt IS NULL`-filter forever.
 - `AuditLog(action='ATTENDANCE_UNMARK_ABSENT', beforeJson=…)` gives us
   a complete history in a dedicated system — better than a
-  `deleted_at` gravestone which doesn't say *who* undid it or *when*.
+  `deleted_at` gravestone which doesn't say _who_ undid it or _when_.
 - Payroll cutoff protection is a separate concern (freeze period on
   `Company`) — it will block DELETE by validating `workDate <
-  payrollCutoff` in the future, not by relying on soft delete.
+payrollCutoff` in the future, not by relying on soft delete.
 
 ## Consequences
 

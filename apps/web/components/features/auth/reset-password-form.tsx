@@ -1,10 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  resetPasswordInputSchema,
-  type ResetPasswordInput,
-} from '@workpulse/shared-types';
+import { resetPasswordInputSchema, type ResetPasswordInput } from '@workpulse/shared-types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -32,8 +29,7 @@ type FormValues = z.infer<typeof formSchema>;
 const ERROR_COPY: Record<string, string> = {
   INVALID_TOKEN:
     'Link reset ini tidak valid atau sudah kedaluwarsa. Silakan minta link baru dari halaman lupa password.',
-  THROTTLED:
-    'Terlalu banyak percobaan. Silakan tunggu beberapa saat lalu coba lagi.',
+  THROTTLED: 'Terlalu banyak percobaan. Silakan tunggu beberapa saat lalu coba lagi.',
 };
 
 export function ResetPasswordForm({ token }: { token: string | null }): JSX.Element {
@@ -52,13 +48,13 @@ export function ResetPasswordForm({ token }: { token: string | null }): JSX.Elem
       <div className="space-y-4">
         <div
           role="alert"
-          className="rounded-md border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-4 py-3 text-sm"
         >
           Link reset tidak lengkap. Silakan minta link baru.
         </div>
         <Link
           href="/forgot-password"
-          className="inline-block text-sm font-medium text-primary underline underline-offset-4"
+          className="text-primary inline-block text-sm font-medium underline underline-offset-4"
         >
           Minta link reset baru
         </Link>
@@ -93,13 +89,12 @@ export function ResetPasswordForm({ token }: { token: string | null }): JSX.Elem
           role="status"
           className="rounded-md border border-emerald-300/60 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"
         >
-          Password Anda berhasil diubah. Silakan masuk kembali menggunakan
-          password baru.
+          Password Anda berhasil diubah. Silakan masuk kembali menggunakan password baru.
         </div>
         <button
           type="button"
           onClick={() => router.replace('/login')}
-          className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:opacity-90"
+          className="bg-primary text-primary-foreground w-full rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90"
         >
           Masuk sekarang
         </button>
@@ -120,15 +115,15 @@ export function ResetPasswordForm({ token }: { token: string | null }): JSX.Elem
           autoFocus
           minLength={8}
           aria-invalid={Boolean(form.formState.errors.password) || undefined}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2"
           {...form.register('password')}
         />
         {form.formState.errors.password && (
-          <p role="alert" className="text-xs text-destructive">
+          <p role="alert" className="text-destructive text-xs">
             {form.formState.errors.password.message}
           </p>
         )}
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           Minimal 8 karakter. Gunakan kombinasi huruf besar, kecil, angka, dan simbol.
         </p>
       </div>
@@ -143,11 +138,11 @@ export function ResetPasswordForm({ token }: { token: string | null }): JSX.Elem
           autoComplete="new-password"
           minLength={8}
           aria-invalid={Boolean(form.formState.errors.passwordConfirm) || undefined}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2"
           {...form.register('passwordConfirm')}
         />
         {form.formState.errors.passwordConfirm && (
-          <p role="alert" className="text-xs text-destructive">
+          <p role="alert" className="text-destructive text-xs">
             {form.formState.errors.passwordConfirm.message}
           </p>
         )}
@@ -156,7 +151,7 @@ export function ResetPasswordForm({ token }: { token: string | null }): JSX.Elem
       {submitError && (
         <p
           role="alert"
-          className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
         >
           {submitError}
         </p>
@@ -165,12 +160,12 @@ export function ResetPasswordForm({ token }: { token: string | null }): JSX.Elem
       <button
         type="submit"
         disabled={form.formState.isSubmitting}
-        className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:opacity-90 disabled:opacity-50"
+        className="bg-primary text-primary-foreground w-full rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90 disabled:opacity-50"
       >
         {form.formState.isSubmitting ? 'Menyimpan...' : 'Simpan password baru'}
       </button>
 
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="text-muted-foreground text-center text-xs">
         <Link href="/login" className="underline underline-offset-4">
           Kembali ke halaman masuk
         </Link>

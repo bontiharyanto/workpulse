@@ -24,18 +24,15 @@ export default function AdminVendorsPage() {
         <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="space-y-1">
-              <h1 className="text-2xl font-semibold tracking-tight">
-                Register vendor & processor
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Daftar formal pihak ketiga yang memproses data pribadi atas
-                nama tenant, termasuk siklus review tahunan dan status DPA
-                (Data Processing Agreement).
+              <h1 className="text-2xl font-semibold tracking-tight">Register vendor & processor</h1>
+              <p className="text-muted-foreground text-sm">
+                Daftar formal pihak ketiga yang memproses data pribadi atas nama tenant, termasuk
+                siklus review tahunan dan status DPA (Data Processing Agreement).
               </p>
             </div>
             <Link
               href={'/admin/privacy/vendors/new' as unknown as Route}
-              className="rounded-md border border-border bg-primary px-3 py-1.5 text-sm text-primary-foreground hover:bg-primary/90"
+              className="border-border bg-primary text-primary-foreground hover:bg-primary/90 rounded-md border px-3 py-1.5 text-sm"
             >
               + Vendor baru
             </Link>

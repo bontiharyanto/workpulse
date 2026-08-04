@@ -1,9 +1,4 @@
-import {
-  ageInDays,
-  bucketFor,
-  emptyBucketCounts,
-  summarize,
-} from './age-buckets';
+import { ageInDays, bucketFor, emptyBucketCounts, summarize } from './age-buckets';
 
 const NOW = new Date('2026-08-02T12:00:00Z');
 

@@ -15,9 +15,8 @@ export default function SecuritySettingsPage(): JSX.Element {
       <main className="mx-auto max-w-2xl space-y-8 px-4 py-8">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">Keamanan akun</h1>
-          <p className="text-sm text-muted-foreground">
-            Kelola verifikasi 2 langkah (MFA), backup codes, dan sesi login
-            aktif.
+          <p className="text-muted-foreground text-sm">
+            Kelola verifikasi 2 langkah (MFA), backup codes, dan sesi login aktif.
           </p>
         </div>
         <MfaManagementPanel />

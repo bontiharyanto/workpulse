@@ -45,10 +45,7 @@ export interface CalculatedPeriod {
  *   - Never throws for a valid config. Passing an out-of-range
  *     `cutoffDayOfMonth` throws a `RangeError`.
  */
-export function calculatePeriod(
-  now: Date,
-  config: PeriodCalculatorConfig,
-): CalculatedPeriod {
+export function calculatePeriod(now: Date, config: PeriodCalculatorConfig): CalculatedPeriod {
   switch (config.periodType) {
     case TimesheetPeriodType.WEEKLY:
       return weeklyPeriod(now, config);
@@ -67,14 +64,10 @@ export function calculatePeriod(
 
 // ---------- WEEKLY ----------
 
-function weeklyPeriod(
-  now: Date,
-  config: PeriodCalculatorConfig,
-): CalculatedPeriod {
+function weeklyPeriod(now: Date, config: PeriodCalculatorConfig): CalculatedPeriod {
   const localDate = tzCalendarDate(now, config.timezone);
   const weekdayInTz = tzWeekday(now, config.timezone);
-  const anchorWeekday =
-    config.weekStartDay === WeekStartDay.SUNDAY ? 0 : 1;
+  const anchorWeekday = config.weekStartDay === WeekStartDay.SUNDAY ? 0 : 1;
 
   const daysSinceAnchor = (weekdayInTz - anchorWeekday + 7) % 7;
   const start = addDaysUtc(localDate, -daysSinceAnchor);
@@ -88,23 +81,16 @@ function weeklyPeriod(
 
 // ---------- BIWEEKLY ----------
 
-function biweeklyPeriod(
-  now: Date,
-  config: PeriodCalculatorConfig,
-): CalculatedPeriod {
+function biweeklyPeriod(now: Date, config: PeriodCalculatorConfig): CalculatedPeriod {
   // Fallback: when no anchor is set, treat this as weekly-of-2. We use
   // the beginning of the ISO week (Monday) of the earliest supported
   // date (2000-01-03) as an implicit anchor so the period boundaries
   // stay stable across process restarts.
-  const anchor =
-    config.biweeklyAnchor ??
-    new Date(Date.UTC(2000, 0, 3)); // 2000-01-03 was a Monday
+  const anchor = config.biweeklyAnchor ?? new Date(Date.UTC(2000, 0, 3)); // 2000-01-03 was a Monday
 
   const anchorUtcMidnight = tzCalendarDate(anchor, config.timezone);
   const localDate = tzCalendarDate(now, config.timezone);
-  const daysBetween = Math.floor(
-    (localDate.getTime() - anchorUtcMidnight.getTime()) / 86_400_000,
-  );
+  const daysBetween = Math.floor((localDate.getTime() - anchorUtcMidnight.getTime()) / 86_400_000);
   // Use Math.floor over `daysBetween / 14` (works for negative values).
   const periodsSinceAnchor = Math.floor(daysBetween / 14);
   const start = addDaysUtc(anchorUtcMidnight, periodsSinceAnchor * 14);
@@ -116,10 +102,7 @@ function biweeklyPeriod(
 
 // ---------- MONTHLY ----------
 
-function monthlyPeriod(
-  now: Date,
-  config: PeriodCalculatorConfig,
-): CalculatedPeriod {
+function monthlyPeriod(now: Date, config: PeriodCalculatorConfig): CalculatedPeriod {
   const parts = tzCalendarParts(now, config.timezone);
   const start = new Date(Date.UTC(parts.year, parts.month, 1));
   const end = new Date(Date.UTC(parts.year, parts.month + 1, 0));
@@ -129,20 +112,13 @@ function monthlyPeriod(
 
 // ---------- CUTOFF ----------
 
-function cutoffPeriod(
-  now: Date,
-  config: PeriodCalculatorConfig,
-): CalculatedPeriod {
+function cutoffPeriod(now: Date, config: PeriodCalculatorConfig): CalculatedPeriod {
   const cutoff = config.cutoffDayOfMonth;
   if (cutoff === null || cutoff === undefined) {
-    throw new Error(
-      'TimesheetConfig.periodType=CUTOFF but cutoffDayOfMonth is null',
-    );
+    throw new Error('TimesheetConfig.periodType=CUTOFF but cutoffDayOfMonth is null');
   }
   if (!Number.isInteger(cutoff) || cutoff < 1 || cutoff > 28) {
-    throw new RangeError(
-      `cutoffDayOfMonth must be an integer in [1, 28]; got ${cutoff}`,
-    );
+    throw new RangeError(`cutoffDayOfMonth must be an integer in [1, 28]; got ${cutoff}`);
   }
 
   const parts = tzCalendarParts(now, config.timezone);
@@ -211,13 +187,10 @@ function tzCalendarParts(
     month: '2-digit',
     day: '2-digit',
   });
-  const parts = dtf.formatToParts(instant).reduce<Record<string, string>>(
-    (acc, p) => {
-      if (p.type !== 'literal') acc[p.type] = p.value;
-      return acc;
-    },
-    {},
-  );
+  const parts = dtf.formatToParts(instant).reduce<Record<string, string>>((acc, p) => {
+    if (p.type !== 'literal') acc[p.type] = p.value;
+    return acc;
+  }, {});
   return {
     year: Number(parts.year),
     month: Number(parts.month) - 1,
@@ -257,9 +230,7 @@ function tzWeekday(instant: Date, timezone: string): number {
  * periods without introducing a moment/luxon dependency.
  */
 function isoWeekNumber(day: Date): number {
-  const d = new Date(
-    Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate()),
-  );
+  const d = new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate()));
   const dayNum = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));

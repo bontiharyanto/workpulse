@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import type { Timesheet, TimesheetPeriod, User } from '@prisma/client';
 import { TimesheetPeriodType, TimesheetStatus } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
@@ -30,14 +26,12 @@ function buildKit(): Kit {
   const prisma = mockDeep<PrismaService>();
   mockReset(prisma);
 
-  (prisma.$transaction as unknown as jest.Mock).mockImplementation(
-    async (arg: unknown) => {
-      if (typeof arg === 'function') {
-        return (arg as (tx: PrismaService) => unknown)(prisma);
-      }
-      return Promise.all(arg as Promise<unknown>[]);
-    },
-  );
+  (prisma.$transaction as unknown as jest.Mock).mockImplementation(async (arg: unknown) => {
+    if (typeof arg === 'function') {
+      return (arg as (tx: PrismaService) => unknown)(prisma);
+    }
+    return Promise.all(arg as Promise<unknown>[]);
+  });
 
   const notifications = {
     createOne: jest.fn().mockResolvedValue(undefined),
@@ -67,10 +61,9 @@ function makeActor(overrides: Partial<AuthenticatedUser> = {}): AuthenticatedUse
   };
 }
 
-function makeUser(overrides: Partial<User> = {}): Pick<
-  User,
-  'id' | 'supervisorId' | 'fullName' | 'email'
-> {
+function makeUser(
+  overrides: Partial<User> = {},
+): Pick<User, 'id' | 'supervisorId' | 'fullName' | 'email'> {
   return {
     id: 'u-owner',
     supervisorId: 'sup-1',
@@ -101,9 +94,7 @@ type TimesheetWithRelations = Timesheet & {
   user: Pick<User, 'id' | 'supervisorId' | 'fullName' | 'email'>;
 };
 
-function makeTimesheet(
-  overrides: Partial<TimesheetWithRelations> = {},
-): TimesheetWithRelations {
+function makeTimesheet(overrides: Partial<TimesheetWithRelations> = {}): TimesheetWithRelations {
   return {
     id: 'ts-1',
     companyId: 'c-1',
@@ -192,17 +183,17 @@ describe('TimesheetSubmissionService.submit', () => {
       }) as never,
     );
 
-    await expect(
-      kit.service.submit(makeActor({ id: 'u-owner' }), 'ts-1'),
-    ).rejects.toBeInstanceOf(ConflictException);
+    await expect(kit.service.submit(makeActor({ id: 'u-owner' }), 'ts-1')).rejects.toBeInstanceOf(
+      ConflictException,
+    );
   });
 
   it('surfaces NotFound for a foreign-tenant timesheet', async () => {
     const kit = buildKit();
     kit.prisma.timesheet.findFirst.mockResolvedValue(null);
-    await expect(
-      kit.service.submit(makeActor({ id: 'u-owner' }), 'ts-x'),
-    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(kit.service.submit(makeActor({ id: 'u-owner' }), 'ts-x')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 });
 
@@ -214,11 +205,10 @@ describe('TimesheetSubmissionService.decide', () => {
     );
 
     await expect(
-      kit.service.decide(
-        makeActor({ id: 'sup-1', role: 'SUPERVISOR' }),
-        'ts-1',
-        { action: 'SUPERVISOR_REJECT', note: '   ' },
-      ),
+      kit.service.decide(makeActor({ id: 'sup-1', role: 'SUPERVISOR' }), 'ts-1', {
+        action: 'SUPERVISOR_REJECT',
+        note: '   ',
+      }),
     ).rejects.toBeInstanceOf(ConflictException);
   });
 
@@ -235,11 +225,9 @@ describe('TimesheetSubmissionService.decide', () => {
       fullName: 'Supervisor',
     } as never);
 
-    await kit.service.decide(
-      makeActor({ id: 'sup-1', role: 'SUPERVISOR' }),
-      ts.id,
-      { action: 'SUPERVISOR_APPROVE' },
-    );
+    await kit.service.decide(makeActor({ id: 'sup-1', role: 'SUPERVISOR' }), ts.id, {
+      action: 'SUPERVISOR_APPROVE',
+    });
 
     expect(kit.prisma.timesheet.update).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -256,11 +244,9 @@ describe('TimesheetSubmissionService.decide', () => {
     );
 
     await expect(
-      kit.service.decide(
-        makeActor({ id: 'peer-1', role: 'SUPERVISOR' }),
-        'ts-1',
-        { action: 'SUPERVISOR_APPROVE' },
-      ),
+      kit.service.decide(makeActor({ id: 'peer-1', role: 'SUPERVISOR' }), 'ts-1', {
+        action: 'SUPERVISOR_APPROVE',
+      }),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
@@ -271,11 +257,9 @@ describe('TimesheetSubmissionService.decide', () => {
     );
 
     await expect(
-      kit.service.decide(
-        makeActor({ id: 'sup-1', role: 'SUPERVISOR' }),
-        'ts-1',
-        { action: 'HR_APPROVE' },
-      ),
+      kit.service.decide(makeActor({ id: 'sup-1', role: 'SUPERVISOR' }), 'ts-1', {
+        action: 'HR_APPROVE',
+      }),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
@@ -292,11 +276,9 @@ describe('TimesheetSubmissionService.decide', () => {
       fullName: 'HR Manager',
     } as never);
 
-    await kit.service.decide(
-      makeActor({ id: 'hr-1', role: 'HR_MANAGER' }),
-      ts.id,
-      { action: 'HR_APPROVE' },
-    );
+    await kit.service.decide(makeActor({ id: 'hr-1', role: 'HR_MANAGER' }), ts.id, {
+      action: 'HR_APPROVE',
+    });
 
     expect(kit.prisma.timesheet.update).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -312,11 +294,9 @@ describe('TimesheetSubmissionService.decide', () => {
     );
 
     await expect(
-      kit.service.decide(
-        makeActor({ id: 'hr-1', role: 'HR_MANAGER' }),
-        'ts-1',
-        { action: 'HR_APPROVE' },
-      ),
+      kit.service.decide(makeActor({ id: 'hr-1', role: 'HR_MANAGER' }), 'ts-1', {
+        action: 'HR_APPROVE',
+      }),
     ).rejects.toBeInstanceOf(ConflictException);
   });
 });
@@ -405,11 +385,7 @@ describe('TimesheetSubmissionService.reopen', () => {
       fullName: 'HR-Supervisor',
     } as never);
 
-    await kit.service.reopen(
-      makeActor({ id: 'hr-1', role: 'HR_MANAGER' }),
-      ts.id,
-      okReason,
-    );
+    await kit.service.reopen(makeActor({ id: 'hr-1', role: 'HR_MANAGER' }), ts.id, okReason);
 
     // Owner only — supervisor lookup is short-circuited
     expect(kit.notifications.createOne).toHaveBeenCalledTimes(1);
@@ -422,11 +398,7 @@ describe('TimesheetSubmissionService.reopen', () => {
     );
 
     await expect(
-      kit.service.reopen(
-        makeActor({ id: 'u-owner', role: 'EMPLOYEE' }),
-        'ts-1',
-        okReason,
-      ),
+      kit.service.reopen(makeActor({ id: 'u-owner', role: 'EMPLOYEE' }), 'ts-1', okReason),
     ).rejects.toBeInstanceOf(ForbiddenException);
     expect(kit.webhookDispatcher.enqueue).not.toHaveBeenCalled();
   });
@@ -438,11 +410,7 @@ describe('TimesheetSubmissionService.reopen', () => {
     );
 
     await expect(
-      kit.service.reopen(
-        makeActor({ id: 'sup-1', role: 'SUPERVISOR' }),
-        'ts-1',
-        okReason,
-      ),
+      kit.service.reopen(makeActor({ id: 'sup-1', role: 'SUPERVISOR' }), 'ts-1', okReason),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
@@ -453,11 +421,7 @@ describe('TimesheetSubmissionService.reopen', () => {
     );
 
     await expect(
-      kit.service.reopen(
-        makeActor({ id: 'hr-1', role: 'HR_MANAGER' }),
-        'ts-1',
-        okReason,
-      ),
+      kit.service.reopen(makeActor({ id: 'hr-1', role: 'HR_MANAGER' }), 'ts-1', okReason),
     ).rejects.toBeInstanceOf(ConflictException);
   });
 
@@ -468,11 +432,7 @@ describe('TimesheetSubmissionService.reopen', () => {
     );
 
     await expect(
-      kit.service.reopen(
-        makeActor({ id: 'hr-1', role: 'HR_MANAGER' }),
-        'ts-1',
-        'typo',
-      ),
+      kit.service.reopen(makeActor({ id: 'hr-1', role: 'HR_MANAGER' }), 'ts-1', 'typo'),
     ).rejects.toMatchObject({ status: 400 });
   });
 
@@ -481,11 +441,7 @@ describe('TimesheetSubmissionService.reopen', () => {
     kit.prisma.timesheet.findFirst.mockResolvedValue(null);
 
     await expect(
-      kit.service.reopen(
-        makeActor({ id: 'hr-1', role: 'HR_MANAGER' }),
-        'ts-x',
-        okReason,
-      ),
+      kit.service.reopen(makeActor({ id: 'hr-1', role: 'HR_MANAGER' }), 'ts-x', okReason),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 });

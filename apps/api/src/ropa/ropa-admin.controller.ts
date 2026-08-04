@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Patch,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
@@ -40,9 +31,7 @@ export class RopaAdminController {
   constructor(private readonly service: RopaRegistryService) {}
 
   @Get('activities')
-  async list(
-    @CurrentUser() actor: AuthenticatedUser,
-  ): Promise<RopaActivityListItemDto[]> {
+  async list(@CurrentUser() actor: AuthenticatedUser): Promise<RopaActivityListItemDto[]> {
     const items = await this.service.list(actor);
     return items.map(toListItemDto);
   }
@@ -82,9 +71,7 @@ export class RopaAdminController {
 
   @Post('seed-defaults')
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
-  async seed(
-    @CurrentUser() actor: AuthenticatedUser,
-  ): Promise<SeedRopaResponseDto> {
+  async seed(@CurrentUser() actor: AuthenticatedUser): Promise<SeedRopaResponseDto> {
     return this.service.seedDefaults(actor);
   }
 

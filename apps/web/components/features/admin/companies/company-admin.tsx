@@ -2,11 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import type {
-  CompanyAdmin,
-  CreateCompanyInput,
-  UpdateCompanyInput,
-} from '@workpulse/shared-types';
+import type { CompanyAdmin, CreateCompanyInput, UpdateCompanyInput } from '@workpulse/shared-types';
 
 import { useAuth } from '@/components/providers/auth-provider';
 import { ApiError, companiesAdminApi } from '@/lib/api-client';
@@ -128,10 +124,9 @@ export function CompanyAdmin(): JSX.Element {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Tenant</h2>
-          <p className="text-xs text-muted-foreground">
-            Kelola perusahaan (multi-tenant) beserta akun HR awal. Membuat tenant
-            baru akan menyeed tipe cuti default dan menghasilkan password sementara
-            sekali pakai untuk HR.
+          <p className="text-muted-foreground text-xs">
+            Kelola perusahaan (multi-tenant) beserta akun HR awal. Membuat tenant baru akan menyeed
+            tipe cuti default dan menghasilkan password sementara sekali pakai untuk HR.
           </p>
         </div>
         <button
@@ -141,7 +136,7 @@ export function CompanyAdmin(): JSX.Element {
             setErrorText(null);
           }}
           data-testid="add-company-btn"
-          className="rounded-md bg-foreground px-3 py-1 text-xs font-medium text-background"
+          className="bg-foreground text-background rounded-md px-3 py-1 text-xs font-medium"
         >
           + Tambah tenant
         </button>
@@ -160,7 +155,7 @@ export function CompanyAdmin(): JSX.Element {
         <p
           role="alert"
           data-testid="company-error"
-          className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
         >
           {errorText}
         </p>
@@ -169,14 +164,12 @@ export function CompanyAdmin(): JSX.Element {
       <div className="grid gap-2 rounded-md border p-3 text-sm md:grid-cols-4">
         <input
           value={filters.search}
-          onChange={(e) =>
-            setFilters((f) => ({ ...f, search: e.target.value, page: 1 }))
-          }
+          onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value, page: 1 }))}
           placeholder="Cari nama / slug..."
           data-testid="company-search-input"
-          className="rounded-md border border-input bg-background px-3 py-2 text-sm md:col-span-3"
+          className="border-input bg-background rounded-md border px-3 py-2 text-sm md:col-span-3"
         />
-        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+        <label className="text-muted-foreground flex items-center gap-2 text-xs">
           <input
             type="checkbox"
             checked={filters.includeDeleted}
@@ -217,11 +210,11 @@ export function CompanyAdmin(): JSX.Element {
       )}
 
       {query.isLoading ? (
-        <p className="text-sm text-muted-foreground">Memuat...</p>
+        <p className="text-muted-foreground text-sm">Memuat...</p>
       ) : rows.length === 0 ? (
         <p
           data-testid="company-empty-state"
-          className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground"
+          className="text-muted-foreground rounded-md border border-dashed p-6 text-center text-sm"
         >
           Tidak ada tenant yang cocok.
         </p>
@@ -229,7 +222,7 @@ export function CompanyAdmin(): JSX.Element {
         <>
           <div className="overflow-x-auto rounded-lg border">
             <table className="w-full text-sm" data-testid="company-table">
-              <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
+              <thead className="bg-muted/40 text-muted-foreground text-xs uppercase tracking-wider">
                 <tr>
                   <th className="px-3 py-2 text-left">Nama</th>
                   <th className="px-3 py-2 text-left">Slug</th>
@@ -245,8 +238,7 @@ export function CompanyAdmin(): JSX.Element {
                   const isDeleted = Boolean(c.deletedAt);
                   const isSelf = c.id === actor.companyId;
                   const busyDelete = deleteMut.isPending && deleteMut.variables === c.id;
-                  const busyRestore =
-                    restoreMut.isPending && restoreMut.variables === c.id;
+                  const busyRestore = restoreMut.isPending && restoreMut.variables === c.id;
                   return (
                     <tr
                       key={c.id}
@@ -262,14 +254,12 @@ export function CompanyAdmin(): JSX.Element {
                         )}
                       </td>
                       <td className="px-3 py-2 font-mono text-xs">{c.slug}</td>
-                      <td className="px-3 py-2 text-muted-foreground">{c.timezone}</td>
+                      <td className="text-muted-foreground px-3 py-2">{c.timezone}</td>
                       <td className="px-3 py-2 text-right tabular-nums">{c.userCount}</td>
-                      <td className="px-3 py-2 text-right tabular-nums">
-                        {c.departmentCount}
-                      </td>
+                      <td className="px-3 py-2 text-right tabular-nums">{c.departmentCount}</td>
                       <td className="px-3 py-2">
                         {isDeleted ? (
-                          <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                          <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs">
                             Dinonaktifkan
                           </span>
                         ) : (
@@ -295,9 +285,7 @@ export function CompanyAdmin(): JSX.Element {
                               disabled={busyRestore}
                               onClick={() => {
                                 if (
-                                  window.confirm(
-                                    `Aktifkan kembali tenant ${c.name} (${c.slug})?`,
-                                  )
+                                  window.confirm(`Aktifkan kembali tenant ${c.name} (${c.slug})?`)
                                 ) {
                                   restoreMut.mutate(c.id);
                                 }
@@ -312,9 +300,7 @@ export function CompanyAdmin(): JSX.Element {
                               type="button"
                               disabled={busyDelete || isSelf}
                               title={
-                                isSelf
-                                  ? 'Tidak dapat menonaktifkan tenant sendiri'
-                                  : undefined
+                                isSelf ? 'Tidak dapat menonaktifkan tenant sendiri' : undefined
                               }
                               onClick={() => {
                                 if (
@@ -326,7 +312,7 @@ export function CompanyAdmin(): JSX.Element {
                                 }
                               }}
                               data-testid={`company-delete-${c.slug}`}
-                              className="rounded-md border border-destructive px-2 py-1 text-xs text-destructive disabled:opacity-40"
+                              className="border-destructive text-destructive rounded-md border px-2 py-1 text-xs disabled:opacity-40"
                             >
                               {busyDelete ? 'Menonaktifkan...' : 'Nonaktifkan'}
                             </button>
@@ -340,7 +326,7 @@ export function CompanyAdmin(): JSX.Element {
             </table>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="text-muted-foreground flex items-center justify-between text-xs">
             <p>
               Menampilkan {(filters.page - 1) * PAGE_SIZE + 1}–
               {Math.min(filters.page * PAGE_SIZE, totalCount)} dari {totalCount}
@@ -349,9 +335,7 @@ export function CompanyAdmin(): JSX.Element {
               <button
                 type="button"
                 disabled={filters.page <= 1}
-                onClick={() =>
-                  setFilters((f) => ({ ...f, page: Math.max(1, f.page - 1) }))
-                }
+                onClick={() => setFilters((f) => ({ ...f, page: Math.max(1, f.page - 1) }))}
                 className="rounded-md border px-2 py-1 disabled:opacity-40"
               >
                 ← Sebelumnya

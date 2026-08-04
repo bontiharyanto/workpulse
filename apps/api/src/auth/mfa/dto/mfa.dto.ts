@@ -69,7 +69,9 @@ export class MfaEnrollStartResponseDto {
   otpauthUrl!: string;
   @ApiProperty({ description: 'Base64 data URI PNG of the QR code (rendered server-side)' })
   qrCodeDataUri!: string;
-  @ApiProperty({ description: 'Human-readable base32 secret — a fallback when QR scanning is unavailable' })
+  @ApiProperty({
+    description: 'Human-readable base32 secret — a fallback when QR scanning is unavailable',
+  })
   secret!: string;
 }
 
@@ -88,13 +90,19 @@ export class MfaEnrollConfirmResponseDto {
 }
 
 export class MfaBackupCodesResponseDto {
-  @ApiProperty({ description: 'Fresh batch of backup codes; prior codes are invalidated', type: [String] })
+  @ApiProperty({
+    description: 'Fresh batch of backup codes; prior codes are invalidated',
+    type: [String],
+  })
   backupCodes!: string[];
 }
 
 export class MfaStatusDto {
   @ApiProperty() enabled!: boolean;
-  @ApiProperty({ nullable: true, description: 'ISO timestamp when the second factor was activated' })
+  @ApiProperty({
+    nullable: true,
+    description: 'ISO timestamp when the second factor was activated',
+  })
   enabledAt!: string | null;
   @ApiProperty({ description: 'Number of unused backup codes remaining' })
   remainingBackupCodes!: number;
@@ -105,6 +113,8 @@ export class MfaVerifyResponseDto {
   accessToken!: string;
   @ApiProperty({ description: 'Access token lifetime in seconds' })
   accessTokenExpiresIn!: number;
-  @ApiProperty({ description: 'Whether the caller used a backup code (informational — always false for TOTP)' })
+  @ApiProperty({
+    description: 'Whether the caller used a backup code (informational — always false for TOTP)',
+  })
   usedBackupCode!: boolean;
 }

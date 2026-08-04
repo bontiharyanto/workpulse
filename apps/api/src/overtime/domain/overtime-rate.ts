@@ -63,10 +63,7 @@ export interface RateComputationResult {
  * calendar interpretation via `getUTCDay` since `workDate` is stored as a
  * `Date`-only column and callers must pass midnight-UTC to avoid TZ drift.
  */
-export function classifyDay(
-  workDate: Date,
-  holidaySet: ReadonlySet<string>,
-): OvertimeDayKind {
+export function classifyDay(workDate: Date, holidaySet: ReadonlySet<string>): OvertimeDayKind {
   const iso = toIsoDate(workDate);
   if (holidaySet.has(iso)) return 'HOLIDAY';
   const dow = workDate.getUTCDay(); // 0 = Sun, 6 = Sat
@@ -79,9 +76,7 @@ export function computeOvertimeRate(input: RateComputationInput): RateComputatio
     input.userHourlyRateOverride ??
     input.companyPolicy.hourlyRate ??
     (() => {
-      throw new OvertimeRateError(
-        'Neither user nor company overtime hourly rate is configured',
-      );
+      throw new OvertimeRateError('Neither user nor company overtime hourly rate is configured');
     })();
 
   const dayKind = classifyDay(input.workDate, input.holidaySet);

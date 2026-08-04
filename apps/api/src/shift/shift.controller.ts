@@ -17,10 +17,7 @@ import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 import { CreateShiftAssignmentDto, EndShiftAssignmentDto } from './dto/assignment.dto';
 import { CreateShiftDto } from './dto/create-shift.dto';
-import type {
-  ShiftAssignmentResponseDto,
-  ShiftResponseDto,
-} from './dto/shift-response.dto';
+import type { ShiftAssignmentResponseDto, ShiftResponseDto } from './dto/shift-response.dto';
 import { UpdateShiftDto } from './dto/update-shift.dto';
 import { ShiftService } from './shift.service';
 

@@ -34,9 +34,7 @@ describe('DPIA risk scoring', () => {
     it('rejects out-of-range axes', () => {
       expect(() => scoreOf(0, 3)).toThrow(InvalidRiskAxisError);
       expect(() => scoreOf(3, 6)).toThrow(InvalidRiskAxisError);
-      expect(() => scoreOf(1.5 as unknown as number, 3)).toThrow(
-        InvalidRiskAxisError,
-      );
+      expect(() => scoreOf(1.5 as unknown as number, 3)).toThrow(InvalidRiskAxisError);
     });
     it('multiplies likelihood and impact', () => {
       expect(scoreOf(2, 3)).toBe(6);

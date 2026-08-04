@@ -19,7 +19,10 @@ export type WorkflowAction =
 
 export class IllegalTimesheetTransitionError extends Error {
   readonly code = 'TIMESHEET_ILLEGAL_TRANSITION';
-  constructor(readonly from: TimesheetStatus, readonly to: string) {
+  constructor(
+    readonly from: TimesheetStatus,
+    readonly to: string,
+  ) {
     super(`illegal timesheet transition ${from} → ${to}`);
   }
 }
@@ -58,10 +61,7 @@ export class ForbiddenTimesheetTransitionError extends Error {
  * here (Fase 32a's `payrollLockedUntil` interaction, honoured via the
  * regenerate guard in `TimesheetService`).
  */
-export function transition(
-  from: TimesheetStatus,
-  action: WorkflowAction,
-): TimesheetStatus {
+export function transition(from: TimesheetStatus, action: WorkflowAction): TimesheetStatus {
   switch (action.kind) {
     case 'SUBMIT':
       return handleSubmit(from, action);
@@ -139,15 +139,10 @@ function handleHrReject(
   return TimesheetStatus.REJECTED;
 }
 
-function assertSupervisorOrElevated(
-  role: UserRole,
-  isTeamSupervisor: boolean,
-): void {
+function assertSupervisorOrElevated(role: UserRole, isTeamSupervisor: boolean): void {
   if (role === 'HR_MANAGER' || role === 'SUPER_ADMIN') return;
   if (role === 'SUPERVISOR' && isTeamSupervisor) return;
-  throw new ForbiddenTimesheetTransitionError(
-    'TIMESHEET_FORBIDDEN_SUPERVISOR',
-  );
+  throw new ForbiddenTimesheetTransitionError('TIMESHEET_FORBIDDEN_SUPERVISOR');
 }
 
 function assertHrOrElevated(role: UserRole): void {

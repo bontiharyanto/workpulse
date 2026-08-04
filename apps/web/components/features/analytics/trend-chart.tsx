@@ -1,10 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type {
-  MetricFormatKind,
-  TimeseriesPoint,
-} from '@workpulse/shared-types';
+import type { MetricFormatKind, TimeseriesPoint } from '@workpulse/shared-types';
 
 import { formatValue } from './format-metric';
 
@@ -53,10 +50,7 @@ export function TrendChart({
 
     const coords = points.map((p, i) => {
       const x = PADDING_X + i * stepX;
-      const y =
-        PADDING_Y_TOP +
-        innerH -
-        ((p.value - min) / range) * innerH;
+      const y = PADDING_Y_TOP + innerH - ((p.value - min) / range) * innerH;
       return { x, y, point: p };
     });
 
@@ -76,7 +70,7 @@ export function TrendChart({
     return (
       <div
         role="status"
-        className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground"
+        className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm"
       >
         Belum ada data untuk ditampilkan.
       </div>
@@ -121,17 +115,8 @@ export function TrendChart({
           strokeDasharray="3 3"
         />
 
-        <path
-          d={view.areaD}
-          className="fill-primary text-primary"
-          fill="url(#trendFill)"
-        />
-        <path
-          d={view.pathD}
-          className="stroke-primary"
-          strokeWidth={2}
-          fill="none"
-        />
+        <path d={view.areaD} className="fill-primary text-primary" fill="url(#trendFill)" />
+        <path d={view.pathD} className="stroke-primary" strokeWidth={2} fill="none" />
 
         {view.coords.map((c, i) => {
           const isToday = c.point.isToday;
@@ -143,9 +128,7 @@ export function TrendChart({
                 cy={c.y}
                 r={isToday || isActive ? 5 : 3}
                 className={
-                  isToday
-                    ? 'fill-primary stroke-background'
-                    : 'fill-primary stroke-background'
+                  isToday ? 'fill-primary stroke-background' : 'fill-primary stroke-background'
                 }
                 strokeWidth={isToday ? 2 : 1}
               />
@@ -164,11 +147,7 @@ export function TrendChart({
         })}
 
         {/* Date axis labels — first + last only, to keep the axis clean. */}
-        <text
-          x={PADDING_X}
-          y={height - 6}
-          className="fill-muted-foreground text-[10px]"
-        >
+        <text x={PADDING_X} y={height - 6} className="fill-muted-foreground text-[10px]">
           {firstLabel}
         </text>
         <text
@@ -202,7 +181,7 @@ export function TrendChart({
       {hover && (
         <div
           role="tooltip"
-          className="pointer-events-none absolute -translate-x-1/2 -translate-y-full rounded-md border border-border bg-popover px-2 py-1 text-xs shadow-md"
+          className="border-border bg-popover pointer-events-none absolute -translate-x-1/2 -translate-y-full rounded-md border px-2 py-1 text-xs shadow-md"
           style={{
             left: `${(hover.x / WIDTH) * 100}%`,
             top: `${(hover.y / height) * 100}%`,
@@ -213,9 +192,7 @@ export function TrendChart({
             {formatValue(hover.point.value, formatKind, fractionDigits)}
           </div>
           {hover.point.isToday && (
-            <div className="text-[10px] text-muted-foreground">
-              (data hari ini — live)
-            </div>
+            <div className="text-muted-foreground text-[10px]">(data hari ini — live)</div>
           )}
         </div>
       )}

@@ -45,19 +45,19 @@ export function CredentialReveal({
         {title}
       </p>
       <p className="mt-1 text-xs">
-        Password ini hanya ditampilkan sekali. Kirim ke pengguna melalui kanal
-        aman (misalnya password manager, jangan lewat email biasa). Sistem akan
-        <strong> otomatis memaksa mereka mengubah password </strong> pada login
-        pertama sebelum bisa mengakses aplikasi.
+        Password ini hanya ditampilkan sekali. Kirim ke pengguna melalui kanal aman (misalnya
+        password manager, jangan lewat email biasa). Sistem akan
+        <strong> otomatis memaksa mereka mengubah password </strong> pada login pertama sebelum bisa
+        mengakses aplikasi.
       </p>
 
       <dl className="mt-3 space-y-2 rounded-md bg-white/60 p-3 dark:bg-black/20">
         <div className="flex items-center justify-between gap-2">
-          <dt className="text-xs uppercase tracking-wider text-muted-foreground">Email</dt>
+          <dt className="text-muted-foreground text-xs uppercase tracking-wider">Email</dt>
           <dd className="font-mono text-xs">{email}</dd>
         </div>
         <div className="flex items-center justify-between gap-2">
-          <dt className="text-xs uppercase tracking-wider text-muted-foreground">Password</dt>
+          <dt className="text-muted-foreground text-xs uppercase tracking-wider">Password</dt>
           <dd className="flex items-center gap-2">
             <span className="font-mono text-sm tabular-nums">
               {revealed ? temporaryPassword : '•'.repeat(temporaryPassword.length)}

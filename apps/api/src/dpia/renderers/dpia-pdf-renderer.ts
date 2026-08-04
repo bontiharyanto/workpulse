@@ -27,10 +27,7 @@ type WithItems = DpiaAssessment & { riskItems: DpiaRiskItem[] };
  * Buffer-first so the export service can SHA-256 the payload and audit
  * BEFORE the caller receives any bytes.
  */
-export async function renderDpiaPdf(
-  header: DpiaPdfHeader,
-  assessment: WithItems,
-): Promise<Buffer> {
+export async function renderDpiaPdf(header: DpiaPdfHeader, assessment: WithItems): Promise<Buffer> {
   return await new Promise<Buffer>((resolve, reject) => {
     const doc = new PDFDocument({
       size: 'A4',
@@ -59,11 +56,7 @@ export async function renderDpiaPdf(
   });
 }
 
-function drawTitle(
-  doc: PDFKit.PDFDocument,
-  header: DpiaPdfHeader,
-  a: WithItems,
-): void {
+function drawTitle(doc: PDFKit.PDFDocument, header: DpiaPdfHeader, a: WithItems): void {
   doc
     .font('Helvetica-Bold')
     .fontSize(18)
@@ -80,28 +73,15 @@ function drawTitle(
     .fontSize(10)
     .fillColor('#555')
     .text(`Perusahaan: ${header.companyName}`)
-    .text(
-      `Aktivitas ROPA: ${header.ropaActivityName} (${header.ropaActivitySlug})`,
-    )
+    .text(`Aktivitas ROPA: ${header.ropaActivityName} (${header.ropaActivitySlug})`)
     .text(`Status: ${a.status}`)
     .text(`Dibuat: ${a.createdAt.toISOString()}`)
-    .text(
-      `Disetujui: ${a.approvedAt ? a.approvedAt.toISOString() : '—'}`,
-    )
+    .text(`Disetujui: ${a.approvedAt ? a.approvedAt.toISOString() : '—'}`)
     .text(`Digenerate: ${header.generatedAt.toISOString()}`);
   doc.moveDown(0.75);
-  doc
-    .strokeColor('#000')
-    .lineWidth(0.5)
-    .moveTo(48, doc.y)
-    .lineTo(547, doc.y)
-    .stroke();
+  doc.strokeColor('#000').lineWidth(0.5).moveTo(48, doc.y).lineTo(547, doc.y).stroke();
   doc.moveDown(0.5);
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(14)
-    .fillColor('#000')
-    .text(a.title);
+  doc.font('Helvetica-Bold').fontSize(14).fillColor('#000').text(a.title);
   doc.moveDown(0.75);
 }
 
@@ -116,10 +96,7 @@ function drawNarrative(doc: PDFKit.PDFDocument, a: WithItems): void {
   }
 }
 
-function drawRiskRegister(
-  doc: PDFKit.PDFDocument,
-  items: readonly DpiaRiskItem[],
-): void {
+function drawRiskRegister(doc: PDFKit.PDFDocument, items: readonly DpiaRiskItem[]): void {
   section(doc, 'Registrasi Risiko (Risk Register)');
   if (items.length === 0) {
     doc
@@ -132,16 +109,8 @@ function drawRiskRegister(
   }
   items.forEach((r, idx) => {
     if (idx > 0) doc.moveDown(0.75);
-    doc
-      .font('Helvetica-Bold')
-      .fontSize(11)
-      .fillColor('#000')
-      .text(`${r.ordinal}. ${r.title}`);
-    doc
-      .font('Helvetica')
-      .fontSize(10)
-      .fillColor('#333')
-      .text(r.description, { paragraphGap: 4 });
+    doc.font('Helvetica-Bold').fontSize(11).fillColor('#000').text(`${r.ordinal}. ${r.title}`);
+    doc.font('Helvetica').fontSize(10).fillColor('#333').text(r.description, { paragraphGap: 4 });
     doc
       .font('Helvetica-Bold')
       .fontSize(10)
@@ -192,30 +161,18 @@ function drawSummary(doc: PDFKit.PDFDocument, a: WithItems): void {
     .fillColor('#555')
     .text(`Assessment ID: ${a.id}`)
     .text(`Dibuat oleh: ${a.createdById ?? '—'}`)
-    .text(
-      `Direview oleh: ${a.reviewedById ?? '—'} pada ${a.reviewedAt?.toISOString() ?? '—'}`,
-    )
-    .text(
-      `Disetujui oleh: ${a.approvedById ?? '—'} pada ${a.approvedAt?.toISOString() ?? '—'}`,
-    );
+    .text(`Direview oleh: ${a.reviewedById ?? '—'} pada ${a.reviewedAt?.toISOString() ?? '—'}`)
+    .text(`Disetujui oleh: ${a.approvedById ?? '—'} pada ${a.approvedAt?.toISOString() ?? '—'}`);
 }
 
 function section(doc: PDFKit.PDFDocument, title: string): void {
   doc.moveDown(0.5);
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(12)
-    .fillColor('#000')
-    .text(title);
+  doc.font('Helvetica-Bold').fontSize(12).fillColor('#000').text(title);
   doc.moveDown(0.25);
 }
 
 function paragraph(doc: PDFKit.PDFDocument, text: string): void {
-  doc
-    .font('Helvetica')
-    .fontSize(10)
-    .fillColor('#333')
-    .text(text, { align: 'justify' });
+  doc.font('Helvetica').fontSize(10).fillColor('#333').text(text, { align: 'justify' });
   doc.moveDown(0.25);
 }
 

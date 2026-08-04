@@ -1,10 +1,4 @@
-import {
-  assertHHMM,
-  crossesMidnight,
-  isHHMM,
-  shiftDurationMinutes,
-  toMinutes,
-} from './hh-mm';
+import { assertHHMM, crossesMidnight, isHHMM, shiftDurationMinutes, toMinutes } from './hh-mm';
 
 describe('isHHMM', () => {
   it.each([

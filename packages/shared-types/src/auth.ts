@@ -6,16 +6,8 @@ export const userRoleSchema = z.enum(['EMPLOYEE', 'SUPERVISOR', 'HR_MANAGER', 'S
 export type UserRole = z.infer<typeof userRoleSchema>;
 
 export const loginInputSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .email({ message: 'Format email tidak valid' })
-    .max(255),
-  password: z
-    .string()
-    .min(8, { message: 'Password minimal 8 karakter' })
-    .max(256),
+  email: z.string().trim().toLowerCase().email({ message: 'Format email tidak valid' }).max(255),
+  password: z.string().min(8, { message: 'Password minimal 8 karakter' }).max(256),
 });
 export type LoginInput = z.infer<typeof loginInputSchema>;
 
@@ -90,12 +82,7 @@ export type RefreshResponse = z.infer<typeof refreshResponseSchema>;
 // ---------------------------------------------------------------------------
 
 export const forgotPasswordInputSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .email({ message: 'Format email tidak valid' })
-    .max(255),
+  email: z.string().trim().toLowerCase().email({ message: 'Format email tidak valid' }).max(255),
 });
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordInputSchema>;
 
@@ -115,10 +102,7 @@ export const resetPasswordInputSchema = z.object({
     .min(40)
     .max(128)
     .regex(/^[A-Za-z0-9_-]+$/, { message: 'Token tidak valid' }),
-  password: z
-    .string()
-    .min(8, { message: 'Password minimal 8 karakter' })
-    .max(256),
+  password: z.string().min(8, { message: 'Password minimal 8 karakter' }).max(256),
 });
 export type ResetPasswordInput = z.infer<typeof resetPasswordInputSchema>;
 
@@ -136,10 +120,7 @@ export type ResetPasswordResponse = z.infer<typeof resetPasswordResponseSchema>;
 export const changePasswordInputSchema = z
   .object({
     currentPassword: z.string().min(1).max(256),
-    newPassword: z
-      .string()
-      .min(8, { message: 'Password baru minimal 8 karakter' })
-      .max(256),
+    newPassword: z.string().min(8, { message: 'Password baru minimal 8 karakter' }).max(256),
   })
   .refine((v) => v.currentPassword !== v.newPassword, {
     path: ['newPassword'],

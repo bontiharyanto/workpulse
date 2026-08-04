@@ -61,9 +61,9 @@ test('leave: employee submits → supervisor approves → HR approves', async ({
 
   // The employee's own list should now render the fresh row in a
   // pending-supervisor state.
-  await expect(
-    employeePage.getByText(`Family event — ${runId}`, { exact: false }),
-  ).toBeVisible({ timeout: 10_000 });
+  await expect(employeePage.getByText(`Family event — ${runId}`, { exact: false })).toBeVisible({
+    timeout: 10_000,
+  });
 
   // ---- Step 2: Supervisor approves ---------------------------------------
   const supervisorCtx = await browser.newContext();
@@ -73,9 +73,7 @@ test('leave: employee submits → supervisor approves → HR approves', async ({
   await supervisorPage.goto('/leave/approvals');
 
   // Locate the row belonging to this run and click its Approve button.
-  const supRow = supervisorPage
-    .locator('li', { hasText: `Family event — ${runId}` })
-    .first();
+  const supRow = supervisorPage.locator('li', { hasText: `Family event — ${runId}` }).first();
   await expect(supRow).toBeVisible({ timeout: 10_000 });
   await supRow.getByRole('button', { name: 'Setujui', exact: true }).click();
 

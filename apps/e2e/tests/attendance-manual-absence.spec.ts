@@ -23,7 +23,9 @@ test.describe.configure({ mode: 'serial' });
 // past it without touching this date.
 const WORK_DATE = '2026-07-01';
 
-async function findTargetUserId(api: import('@playwright/test').APIRequestContext): Promise<string> {
+async function findTargetUserId(
+  api: import('@playwright/test').APIRequestContext,
+): Promise<string> {
   // Grab the employee seed via the roster endpoint. We use the team-today
   // response the HR sees; `employee@acme.test` is guaranteed to be there.
   const res = await api.get(`/api/v1/attendance/team/today`);

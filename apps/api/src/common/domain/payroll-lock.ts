@@ -26,11 +26,7 @@
  * mutations too — the concept is orthogonal to attendance.
  */
 
-export type Role =
-  | 'EMPLOYEE'
-  | 'SUPERVISOR'
-  | 'HR_MANAGER'
-  | 'SUPER_ADMIN';
+export type Role = 'EMPLOYEE' | 'SUPERVISOR' | 'HR_MANAGER' | 'SUPER_ADMIN';
 
 /**
  * Actor identity subset relevant to the cutoff check. Kept minimal so

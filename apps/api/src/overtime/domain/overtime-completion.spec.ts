@@ -1,11 +1,6 @@
-import {
-  decideOvertimeCompletion,
-  type OvertimeCompletionInput,
-} from './overtime-completion';
+import { decideOvertimeCompletion, type OvertimeCompletionInput } from './overtime-completion';
 
-function baseInput(
-  overrides: Partial<OvertimeCompletionInput> = {},
-): OvertimeCompletionInput {
+function baseInput(overrides: Partial<OvertimeCompletionInput> = {}): OvertimeCompletionInput {
   return {
     status: 'APPROVED',
     workDate: new Date('2026-08-01T00:00:00Z'),
@@ -44,11 +39,10 @@ describe('decideOvertimeCompletion', () => {
   it('skips when today is still within the grace window', () => {
     // workDate = 2026-08-01, grace = 2 → earliest complete on 2026-08-04.
     // now = 2026-08-03 → not eligible yet.
-    expect(
-      decideOvertimeCompletion(
-        baseInput({ now: new Date('2026-08-03T23:59:59Z') }),
-      ),
-    ).toEqual({ kind: 'SKIP', reason: 'GRACE_NOT_MET' });
+    expect(decideOvertimeCompletion(baseInput({ now: new Date('2026-08-03T23:59:59Z') }))).toEqual({
+      kind: 'SKIP',
+      reason: 'GRACE_NOT_MET',
+    });
   });
 
   it('skips when there is no attendance record at all', () => {
@@ -89,9 +83,7 @@ describe('decideOvertimeCompletion', () => {
   it('accepts a zero-day grace policy on the exact day after workDate', () => {
     // workDate = 2026-08-01, grace = 0 → eligible starting 2026-08-02.
     expect(
-      decideOvertimeCompletion(
-        baseInput({ graceDays: 0, now: new Date('2026-08-02T00:00:01Z') }),
-      ),
+      decideOvertimeCompletion(baseInput({ graceDays: 0, now: new Date('2026-08-02T00:00:01Z') })),
     ).toEqual({ kind: 'ELIGIBLE' });
   });
 });

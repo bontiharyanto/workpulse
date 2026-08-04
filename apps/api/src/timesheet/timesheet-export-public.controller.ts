@@ -66,18 +66,10 @@ export class TimesheetExportPublicController {
       throw new BadRequestException('SHARE_INVALID');
     }
 
-    const { result } = await this.shares.verifyAndDownload(
-      shareId,
-      expiresMs,
-      signature,
-      ip,
-    );
+    const { result } = await this.shares.verifyAndDownload(shareId, expiresMs, signature, ip);
 
     res.setHeader('Content-Type', result.contentType);
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="${result.filename}"`,
-    );
+    res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
     res.setHeader('X-Payload-Sha256', result.export.payloadSha256);
     res.setHeader('X-Export-Id', result.export.id);
     res.setHeader('Content-Length', String(result.payload.length));

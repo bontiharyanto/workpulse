@@ -18,11 +18,7 @@
 
 import type { AttendanceCorrectionStatus } from '@prisma/client';
 
-export type CorrectionActorRole =
-  | 'EMPLOYEE'
-  | 'SUPERVISOR'
-  | 'HR_MANAGER'
-  | 'SUPER_ADMIN';
+export type CorrectionActorRole = 'EMPLOYEE' | 'SUPERVISOR' | 'HR_MANAGER' | 'SUPER_ADMIN';
 
 export type CorrectionEvent =
   | {
@@ -60,9 +56,7 @@ export function transition(
         throw new IllegalCorrectionTransitionError(current, event.kind);
       }
       if (event.actorRole === 'EMPLOYEE') {
-        throw new ForbiddenCorrectionTransitionError(
-          'employees cannot decide corrections',
-        );
+        throw new ForbiddenCorrectionTransitionError('employees cannot decide corrections');
       }
       if (event.actorRole === 'SUPERVISOR' && !event.isTeamSupervisor) {
         throw new ForbiddenCorrectionTransitionError(
@@ -76,9 +70,7 @@ export function transition(
         throw new IllegalCorrectionTransitionError(current, event.kind);
       }
       if (!event.actorIsOwner) {
-        throw new ForbiddenCorrectionTransitionError(
-          'only the owner may cancel a correction',
-        );
+        throw new ForbiddenCorrectionTransitionError('only the owner may cancel a correction');
       }
       return 'CANCELLED';
     }

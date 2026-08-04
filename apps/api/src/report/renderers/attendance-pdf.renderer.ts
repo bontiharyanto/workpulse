@@ -1,9 +1,6 @@
 import PDFDocument from 'pdfkit';
 
-import type {
-  AttendanceReportRow,
-  AttendanceReportSummary,
-} from '../domain/attendance-report';
+import type { AttendanceReportRow, AttendanceReportSummary } from '../domain/attendance-report';
 
 import type { RendererStream } from './render-context';
 

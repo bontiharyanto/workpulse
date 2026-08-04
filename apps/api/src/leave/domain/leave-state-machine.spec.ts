@@ -41,9 +41,9 @@ describe('leave state machine', () => {
     });
 
     it('SUPERVISOR cannot approve at HR stage', () => {
-      expect(() =>
-        transition('PENDING_HR', { kind: 'APPROVE', actorRole: 'SUPERVISOR' }),
-      ).toThrow(ForbiddenTransitionError);
+      expect(() => transition('PENDING_HR', { kind: 'APPROVE', actorRole: 'SUPERVISOR' })).toThrow(
+        ForbiddenTransitionError,
+      );
     });
 
     it('HR REJECT releases reserved without touching used', () => {
@@ -60,9 +60,9 @@ describe('leave state machine', () => {
     for (const state of ['APPROVED', 'REJECTED', 'CANCELLED'] as const) {
       it(`rejects any event from ${state}`, () => {
         expect(() => transition(state, { kind: 'CANCEL' })).toThrow(IllegalTransitionError);
-        expect(() =>
-          transition(state, { kind: 'APPROVE', actorRole: 'HR_MANAGER' }),
-        ).toThrow(IllegalTransitionError);
+        expect(() => transition(state, { kind: 'APPROVE', actorRole: 'HR_MANAGER' })).toThrow(
+          IllegalTransitionError,
+        );
       });
     }
   });

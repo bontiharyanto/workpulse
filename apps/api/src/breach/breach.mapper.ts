@@ -1,7 +1,4 @@
-import {
-  BreachIncident,
-  BreachTimelineEvent,
-} from '@prisma/client';
+import { BreachIncident, BreachTimelineEvent } from '@prisma/client';
 
 import { snapshot } from './domain/deadline';
 import {
@@ -31,10 +28,7 @@ export function toTimelineDto(
     id: row.id,
     eventType: row.eventType,
     note: row.note,
-    metadata:
-      row.metadata === null
-        ? null
-        : (row.metadata as unknown as Record<string, unknown>),
+    metadata: row.metadata === null ? null : (row.metadata as unknown as Record<string, unknown>),
     actorId: row.actorId,
     actorEmail: row.actor?.email ?? null,
     occurredAt: row.occurredAt.toISOString(),

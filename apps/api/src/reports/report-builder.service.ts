@@ -68,28 +68,16 @@ export class ReportBuilderService {
     def: CustomReportDefinition,
     now: Date,
   ): Promise<CustomReportRow[]> {
-    const since = new Date(
-      now.getTime() - def.filter.windowDays * 24 * 60 * 60 * 1000,
-    );
+    const since = new Date(now.getTime() - def.filter.windowDays * 24 * 60 * 60 * 1000);
     const departmentId = def.filter.departmentId;
 
     switch (def.metric) {
       case 'ATTENDANCE_COUNT':
         return this.attendanceCount(companyId, def.dimension, since, departmentId);
       case 'ATTENDANCE_LATE_COUNT':
-        return this.attendanceLateCount(
-          companyId,
-          def.dimension,
-          since,
-          departmentId,
-        );
+        return this.attendanceLateCount(companyId, def.dimension, since, departmentId);
       case 'ATTENDANCE_ON_TIME_RATE':
-        return this.attendanceOnTimeRate(
-          companyId,
-          def.dimension,
-          since,
-          departmentId,
-        );
+        return this.attendanceOnTimeRate(companyId, def.dimension, since, departmentId);
       case 'LEAVE_DAYS_APPROVED':
         return this.leaveDaysApproved(companyId, def.dimension, since, departmentId);
       case 'OVERTIME_HOURS':
@@ -198,9 +186,7 @@ export class ReportBuilderService {
     onlyLate: boolean,
   ) {
     const { groupKey, joinUser, groupLabel } = this.dimExpr(dim);
-    const lateFilter = onlyLate
-      ? Prisma.sql`AND ar."status" = 'LATE'`
-      : Prisma.empty;
+    const lateFilter = onlyLate ? Prisma.sql`AND ar."status" = 'LATE'` : Prisma.empty;
     const deptFilter = departmentId
       ? Prisma.sql`AND u."departmentId" = ${departmentId}`
       : Prisma.empty;

@@ -64,14 +64,10 @@ export function TenantUsagePanel(): JSX.Element {
       }),
   });
 
-  const [regenYear, setRegenYear] = useState<string>(() =>
-    String(new Date().getUTCFullYear()),
-  );
+  const [regenYear, setRegenYear] = useState<string>(() => String(new Date().getUTCFullYear()));
   const [regenMonth, setRegenMonth] = useState<string>(() => {
     const now = new Date();
-    const prev = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1),
-    );
+    const prev = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
     return String(prev.getUTCMonth() + 1);
   });
   const [regenCompany, setRegenCompany] = useState<string>('');
@@ -110,29 +106,29 @@ export function TenantUsagePanel(): JSX.Element {
       {isSuper && (
         <section
           aria-labelledby="regen-heading"
-          className="space-y-3 rounded-lg border border-border bg-card p-4"
+          className="border-border bg-card space-y-3 rounded-lg border p-4"
         >
           <div>
             <h2 id="regen-heading" className="text-sm font-semibold">
               Regenerate snapshot bulan tertentu (SUPER_ADMIN)
             </h2>
-            <p className="text-xs text-muted-foreground">
-              Menghitung ulang counter dari data mentah. Aman dijalankan
-              kapan saja — tidak ada side-effect di data lain.
+            <p className="text-muted-foreground text-xs">
+              Menghitung ulang counter dari data mentah. Aman dijalankan kapan saja — tidak ada
+              side-effect di data lain.
             </p>
           </div>
           <div className="flex flex-wrap items-end gap-3">
-            <label className="flex flex-col text-xs text-muted-foreground">
+            <label className="text-muted-foreground flex flex-col text-xs">
               Tenant (companyId)
               <input
                 type="text"
                 value={regenCompany}
                 onChange={(e) => setRegenCompany(e.target.value)}
                 placeholder="cmp_xxx"
-                className="mt-1 w-52 rounded border border-input bg-background px-2 py-1 text-sm text-foreground"
+                className="border-input bg-background text-foreground mt-1 w-52 rounded border px-2 py-1 text-sm"
               />
             </label>
-            <label className="flex flex-col text-xs text-muted-foreground">
+            <label className="text-muted-foreground flex flex-col text-xs">
               Tahun
               <input
                 type="number"
@@ -140,15 +136,15 @@ export function TenantUsagePanel(): JSX.Element {
                 max={2100}
                 value={regenYear}
                 onChange={(e) => setRegenYear(e.target.value)}
-                className="mt-1 w-24 rounded border border-input bg-background px-2 py-1 text-sm text-foreground"
+                className="border-input bg-background text-foreground mt-1 w-24 rounded border px-2 py-1 text-sm"
               />
             </label>
-            <label className="flex flex-col text-xs text-muted-foreground">
+            <label className="text-muted-foreground flex flex-col text-xs">
               Bulan
               <select
                 value={regenMonth}
                 onChange={(e) => setRegenMonth(e.target.value)}
-                className="mt-1 w-40 rounded border border-input bg-background px-2 py-1 text-sm text-foreground"
+                className="border-input bg-background text-foreground mt-1 w-40 rounded border px-2 py-1 text-sm"
               >
                 {MONTHS_ID.map((label, i) => (
                   <option key={label} value={i + 1}>
@@ -160,20 +156,16 @@ export function TenantUsagePanel(): JSX.Element {
             <button
               type="button"
               onClick={() => regenMutation.mutate()}
-              disabled={
-                regenMutation.isPending || regenCompany.trim().length === 0
-              }
-              className="rounded bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+              disabled={regenMutation.isPending || regenCompany.trim().length === 0}
+              className="bg-primary text-primary-foreground rounded px-3 py-1.5 text-sm font-medium hover:opacity-90 disabled:opacity-50"
             >
               {regenMutation.isPending ? 'Menghasilkan…' : 'Regenerate'}
             </button>
             {regenMutation.isSuccess && (
-              <span className="text-xs text-emerald-600 dark:text-emerald-400">
-                Selesai.
-              </span>
+              <span className="text-xs text-emerald-600 dark:text-emerald-400">Selesai.</span>
             )}
             {regenError && (
-              <span role="alert" className="text-xs text-destructive">
+              <span role="alert" className="text-destructive text-xs">
                 {regenError}
               </span>
             )}
@@ -189,7 +181,7 @@ export function TenantUsagePanel(): JSX.Element {
             value={companyFilter}
             onChange={(e) => setCompanyFilter(e.target.value)}
             placeholder="companyId (kosongkan untuk semua)"
-            className="rounded border border-input bg-background px-2 py-1 text-xs"
+            className="border-input bg-background rounded border px-2 py-1 text-xs"
           />
         </div>
       )}
@@ -198,7 +190,7 @@ export function TenantUsagePanel(): JSX.Element {
         <div
           role="status"
           aria-live="polite"
-          className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground"
+          className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm"
         >
           Memuat snapshot penggunaan…
         </div>
@@ -207,16 +199,16 @@ export function TenantUsagePanel(): JSX.Element {
       {listQuery.isError && (
         <div
           role="alert"
-          className="rounded-md border border-destructive/50 bg-destructive/5 p-4 text-sm text-destructive"
+          className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-4 text-sm"
         >
           Gagal memuat data.
         </div>
       )}
 
       {listQuery.data && rows.length === 0 && (
-        <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          Belum ada snapshot untuk filter ini. Snapshot bulanan otomatis dibuat
-          pada tanggal 1 setiap bulan pukul 06:00 UTC.
+        <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-center text-sm">
+          Belum ada snapshot untuk filter ini. Snapshot bulanan otomatis dibuat pada tanggal 1
+          setiap bulan pukul 06:00 UTC.
         </div>
       )}
 
@@ -238,24 +230,20 @@ function TenantBlock({
   companyId: string;
   rows: TenantUsageSnapshotDto[];
 }): JSX.Element {
-  const sorted = [...rows].sort((a, b) =>
-    b.periodStart.localeCompare(a.periodStart),
-  );
+  const sorted = [...rows].sort((a, b) => b.periodStart.localeCompare(a.periodStart));
   return (
-    <section className="space-y-3 rounded-lg border border-border bg-card p-4">
+    <section className="border-border bg-card space-y-3 rounded-lg border p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <h2 className="text-sm font-semibold">Tenant</h2>
-          <code className="text-xs text-muted-foreground">{companyId}</code>
+          <code className="text-muted-foreground text-xs">{companyId}</code>
         </div>
-        <div className="text-xs text-muted-foreground">
-          {sorted.length} snapshot
-        </div>
+        <div className="text-muted-foreground text-xs">{sorted.length} snapshot</div>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full text-xs">
           <thead>
-            <tr className="border-b border-border text-left text-muted-foreground">
+            <tr className="border-border text-muted-foreground border-b text-left">
               <th className="px-2 py-2">Periode</th>
               <th className="px-2 py-2">Storage</th>
               <th className="px-2 py-2">DB rows (total)</th>
@@ -267,18 +255,11 @@ function TenantBlock({
           </thead>
           <tbody>
             {sorted.map((row) => (
-              <tr
-                key={row.id}
-                className="border-b border-border last:border-none"
-              >
-                <td className="px-2 py-2 font-medium">
-                  {formatPeriod(row.periodStart)}
-                </td>
+              <tr key={row.id} className="border-border border-b last:border-none">
+                <td className="px-2 py-2 font-medium">{formatPeriod(row.periodStart)}</td>
                 <td className="px-2 py-2">
-                  <div className="tabular-nums">
-                    {formatBytesString(row.storageTotalBytes)}
-                  </div>
-                  <div className="text-[10px] text-muted-foreground">
+                  <div className="tabular-nums">{formatBytesString(row.storageTotalBytes)}</div>
+                  <div className="text-muted-foreground text-[10px]">
                     export {formatBytesString(row.storageExportBytes)} + DSAR{' '}
                     {formatBytesString(row.storageDsarBytes)}
                   </div>
@@ -300,9 +281,7 @@ function TenantBlock({
                 <td className="px-2 py-2 tabular-nums">
                   {row.activeUsers.toLocaleString('id-ID')}
                 </td>
-                <td className="px-2 py-2 tabular-nums">
-                  {row.totalUsers.toLocaleString('id-ID')}
-                </td>
+                <td className="px-2 py-2 tabular-nums">{row.totalUsers.toLocaleString('id-ID')}</td>
               </tr>
             ))}
           </tbody>

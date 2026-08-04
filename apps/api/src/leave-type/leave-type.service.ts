@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { LeaveType, Prisma } from '@prisma/client';
 import { LeaveStatus } from '@prisma/client';
 
@@ -48,10 +44,7 @@ export class LeaveTypeService {
     return this.toDto(await this.findOwn(actor.companyId, id));
   }
 
-  async create(
-    actor: AuthenticatedUser,
-    input: CreateLeaveTypeInput,
-  ): Promise<AdminLeaveTypeDto> {
+  async create(actor: AuthenticatedUser, input: CreateLeaveTypeInput): Promise<AdminLeaveTypeDto> {
     const code = input.code.trim().toUpperCase();
     const year = new Date().getUTCFullYear();
 

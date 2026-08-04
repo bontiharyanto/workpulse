@@ -83,10 +83,7 @@ export class NotificationController {
 
   @Post(':id/read')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async markRead(
-    @CurrentUser() actor: AuthenticatedUser,
-    @Param('id') id: string,
-  ): Promise<void> {
+  async markRead(@CurrentUser() actor: AuthenticatedUser, @Param('id') id: string): Promise<void> {
     if (!id || id.length < 3) {
       // Defence in depth against callers passing empty / obviously bogus IDs
       // even though the router already requires the segment to be non-empty.

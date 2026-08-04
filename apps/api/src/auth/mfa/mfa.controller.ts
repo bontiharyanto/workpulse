@@ -66,9 +66,7 @@ export class MfaController {
   @AllowMfaEnrollmentPending()
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @ApiOkResponse({ type: MfaEnrollStartResponseDto })
-  async enrollStart(
-    @CurrentUser() user: AuthenticatedUser,
-  ): Promise<MfaEnrollStartResponseDto> {
+  async enrollStart(@CurrentUser() user: AuthenticatedUser): Promise<MfaEnrollStartResponseDto> {
     return this.mfa.startEnrollment(user.id);
   }
 
@@ -174,9 +172,7 @@ export class MfaController {
   @AllowUnverifiedMfa()
   @AllowMustChangePassword()
   @ApiOkResponse({ type: MfaStatusDto })
-  async status(
-    @CurrentUser() user: AuthenticatedUser,
-  ): Promise<MfaStatusDto> {
+  async status(@CurrentUser() user: AuthenticatedUser): Promise<MfaStatusDto> {
     const s = await this.mfa.getStatus(user.id);
     return {
       enabled: s.enabled,

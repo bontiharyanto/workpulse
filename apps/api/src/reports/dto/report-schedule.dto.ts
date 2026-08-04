@@ -1,9 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  ReportDeliveryStatus,
-  ReportFrequency,
-  ScheduledReportType,
-} from '@prisma/client';
+import { ReportDeliveryStatus, ReportFrequency, ScheduledReportType } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
 import {
   ArrayMaxSize,
@@ -31,13 +27,7 @@ export class CreateReportScheduleDto {
   name!: string;
 
   @ApiProperty({
-    enum: [
-      'TIMESHEET_SUMMARY',
-      'ROPA',
-      'DPIA',
-      'ANALYTICS_SNAPSHOT',
-      'CUSTOM',
-    ],
+    enum: ['TIMESHEET_SUMMARY', 'ROPA', 'DPIA', 'ANALYTICS_SNAPSHOT', 'CUSTOM'],
   })
   @IsEnum({
     TIMESHEET_SUMMARY: 'TIMESHEET_SUMMARY',

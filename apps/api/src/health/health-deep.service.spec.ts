@@ -9,18 +9,15 @@ import { HealthDeepService } from './health-deep.service';
 type ConfigServiceT = ConfigService<EnvConfig, true>;
 
 describe('HealthDeepService', () => {
-  function build(overrides: {
-    dbFails?: boolean;
-    storageEnabled?: boolean;
-    storageOk?: boolean;
-    envValues?: Record<string, unknown>;
-  } = {}) {
-    const {
-      dbFails = false,
-      storageEnabled = true,
-      storageOk = true,
-      envValues = {},
-    } = overrides;
+  function build(
+    overrides: {
+      dbFails?: boolean;
+      storageEnabled?: boolean;
+      storageOk?: boolean;
+      envValues?: Record<string, unknown>;
+    } = {},
+  ) {
+    const { dbFails = false, storageEnabled = true, storageOk = true, envValues = {} } = overrides;
 
     const prisma = {
       $queryRaw: jest.fn(() =>
@@ -132,9 +129,7 @@ describe('HealthDeepService', () => {
       putObject: jest.fn(),
       deleteObject: jest.fn(),
       healthCheck: () =>
-        new Promise((resolve) =>
-          setTimeout(() => resolve({ ok: true, latencyMs: 100 }), 100),
-        ),
+        new Promise((resolve) => setTimeout(() => resolve({ ok: true, latencyMs: 100 }), 100)),
     };
 
     const config = { get: () => 'true' } as unknown as ConfigServiceT;

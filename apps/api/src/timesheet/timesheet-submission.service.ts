@@ -29,11 +29,7 @@ import {
   type WorkflowAction,
 } from './domain/submission-workflow';
 
-export type DecideAction =
-  | 'SUPERVISOR_APPROVE'
-  | 'SUPERVISOR_REJECT'
-  | 'HR_APPROVE'
-  | 'HR_REJECT';
+export type DecideAction = 'SUPERVISOR_APPROVE' | 'SUPERVISOR_REJECT' | 'HR_APPROVE' | 'HR_REJECT';
 
 export interface DecideInput {
   action: DecideAction;
@@ -97,8 +93,7 @@ export class TimesheetSubmissionService {
       throw new ConflictException({
         statusCode: 409,
         code: 'TIMESHEET_PERIOD_NOT_ENDED',
-        message:
-          'Timesheet hanya bisa disubmit setelah periode berakhir.',
+        message: 'Timesheet hanya bisa disubmit setelah periode berakhir.',
       });
     }
 
@@ -147,9 +142,7 @@ export class TimesheetSubmissionService {
               companyId: actor.companyId,
               recipientId: supervisor.id,
               recipientEmail: supervisor.email,
-              content: timesheetSubmitted(
-                this.buildEventInput(ts, actor.email),
-              ),
+              content: timesheetSubmitted(this.buildEventInput(ts, actor.email)),
             },
             tx,
           );
@@ -168,11 +161,7 @@ export class TimesheetSubmissionService {
    * Rejections wipe the supervisor / HR decision columns so the next
    * SUBMIT starts clean.
    */
-  async decide(
-    actor: AuthenticatedUser,
-    timesheetId: string,
-    input: DecideInput,
-  ): Promise<void> {
+  async decide(actor: AuthenticatedUser, timesheetId: string, input: DecideInput): Promise<void> {
     const ts = await this.prisma.timesheet.findFirst({
       where: { id: timesheetId, companyId: actor.companyId },
       include: {
@@ -221,9 +210,7 @@ export class TimesheetSubmissionService {
 
     const nextStatus = this.applyTransition(ts.status, workflow);
 
-    const isReject =
-      input.action === 'SUPERVISOR_REJECT' ||
-      input.action === 'HR_REJECT';
+    const isReject = input.action === 'SUPERVISOR_REJECT' || input.action === 'HR_REJECT';
     if (isReject && !input.note?.trim()) {
       throw new ConflictException({
         statusCode: 409,
@@ -533,10 +520,7 @@ export class TimesheetSubmissionService {
     };
   }
 
-  private applyTransition(
-    from: TimesheetStatus,
-    action: WorkflowAction,
-  ): TimesheetStatus {
+  private applyTransition(from: TimesheetStatus, action: WorkflowAction): TimesheetStatus {
     try {
       return transition(from, action);
     } catch (err) {
@@ -544,8 +528,7 @@ export class TimesheetSubmissionService {
         throw new ForbiddenException({
           statusCode: 403,
           code: err.code,
-          message:
-            'Tindakan ini tidak diperbolehkan untuk peran Anda pada timesheet tersebut.',
+          message: 'Tindakan ini tidak diperbolehkan untuk peran Anda pada timesheet tersebut.',
         });
       }
       if (err instanceof IllegalTimesheetTransitionError) {
@@ -618,7 +601,5 @@ function auditActionFor(action: DecideAction): string {
 }
 
 function startOfUtcDay(now: Date): Date {
-  return new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
-  );
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 }

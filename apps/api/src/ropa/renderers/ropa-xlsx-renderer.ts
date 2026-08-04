@@ -72,11 +72,11 @@ export async function renderRopaXlsx(
   title.font = { bold: true, size: 14 };
 
   ws.mergeCells(2, 1, 2, colCount);
-  ws.getCell(2, 1).value =
-    'Landasan: Pasal 31 UU 27/2022 PDP · GDPR Art. 30 (paralel EU).';
+  ws.getCell(2, 1).value = 'Landasan: Pasal 31 UU 27/2022 PDP · GDPR Art. 30 (paralel EU).';
 
   ws.mergeCells(3, 1, 3, colCount);
-  ws.getCell(3, 1).value = `Dicetak: ${header.generatedAt.toISOString()} · Oleh: ${header.generatedByEmail}`;
+  ws.getCell(3, 1).value =
+    `Dicetak: ${header.generatedAt.toISOString()} · Oleh: ${header.generatedByEmail}`;
   ws.getCell(3, 1).font = { italic: true, color: { argb: 'FF666666' } };
 
   const headerRow = ws.getRow(5);

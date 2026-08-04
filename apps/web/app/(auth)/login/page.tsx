@@ -17,24 +17,21 @@ export default async function LoginPage({
   const params = await searchParams;
   const justChanged = params.changed === '1';
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-      <div className="w-full max-w-sm rounded-lg border bg-background p-6 shadow-sm">
+    <main className="bg-muted/30 flex min-h-screen items-center justify-center px-4">
+      <div className="bg-background w-full max-w-sm rounded-lg border p-6 shadow-sm">
         <div className="mb-6 space-y-1">
-          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+          <p className="text-muted-foreground text-xs font-medium uppercase tracking-widest">
             Workpulse
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">Masuk ke akun Anda</h1>
-          <p className="text-sm text-muted-foreground">
-            Gunakan email perusahaan dan kata sandi.
-          </p>
+          <p className="text-muted-foreground text-sm">Gunakan email perusahaan dan kata sandi.</p>
         </div>
         {justChanged && (
           <div
             role="status"
             className="mb-4 rounded-md border border-emerald-300/60 bg-emerald-50 px-3 py-2 text-sm text-emerald-900"
           >
-            Password berhasil diubah. Silakan masuk kembali dengan password
-            baru Anda.
+            Password berhasil diubah. Silakan masuk kembali dengan password baru Anda.
           </div>
         )}
         <LoginForm redirectTo={params.next ?? '/attendance'} />

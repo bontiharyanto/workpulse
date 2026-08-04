@@ -43,14 +43,14 @@ export function OvertimeApprovalList(): JSX.Element {
     },
   });
 
-  if (list.isLoading) return <p className="text-sm text-muted-foreground">Memuat…</p>;
+  if (list.isLoading) return <p className="text-muted-foreground text-sm">Memuat…</p>;
   if (list.error) {
-    return <p className="text-sm text-destructive">Gagal memuat data.</p>;
+    return <p className="text-destructive text-sm">Gagal memuat data.</p>;
   }
   const rows = list.data ?? [];
   if (rows.length === 0) {
     return (
-      <p className="rounded-md border p-4 text-sm text-muted-foreground">
+      <p className="text-muted-foreground rounded-md border p-4 text-sm">
         Tidak ada pengajuan lembur yang menunggu keputusan Anda.
       </p>
     );
@@ -59,7 +59,7 @@ export function OvertimeApprovalList(): JSX.Element {
   return (
     <div className="space-y-3">
       {error && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="text-destructive text-sm">
           {error}
         </p>
       )}
@@ -73,9 +73,9 @@ export function OvertimeApprovalList(): JSX.Element {
                   <div className="font-medium">
                     {r.userFullName ?? r.userId} · {r.workDate} · {r.hours} jam
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-muted-foreground text-xs">
                     {r.dayKind} · tarif {currency.format(r.ratePerHour)} / jam · total{' '}
-                    <span className="font-medium text-foreground">
+                    <span className="text-foreground font-medium">
                       {currency.format(r.totalAmount)}
                     </span>
                   </div>
@@ -98,14 +98,14 @@ export function OvertimeApprovalList(): JSX.Element {
                       setOpenId(r.id);
                       setNote('');
                     }}
-                    className="rounded-md border px-3 py-1.5 text-xs hover:bg-accent"
+                    className="hover:bg-accent rounded-md border px-3 py-1.5 text-xs"
                   >
                     Putuskan
                   </button>
                 </div>
               ) : (
                 <div className="mt-3 space-y-2">
-                  <label htmlFor={`note-${r.id}`} className="text-xs text-muted-foreground">
+                  <label htmlFor={`note-${r.id}`} className="text-muted-foreground text-xs">
                     Catatan (opsional)
                   </label>
                   <textarea
@@ -113,7 +113,7 @@ export function OvertimeApprovalList(): JSX.Element {
                     rows={2}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs"
+                    className="border-input bg-background w-full rounded-md border px-3 py-2 text-xs"
                   />
                   <div className="flex flex-wrap gap-2">
                     <button
@@ -132,7 +132,7 @@ export function OvertimeApprovalList(): JSX.Element {
                       onClick={() =>
                         decide.mutate({ id: r.id, action: 'REJECT', note: note || undefined })
                       }
-                      className="rounded-md bg-destructive px-3 py-1.5 text-xs font-medium text-destructive-foreground shadow hover:opacity-90 disabled:opacity-50"
+                      className="bg-destructive text-destructive-foreground rounded-md px-3 py-1.5 text-xs font-medium shadow hover:opacity-90 disabled:opacity-50"
                     >
                       Tolak
                     </button>
@@ -142,7 +142,7 @@ export function OvertimeApprovalList(): JSX.Element {
                         setOpenId(null);
                         setNote('');
                       }}
-                      className="rounded-md border px-3 py-1.5 text-xs hover:bg-accent"
+                      className="hover:bg-accent rounded-md border px-3 py-1.5 text-xs"
                     >
                       Batal
                     </button>

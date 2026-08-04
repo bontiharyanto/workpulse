@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Patch,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
@@ -45,9 +36,7 @@ export class BreachAdminController {
   constructor(private readonly service: BreachService) {}
 
   @Get()
-  async list(
-    @CurrentUser() actor: AuthenticatedUser,
-  ): Promise<BreachIncidentListItemDto[]> {
+  async list(@CurrentUser() actor: AuthenticatedUser): Promise<BreachIncidentListItemDto[]> {
     const rows = await this.service.list(actor);
     return rows.map((r) => toListItemDto(r));
   }
@@ -88,9 +77,7 @@ export class BreachAdminController {
     @Param('id') id: string,
     @Body() body: AppendBreachNoteDto,
   ): Promise<BreachIncidentResponseDto> {
-    return toDetailDto(
-      await this.service.markContained(actor, id, body.note),
-    );
+    return toDetailDto(await this.service.markContained(actor, id, body.note));
   }
 
   @Throttle({ default: { limit: 15, ttl: 60_000 } })

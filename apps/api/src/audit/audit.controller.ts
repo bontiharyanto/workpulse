@@ -106,10 +106,7 @@ export class AuditController {
     const filename = `audit-log-${todayIsoDate()}.ndjson`;
 
     res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="${filename}"`,
-    );
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     // Never proxy-cache — response contains tenant-specific audit
     // trail; a shared cache would leak between callers.
     res.setHeader('Cache-Control', 'no-store');

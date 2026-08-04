@@ -6,10 +6,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
-import {
-  RetentionPolicyDto,
-  UpdateRetentionPolicyDto,
-} from './dto/retention.dto';
+import { RetentionPolicyDto, UpdateRetentionPolicyDto } from './dto/retention.dto';
 import { RetentionService } from './retention.service';
 
 /**
@@ -27,9 +24,7 @@ export class RetentionController {
   @Get()
   @ApiBearerAuth()
   @ApiOkResponse({ type: RetentionPolicyDto })
-  async getPolicy(
-    @CurrentUser() actor: AuthenticatedUser,
-  ): Promise<RetentionPolicyDto> {
+  async getPolicy(@CurrentUser() actor: AuthenticatedUser): Promise<RetentionPolicyDto> {
     const policy = await this.service.getForCompany(actor.companyId);
     return toDto(policy);
   }

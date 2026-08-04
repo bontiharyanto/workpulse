@@ -9,8 +9,8 @@
 
 Beyond the fixed reports shipped in 33c (Timesheet Summary, ROPA, DPIA,
 Analytics Snapshot), HR / DPO users need to slice **existing HR data** by
-their own axes — e.g. *"attendance on-time rate per department, last 30
-days"* or *"overtime hours per user, last 90 days"* — without waiting
+their own axes — e.g. _"attendance on-time rate per department, last 30
+days"_ or _"overtime hours per user, last 90 days"_ — without waiting
 for an engineering ticket.
 
 At the same time, we do NOT want:
@@ -38,11 +38,11 @@ Ship a **declarative, enum-driven** report builder:
 
 ### Catalogue
 
-| Axis | Values |
-| --- | --- |
-| Dimension | `DAY`, `DEPARTMENT`, `USER` |
-| Metric | `ATTENDANCE_COUNT`, `ATTENDANCE_LATE_COUNT`, `ATTENDANCE_ON_TIME_RATE`, `LEAVE_DAYS_APPROVED`, `OVERTIME_HOURS` |
-| Window | 7, 30, 90, 365 days |
+| Axis      | Values                                                                                                          |
+| --------- | --------------------------------------------------------------------------------------------------------------- |
+| Dimension | `DAY`, `DEPARTMENT`, `USER`                                                                                     |
+| Metric    | `ATTENDANCE_COUNT`, `ATTENDANCE_LATE_COUNT`, `ATTENDANCE_ON_TIME_RATE`, `LEAVE_DAYS_APPROVED`, `OVERTIME_HOURS` |
+| Window    | 7, 30, 90, 365 days                                                                                             |
 
 Every combination is safe by construction — we own the SQL that
 implements it.

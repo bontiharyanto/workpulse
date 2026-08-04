@@ -13,16 +13,8 @@ import { PasswordService } from '../password.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TokenService } from '../token.service';
 
-import {
-  generateBackupCodes,
-  hashBackupCode,
-  normalizeBackupCode,
-} from './domain/backup-codes';
-import {
-  decodeEncryptionKey,
-  decryptString,
-  encryptString,
-} from './domain/crypto';
+import { generateBackupCodes, hashBackupCode, normalizeBackupCode } from './domain/backup-codes';
+import { decodeEncryptionKey, decryptString, encryptString } from './domain/crypto';
 import { generateTotpEnrollment, verifyTotp } from './domain/totp';
 
 export interface MfaStatus {
@@ -67,9 +59,7 @@ export class MfaService {
     const raw = this.config.get<string>('MFA_SECRET_ENCRYPTION_KEY');
     this.encryptionKey = raw ? decodeEncryptionKey(raw) : null;
     this.issuer = this.config.get<string>('MFA_ISSUER', 'Workpulse');
-    this.backupCodesCount = Number(
-      this.config.get<number>('MFA_BACKUP_CODES_COUNT', 8),
-    );
+    this.backupCodesCount = Number(this.config.get<number>('MFA_BACKUP_CODES_COUNT', 8));
     if (!this.encryptionKey && this.config.get<string>('NODE_ENV') === 'production') {
       // Env validation should catch this earlier — belt & suspenders.
       throw new Error('MFA_SECRET_ENCRYPTION_KEY is required in production');
@@ -461,9 +451,7 @@ export class MfaService {
       // non-production env — in prod the env validator refuses to
       // start. This surfaces as 500 to the client (developer error)
       // rather than 400 (user error).
-      this.logger.error(
-        'MFA_SECRET_ENCRYPTION_KEY missing — cannot perform MFA crypto operations',
-      );
+      this.logger.error('MFA_SECRET_ENCRYPTION_KEY missing — cannot perform MFA crypto operations');
       throw new InternalServerErrorException({
         statusCode: 500,
         code: 'MFA_NOT_CONFIGURED',

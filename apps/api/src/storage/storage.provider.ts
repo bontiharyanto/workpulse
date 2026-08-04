@@ -63,7 +63,9 @@ export interface StorageProvider {
    * Return `{ ok: true }` on success. On failure, EITHER throw OR
    * return `{ ok: false, reason }`. Implementations MUST NOT hang.
    */
-  healthCheck(): Promise<{ ok: true; latencyMs: number } | { ok: false; reason: string; latencyMs: number }>;
+  healthCheck(): Promise<
+    { ok: true; latencyMs: number } | { ok: false; reason: string; latencyMs: number }
+  >;
   /** True when storage is configured and reachable enough to attempt a call. */
   readonly enabled: boolean;
 }

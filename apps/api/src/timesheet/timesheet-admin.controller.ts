@@ -1,19 +1,5 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-  Query,
-} from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiNoContentResponse,
-  ApiOkResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
+import { ApiBearerAuth, ApiNoContentResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { TimesheetStatus } from '@prisma/client';
 
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -50,9 +36,7 @@ export class TimesheetAdminController {
   @Get('periods')
   @ApiBearerAuth()
   @ApiOkResponse({ type: TimesheetPeriodListDto })
-  async listPeriods(
-    @CurrentUser() actor: AuthenticatedUser,
-  ): Promise<TimesheetPeriodListDto> {
+  async listPeriods(@CurrentUser() actor: AuthenticatedUser): Promise<TimesheetPeriodListDto> {
     const items = await this.service.listPeriods(actor.companyId);
     return { items };
   }
@@ -85,9 +69,7 @@ export class TimesheetAdminController {
     const take = Math.max(1, Math.min(200, Number(limit ?? '50')));
     const skip = Math.max(0, Number(offset ?? '0'));
     const parsedStatus =
-      status && Object.values(TimesheetStatus).includes(status)
-        ? status
-        : undefined;
+      status && Object.values(TimesheetStatus).includes(status) ? status : undefined;
     return this.service.listAdmin(
       actor,
       { periodId, userId, departmentId, status: parsedStatus },

@@ -22,10 +22,10 @@ export default function AdminRopaPage(): JSX.Element {
             <h1 className="text-2xl font-semibold tracking-tight">
               Record of Processing Activities
             </h1>
-            <p className="text-sm text-muted-foreground">
-              Register kegiatan pemrosesan data pribadi (Pasal 31 UU 27/2022
-              PDP; GDPR Art. 30). Setiap perubahan tercatat di audit log —
-              regulator boleh me-request PDF/XLSX kapan pun.
+            <p className="text-muted-foreground text-sm">
+              Register kegiatan pemrosesan data pribadi (Pasal 31 UU 27/2022 PDP; GDPR Art. 30).
+              Setiap perubahan tercatat di audit log — regulator boleh me-request PDF/XLSX kapan
+              pun.
             </p>
           </div>
           <RopaRegistryPanel />

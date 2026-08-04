@@ -25,24 +25,18 @@ describe('countBusinessDays', () => {
   });
 
   it('excludes provided holidays', () => {
-    expect(
-      countBusinessDays('2026-06-15', '2026-06-19', { holidays: ['2026-06-17'] }),
-    ).toBe(4);
+    expect(countBusinessDays('2026-06-15', '2026-06-19', { holidays: ['2026-06-17'] })).toBe(4);
   });
 
   it('does not double-count when a holiday falls on a weekend', () => {
     // Saturday holiday — already excluded as weekend
-    expect(
-      countBusinessDays('2026-06-15', '2026-06-21', { holidays: ['2026-06-20'] }),
-    ).toBe(5);
+    expect(countBusinessDays('2026-06-15', '2026-06-21', { holidays: ['2026-06-20'] })).toBe(5);
   });
 
   it('supports a Middle-East-style weekend (Fri, Sat)', () => {
     // Mon 15 → Sun 21 with weekend = Fri(5), Sat(6):
     //   Mon 15, Tue 16, Wed 17, Thu 18, Sun 21 => 5
-    expect(
-      countBusinessDays('2026-06-15', '2026-06-21', { weekendDays: [5, 6] }),
-    ).toBe(5);
+    expect(countBusinessDays('2026-06-15', '2026-06-21', { weekendDays: [5, 6] })).toBe(5);
   });
 });
 

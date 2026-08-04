@@ -23,18 +23,8 @@ import { RetentionWorker } from './retention.worker';
 @Module({
   imports: [PrismaModule, DataErasureModule, NotificationModule],
   controllers: [RetentionController, RetentionAuditController],
-  providers: [
-    RetentionService,
-    RetentionWorker,
-    RetentionAuditService,
-    RetentionAuditWorker,
-  ],
+  providers: [RetentionService, RetentionWorker, RetentionAuditService, RetentionAuditWorker],
   // Re-exported so `TestSupportModule` can kick either worker for E2E.
-  exports: [
-    RetentionService,
-    RetentionWorker,
-    RetentionAuditService,
-    RetentionAuditWorker,
-  ],
+  exports: [RetentionService, RetentionWorker, RetentionAuditService, RetentionAuditWorker],
 })
 export class RetentionModule {}

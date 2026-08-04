@@ -8,21 +8,15 @@ import {
 
 describe('computeStorageTotal', () => {
   it('sums two buckets', () => {
-    expect(
-      computeStorageTotal({ exportBytes: 1024n, dsarBytes: 2048n }),
-    ).toBe(3072n);
+    expect(computeStorageTotal({ exportBytes: 1024n, dsarBytes: 2048n })).toBe(3072n);
   });
 
   it('handles zero cleanly', () => {
-    expect(
-      computeStorageTotal({ exportBytes: 0n, dsarBytes: 0n }),
-    ).toBe(0n);
+    expect(computeStorageTotal({ exportBytes: 0n, dsarBytes: 0n })).toBe(0n);
   });
 
   it('rejects a synthetic negative total (safety net)', () => {
-    expect(() =>
-      computeStorageTotal({ exportBytes: -10n, dsarBytes: 0n }),
-    ).toThrow(RangeError);
+    expect(() => computeStorageTotal({ exportBytes: -10n, dsarBytes: 0n })).toThrow(RangeError);
   });
 });
 
@@ -62,18 +56,14 @@ describe('computeDbRowsTotal', () => {
   });
 
   it('rejects negative counters', () => {
-    expect(() =>
-      computeDbRowsTotal({ ...clean, notification: -1 }),
-    ).toThrow(RangeError);
+    expect(() => computeDbRowsTotal({ ...clean, notification: -1 })).toThrow(RangeError);
   });
 });
 
 describe('previousUtcMonth / utcMonthRange', () => {
   it('handles mid-month reference', () => {
     const ref = new Date('2026-04-15T06:00:00Z');
-    expect(previousUtcMonth(ref).periodStart.toISOString()).toBe(
-      '2026-03-01T00:00:00.000Z',
-    );
+    expect(previousUtcMonth(ref).periodStart.toISOString()).toBe('2026-03-01T00:00:00.000Z');
   });
 
   it('handles year-boundary reference (January cron)', () => {

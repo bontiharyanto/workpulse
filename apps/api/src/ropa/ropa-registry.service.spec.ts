@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import type { RopaActivity, RopaActivityVersion } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
@@ -22,14 +18,12 @@ function buildKit(): Kit {
   const prisma = mockDeep<PrismaService>();
   mockReset(prisma);
 
-  (prisma.$transaction as unknown as jest.Mock).mockImplementation(
-    async (arg: unknown) => {
-      if (typeof arg === 'function') {
-        return (arg as (tx: PrismaService) => unknown)(prisma);
-      }
-      return Promise.all(arg as Promise<unknown>[]);
-    },
-  );
+  (prisma.$transaction as unknown as jest.Mock).mockImplementation(async (arg: unknown) => {
+    if (typeof arg === 'function') {
+      return (arg as (tx: PrismaService) => unknown)(prisma);
+    }
+    return Promise.all(arg as Promise<unknown>[]);
+  });
 
   const service = new RopaRegistryService(prisma as unknown as PrismaService);
   return { service, prisma };
@@ -58,9 +52,7 @@ function makeActivity(overrides: Partial<RopaActivity> = {}): RopaActivity {
   };
 }
 
-function makeVersion(
-  overrides: Partial<RopaActivityVersion> = {},
-): RopaActivityVersion {
+function makeVersion(overrides: Partial<RopaActivityVersion> = {}): RopaActivityVersion {
   return {
     id: 'v-1',
     activityId: 'a-1',
@@ -262,9 +254,9 @@ describe('RopaRegistryService', () => {
       kit.prisma.ropaActivityVersion.findFirst.mockResolvedValueOnce(
         makeVersion({ status: 'DRAFT' }),
       );
-      await expect(
-        kit.service.publish(makeActor(), 'a-1', 'v-1'),
-      ).rejects.toBeInstanceOf(ConflictException);
+      await expect(kit.service.publish(makeActor(), 'a-1', 'v-1')).rejects.toBeInstanceOf(
+        ConflictException,
+      );
     });
 
     it('REVIEW → PUBLISHED archives previous published + points activity current', async () => {
@@ -305,9 +297,9 @@ describe('RopaRegistryService', () => {
         ...makeActivity(),
         versions: [makeVersion({ status: 'DRAFT', id: 'draft' })],
       } as unknown as RopaActivity);
-      await expect(
-        kit.service.newVersion(makeActor(), 'a-1'),
-      ).rejects.toBeInstanceOf(ConflictException);
+      await expect(kit.service.newVersion(makeActor(), 'a-1')).rejects.toBeInstanceOf(
+        ConflictException,
+      );
     });
 
     it('forks from the latest version + increments version number', async () => {
@@ -335,9 +327,9 @@ describe('RopaRegistryService', () => {
     it('404 when activity missing', async () => {
       const kit = buildKit();
       kit.prisma.ropaActivity.findFirst.mockResolvedValueOnce(null);
-      await expect(
-        kit.service.newVersion(makeActor(), 'a-1'),
-      ).rejects.toBeInstanceOf(NotFoundException);
+      await expect(kit.service.newVersion(makeActor(), 'a-1')).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
     });
   });
 });

@@ -52,13 +52,10 @@ describe('rangesOverlap', () => {
 describe('hasOverlappingAssignment', () => {
   it('detects any overlap in the list', () => {
     expect(
-      hasOverlappingAssignment(
-        { effectiveFrom: '2026-03-01', effectiveTo: '2026-04-01' },
-        [
-          { effectiveFrom: '2026-01-01', effectiveTo: '2026-02-01' },
-          { effectiveFrom: '2026-03-15', effectiveTo: '2026-04-15' },
-        ],
-      ),
+      hasOverlappingAssignment({ effectiveFrom: '2026-03-01', effectiveTo: '2026-04-01' }, [
+        { effectiveFrom: '2026-01-01', effectiveTo: '2026-02-01' },
+        { effectiveFrom: '2026-03-15', effectiveTo: '2026-04-15' },
+      ]),
     ).toBe(true);
   });
 
@@ -66,9 +63,7 @@ describe('hasOverlappingAssignment', () => {
     expect(
       hasOverlappingAssignment(
         { effectiveFrom: '2026-03-01', effectiveTo: '2026-04-01' },
-        [
-          { id: 'a1', effectiveFrom: '2026-03-01', effectiveTo: '2026-04-01' },
-        ],
+        [{ id: 'a1', effectiveFrom: '2026-03-01', effectiveTo: '2026-04-01' }],
         'a1',
       ),
     ).toBe(false);

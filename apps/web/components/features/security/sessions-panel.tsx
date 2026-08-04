@@ -93,34 +93,25 @@ export function SessionsPanel(): JSX.Element {
   });
 
   if (sessions.isLoading) {
-    return <p className="text-sm text-muted-foreground">Memuat sesi...</p>;
+    return <p className="text-muted-foreground text-sm">Memuat sesi...</p>;
   }
   if (sessions.error || !sessions.data) {
-    return (
-      <p className="text-sm text-destructive">Tidak dapat memuat sesi aktif.</p>
-    );
+    return <p className="text-destructive text-sm">Tidak dapat memuat sesi aktif.</p>;
   }
 
   const rows = sessions.data;
   const otherCount = rows.filter((r) => !r.isCurrent).length;
 
   return (
-    <section
-      className="space-y-3"
-      data-testid="sessions-panel"
-      aria-labelledby="sessions-heading"
-    >
+    <section className="space-y-3" data-testid="sessions-panel" aria-labelledby="sessions-heading">
       <div className="flex items-baseline justify-between gap-4">
         <div>
-          <h2
-            id="sessions-heading"
-            className="text-lg font-semibold tracking-tight"
-          >
+          <h2 id="sessions-heading" className="text-lg font-semibold tracking-tight">
             Sesi aktif
           </h2>
-          <p className="text-sm text-muted-foreground">
-            Daftar perangkat yang saat ini login ke akun Anda. Nonaktifkan
-            sesi yang tidak Anda kenali.
+          <p className="text-muted-foreground text-sm">
+            Daftar perangkat yang saat ini login ke akun Anda. Nonaktifkan sesi yang tidak Anda
+            kenali.
           </p>
         </div>
         <button
@@ -128,7 +119,7 @@ export function SessionsPanel(): JSX.Element {
           onClick={() => revokeOthersMutation.mutate()}
           disabled={revokeOthersMutation.isPending || otherCount === 0}
           data-testid="sessions-revoke-others"
-          className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50"
+          className="border-destructive/40 bg-destructive/5 text-destructive hover:bg-destructive/10 rounded-md border px-3 py-1.5 text-xs font-medium disabled:opacity-50"
         >
           {revokeOthersMutation.isPending
             ? 'Menonaktifkan...'
@@ -148,7 +139,7 @@ export function SessionsPanel(): JSX.Element {
       )}
 
       {error && (
-        <p role="alert" className="text-xs text-destructive">
+        <p role="alert" className="text-destructive text-xs">
           {error}
         </p>
       )}
@@ -162,15 +153,15 @@ export function SessionsPanel(): JSX.Element {
             data-current={row.isCurrent || undefined}
             className={
               row.isCurrent
-                ? 'flex flex-wrap items-center justify-between gap-3 rounded-md border border-primary/60 bg-primary/5 p-3'
-                : 'flex flex-wrap items-center justify-between gap-3 rounded-md border border-input p-3'
+                ? 'border-primary/60 bg-primary/5 flex flex-wrap items-center justify-between gap-3 rounded-md border p-3'
+                : 'border-input flex flex-wrap items-center justify-between gap-3 rounded-md border p-3'
             }
           >
             <div className="min-w-0 flex-1 space-y-1">
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-sm font-medium">{describeDevice(row.userAgent)}</p>
                 {row.isCurrent && (
-                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-primary">
+                  <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider">
                     Sesi ini
                   </span>
                 )}
@@ -180,9 +171,8 @@ export function SessionsPanel(): JSX.Element {
                   </span>
                 )}
               </div>
-              <p className="truncate text-xs text-muted-foreground">
-                {row.ip ?? 'IP tidak tersedia'} · Login{' '}
-                {formatDate(row.createdAt)} · Kedaluwarsa{' '}
+              <p className="text-muted-foreground truncate text-xs">
+                {row.ip ?? 'IP tidak tersedia'} · Login {formatDate(row.createdAt)} · Kedaluwarsa{' '}
                 {formatDate(row.expiresAt)}
               </p>
             </div>
@@ -194,14 +184,14 @@ export function SessionsPanel(): JSX.Element {
                   onClick={() => revokeMutation.mutate(row)}
                   disabled={revokeMutation.isPending}
                   data-testid="session-revoke-confirm"
-                  className="rounded-md bg-destructive px-3 py-1 text-xs font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md px-3 py-1 text-xs font-medium disabled:opacity-50"
                 >
                   {revokeMutation.isPending ? 'Menonaktifkan...' : 'Ya, nonaktifkan'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setConfirmingId(null)}
-                  className="rounded-md border border-input px-3 py-1 text-xs text-muted-foreground hover:bg-muted"
+                  className="border-input text-muted-foreground hover:bg-muted rounded-md border px-3 py-1 text-xs"
                 >
                   Batal
                 </button>
@@ -211,7 +201,7 @@ export function SessionsPanel(): JSX.Element {
                 type="button"
                 onClick={() => setConfirmingId(row.id)}
                 data-testid="session-revoke-btn"
-                className="rounded-md border border-destructive/40 px-3 py-1 text-xs font-medium text-destructive hover:bg-destructive/10"
+                className="border-destructive/40 text-destructive hover:bg-destructive/10 rounded-md border px-3 py-1 text-xs font-medium"
               >
                 Logout {row.isCurrent ? 'perangkat ini' : 'perangkat'}
               </button>
@@ -251,10 +241,7 @@ function describeDevice(ua: string | null): string {
   return ua.length > 60 ? `${ua.slice(0, 60)}…` : ua;
 }
 
-function matchFirst(
-  input: string,
-  patterns: readonly [RegExp, string][],
-): string | null {
+function matchFirst(input: string, patterns: readonly [RegExp, string][]): string | null {
   for (const [re, label] of patterns) {
     if (re.test(input)) return label;
   }

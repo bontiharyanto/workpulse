@@ -12,10 +12,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { shiftDurationMinutes } from './domain/hh-mm';
 import { hasOverlappingAssignment } from './domain/shift-assignment-range';
 import type { ShiftTypeLiteral } from './dto/create-shift.dto';
-import type {
-  ShiftAssignmentResponseDto,
-  ShiftResponseDto,
-} from './dto/shift-response.dto';
+import type { ShiftAssignmentResponseDto, ShiftResponseDto } from './dto/shift-response.dto';
 
 export interface CreateShiftInput {
   name: string;
@@ -86,10 +83,7 @@ export class ShiftService {
     return this.toShiftDto(await this.findOwnShift(actor.companyId, id));
   }
 
-  async create(
-    actor: AuthenticatedUser,
-    input: CreateShiftInput,
-  ): Promise<ShiftResponseDto> {
+  async create(actor: AuthenticatedUser, input: CreateShiftInput): Promise<ShiftResponseDto> {
     this.assertTimeRange(input.startTime, input.endTime);
     if (input.geofenceId) {
       await this.assertGeofenceInCompany(actor.companyId, input.geofenceId);
@@ -253,9 +247,7 @@ export class ShiftService {
           userId: input.userId,
           shiftId,
           effectiveFrom: new Date(`${input.effectiveFrom}T00:00:00.000Z`),
-          effectiveTo: input.effectiveTo
-            ? new Date(`${input.effectiveTo}T00:00:00.000Z`)
-            : null,
+          effectiveTo: input.effectiveTo ? new Date(`${input.effectiveTo}T00:00:00.000Z`) : null,
         },
       });
       await tx.auditLog.create({
@@ -358,10 +350,7 @@ export class ShiftService {
     }
   }
 
-  private async assertGeofenceInCompany(
-    companyId: string,
-    geofenceId: string,
-  ): Promise<void> {
+  private async assertGeofenceInCompany(companyId: string, geofenceId: string): Promise<void> {
     const row = await this.prisma.geofence.findFirst({
       where: { id: geofenceId, companyId, deletedAt: null },
       select: { id: true },
@@ -377,10 +366,7 @@ export class ShiftService {
     if (!row) throw new BadRequestException('USER_INVALID');
   }
 
-  private async findOwnShift(
-    companyId: string,
-    id: string,
-  ): Promise<ShiftWithGeofence> {
+  private async findOwnShift(companyId: string, id: string): Promise<ShiftWithGeofence> {
     const row = await this.prisma.shift.findFirst({
       where: { id, companyId, deletedAt: null },
       include: {
@@ -444,8 +430,7 @@ export class ShiftService {
 
   private toAssignmentDto(row: AssignmentWithRelations): ShiftAssignmentResponseDto {
     const now = new Date();
-    const active =
-      row.effectiveFrom <= now && (row.effectiveTo === null || row.effectiveTo > now);
+    const active = row.effectiveFrom <= now && (row.effectiveTo === null || row.effectiveTo > now);
     return {
       id: row.id,
       userId: row.userId,

@@ -72,24 +72,20 @@ describe('isOwnedAttachmentKey', () => {
 
   it('rejects path traversal / whitespace attempts', () => {
     expect(
+      isOwnedAttachmentKey(`attachments/leave-attachment/co-1/u-1/../../etc/passwd`, 'co-1', 'u-1'),
+    ).toBe(false);
+    expect(
       isOwnedAttachmentKey(
-        `attachments/leave-attachment/co-1/u-1/../../etc/passwd`,
+        `attachments/leave-attachment/co-1/u-1/2026/03/${UUID} .pdf`,
         'co-1',
         'u-1',
       ),
-    ).toBe(false);
-    expect(
-      isOwnedAttachmentKey(`attachments/leave-attachment/co-1/u-1/2026/03/${UUID} .pdf`, 'co-1', 'u-1'),
     ).toBe(false);
   });
 
   it('rejects an unknown purpose', () => {
     expect(
-      isOwnedAttachmentKey(
-        `attachments/other-purpose/co-1/u-1/2026/03/${UUID}.pdf`,
-        'co-1',
-        'u-1',
-      ),
+      isOwnedAttachmentKey(`attachments/other-purpose/co-1/u-1/2026/03/${UUID}.pdf`, 'co-1', 'u-1'),
     ).toBe(false);
   });
 
@@ -105,9 +101,7 @@ describe('isOwnedAttachmentKey', () => {
 
   it('accepts an attendance-correction key when the caller opts into that purpose', () => {
     const correctionKey = `attachments/attendance-correction/co-1/u-1/2026/08/${UUID}.jpg`;
-    expect(
-      isOwnedAttachmentKey(correctionKey, 'co-1', 'u-1', 'attendance-correction'),
-    ).toBe(true);
+    expect(isOwnedAttachmentKey(correctionKey, 'co-1', 'u-1', 'attendance-correction')).toBe(true);
     // The default purpose (leave-attachment) rejects it — the same key
     // cannot be silently reused across modules.
     expect(isOwnedAttachmentKey(correctionKey, 'co-1', 'u-1')).toBe(false);

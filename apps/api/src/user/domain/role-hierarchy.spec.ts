@@ -41,11 +41,7 @@ describe('role-hierarchy', () => {
 
   describe('assignableRoles', () => {
     it('returns roles sorted low → high', () => {
-      expect(assignableRoles('HR_MANAGER')).toEqual([
-        'EMPLOYEE',
-        'SUPERVISOR',
-        'HR_MANAGER',
-      ]);
+      expect(assignableRoles('HR_MANAGER')).toEqual(['EMPLOYEE', 'SUPERVISOR', 'HR_MANAGER']);
       expect(assignableRoles('SUPER_ADMIN')).toEqual([
         'EMPLOYEE',
         'SUPERVISOR',

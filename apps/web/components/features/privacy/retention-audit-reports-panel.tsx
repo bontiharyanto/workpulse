@@ -1,10 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type {
-  RetentionAuditReportDto,
-  RetentionAuditStatus,
-} from '@workpulse/shared-types';
+import type { RetentionAuditReportDto, RetentionAuditStatus } from '@workpulse/shared-types';
 import Link from 'next/link';
 import type { Route } from 'next';
 import React, { useState } from 'react';
@@ -55,9 +52,7 @@ function formatPeriod(iso: string): string {
  */
 export function RetentionAuditReportsPanel(): JSX.Element {
   const qc = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState<RetentionAuditStatus | 'ALL'>(
-    'ALL',
-  );
+  const [statusFilter, setStatusFilter] = useState<RetentionAuditStatus | 'ALL'>('ALL');
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['retention-audit-list', statusFilter],
@@ -68,9 +63,7 @@ export function RetentionAuditReportsPanel(): JSX.Element {
       }),
   });
 
-  const [regenYear, setRegenYear] = useState<string>(() =>
-    String(new Date().getUTCFullYear()),
-  );
+  const [regenYear, setRegenYear] = useState<string>(() => String(new Date().getUTCFullYear()));
   const [regenMonth, setRegenMonth] = useState<string>(() => {
     const now = new Date();
     // Default to previous month.
@@ -98,20 +91,19 @@ export function RetentionAuditReportsPanel(): JSX.Element {
     <div className="space-y-6">
       <section
         aria-labelledby="regen-heading"
-        className="space-y-3 rounded-lg border border-border bg-card p-4"
+        className="border-border bg-card space-y-3 rounded-lg border p-4"
       >
         <div>
           <h2 id="regen-heading" className="text-sm font-semibold">
             Regenerate laporan bulan tertentu
           </h2>
-          <p className="text-xs text-muted-foreground">
-            Gunakan setelah kebijakan retensi diubah atau post-mortem worker.
-            Kembali menghitung dari data mentah — tidak menimbulkan side-effect
-            di data lain.
+          <p className="text-muted-foreground text-xs">
+            Gunakan setelah kebijakan retensi diubah atau post-mortem worker. Kembali menghitung
+            dari data mentah — tidak menimbulkan side-effect di data lain.
           </p>
         </div>
         <div className="flex flex-wrap items-end gap-3">
-          <label className="flex flex-col text-xs text-muted-foreground">
+          <label className="text-muted-foreground flex flex-col text-xs">
             Tahun
             <input
               type="number"
@@ -119,15 +111,15 @@ export function RetentionAuditReportsPanel(): JSX.Element {
               max={2100}
               value={regenYear}
               onChange={(e) => setRegenYear(e.target.value)}
-              className="mt-1 w-24 rounded border border-input bg-background px-2 py-1 text-sm text-foreground"
+              className="border-input bg-background text-foreground mt-1 w-24 rounded border px-2 py-1 text-sm"
             />
           </label>
-          <label className="flex flex-col text-xs text-muted-foreground">
+          <label className="text-muted-foreground flex flex-col text-xs">
             Bulan
             <select
               value={regenMonth}
               onChange={(e) => setRegenMonth(e.target.value)}
-              className="mt-1 w-40 rounded border border-input bg-background px-2 py-1 text-sm text-foreground"
+              className="border-input bg-background text-foreground mt-1 w-40 rounded border px-2 py-1 text-sm"
             >
               {MONTHS_ID.map((label, i) => (
                 <option key={label} value={i + 1}>
@@ -140,17 +132,15 @@ export function RetentionAuditReportsPanel(): JSX.Element {
             type="button"
             onClick={() => regenMutation.mutate()}
             disabled={regenMutation.isPending}
-            className="rounded bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+            className="bg-primary text-primary-foreground rounded px-3 py-1.5 text-sm font-medium hover:opacity-90 disabled:opacity-50"
           >
             {regenMutation.isPending ? 'Menghasilkan…' : 'Regenerate'}
           </button>
           {regenMutation.isSuccess && (
-            <span className="text-xs text-emerald-600 dark:text-emerald-400">
-              Selesai.
-            </span>
+            <span className="text-xs text-emerald-600 dark:text-emerald-400">Selesai.</span>
           )}
           {regenError && (
-            <span role="alert" className="text-xs text-destructive">
+            <span role="alert" className="text-destructive text-xs">
               {regenError}
             </span>
           )}
@@ -186,7 +176,7 @@ export function RetentionAuditReportsPanel(): JSX.Element {
         <div
           role="status"
           aria-live="polite"
-          className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground"
+          className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm"
         >
           Memuat laporan audit…
         </div>
@@ -195,14 +185,14 @@ export function RetentionAuditReportsPanel(): JSX.Element {
       {isError && (
         <div
           role="alert"
-          className="rounded-md border border-destructive/50 bg-destructive/5 p-4 text-sm text-destructive"
+          className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-4 text-sm"
         >
           Gagal memuat laporan. Coba muat ulang halaman.
         </div>
       )}
 
       {data && data.rows.length === 0 && (
-        <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+        <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-center text-sm">
           Belum ada laporan bulanan untuk filter ini.
         </div>
       )}
@@ -224,32 +214,25 @@ function ReportCard({ row }: { row: RetentionAuditReportDto }): JSX.Element {
   const findingCount = row.findings.length;
   return (
     <Link
-      href={
-        `/admin/privacy/retention/audit-reports/${row.id}` as unknown as Route
-      }
-      className="block rounded-lg border border-border bg-card p-4 transition hover:border-primary/60"
+      href={`/admin/privacy/retention/audit-reports/${row.id}` as unknown as Route}
+      className="border-border bg-card hover:border-primary/60 block rounded-lg border p-4 transition"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-sm font-semibold">{formatPeriod(row.periodStart)}</div>
-          <div className="text-xs text-muted-foreground">
+          <div className="text-muted-foreground text-xs">
             Dihasilkan {new Date(row.generatedAt).toLocaleString('id-ID')}
           </div>
         </div>
         <span
-          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-            STATUS_CLASSES[row.status]
-          }`}
+          className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLASSES[row.status]}`}
         >
           {STATUS_LABEL[row.status]}
         </span>
       </div>
       <dl className="mt-4 grid grid-cols-3 gap-3 text-xs">
         <MetricCell label="Notifikasi dihapus" value={row.notificationsPruned} />
-        <MetricCell
-          label="User auto-anonimisasi"
-          value={row.usersAutoAnonymised}
-        />
+        <MetricCell label="User auto-anonimisasi" value={row.usersAutoAnonymised} />
         <MetricCell label="DSAR archive expired" value={row.dsarArchivesExpired} />
       </dl>
       {findingCount > 0 && (
@@ -261,19 +244,11 @@ function ReportCard({ row }: { row: RetentionAuditReportDto }): JSX.Element {
   );
 }
 
-function MetricCell({
-  label,
-  value,
-}: {
-  label: string;
-  value: number;
-}): JSX.Element {
+function MetricCell({ label, value }: { label: string; value: number }): JSX.Element {
   return (
     <div>
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 text-sm font-medium tabular-nums">
-        {value.toLocaleString('id-ID')}
-      </dd>
+      <dd className="mt-0.5 text-sm font-medium tabular-nums">{value.toLocaleString('id-ID')}</dd>
     </div>
   );
 }

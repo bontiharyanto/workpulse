@@ -30,9 +30,7 @@ async function login(email: string, password: string): Promise<LoginedContext> {
     data: { email, password },
   });
   if (!res.ok()) {
-    throw new Error(
-      `login failed for ${email}: ${res.status()} ${await res.text()}`,
-    );
+    throw new Error(`login failed for ${email}: ${res.status()} ${await res.text()}`);
   }
   const body = (await res.json()) as { accessToken: string };
   return { ctx, accessToken: body.accessToken };
@@ -64,10 +62,7 @@ test('HR can seed defaults idempotently', async () => {
 });
 
 test('non-HR is forbidden from listing', async () => {
-  const emp = await login(
-    SEED_USERS.employee.email,
-    SEED_USERS.employee.password,
-  );
+  const emp = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
   try {
     const res = await emp.ctx.get('/api/v1/admin/ropa/activities', {
       headers: { Authorization: `Bearer ${emp.accessToken}` },
@@ -106,13 +101,10 @@ test('DPO can DRAFT → REVIEW → PUBLISH one activity', async () => {
       target = items.find((i) => i.currentVersion);
       if (!target) throw new Error('no seeded activities to work with');
       activityId = target.activityId;
-      const fork = await hr.ctx.post(
-        `/api/v1/admin/ropa/activities/${activityId}/new-version`,
-        {
-          headers: { Authorization: `Bearer ${hr.accessToken}` },
-          data: {},
-        },
-      );
+      const fork = await hr.ctx.post(`/api/v1/admin/ropa/activities/${activityId}/new-version`, {
+        headers: { Authorization: `Bearer ${hr.accessToken}` },
+        data: {},
+      });
       expect([200, 201]).toContain(fork.status());
       const forked = (await fork.json()) as { id: string };
       versionId = forked.id;
@@ -196,13 +188,10 @@ test('publish from DRAFT (skipping REVIEW) returns 409', async () => {
       target = items.find((i) => i.currentVersion);
       if (!target) throw new Error('no seeded activities to work with');
       activityId = target.activityId;
-      const fork = await hr.ctx.post(
-        `/api/v1/admin/ropa/activities/${activityId}/new-version`,
-        {
-          headers: { Authorization: `Bearer ${hr.accessToken}` },
-          data: {},
-        },
-      );
+      const fork = await hr.ctx.post(`/api/v1/admin/ropa/activities/${activityId}/new-version`, {
+        headers: { Authorization: `Bearer ${hr.accessToken}` },
+        data: {},
+      });
       const body = (await fork.json()) as { id: string };
       versionId = body.id;
     }
@@ -252,10 +241,9 @@ test('HR can export PDF + XLSX; both audited with SHA-256', async () => {
     expect(xlsxBytes[1]).toBe(0x4b);
 
     // Audit log surfaces the export event.
-    const audit = await hr.ctx.get(
-      '/api/v1/admin/audit-log?action=ROPA_EXPORTED&limit=5',
-      { headers: { Authorization: `Bearer ${hr.accessToken}` } },
-    );
+    const audit = await hr.ctx.get('/api/v1/admin/audit-log?action=ROPA_EXPORTED&limit=5', {
+      headers: { Authorization: `Bearer ${hr.accessToken}` },
+    });
     expect(audit.status()).toBe(200);
     const auditBody = (await audit.json()) as {
       rows: Array<{ action: string; afterJson: { sha256: string; format: string } }>;

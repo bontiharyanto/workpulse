@@ -58,8 +58,7 @@ export class RetentionAuditWorker {
     private readonly notifications: NotificationService,
     config: ConfigService,
   ) {
-    this.enabled =
-      config.get<string>('RETENTION_AUDIT_WORKER_ENABLED', 'true') !== 'false';
+    this.enabled = config.get<string>('RETENTION_AUDIT_WORKER_ENABLED', 'true') !== 'false';
     if (!this.enabled) {
       this.logger.warn(
         'RETENTION_AUDIT_WORKER_ENABLED=false — monthly audit disabled on this instance.',
@@ -84,14 +83,10 @@ export class RetentionAuditWorker {
     try {
       const generated = await this.runOnce(new Date());
       this.logger.log(
-        `retention-audit tick complete generated=${generated} durationMs=${
-          Date.now() - started
-        }`,
+        `retention-audit tick complete generated=${generated} durationMs=${Date.now() - started}`,
       );
     } catch (err) {
-      this.logger.error(
-        `retention-audit tick threw: ${(err as Error).message}`,
-      );
+      this.logger.error(`retention-audit tick threw: ${(err as Error).message}`);
     } finally {
       this.tickRunning = false;
     }
@@ -108,10 +103,7 @@ export class RetentionAuditWorker {
     let generated = 0;
     for (const target of targets) {
       try {
-        const report = await this.audit.generatePreviousMonth(
-          target.companyId,
-          reference,
-        );
+        const report = await this.audit.generatePreviousMonth(target.companyId, reference);
         generated += 1;
         if (notify && report.status !== 'SUCCESS') {
           await this.notifyGap(report).catch((err: Error) =>
@@ -122,9 +114,7 @@ export class RetentionAuditWorker {
         }
       } catch (err) {
         this.logger.error(
-          `retention audit failed companyId=${target.companyId}: ${
-            (err as Error).message
-          }`,
+          `retention audit failed companyId=${target.companyId}: ${(err as Error).message}`,
         );
       }
     }

@@ -39,10 +39,7 @@ interface LeaveRow {
  * server returns 409 for a race) — the goal is "give the caller a clean
  * slate", not "prove every cancel succeeds".
  */
-export async function cancelOvertimeFor(
-  api: APIRequestContext,
-  workDate: string,
-): Promise<void> {
+export async function cancelOvertimeFor(api: APIRequestContext, workDate: string): Promise<void> {
   const res = await api.get('/api/v1/overtime/mine');
   if (!res.ok()) return;
   const rows = (await res.json()) as OvertimeRow[];
@@ -72,10 +69,7 @@ export async function cancelLeaveOverlapping(
   if (!res.ok()) return;
   const rows = (await res.json()) as LeaveRow[];
   const targets = rows.filter((r) => {
-    if (
-      r.status === 'CANCELLED' ||
-      r.status === 'REJECTED'
-    ) {
+    if (r.status === 'CANCELLED' || r.status === 'REJECTED') {
       return false;
     }
     // Overlap iff r.startDate <= endDate && r.endDate >= startDate.

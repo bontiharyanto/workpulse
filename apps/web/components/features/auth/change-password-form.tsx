@@ -1,10 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  changePasswordInputSchema,
-  type ChangePasswordInput,
-} from '@workpulse/shared-types';
+import { changePasswordInputSchema, type ChangePasswordInput } from '@workpulse/shared-types';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -85,8 +82,8 @@ export function ChangePasswordForm(): JSX.Element {
           role="status"
           className="rounded-md border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm text-amber-900"
         >
-          Password Anda saat ini adalah password sementara. Silakan pilih
-          password baru untuk melanjutkan.
+          Password Anda saat ini adalah password sementara. Silakan pilih password baru untuk
+          melanjutkan.
         </div>
       )}
 
@@ -100,11 +97,11 @@ export function ChangePasswordForm(): JSX.Element {
           autoComplete="current-password"
           autoFocus
           aria-invalid={Boolean(form.formState.errors.currentPassword) || undefined}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2"
           {...form.register('currentPassword')}
         />
         {form.formState.errors.currentPassword && (
-          <p role="alert" className="text-xs text-destructive">
+          <p role="alert" className="text-destructive text-xs">
             {form.formState.errors.currentPassword.message}
           </p>
         )}
@@ -120,15 +117,15 @@ export function ChangePasswordForm(): JSX.Element {
           autoComplete="new-password"
           minLength={8}
           aria-invalid={Boolean(form.formState.errors.newPassword) || undefined}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2"
           {...form.register('newPassword')}
         />
         {form.formState.errors.newPassword && (
-          <p role="alert" className="text-xs text-destructive">
+          <p role="alert" className="text-destructive text-xs">
             {form.formState.errors.newPassword.message}
           </p>
         )}
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           Minimal 8 karakter. Gunakan kombinasi huruf besar, kecil, angka, dan simbol.
         </p>
       </div>
@@ -143,11 +140,11 @@ export function ChangePasswordForm(): JSX.Element {
           autoComplete="new-password"
           minLength={8}
           aria-invalid={Boolean(form.formState.errors.passwordConfirm) || undefined}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2"
           {...form.register('passwordConfirm')}
         />
         {form.formState.errors.passwordConfirm && (
-          <p role="alert" className="text-xs text-destructive">
+          <p role="alert" className="text-destructive text-xs">
             {form.formState.errors.passwordConfirm.message}
           </p>
         )}
@@ -156,7 +153,7 @@ export function ChangePasswordForm(): JSX.Element {
       {submitError && (
         <p
           role="alert"
-          className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
         >
           {submitError}
         </p>
@@ -165,13 +162,13 @@ export function ChangePasswordForm(): JSX.Element {
       <button
         type="submit"
         disabled={form.formState.isSubmitting}
-        className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:opacity-90 disabled:opacity-50"
+        className="bg-primary text-primary-foreground w-full rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90 disabled:opacity-50"
       >
         {form.formState.isSubmitting ? 'Menyimpan...' : 'Simpan password baru'}
       </button>
 
       {!isForced && (
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-center text-xs">
           <Link href="/settings/notifications" className="underline underline-offset-4">
             Batal
           </Link>

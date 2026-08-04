@@ -1,9 +1,6 @@
 import PDFDocument from 'pdfkit';
 
-import type {
-  OvertimeReportRow,
-  OvertimeReportTotals,
-} from '../domain/overtime-report';
+import type { OvertimeReportRow, OvertimeReportTotals } from '../domain/overtime-report';
 
 import type { RendererStream } from './render-context';
 
@@ -74,9 +71,7 @@ function drawTitle(doc: PDFKit.PDFDocument, s: RendererStream): void {
   doc.font('Helvetica-Bold').fontSize(14).text(`${s.header.title} — ${s.header.companyName}`);
   doc.font('Helvetica').fontSize(9).fillColor('#555');
   doc.text(s.header.subtitle);
-  doc.text(
-    `Dicetak: ${s.header.generatedAt.toISOString()} · Oleh: ${s.header.generatedByEmail}`,
-  );
+  doc.text(`Dicetak: ${s.header.generatedAt.toISOString()} · Oleh: ${s.header.generatedByEmail}`);
   doc.fillColor('#000').moveDown(0.5);
 }
 

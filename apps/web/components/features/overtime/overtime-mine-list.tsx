@@ -50,13 +50,9 @@ export function OvertimeMineList(): JSX.Element {
     },
   });
 
-  if (list.isLoading) return <p className="text-sm text-muted-foreground">Memuat…</p>;
+  if (list.isLoading) return <p className="text-muted-foreground text-sm">Memuat…</p>;
   if (list.error) {
-    return (
-      <p className="text-sm text-destructive">
-        Gagal memuat pengajuan lembur.
-      </p>
-    );
+    return <p className="text-destructive text-sm">Gagal memuat pengajuan lembur.</p>;
   }
   const rows = list.data ?? [];
 
@@ -70,7 +66,7 @@ export function OvertimeMineList(): JSX.Element {
           id="ot-year"
           value={year}
           onChange={(e) => setYear(Number(e.target.value))}
-          className="rounded-md border border-input bg-background px-2 py-1"
+          className="border-input bg-background rounded-md border px-2 py-1"
         >
           {[year + 1, year, year - 1, year - 2].map((y) => (
             <option key={y} value={y}>
@@ -81,13 +77,15 @@ export function OvertimeMineList(): JSX.Element {
       </div>
 
       {cancelError && (
-        <p role="alert" className="text-xs text-destructive">
+        <p role="alert" className="text-destructive text-xs">
           {cancelError}
         </p>
       )}
 
       {rows.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Belum ada pengajuan lembur untuk tahun {year}.</p>
+        <p className="text-muted-foreground text-sm">
+          Belum ada pengajuan lembur untuk tahun {year}.
+        </p>
       ) : (
         <ul className="space-y-2">
           {rows.map((r) => (
@@ -118,19 +116,19 @@ function Row({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="font-medium">
           {r.workDate} · {r.hours} jam
-          <span className="ml-2 text-xs text-muted-foreground">({r.dayKind})</span>
+          <span className="text-muted-foreground ml-2 text-xs">({r.dayKind})</span>
         </div>
         <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_BADGE[r.status]}`}>
           {STATUS_LABEL[r.status]}
         </span>
       </div>
-      <p className="mt-1 text-muted-foreground">Alasan: {r.reason}</p>
-      <p className="mt-1 text-xs text-muted-foreground">
+      <p className="text-muted-foreground mt-1">Alasan: {r.reason}</p>
+      <p className="text-muted-foreground mt-1 text-xs">
         Tarif: {currency.format(r.ratePerHour)} / jam (×{r.rateMultiplier}) · Total{' '}
-        <span className="font-medium text-foreground">{currency.format(r.totalAmount)}</span>
+        <span className="text-foreground font-medium">{currency.format(r.totalAmount)}</span>
       </p>
       {r.decisionNote && (
-        <p className="mt-1 text-xs italic text-muted-foreground">
+        <p className="text-muted-foreground mt-1 text-xs italic">
           Catatan approver: {r.decisionNote}
         </p>
       )}
@@ -139,7 +137,7 @@ function Row({
           type="button"
           onClick={onCancel}
           disabled={cancelPending}
-          className="mt-2 text-xs text-destructive underline-offset-2 hover:underline disabled:opacity-50"
+          className="text-destructive mt-2 text-xs underline-offset-2 hover:underline disabled:opacity-50"
         >
           Batalkan
         </button>

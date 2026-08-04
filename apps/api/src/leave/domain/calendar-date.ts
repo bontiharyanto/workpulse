@@ -21,11 +21,7 @@ export function assertCalendarDate(value: string): asserts value is CalendarDate
   }
   // Guard against 2024-02-31 etc. by roundtripping through Date.UTC.
   const utc = new Date(Date.UTC(y, m - 1, d));
-  if (
-    utc.getUTCFullYear() !== y ||
-    utc.getUTCMonth() !== m - 1 ||
-    utc.getUTCDate() !== d
-  ) {
+  if (utc.getUTCFullYear() !== y || utc.getUTCMonth() !== m - 1 || utc.getUTCDate() !== d) {
     throw new RangeError(`Not a valid calendar date: ${value}`);
   }
 }

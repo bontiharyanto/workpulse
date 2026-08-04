@@ -1,14 +1,5 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
-import {
-  Prisma,
-  TimesheetConfig,
-  TimesheetPeriodType,
-  WeekStartDay,
-} from '@prisma/client';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { Prisma, TimesheetConfig, TimesheetPeriodType, WeekStartDay } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -93,21 +84,15 @@ export class TimesheetConfigService {
               ? null
               : new Date(input.biweeklyAnchor + 'T00:00:00Z'),
         cutoffDayOfMonth:
-          input.cutoffDayOfMonth === undefined
-            ? current.cutoffDayOfMonth
-            : input.cutoffDayOfMonth,
+          input.cutoffDayOfMonth === undefined ? current.cutoffDayOfMonth : input.cutoffDayOfMonth,
         timezone: input.timezone ?? current.timezone,
-        autoGenerateEnabled:
-          input.autoGenerateEnabled ?? current.autoGenerateEnabled,
+        autoGenerateEnabled: input.autoGenerateEnabled ?? current.autoGenerateEnabled,
         reminderEnabled: input.reminderEnabled ?? current.reminderEnabled,
-        submitReminderStartDays:
-          input.submitReminderStartDays ?? current.submitReminderStartDays,
-        submitReminderMaxDays:
-          input.submitReminderMaxDays ?? current.submitReminderMaxDays,
+        submitReminderStartDays: input.submitReminderStartDays ?? current.submitReminderStartDays,
+        submitReminderMaxDays: input.submitReminderMaxDays ?? current.submitReminderMaxDays,
         approvalReminderStartDays:
           input.approvalReminderStartDays ?? current.approvalReminderStartDays,
-        approvalReminderMaxDays:
-          input.approvalReminderMaxDays ?? current.approvalReminderMaxDays,
+        approvalReminderMaxDays: input.approvalReminderMaxDays ?? current.approvalReminderMaxDays,
       };
 
       this.validateCrossFields(merged);
@@ -164,9 +149,7 @@ export class TimesheetConfigService {
       const v = input.cutoffDayOfMonth;
       const { min, max } = TIMESHEET_CONFIG_BOUNDS.cutoffDayOfMonth;
       if (!Number.isInteger(v) || v < min || v > max) {
-        errors.push(
-          `cutoffDayOfMonth must be an integer in [${min}, ${max}] (got ${String(v)})`,
-        );
+        errors.push(`cutoffDayOfMonth must be an integer in [${min}, ${max}] (got ${String(v)})`);
       }
     }
 
@@ -234,36 +217,24 @@ export class TimesheetConfigService {
   private validateCrossFields(merged: TimesheetConfig): void {
     const errors: string[] = [];
 
-    if (
-      merged.periodType === TimesheetPeriodType.CUTOFF &&
-      merged.cutoffDayOfMonth === null
-    ) {
-      errors.push(
-        'periodType=CUTOFF requires cutoffDayOfMonth to be set (1..28).',
-      );
+    if (merged.periodType === TimesheetPeriodType.CUTOFF && merged.cutoffDayOfMonth === null) {
+      errors.push('periodType=CUTOFF requires cutoffDayOfMonth to be set (1..28).');
     }
 
     // BIWEEKLY without an anchor still works (the calculator falls back
     // to a deterministic anchor), so we don't force it — but we do warn
     // via the log so HR knows to set one for stable period boundaries.
-    if (
-      merged.periodType === TimesheetPeriodType.BIWEEKLY &&
-      !merged.biweeklyAnchor
-    ) {
+    if (merged.periodType === TimesheetPeriodType.BIWEEKLY && !merged.biweeklyAnchor) {
       this.logger.warn(
         `Company ${merged.companyId} set BIWEEKLY without biweeklyAnchor; using calculator fallback.`,
       );
     }
 
     if (merged.submitReminderMaxDays < merged.submitReminderStartDays) {
-      errors.push(
-        'submitReminderMaxDays must be >= submitReminderStartDays.',
-      );
+      errors.push('submitReminderMaxDays must be >= submitReminderStartDays.');
     }
     if (merged.approvalReminderMaxDays < merged.approvalReminderStartDays) {
-      errors.push(
-        'approvalReminderMaxDays must be >= approvalReminderStartDays.',
-      );
+      errors.push('approvalReminderMaxDays must be >= approvalReminderStartDays.');
     }
 
     if (errors.length > 0) {

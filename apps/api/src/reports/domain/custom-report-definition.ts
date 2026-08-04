@@ -11,11 +11,7 @@
  * list) and the BE executor in lockstep.
  */
 
-export const CUSTOM_REPORT_DIMENSIONS = [
-  'DAY',
-  'DEPARTMENT',
-  'USER',
-] as const;
+export const CUSTOM_REPORT_DIMENSIONS = ['DAY', 'DEPARTMENT', 'USER'] as const;
 export type CustomReportDimension = (typeof CUSTOM_REPORT_DIMENSIONS)[number];
 
 export const CUSTOM_REPORT_METRICS = [
@@ -96,9 +92,7 @@ export function validateDefinition(raw: unknown): CustomReportDefinition {
   }
   const departmentId = filterObj.departmentId;
   if (departmentId !== undefined && typeof departmentId !== 'string') {
-    throw new InvalidReportDefinitionError(
-      'filter.departmentId must be a string when provided',
-    );
+    throw new InvalidReportDefinitionError('filter.departmentId must be a string when provided');
   }
 
   return {

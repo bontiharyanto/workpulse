@@ -27,30 +27,13 @@ import { BreachStatus } from '@prisma/client';
  */
 
 export type BreachTransition =
-  | 'MARK_CONTAINED'
-  | 'MARK_AUTHORITY_NOTIFIED'
-  | 'MARK_SUBJECTS_NOTIFIED'
-  | 'CLOSE';
+  'MARK_CONTAINED' | 'MARK_AUTHORITY_NOTIFIED' | 'MARK_SUBJECTS_NOTIFIED' | 'CLOSE';
 
-const LEGAL: ReadonlyArray<
-  readonly [BreachStatus, BreachTransition, BreachStatus]
-> = [
+const LEGAL: ReadonlyArray<readonly [BreachStatus, BreachTransition, BreachStatus]> = [
   [BreachStatus.DETECTED, 'MARK_CONTAINED', BreachStatus.CONTAINED],
-  [
-    BreachStatus.DETECTED,
-    'MARK_AUTHORITY_NOTIFIED',
-    BreachStatus.NOTIFIED_AUTHORITY,
-  ],
-  [
-    BreachStatus.CONTAINED,
-    'MARK_AUTHORITY_NOTIFIED',
-    BreachStatus.NOTIFIED_AUTHORITY,
-  ],
-  [
-    BreachStatus.NOTIFIED_AUTHORITY,
-    'MARK_SUBJECTS_NOTIFIED',
-    BreachStatus.NOTIFIED_SUBJECTS,
-  ],
+  [BreachStatus.DETECTED, 'MARK_AUTHORITY_NOTIFIED', BreachStatus.NOTIFIED_AUTHORITY],
+  [BreachStatus.CONTAINED, 'MARK_AUTHORITY_NOTIFIED', BreachStatus.NOTIFIED_AUTHORITY],
+  [BreachStatus.NOTIFIED_AUTHORITY, 'MARK_SUBJECTS_NOTIFIED', BreachStatus.NOTIFIED_SUBJECTS],
   [BreachStatus.NOTIFIED_SUBJECTS, 'CLOSE', BreachStatus.CLOSED],
   // Escape hatch for verified low-risk incidents where no notification
   // is legally required. Service layer double-checks severity.
@@ -71,10 +54,7 @@ export class IllegalBreachTransitionError extends Error {
  * `IllegalBreachTransitionError` when the source/action combination is
  * not in the legal table above.
  */
-export function transition(
-  from: BreachStatus,
-  action: BreachTransition,
-): BreachStatus {
+export function transition(from: BreachStatus, action: BreachTransition): BreachStatus {
   for (const [f, a, to] of LEGAL) {
     if (f === from && a === action) return to;
   }
@@ -96,7 +76,5 @@ export function isTerminal(status: BreachStatus): boolean {
  * regulator deadline is met and the countdown stops.
  */
 export function isDeadlineActive(status: BreachStatus): boolean {
-  return (
-    status === BreachStatus.DETECTED || status === BreachStatus.CONTAINED
-  );
+  return status === BreachStatus.DETECTED || status === BreachStatus.CONTAINED;
 }

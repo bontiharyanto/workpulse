@@ -19,13 +19,11 @@ export default function AdminTimesheetExportsPage(): JSX.Element {
       <RequireRole roles={['HR_MANAGER', 'SUPER_ADMIN']}>
         <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Export Timesheet ke Payroll
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Unduh CSV / XLSX yang berisi rollup atau detail harian dari
-              timesheet berstatus <span className="font-medium">APPROVED</span>.
-              Setiap ekspor tercatat pada audit trail dengan SHA-256 payload.
+            <h1 className="text-2xl font-semibold tracking-tight">Export Timesheet ke Payroll</h1>
+            <p className="text-muted-foreground text-sm">
+              Unduh CSV / XLSX yang berisi rollup atau detail harian dari timesheet berstatus{' '}
+              <span className="font-medium">APPROVED</span>. Setiap ekspor tercatat pada audit trail
+              dengan SHA-256 payload.
             </p>
           </div>
           <TimesheetExportsPanel />

@@ -54,8 +54,7 @@ export class SessionListResponseDto {
 
 export class SessionRevokeOthersResponseDto {
   @ApiProperty({
-    description:
-      'Number of sessions that were transitioned from ACTIVE → REVOKED by this call.',
+    description: 'Number of sessions that were transitioned from ACTIVE → REVOKED by this call.',
   })
   revokedCount!: number;
 }

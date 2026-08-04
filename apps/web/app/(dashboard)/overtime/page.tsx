@@ -9,14 +9,14 @@ export default function OvertimePage(): JSX.Element {
       <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Manajemen Lembur</h1>
-          <p className="text-sm text-muted-foreground">
-            Ajukan pekerjaan lembur, pantau status persetujuan, dan lihat estimasi
-            pembayaran berdasarkan kebijakan perusahaan.
+          <p className="text-muted-foreground text-sm">
+            Ajukan pekerjaan lembur, pantau status persetujuan, dan lihat estimasi pembayaran
+            berdasarkan kebijakan perusahaan.
           </p>
         </div>
         <Link
           href="/overtime/approvals"
-          className="text-sm text-primary underline-offset-2 hover:underline"
+          className="text-primary text-sm underline-offset-2 hover:underline"
         >
           Approval Lembur →
         </Link>
@@ -24,7 +24,7 @@ export default function OvertimePage(): JSX.Element {
 
       <section className="grid gap-6 md:grid-cols-2">
         <div className="space-y-3">
-          <h2 className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
+          <h2 className="text-muted-foreground text-sm font-medium uppercase tracking-widest">
             Pengajuan Saya
           </h2>
           <OvertimeMineList />

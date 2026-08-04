@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import type { Prisma, RetentionPolicy } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
@@ -91,8 +87,7 @@ export class RetentionService {
           entityId: updated.id,
           afterJson: {
             notificationRetentionDays: updated.notificationRetentionDays,
-            dataExportArchiveRetentionHours:
-              updated.dataExportArchiveRetentionHours,
+            dataExportArchiveRetentionHours: updated.dataExportArchiveRetentionHours,
             terminatedUserAnonymizeDays: updated.terminatedUserAnonymizeDays,
           } as Prisma.InputJsonValue,
         },
@@ -148,9 +143,7 @@ export class RetentionService {
    * that the retention worker iterates. We deliberately DON'T list
    * every tenant — a company with zero users has nothing to retain.
    */
-  async listCompaniesForSweep(): Promise<
-    Array<{ companyId: string; policy: RetentionPolicy }>
-  > {
+  async listCompaniesForSweep(): Promise<Array<{ companyId: string; policy: RetentionPolicy }>> {
     // Companies with users OR notifications OR TERMINATED users
     // qualify as sweep targets. In practice `deletedAt IS NULL` on
     // Company is the usable filter — a soft-deleted tenant has no
@@ -179,9 +172,7 @@ export class RetentionService {
       return;
     }
     if (value < range.min || value > range.max) {
-      errors.push(
-        `${field} must be between ${range.min} and ${range.max} (got ${value})`,
-      );
+      errors.push(`${field} must be between ${range.min} and ${range.max} (got ${value})`);
     }
   }
 }

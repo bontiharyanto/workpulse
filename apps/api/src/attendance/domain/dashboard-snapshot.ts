@@ -19,11 +19,7 @@
  * need a second traversal.
  */
 
-export type DashboardStatus =
-  | 'CLOCKED_IN'
-  | 'ABSENT'
-  | 'ON_LEAVE'
-  | 'NOT_CLOCKED_IN';
+export type DashboardStatus = 'CLOCKED_IN' | 'ABSENT' | 'ON_LEAVE' | 'NOT_CLOCKED_IN';
 
 export interface RosterRow {
   userId: string;
@@ -73,12 +69,8 @@ export function buildCompanySnapshot(
   const clockedInIds = new Set(attendance.map((r) => r.userId));
   const absentIds = new Set(absences.map((r) => r.userId));
   const onLeaveIds = new Set(onLeaveUserIds);
-  const lateIds = new Set(
-    attendance.filter((r) => r.lateMinutes > 0).map((r) => r.userId),
-  );
-  const earlyIds = new Set(
-    attendance.filter((r) => r.earlyLeaveMinutes > 0).map((r) => r.userId),
-  );
+  const lateIds = new Set(attendance.filter((r) => r.lateMinutes > 0).map((r) => r.userId));
+  const earlyIds = new Set(attendance.filter((r) => r.earlyLeaveMinutes > 0).map((r) => r.userId));
 
   // Accumulator per department (key = departmentId ?? null-sentinel string)
   const NULL_KEY = '__null__';

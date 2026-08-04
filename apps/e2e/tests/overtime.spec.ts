@@ -46,9 +46,9 @@ test('overtime: employee submits → supervisor approves', async ({ browser }) =
 
   await employeePage.getByRole('button', { name: 'Ajukan', exact: true }).click();
 
-  await expect(
-    employeePage.getByText(`Release deadline — ${runId}`, { exact: false }),
-  ).toBeVisible({ timeout: 10_000 });
+  await expect(employeePage.getByText(`Release deadline — ${runId}`, { exact: false })).toBeVisible(
+    { timeout: 10_000 },
+  );
 
   // ---- Step 2: Supervisor approves ---------------------------------------
   const supervisorCtx = await browser.newContext();

@@ -22,11 +22,7 @@ export interface SharePayload {
 
 /** RFC 4648 §5 base64url encoding, no padding. */
 function b64url(buf: Buffer): string {
-  return buf
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
+  return buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
 function b64urlDecode(s: string): Buffer {
@@ -40,20 +36,13 @@ function canonical(payload: SharePayload): string {
 }
 
 export function sign(secret: string, payload: SharePayload): string {
-  const mac = createHmac('sha256', secret)
-    .update(canonical(payload))
-    .digest();
+  const mac = createHmac('sha256', secret).update(canonical(payload)).digest();
   return b64url(mac);
 }
 
-export type VerifyFailure =
-  | 'INVALID_SIGNATURE'
-  | 'MALFORMED_SIGNATURE'
-  | 'EXPIRED';
+export type VerifyFailure = 'INVALID_SIGNATURE' | 'MALFORMED_SIGNATURE' | 'EXPIRED';
 
-export type VerifyResult =
-  | { ok: true }
-  | { ok: false; reason: VerifyFailure };
+export type VerifyResult = { ok: true } | { ok: false; reason: VerifyFailure };
 
 /**
  * Constant-time verifier. Callers should short-circuit on the first
@@ -67,9 +56,7 @@ export function verify(
   presentedSignature: string,
   now: number = Date.now(),
 ): VerifyResult {
-  const expected = createHmac('sha256', secret)
-    .update(canonical(payload))
-    .digest();
+  const expected = createHmac('sha256', secret).update(canonical(payload)).digest();
 
   let presented: Buffer;
   try {

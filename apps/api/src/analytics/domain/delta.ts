@@ -26,14 +26,9 @@ export interface Delta {
 
 const EPSILON = 1e-9;
 
-export function computeDelta(
-  current: number,
-  previous: number,
-  direction: MetricDirection,
-): Delta {
+export function computeDelta(current: number, previous: number, direction: MetricDirection): Delta {
   const absolute = current - previous;
-  const pct =
-    Math.abs(previous) < EPSILON ? null : (current - previous) / previous;
+  const pct = Math.abs(previous) < EPSILON ? null : (current - previous) / previous;
 
   let trend: Delta['trend'];
   if (Math.abs(absolute) < EPSILON) {

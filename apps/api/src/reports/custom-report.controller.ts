@@ -36,10 +36,7 @@ import {
   metricDescriptor,
   validateDefinition,
 } from './domain/custom-report-definition';
-import {
-  ReportBuilderService,
-  customReportCatalogue,
-} from './report-builder.service';
+import { ReportBuilderService, customReportCatalogue } from './report-builder.service';
 import { SavedReportService } from './saved-report.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -88,9 +85,7 @@ export class CustomReportController {
   }
 
   @Get('saved')
-  async list(
-    @CurrentUser() actor: AuthenticatedUser,
-  ): Promise<SavedReportResponseDto[]> {
+  async list(@CurrentUser() actor: AuthenticatedUser): Promise<SavedReportResponseDto[]> {
     const rows = await this.saved.list(actor);
     return rows.map(toDto);
   }
@@ -126,10 +121,7 @@ export class CustomReportController {
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Delete('saved/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(
-    @CurrentUser() actor: AuthenticatedUser,
-    @Param('id') id: string,
-  ): Promise<void> {
+  async remove(@CurrentUser() actor: AuthenticatedUser, @Param('id') id: string): Promise<void> {
     await this.saved.remove(actor, id);
   }
 
@@ -142,8 +134,12 @@ export class CustomReportController {
     @Res() res: Response,
     @Query('windowDaysOverride') windowDaysOverride?: string,
   ): Promise<void> {
-    const { def, bytes, filename, contentType, sha256 } =
-      await this.buildForExport(actor, id, 'csv', windowDaysOverride);
+    const { def, bytes, filename, contentType, sha256 } = await this.buildForExport(
+      actor,
+      id,
+      'csv',
+      windowDaysOverride,
+    );
     await this.auditExport(actor, id, def, bytes, sha256, 'csv');
     this.stream(res, bytes, filename, contentType, sha256);
   }
@@ -157,8 +153,12 @@ export class CustomReportController {
     @Res() res: Response,
     @Query('windowDaysOverride') windowDaysOverride?: string,
   ): Promise<void> {
-    const { def, bytes, filename, contentType, sha256 } =
-      await this.buildForExport(actor, id, 'xlsx', windowDaysOverride);
+    const { def, bytes, filename, contentType, sha256 } = await this.buildForExport(
+      actor,
+      id,
+      'xlsx',
+      windowDaysOverride,
+    );
     await this.auditExport(actor, id, def, bytes, sha256, 'xlsx');
     this.stream(res, bytes, filename, contentType, sha256);
   }
@@ -238,10 +238,7 @@ export class CustomReportController {
   ): void {
     res
       .header('Content-Type', contentType)
-      .header(
-        'Content-Disposition',
-        `attachment; filename="${filename}"`,
-      )
+      .header('Content-Disposition', `attachment; filename="${filename}"`)
       .header('X-Payload-Sha256', sha256)
       .header('Content-Length', String(bytes.byteLength))
       .status(200)
@@ -283,15 +280,15 @@ function renderCsv(
   // UTF-8 BOM + CRLF line endings for Excel compatibility.
   const lines: string[] = [];
   lines.push(`# ${title}`);
-  lines.push(`# dimension=${def.dimension} metric=${def.metric} windowDays=${def.filter.windowDays}`);
+  lines.push(
+    `# dimension=${def.dimension} metric=${def.metric} windowDays=${def.filter.windowDays}`,
+  );
   lines.push(header.map(csvField).join(','));
   for (const r of rows) {
     lines.push(
-      [
-        csvField(r.key),
-        csvField(r.label ?? ''),
-        csvField(r.value.toFixed(md.fractionDigits)),
-      ].join(','),
+      [csvField(r.key), csvField(r.label ?? ''), csvField(r.value.toFixed(md.fractionDigits))].join(
+        ',',
+      ),
     );
   }
   return '\uFEFF' + lines.join('\r\n') + '\r\n';
@@ -318,7 +315,8 @@ async function renderXlsx(
   ws.getCell('A1').value = title;
   ws.getCell('A1').font = { bold: true, size: 14 };
   ws.mergeCells('A2:C2');
-  ws.getCell('A2').value = `dimension=${def.dimension} · metric=${def.metric} · windowDays=${def.filter.windowDays}`;
+  ws.getCell('A2').value =
+    `dimension=${def.dimension} · metric=${def.metric} · windowDays=${def.filter.windowDays}`;
   ws.getCell('A2').font = { italic: true, color: { argb: 'FF555555' } };
 
   ws.getRow(4).values = ['Key', 'Label', md.label];

@@ -48,25 +48,17 @@ async function loginViaUi(
   // A pending policy forces `/consent`; the default landing is
   // `/attendance`. Accept either as "logged in".
   await page.waitForURL(
-    (url) =>
-      !url.pathname.startsWith('/login') &&
-      !url.pathname.startsWith('/change-password'),
+    (url) => !url.pathname.startsWith('/login') && !url.pathname.startsWith('/change-password'),
   );
 }
 
 test.beforeAll(async () => {
-  for (const u of [
-    SEED_USERS.employee.email,
-    SEED_USERS.hr.email,
-    SEED_USERS.admin.email,
-  ]) {
+  for (const u of [SEED_USERS.employee.email, SEED_USERS.hr.email, SEED_USERS.admin.email]) {
     await pruneConsent(u);
   }
 });
 
-test('HR edits the tenant retention policy through /admin/privacy/retention', async ({
-  page,
-}) => {
+test('HR edits the tenant retention policy through /admin/privacy/retention', async ({ page }) => {
   await pruneConsent(SEED_USERS.hr.email);
   await loginViaUi(page, SEED_USERS.hr.email, SEED_USERS.hr.password);
   await page.goto('/admin/privacy/retention');
@@ -103,18 +95,16 @@ test('HR publishes a new privacy policy version through /admin/privacy/policies'
   await page.getByLabel(/label versi/i).fill(version);
   await page.getByLabel(/^judul$/i).fill('Kebijakan UI');
   await page.getByLabel(/isi kebijakan/i).fill('Isi kebijakan untuk UI test.');
-  await page
-    .getByRole('button', { name: /^terbitkan$/i })
-    .click();
+  await page.getByRole('button', { name: /^terbitkan$/i }).click();
 
   // Form modal closes on success; the panel's list-refetch will then
   // fail with `CONSENT_REQUIRED` because HR themselves now need to
   // accept the version they just published (that's the intended
   // security invariant). Verify the row landed in the DB instead of
   // asserting on a stale UI list.
-  await expect(
-    page.getByRole('button', { name: /terbitkan versi baru/i }),
-  ).toBeVisible({ timeout: 5_000 });
+  await expect(page.getByRole('button', { name: /terbitkan versi baru/i })).toBeVisible({
+    timeout: 5_000,
+  });
 
   const { request } = await import('@playwright/test');
   const apiCtx = await request.newContext({ baseURL: API_URL });
@@ -153,9 +143,7 @@ test('HR publishes a new privacy policy version through /admin/privacy/policies'
   await pruneConsent(SEED_USERS.hr.email);
 });
 
-test('employee is force-routed to /consent when a new policy is pending', async ({
-  page,
-}) => {
+test('employee is force-routed to /consent when a new policy is pending', async ({ page }) => {
   const version = `ui-emp-${Date.now()}`;
 
   // Publish a policy via the HR API so the employee's next login
@@ -173,11 +161,7 @@ test('employee is force-routed to /consent when a new policy is pending', async 
   });
   await apiCtx.dispose();
 
-  await loginViaUi(
-    page,
-    SEED_USERS.employee.email,
-    SEED_USERS.employee.password,
-  );
+  await loginViaUi(page, SEED_USERS.employee.email, SEED_USERS.employee.password);
   await expect(page).toHaveURL(/\/consent$/, { timeout: 5_000 });
   await expect(page.getByText(/kebijakan wajib/i)).toBeVisible();
 
@@ -192,17 +176,13 @@ test('employee is force-routed to /consent when a new policy is pending', async 
   // details summary, so a loose `getByText` would match twice and
   // Playwright's strict mode would reject.
   await page.goto('/settings/privacy');
-  await expect(
-    page.getByText(`v${version}`, { exact: true }).first(),
-  ).toBeVisible({ timeout: 5_000 });
+  await expect(page.getByText(`v${version}`, { exact: true }).first()).toBeVisible({
+    timeout: 5_000,
+  });
 });
 
 test.afterAll(async () => {
-  for (const u of [
-    SEED_USERS.employee.email,
-    SEED_USERS.hr.email,
-    SEED_USERS.admin.email,
-  ]) {
+  for (const u of [SEED_USERS.employee.email, SEED_USERS.hr.email, SEED_USERS.admin.email]) {
     await pruneConsent(u);
   }
 });

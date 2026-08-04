@@ -1,10 +1,6 @@
 import { AnalyticsMetricKey } from '@prisma/client';
 
-import {
-  isAnalyticsMetricKey,
-  METRIC_DESCRIPTORS,
-  METRIC_KEYS,
-} from './metric-keys';
+import { isAnalyticsMetricKey, METRIC_DESCRIPTORS, METRIC_KEYS } from './metric-keys';
 
 describe('analytics/domain/metric-keys — Fase 33a catalogue', () => {
   it('has a descriptor for every Prisma enum value', () => {

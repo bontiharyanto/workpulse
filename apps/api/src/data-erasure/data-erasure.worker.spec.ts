@@ -109,18 +109,14 @@ describe('DataErasureWorker', () => {
     prisma.dataErasureRequest.update.mockResolvedValue(
       makeRow({ status: DataErasureStatus.EXECUTED }),
     );
-    prisma.user.findMany.mockResolvedValue([
-      { id: 'hr-1', email: 'hr@example.com' },
-    ] as never);
+    prisma.user.findMany.mockResolvedValue([{ id: 'hr-1', email: 'hr@example.com' }] as never);
     service.deleteExportedArchives.mockResolvedValue();
     notifications.createOne.mockResolvedValue();
 
     await worker.tick();
 
     expect(anonymizeUser).toHaveBeenCalledTimes(1);
-    expect(service.deleteExportedArchives).toHaveBeenCalledWith([
-      'data-exports/x.zip',
-    ]);
+    expect(service.deleteExportedArchives).toHaveBeenCalledWith(['data-exports/x.zip']);
     expect(prisma.auditLog.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -140,11 +136,14 @@ describe('DataErasureWorker', () => {
     prisma.$transaction
       .mockImplementationOnce(async (cb: unknown) => {
         if (typeof cb === 'function') {
-          (prisma as unknown as { $queryRawUnsafe: jest.Mock }).$queryRawUnsafe =
-            jest.fn(async () => [{ id: 'era-1' }]);
-          (prisma as unknown as {
-            dataErasureRequest: { findUnique: jest.Mock };
-          }).dataErasureRequest.findUnique = jest.fn(async () => makeRow());
+          (prisma as unknown as { $queryRawUnsafe: jest.Mock }).$queryRawUnsafe = jest.fn(
+            async () => [{ id: 'era-1' }],
+          );
+          (
+            prisma as unknown as {
+              dataErasureRequest: { findUnique: jest.Mock };
+            }
+          ).dataErasureRequest.findUnique = jest.fn(async () => makeRow());
           return (cb as (tx: unknown) => unknown)(prisma);
         }
         throw new Error('bad tx shape');
@@ -188,8 +187,9 @@ describe('DataErasureWorker', () => {
     const { worker, prisma } = buildKit();
     prisma.$transaction.mockImplementation(async (cb: unknown) => {
       if (typeof cb === 'function') {
-        (prisma as unknown as { $queryRawUnsafe: jest.Mock }).$queryRawUnsafe =
-          jest.fn(async () => []);
+        (prisma as unknown as { $queryRawUnsafe: jest.Mock }).$queryRawUnsafe = jest.fn(
+          async () => [],
+        );
         return (cb as (tx: unknown) => unknown)(prisma);
       }
       throw new Error('bad tx shape');

@@ -13,7 +13,10 @@ describe('evaluateClockIn', () => {
   it('marks ON_TIME when clocking in exactly at shift start', () => {
     // 09:00 Jakarta = 02:00 UTC
     const clockIn = new Date(Date.UTC(2026, 5, 15, 2, 0, 0));
-    expect(evaluateClockIn(clockIn, workDate, shift)).toEqual({ status: 'ON_TIME', lateMinutes: 0 });
+    expect(evaluateClockIn(clockIn, workDate, shift)).toEqual({
+      status: 'ON_TIME',
+      lateMinutes: 0,
+    });
   });
 
   it('marks ON_TIME within grace window', () => {

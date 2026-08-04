@@ -48,8 +48,8 @@ without sacrificing intraday freshness.
    The **metric descriptor catalogue**
    (`apps/api/src/analytics/domain/metric-keys.ts`) pins `label`,
    `description`, `formatKind` (`RATIO_PCT | COUNT | HOURS |
-   CURRENCY_IDR`), `direction` (`HIGHER_IS_BETTER | LOWER_IS_BETTER |
-   NEUTRAL`), and `fractionDigits`. The FE trusts the wire response's
+CURRENCY_IDR`), `direction` (`HIGHER_IS_BETTER | LOWER_IS_BETTER |
+NEUTRAL`), and `fractionDigits`. The FE trusts the wire response's
    `formatKind` — never derives it from the metric name — so a rebrand
    never becomes a rendering bug.
 
@@ -99,7 +99,7 @@ without sacrificing intraday freshness.
 
 - **PostgreSQL materialised view (`CREATE MATERIALIZED VIEW`).**
   Rejected because refreshing them is either coarse (`REFRESH
-  MATERIALIZED VIEW`) or requires trigger scaffolding per source
+MATERIALIZED VIEW`) or requires trigger scaffolding per source
   table, and neither shape composes cleanly with the tenant-timezone
   requirement (materialised views are UTC-bound; carving them by
   local calendar day would double the row count).

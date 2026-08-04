@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiConflictResponse,
@@ -47,8 +39,7 @@ export class DataErasureController {
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: DataErasureRequestDto })
   @ApiConflictResponse({
-    description:
-      '`ERASURE_ALREADY_PENDING` when an active request exists for the caller.',
+    description: '`ERASURE_ALREADY_PENDING` when an active request exists for the caller.',
   })
   @Throttle({ default: { limit: 10, ttl: 3_600_000 } })
   async create(
@@ -62,9 +53,7 @@ export class DataErasureController {
   @Get()
   @ApiBearerAuth()
   @ApiOkResponse({ type: DataErasureListResponseDto })
-  async list(
-    @CurrentUser() user: AuthenticatedUser,
-  ): Promise<DataErasureListResponseDto> {
+  async list(@CurrentUser() user: AuthenticatedUser): Promise<DataErasureListResponseDto> {
     const rows = await this.service.list(user.id);
     return { requests: rows.map(toDto) };
   }

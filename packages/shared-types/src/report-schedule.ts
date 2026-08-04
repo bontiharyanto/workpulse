@@ -18,12 +18,7 @@ export type ScheduledReportType = z.infer<typeof scheduledReportTypeSchema>;
 export const reportFrequencySchema = z.enum(['DAILY', 'WEEKLY', 'MONTHLY']);
 export type ReportFrequency = z.infer<typeof reportFrequencySchema>;
 
-export const reportDeliveryStatusSchema = z.enum([
-  'PENDING',
-  'DISPATCHING',
-  'DELIVERED',
-  'FAILED',
-]);
+export const reportDeliveryStatusSchema = z.enum(['PENDING', 'DISPATCHING', 'DELIVERED', 'FAILED']);
 export type ReportDeliveryStatus = z.infer<typeof reportDeliveryStatusSchema>;
 
 // -----------------------------------------------------------------------------
@@ -33,21 +28,16 @@ export type ReportDeliveryStatus = z.infer<typeof reportDeliveryStatusSchema>;
 export const createReportScheduleInputSchema = z
   .object({
     name: z.string().trim().min(3).max(120),
-    reportType: z.enum([
-      'TIMESHEET_SUMMARY',
-      'ROPA',
-      'DPIA',
-      'ANALYTICS_SNAPSHOT',
-    ]),
+    reportType: z.enum(['TIMESHEET_SUMMARY', 'ROPA', 'DPIA', 'ANALYTICS_SNAPSHOT']),
     frequency: reportFrequencySchema,
     cadenceDay: z.number().int().min(0).max(28).optional(),
     cadenceHour: z.number().int().min(0).max(23),
     recipients: z.array(z.string().email()).min(1).max(20),
   })
-  .refine(
-    (v) => v.frequency === 'DAILY' || v.cadenceDay !== undefined,
-    { message: 'WEEKLY/MONTHLY schedules require cadenceDay', path: ['cadenceDay'] },
-  )
+  .refine((v) => v.frequency === 'DAILY' || v.cadenceDay !== undefined, {
+    message: 'WEEKLY/MONTHLY schedules require cadenceDay',
+    path: ['cadenceDay'],
+  })
   .refine(
     (v) =>
       v.frequency !== 'MONTHLY' ||
@@ -60,9 +50,7 @@ export const createReportScheduleInputSchema = z
       (v.cadenceDay !== undefined && v.cadenceDay >= 0 && v.cadenceDay <= 6),
     { message: 'WEEKLY cadenceDay must be 0..6 (Sunday=0)', path: ['cadenceDay'] },
   );
-export type CreateReportScheduleInput = z.infer<
-  typeof createReportScheduleInputSchema
->;
+export type CreateReportScheduleInput = z.infer<typeof createReportScheduleInputSchema>;
 
 export const updateReportScheduleInputSchema = z.object({
   name: z.string().trim().min(3).max(120).optional(),
@@ -72,9 +60,7 @@ export const updateReportScheduleInputSchema = z.object({
   recipients: z.array(z.string().email()).max(20).optional(),
   active: z.boolean().optional(),
 });
-export type UpdateReportScheduleInput = z.infer<
-  typeof updateReportScheduleInputSchema
->;
+export type UpdateReportScheduleInput = z.infer<typeof updateReportScheduleInputSchema>;
 
 // -----------------------------------------------------------------------------
 // Responses
@@ -97,9 +83,7 @@ export const reportScheduleResponseSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
 });
-export type ReportScheduleResponse = z.infer<
-  typeof reportScheduleResponseSchema
->;
+export type ReportScheduleResponse = z.infer<typeof reportScheduleResponseSchema>;
 
 export const reportDeliveryResponseSchema = z.object({
   id: z.string(),
@@ -115,9 +99,7 @@ export const reportDeliveryResponseSchema = z.object({
   errorSnippet: z.string().nullable(),
   createdAt: z.string(),
 });
-export type ReportDeliveryResponse = z.infer<
-  typeof reportDeliveryResponseSchema
->;
+export type ReportDeliveryResponse = z.infer<typeof reportDeliveryResponseSchema>;
 
 export const reportRegistryEntrySchema = z.object({
   type: scheduledReportTypeSchema,

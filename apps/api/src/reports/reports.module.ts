@@ -24,13 +24,7 @@ import { SavedReportService } from './saved-report.service';
  * `EmailAdapter` DI token.
  */
 @Module({
-  imports: [
-    PrismaModule,
-    NotificationModule,
-    RopaModule,
-    DpiaModule,
-    AnalyticsModule,
-  ],
+  imports: [PrismaModule, NotificationModule, RopaModule, DpiaModule, AnalyticsModule],
   controllers: [ReportScheduleController, CustomReportController],
   providers: [
     ReportScheduleService,

@@ -7,17 +7,15 @@ export default function CorrectionApprovalsPage(): JSX.Element {
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Persetujuan Koreksi Absensi
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Daftar koreksi absensi yang menunggu keputusan Anda. Supervisor
-            melihat tim mereka; HR / SUPER_ADMIN melihat seluruh tenant.
+          <h1 className="text-2xl font-semibold tracking-tight">Persetujuan Koreksi Absensi</h1>
+          <p className="text-muted-foreground text-sm">
+            Daftar koreksi absensi yang menunggu keputusan Anda. Supervisor melihat tim mereka; HR /
+            SUPER_ADMIN melihat seluruh tenant.
           </p>
         </div>
         <Link
           href="/attendance/corrections"
-          className="whitespace-nowrap rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-muted"
+          className="border-input hover:bg-muted whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium"
         >
           ← Riwayat saya
         </Link>

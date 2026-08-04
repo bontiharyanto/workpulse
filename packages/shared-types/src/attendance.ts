@@ -53,9 +53,7 @@ export type AttendanceRecord = z.infer<typeof attendanceRecordSchema>;
 // History / summary — self-service widgets on the dashboard.
 // ---------------------------------------------------------------------------
 
-export const isoCalendarDateSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'must be YYYY-MM-DD');
+export const isoCalendarDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'must be YYYY-MM-DD');
 
 export const attendanceHistoryQuerySchema = z.object({
   from: isoCalendarDateSchema.optional(),
@@ -221,9 +219,7 @@ export type CreateAbsenceResponse = z.infer<typeof createAbsenceResponseSchema>;
 export const resetScannerCursorInputSchema = z.object({
   triggerRescan: z.boolean().optional(),
 });
-export type ResetScannerCursorInput = z.infer<
-  typeof resetScannerCursorInputSchema
->;
+export type ResetScannerCursorInput = z.infer<typeof resetScannerCursorInputSchema>;
 
 /**
  * Skip-reason counts returned by the tenant-scoped rescan. Matches the
@@ -261,6 +257,4 @@ export const resetScannerCursorResponseSchema = z.object({
   rescanTriggered: z.boolean(),
   rescanResult: scannerRescanResultSchema.optional(),
 });
-export type ResetScannerCursorResponse = z.infer<
-  typeof resetScannerCursorResponseSchema
->;
+export type ResetScannerCursorResponse = z.infer<typeof resetScannerCursorResponseSchema>;

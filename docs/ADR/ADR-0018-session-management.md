@@ -16,7 +16,7 @@ single device was compromised: dropping the local cookie leaves the
 attacker's session alive, and a full-sweep logout also kills every
 legitimate device the user is signed into.
 
-We also need a way to *see* what is signed in — a laptop, a work
+We also need a way to _see_ what is signed in — a laptop, a work
 phone, a shared tablet — so users can recognise unexpected activity.
 
 ## Decision
@@ -46,13 +46,13 @@ personal.
 
 ```ts
 {
-  id: string;              // RefreshToken.id — revocation path param
+  id: string; // RefreshToken.id — revocation path param
   userAgent: string | null;
   ip: string | null;
-  mfaVerified: boolean;    // has this session cleared MFA (login or step-up)?
-  createdAt: string;       // ISO
-  expiresAt: string;       // ISO — natural TTL of the refresh chain
-  isCurrent: boolean;      // true iff this row backs the caller's refresh cookie
+  mfaVerified: boolean; // has this session cleared MFA (login or step-up)?
+  createdAt: string; // ISO
+  expiresAt: string; // ISO — natural TTL of the refresh chain
+  isCurrent: boolean; // true iff this row backs the caller's refresh cookie
 }
 ```
 
@@ -155,7 +155,7 @@ linger in the DB until a background sweep.
   for 30b. Would let a user skip the MFA step for 30 days on a marked
   device; we deferred it because it requires a separate device-trust
   primitive and its own revocation UI. Session management here is
-  strictly *seeing and killing* sessions, not extending them.
+  strictly _seeing and killing_ sessions, not extending them.
 
 - **Show geolocation from IP.** Rejected for the MVP — resolving IP to
   city requires an external DB (MaxMind or similar) and drags in a new

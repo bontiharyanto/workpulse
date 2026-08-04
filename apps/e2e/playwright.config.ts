@@ -39,7 +39,7 @@ export default defineConfig({
   expect: { timeout: 5_000 },
 
   fullyParallel: false, // multi-role tests coordinate on shared server state
-  workers: 1,           // avoid Prisma connection contention on tiny CI runners
+  workers: 1, // avoid Prisma connection contention on tiny CI runners
   forbidOnly: CI,
   retries: CI ? 2 : 0,
 
@@ -69,9 +69,7 @@ export default defineConfig({
       name: 'api',
       // Production build is faster to iterate on for CI (fewer file watchers).
       // Locally we still use `dev` to get incremental compilation.
-      command: CI
-        ? 'pnpm --filter @workpulse/api start:prod'
-        : 'pnpm --filter @workpulse/api dev',
+      command: CI ? 'pnpm --filter @workpulse/api start:prod' : 'pnpm --filter @workpulse/api dev',
       cwd: REPO_ROOT,
       url: `${API_URL}/api/v1/health`,
       timeout: 120_000,
@@ -102,9 +100,7 @@ export default defineConfig({
     },
     {
       name: 'web',
-      command: CI
-        ? 'pnpm --filter @workpulse/web start'
-        : 'pnpm --filter @workpulse/web dev',
+      command: CI ? 'pnpm --filter @workpulse/web start' : 'pnpm --filter @workpulse/web dev',
       cwd: REPO_ROOT,
       url: WEB_URL,
       timeout: 120_000,

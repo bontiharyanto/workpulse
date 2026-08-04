@@ -45,14 +45,14 @@ config field — the current architecture localizes tenant TZ inside
 The scheduler is opt-out at the tenant level. Fields extended on
 `TimesheetConfig` (all default sensible):
 
-| Field | Type | Default | Purpose |
-|---|---|---|---|
-| `autoGenerateEnabled` | bool | `true` | Master switch for period auto-creation |
-| `reminderEnabled` | bool | `true` | Master switch for reminder notifications |
-| `submitReminderStartDays` | int 0..30 | `1` | Days after `periodEnd` before first nudge to employees |
-| `submitReminderMaxDays` | int 1..60 | `7` | Stop point — HR should intervene past this |
-| `approvalReminderStartDays` | int 0..30 | `2` | Days after `periodEnd` before nudging approvers |
-| `approvalReminderMaxDays` | int 1..60 | `14` | Stop nudging approvers |
+| Field                       | Type      | Default | Purpose                                                |
+| --------------------------- | --------- | ------- | ------------------------------------------------------ |
+| `autoGenerateEnabled`       | bool      | `true`  | Master switch for period auto-creation                 |
+| `reminderEnabled`           | bool      | `true`  | Master switch for reminder notifications               |
+| `submitReminderStartDays`   | int 0..30 | `1`     | Days after `periodEnd` before first nudge to employees |
+| `submitReminderMaxDays`     | int 1..60 | `7`     | Stop point — HR should intervene past this             |
+| `approvalReminderStartDays` | int 0..30 | `2`     | Days after `periodEnd` before nudging approvers        |
+| `approvalReminderMaxDays`   | int 1..60 | `14`    | Stop nudging approvers                                 |
 
 Cross-field guard: `maxDays >= startDays` enforced both by the DB
 `CHECK` constraint and by the service's `validateCrossFields`.

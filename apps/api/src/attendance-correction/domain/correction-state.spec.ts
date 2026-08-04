@@ -71,21 +71,21 @@ describe('correction-state.transition', () => {
 
   describe('CANCEL', () => {
     it('advances PENDING_APPROVAL → CANCELLED when the actor owns the row', () => {
-      expect(
-        transition('PENDING_APPROVAL', { kind: 'CANCEL', actorIsOwner: true }),
-      ).toBe('CANCELLED');
+      expect(transition('PENDING_APPROVAL', { kind: 'CANCEL', actorIsOwner: true })).toBe(
+        'CANCELLED',
+      );
     });
 
     it('rejects a non-owner cancel', () => {
-      expect(() =>
-        transition('PENDING_APPROVAL', { kind: 'CANCEL', actorIsOwner: false }),
-      ).toThrow(ForbiddenCorrectionTransitionError);
+      expect(() => transition('PENDING_APPROVAL', { kind: 'CANCEL', actorIsOwner: false })).toThrow(
+        ForbiddenCorrectionTransitionError,
+      );
     });
 
     it('is illegal on a terminal state', () => {
-      expect(() =>
-        transition('APPROVED', { kind: 'CANCEL', actorIsOwner: true }),
-      ).toThrow(IllegalCorrectionTransitionError);
+      expect(() => transition('APPROVED', { kind: 'CANCEL', actorIsOwner: true })).toThrow(
+        IllegalCorrectionTransitionError,
+      );
     });
   });
 });

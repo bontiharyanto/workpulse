@@ -53,15 +53,11 @@ export const tenantUsageListResponseSchema = z.object({
   page: z.number().int(),
   pageSize: z.number().int(),
 });
-export type TenantUsageListResponseDto = z.infer<
-  typeof tenantUsageListResponseSchema
->;
+export type TenantUsageListResponseDto = z.infer<typeof tenantUsageListResponseSchema>;
 
 export const regenerateTenantUsageInputSchema = z.object({
   companyId: z.string(),
   year: z.number().int().min(2000).max(2100),
   month: z.number().int().min(1).max(12),
 });
-export type RegenerateTenantUsageInput = z.infer<
-  typeof regenerateTenantUsageInputSchema
->;
+export type RegenerateTenantUsageInput = z.infer<typeof regenerateTenantUsageInputSchema>;

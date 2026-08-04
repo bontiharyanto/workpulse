@@ -1,18 +1,10 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Prisma } from '@prisma/client';
 import { RefreshTokenStatus } from '@prisma/client';
 
 import { passwordResetSucceeded } from '../notification/domain/templates';
-import {
-  EMAIL_ADAPTER,
-  type EmailAdapter,
-} from '../notification/email/email-adapter';
+import { EMAIL_ADAPTER, type EmailAdapter } from '../notification/email/email-adapter';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -100,11 +92,7 @@ export class PasswordResetService {
 
     // No user, or user is TERMINATED/SUSPENDED → silently succeed so the
     // caller can't infer state. We deliberately DO NOT throw here.
-    if (
-      !user ||
-      user.employmentStatus === 'TERMINATED' ||
-      user.employmentStatus === 'SUSPENDED'
-    ) {
+    if (!user || user.employmentStatus === 'TERMINATED' || user.employmentStatus === 'SUSPENDED') {
       // Do a tiny bit of work to normalise timing — this is not
       // security-sensitive, just a mild timing-oracle mitigation.
       hashResetToken(normalizedEmail);
@@ -116,9 +104,7 @@ export class PasswordResetService {
     }
 
     const { rawToken, tokenHash } = generateResetToken();
-    const expiresAt = new Date(
-      Date.now() + RESET_TOKEN_TTL_MINUTES * 60 * 1000,
-    );
+    const expiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MINUTES * 60 * 1000);
 
     await this.prisma.passwordResetToken.create({
       data: {
@@ -201,10 +187,7 @@ export class PasswordResetService {
 
     const user = tokenRow.user;
     if (!user || user.deletedAt) throw new BadRequestException('INVALID_TOKEN');
-    if (
-      user.employmentStatus === 'TERMINATED' ||
-      user.employmentStatus === 'SUSPENDED'
-    ) {
+    if (user.employmentStatus === 'TERMINATED' || user.employmentStatus === 'SUSPENDED') {
       // The account was disabled after issuing the token — treat as invalid.
       throw new BadRequestException('INVALID_TOKEN');
     }

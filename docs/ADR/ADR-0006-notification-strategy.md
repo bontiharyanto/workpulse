@@ -105,13 +105,13 @@ Cukup print ke stdout dan biarkan operator hook ke log stream. Cepat, tapi:
 
 Row `Notification` **bukan** pengganti `AuditLog`. Perbedaan:
 
-| Aspek       | `Notification`                            | `AuditLog`                            |
-|-------------|-------------------------------------------|---------------------------------------|
-| Audience    | End user                                  | HR / compliance                       |
-| Retention   | Sampai HR menghapus manual                | Immutable (revoke UPDATE/DELETE)      |
-| Detail      | Text summary + deep link                  | Before/after JSON, actor, action code |
-| Multi-tenant| Ya, via `companyId` + `recipientId`       | Ya, via `companyId` + `actorId`       |
-| Query pattern | Per user, last N unread                 | Per entity/entityId, forensik         |
+| Aspek         | `Notification`                      | `AuditLog`                            |
+| ------------- | ----------------------------------- | ------------------------------------- |
+| Audience      | End user                            | HR / compliance                       |
+| Retention     | Sampai HR menghapus manual          | Immutable (revoke UPDATE/DELETE)      |
+| Detail        | Text summary + deep link            | Before/after JSON, actor, action code |
+| Multi-tenant  | Ya, via `companyId` + `recipientId` | Ya, via `companyId` + `actorId`       |
+| Query pattern | Per user, last N unread             | Per entity/entityId, forensik         |
 
 Kedua tabel diisi di trigger point yang sama tapi tidak saling mengganti.
 

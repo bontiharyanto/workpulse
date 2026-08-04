@@ -223,9 +223,7 @@ function buildModuleSummary(
     buckets: stats.buckets,
     oldest: oldestSeed.map((r) => ({
       ...r,
-      ageDays: Math.floor(
-        (refNow.getTime() - r.createdAt.getTime()) / (24 * 60 * 60 * 1000),
-      ),
+      ageDays: Math.floor((refNow.getTime() - r.createdAt.getTime()) / (24 * 60 * 60 * 1000)),
     })),
   };
 }
@@ -234,10 +232,7 @@ function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-function describeCorrection(
-  clockIn: Date | null,
-  clockOut: Date | null,
-): string {
+function describeCorrection(clockIn: Date | null, clockOut: Date | null): string {
   const parts: string[] = [];
   if (clockIn) parts.push(`in ${formatHm(clockIn)}`);
   if (clockOut) parts.push(`out ${formatHm(clockOut)}`);

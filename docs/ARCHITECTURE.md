@@ -44,21 +44,22 @@ attendance/
 ```
 
 Rules:
+
 - **Controllers** tidak boleh mengimpor `PrismaService`.
 - **Services** hanya mengimpor `PrismaService`, service lain, dan file dari `domain/`.
 - **Domain** hanya mengimpor `domain/*` — tanpa `@nestjs/*`, tanpa Prisma. Membuatnya sepele di-unit-test.
 
 ## 4. Cross-Cutting Concerns
 
-| Concern | Location |
-|---|---|
-| Global validation pipe | `src/main.ts` (`ValidationPipe`) |
-| Error mapping | `src/common/filters/http-exception.filter.ts` + `all-exceptions.filter.ts` |
-| Request logging | `src/common/interceptors/logging.interceptor.ts` |
-| Auth (JWT) | `src/auth/` — `JwtStrategy`, `JwtAuthGuard` |
-| RBAC | `src/common/decorators/roles.decorator.ts` + `guards/roles.guard.ts` |
-| Prisma singleton | `src/prisma/prisma.service.ts` |
-| Config validation | `src/config/env.validation.ts` (Zod) |
+| Concern                | Location                                                                   |
+| ---------------------- | -------------------------------------------------------------------------- |
+| Global validation pipe | `src/main.ts` (`ValidationPipe`)                                           |
+| Error mapping          | `src/common/filters/http-exception.filter.ts` + `all-exceptions.filter.ts` |
+| Request logging        | `src/common/interceptors/logging.interceptor.ts`                           |
+| Auth (JWT)             | `src/auth/` — `JwtStrategy`, `JwtAuthGuard`                                |
+| RBAC                   | `src/common/decorators/roles.decorator.ts` + `guards/roles.guard.ts`       |
+| Prisma singleton       | `src/prisma/prisma.service.ts`                                             |
+| Config validation      | `src/config/env.validation.ts` (Zod)                                       |
 
 ## 5. Data Model Highlights (see `apps/api/prisma/schema.prisma`)
 
@@ -75,27 +76,35 @@ Semua tabel domain: `createdAt`, `updatedAt`, `deletedAt` (soft delete kecuali `
 ## 6. Concurrency & Transactions
 
 ### Prinsip
+
 > Setiap operasi bisnis yang menyentuh > 1 baris atau memutakhirkan invariant harus berjalan di dalam **satu transaksi**.
 
 ### Pola untuk saldo cuti (mencegah double-spend)
 
 ```ts
-await prisma.$transaction(async (tx) => {
-  const [balance] = await tx.$queryRaw<LeaveBalance[]>`
+await prisma.$transaction(
+  async (tx) => {
+    const [balance] = await tx.$queryRaw<LeaveBalance[]>`
     SELECT * FROM "LeaveBalance"
     WHERE "userId" = ${userId} AND "leaveTypeId" = ${leaveTypeId} AND "year" = ${year}
     FOR UPDATE
   `;
-  if (!balance || balance.remaining < requestedDays) {
-    throw new BadRequestException('INSUFFICIENT_BALANCE');
-  }
-  await tx.leaveBalance.update({
-    where: { id: balance.id },
-    data: { remaining: { decrement: requestedDays }, used: { increment: requestedDays }, version: { increment: 1 } },
-  });
-  await tx.leaveRequest.create({ /* ... */ });
-  await tx.auditLog.create({ /* ... */ });
-}, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+    if (!balance || balance.remaining < requestedDays) {
+      throw new BadRequestException('INSUFFICIENT_BALANCE');
+    }
+    await tx.leaveBalance.update({
+      where: { id: balance.id },
+      data: {
+        remaining: { decrement: requestedDays },
+        used: { increment: requestedDays },
+        version: { increment: 1 },
+      },
+    });
+    await tx.leaveRequest.create({/* ... */});
+    await tx.auditLog.create({/* ... */});
+  },
+  { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+);
 ```
 
 ## 7. Timezone Handling

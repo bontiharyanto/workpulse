@@ -76,10 +76,7 @@ export const KNOWN_AUDIT_ENTITY_TYPES = [
  * which company we're looking at. Payload's `entityId` will be the
  * caller's own `companyId`, so this deep-link is always meaningful.
  */
-export function externalRouteFor(
-  entityType: string,
-  _entityId: string,
-): string | null {
+export function externalRouteFor(entityType: string, _entityId: string): string | null {
   switch (entityType) {
     case 'Company':
       return '/admin/company';

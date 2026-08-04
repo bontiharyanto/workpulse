@@ -22,13 +22,12 @@ import type { NotificationType } from '@prisma/client';
  * a policy decision — flag it explicitly in the PR description and
  * bump `docs/ADR/ADR-0012` if the security posture changes.
  */
-export const mandatoryNotificationTypes: ReadonlySet<NotificationType> =
-  new Set<NotificationType>([
-    // Password reset confirmation carries the "someone reset your
-    // password" signal — opting out would let an attacker who breached
-    // a session silently disable this notification. Non-negotiable.
-    'PASSWORD_RESET',
-  ]);
+export const mandatoryNotificationTypes: ReadonlySet<NotificationType> = new Set<NotificationType>([
+  // Password reset confirmation carries the "someone reset your
+  // password" signal — opting out would let an attacker who breached
+  // a session silently disable this notification. Non-negotiable.
+  'PASSWORD_RESET',
+]);
 
 export interface EffectivePreference {
   emailEnabled: boolean;
@@ -83,9 +82,7 @@ export function resolveEffective(
  *
  * This is a defense-in-depth helper for the service's upsertMany.
  */
-export function sanitizePreferenceUpdates(
-  updates: readonly PreferenceRow[],
-): PreferenceRow[] {
+export function sanitizePreferenceUpdates(updates: readonly PreferenceRow[]): PreferenceRow[] {
   const byType = new Map<NotificationType, PreferenceRow>();
   for (const u of updates) {
     if (mandatoryNotificationTypes.has(u.type)) continue;

@@ -27,8 +27,7 @@ export class TenantUsageWorker {
     private readonly usage: TenantUsageService,
     config: ConfigService,
   ) {
-    this.enabled =
-      config.get<string>('TENANT_USAGE_WORKER_ENABLED', 'true') !== 'false';
+    this.enabled = config.get<string>('TENANT_USAGE_WORKER_ENABLED', 'true') !== 'false';
     if (!this.enabled) {
       this.logger.warn(
         'TENANT_USAGE_WORKER_ENABLED=false — monthly usage snapshot disabled on this instance.',
@@ -48,14 +47,10 @@ export class TenantUsageWorker {
     try {
       const generated = await this.runOnce(new Date());
       this.logger.log(
-        `tenant-usage tick complete generated=${generated} durationMs=${
-          Date.now() - started
-        }`,
+        `tenant-usage tick complete generated=${generated} durationMs=${Date.now() - started}`,
       );
     } catch (err) {
-      this.logger.error(
-        `tenant-usage tick threw: ${(err as Error).message}`,
-      );
+      this.logger.error(`tenant-usage tick threw: ${(err as Error).message}`);
     } finally {
       this.tickRunning = false;
     }
@@ -74,9 +69,7 @@ export class TenantUsageWorker {
         generated += 1;
       } catch (err) {
         this.logger.error(
-          `tenant usage snapshot failed companyId=${c.id}: ${
-            (err as Error).message
-          }`,
+          `tenant usage snapshot failed companyId=${c.id}: ${(err as Error).message}`,
         );
       }
     }

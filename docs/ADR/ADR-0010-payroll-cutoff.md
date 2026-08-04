@@ -63,7 +63,7 @@ Alternatives we considered:
   the error surface is a generic 500 (Prisma exposes it as
   `PrismaClientKnownRequestError` with code `P0004`), which the FE
   cannot programmatically handle. Losing the ability to say `code:
-  'PAYROLL_LOCKED'` was too painful.
+'PAYROLL_LOCKED'` was too painful.
 - **Postgres trigger**. Same issue as CHECK plus harder to test.
 - **Middleware over Prisma**. Would work but the guard needs to know
   the actor's role (for the SUPER_ADMIN bypass), and Prisma
@@ -87,7 +87,7 @@ We considered blocking every role. Rejected because:
    of historical attendance, some of which will be inside their
    already-closed periods. Without an override lane, ops has to
    bypass via psql — which loses the audit trail we care most about.
-3. **Concentrating override authority.** Giving *one* role the
+3. **Concentrating override authority.** Giving _one_ role the
    power (versus HR_MANAGER) means override attempts are rare,
    deliberate, and traceable. Every override still writes
    `ATTENDANCE_MARK_ABSENT` / `ATTENDANCE_UNMARK_ABSENT` audit rows
@@ -206,7 +206,7 @@ notes worth preserving for future readers:
 - **Overtime completion scheduler.** Skipped rows count per-row (not
   per-date, unlike the absence scanner) — the completion scheduler is
   intrinsically per-candidate. `PAYROLL_LOCKED` is the only skip reason
-  that fires *before* the attendance lookup, so a locked backlog does
+  that fires _before_ the attendance lookup, so a locked backlog does
   not amplify scheduler cost.
 - **Submit endpoint role gap.** SUPER_ADMIN is not listed in `@Roles`
   for `POST /leave` or `POST /overtime` (those are employee/supervisor/HR

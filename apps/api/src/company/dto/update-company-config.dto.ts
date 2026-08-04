@@ -96,7 +96,7 @@ export class UpdateCompanyConfigDto {
     nullable: true,
     example: '2026-07-31',
     description:
-      "Inclusive payroll cutoff (YYYY-MM-DD). Explicit null clears the cutoff. Omit the field to keep the current value.",
+      'Inclusive payroll cutoff (YYYY-MM-DD). Explicit null clears the cutoff. Omit the field to keep the current value.',
   })
   @IsOptional()
   // `null` explicitly clears the cutoff — skip the format check in that case.

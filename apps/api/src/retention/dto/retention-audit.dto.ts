@@ -1,20 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsEnum,
-  IsInt,
-  IsOptional,
-  Max,
-  Min,
-} from 'class-validator';
+import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
 
-export const RETENTION_AUDIT_STATUS = [
-  'SUCCESS',
-  'GAP_DETECTED',
-  'WORKER_INACTIVE',
-] as const;
-export type RetentionAuditStatusLiteral =
-  (typeof RETENTION_AUDIT_STATUS)[number];
+export const RETENTION_AUDIT_STATUS = ['SUCCESS', 'GAP_DETECTED', 'WORKER_INACTIVE'] as const;
+export type RetentionAuditStatusLiteral = (typeof RETENTION_AUDIT_STATUS)[number];
 
 export const RETENTION_AUDIT_FINDING_KIND = [
   'notifications_past_retention',
@@ -22,8 +11,7 @@ export const RETENTION_AUDIT_FINDING_KIND = [
   'terminated_users_past_retention',
   'worker_inactive_during_period',
 ] as const;
-export type RetentionAuditFindingKindLiteral =
-  (typeof RETENTION_AUDIT_FINDING_KIND)[number];
+export type RetentionAuditFindingKindLiteral = (typeof RETENTION_AUDIT_FINDING_KIND)[number];
 
 export class RetentionAuditFindingDto {
   @ApiProperty({ enum: RETENTION_AUDIT_FINDING_KIND })
@@ -58,8 +46,7 @@ export class RetentionAuditReportDto {
   companyId!: string;
 
   @ApiProperty({
-    description:
-      'Inclusive UTC start of the audit period (first of the month).',
+    description: 'Inclusive UTC start of the audit period (first of the month).',
   })
   periodStart!: string;
 

@@ -19,9 +19,7 @@ export type PrivacyPolicyDto = z.infer<typeof privacyPolicySchema>;
 export const privacyPolicyListResponseSchema = z.object({
   items: privacyPolicySchema.array(),
 });
-export type PrivacyPolicyListResponseDto = z.infer<
-  typeof privacyPolicyListResponseSchema
->;
+export type PrivacyPolicyListResponseDto = z.infer<typeof privacyPolicyListResponseSchema>;
 
 export const publishPolicyInputSchema = z.object({
   version: z.string().min(1).max(20),
@@ -45,9 +43,7 @@ export type UserConsentDto = z.infer<typeof userConsentSchema>;
 export const userConsentListResponseSchema = z.object({
   items: userConsentSchema.array(),
 });
-export type UserConsentListResponseDto = z.infer<
-  typeof userConsentListResponseSchema
->;
+export type UserConsentListResponseDto = z.infer<typeof userConsentListResponseSchema>;
 
 export const acceptConsentInputSchema = z.object({
   policyId: z.string().min(1),

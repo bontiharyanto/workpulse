@@ -36,6 +36,4 @@ export const dataExportDownloadResponseSchema = z.object({
   downloadUrl: z.string().url(),
   expiresIn: z.number().int().positive(),
 });
-export type DataExportDownloadResponse = z.infer<
-  typeof dataExportDownloadResponseSchema
->;
+export type DataExportDownloadResponse = z.infer<typeof dataExportDownloadResponseSchema>;

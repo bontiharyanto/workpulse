@@ -2,10 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
-import type {
-  TeamMemberDailyRow,
-  TeamMemberSummaryRow,
-} from '@workpulse/shared-types';
+import type { TeamMemberDailyRow, TeamMemberSummaryRow } from '@workpulse/shared-types';
 
 import { useAuth } from '@/components/providers/auth-provider';
 import { attendanceApi, companyAdminApi } from '@/lib/api-client';
@@ -33,15 +30,14 @@ export function TeamAttendance(): JSX.Element | null {
     (user.role === 'SUPERVISOR' || user.role === 'HR_MANAGER' || user.role === 'SUPER_ADMIN');
 
   // Manual absence override is HR-only (server enforces; UI hides for others).
-  const canOverrideAbsence =
-    !!user && (user.role === 'HR_MANAGER' || user.role === 'SUPER_ADMIN');
+  const canOverrideAbsence = !!user && (user.role === 'HR_MANAGER' || user.role === 'SUPER_ADMIN');
 
   if (!canView) return null;
 
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex gap-1 rounded-md border bg-background p-0.5 text-xs">
+        <div className="bg-background flex gap-1 rounded-md border p-0.5 text-xs">
           <TabButton active={tab === 'today'} onClick={() => setTab('today')}>
             Hari ini
           </TabButton>
@@ -51,18 +47,18 @@ export function TeamAttendance(): JSX.Element | null {
         </div>
 
         {tab === 'today' ? (
-          <label className="flex items-center gap-2 text-xs text-muted-foreground">
+          <label className="text-muted-foreground flex items-center gap-2 text-xs">
             Tanggal
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               max={toIsoDate(new Date())}
-              className="rounded-md border border-input bg-background px-2 py-1 text-xs"
+              className="border-input bg-background rounded-md border px-2 py-1 text-xs"
             />
           </label>
         ) : (
-          <div className="flex gap-1 rounded-md border bg-background p-0.5 text-xs">
+          <div className="bg-background flex gap-1 rounded-md border p-0.5 text-xs">
             {(['7', '14', '30'] as RangePreset[]).map((p) => (
               <TabButton key={p} active={range === p} onClick={() => setRange(p)}>
                 {p}h
@@ -146,88 +142,94 @@ function TodayTable({
     <div className="space-y-2">
       {canOverrideAbsence && dateIsLocked ? (
         <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-          <span className="font-medium">Periode terkunci payroll</span> — {date} berada
-          di dalam cutoff <code className="rounded bg-white/70 px-1">{payrollLockedUntil}</code>.
-          HR tidak dapat menandai / mencabut absen pada tanggal ini; hubungi Super Admin bila
-          diperlukan koreksi.
+          <span className="font-medium">Periode terkunci payroll</span> — {date} berada di dalam
+          cutoff <code className="rounded bg-white/70 px-1">{payrollLockedUntil}</code>. HR tidak
+          dapat menandai / mencabut absen pada tanggal ini; hubungi Super Admin bila diperlukan
+          koreksi.
         </div>
       ) : null}
 
       <div className="overflow-hidden rounded-md border">
         <table className="w-full text-sm">
-        <thead className="bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
-          <tr>
-            <th className="px-3 py-2">Nama</th>
-            <th className="px-3 py-2">Departemen</th>
-            <th className="px-3 py-2">Clock-in</th>
-            <th className="px-3 py-2">Clock-out</th>
-            <th className="px-3 py-2">Status</th>
-            <th className="px-3 py-2 text-right">Telat</th>
-            {canOverrideAbsence ? <th className="px-3 py-2 text-right">Aksi</th> : null}
-          </tr>
-        </thead>
-        <tbody>
-          {list.isLoading ? (
+          <thead className="bg-muted/40 text-muted-foreground text-left text-xs uppercase tracking-wider">
             <tr>
-              <td colSpan={colCount} className="px-3 py-6 text-center text-sm text-muted-foreground">
-                Memuat...
-              </td>
+              <th className="px-3 py-2">Nama</th>
+              <th className="px-3 py-2">Departemen</th>
+              <th className="px-3 py-2">Clock-in</th>
+              <th className="px-3 py-2">Clock-out</th>
+              <th className="px-3 py-2">Status</th>
+              <th className="px-3 py-2 text-right">Telat</th>
+              {canOverrideAbsence ? <th className="px-3 py-2 text-right">Aksi</th> : null}
             </tr>
-          ) : list.data && list.data.length > 0 ? (
-            list.data.map((r) => (
-              <TodayRow
-                key={r.userId}
-                row={r}
-                date={date}
-                canOverride={canOverrideAbsence}
-                dateIsLocked={dateIsLocked}
-                isMarkOpen={openMarkFor === r.userId}
-                reason={reason}
-                errorMsg={openMarkFor === r.userId ? errorMsg : null}
-                onOpenMark={() => {
-                  setOpenMarkFor(r.userId);
-                  setReason('');
-                  setErrorMsg(null);
-                }}
-                onCancelMark={() => {
-                  setOpenMarkFor(null);
-                  setReason('');
-                  setErrorMsg(null);
-                }}
-                onReasonChange={setReason}
-                onSubmitMark={() => {
-                  markMutation.mutate({
-                    userId: r.userId,
-                    workDate: date,
-                    reason: reason.trim() ? reason.trim() : undefined,
-                  });
-                }}
-                isSubmitting={markMutation.isPending && openMarkFor === r.userId}
-                onDeleteAbsence={(id: string) => {
-                  if (
-                    typeof window !== 'undefined' &&
-                    !window.confirm(
-                      `Yakin membatalkan status absen untuk ${r.fullName} pada ${date}?`,
-                    )
-                  ) {
-                    return;
+          </thead>
+          <tbody>
+            {list.isLoading ? (
+              <tr>
+                <td
+                  colSpan={colCount}
+                  className="text-muted-foreground px-3 py-6 text-center text-sm"
+                >
+                  Memuat...
+                </td>
+              </tr>
+            ) : list.data && list.data.length > 0 ? (
+              list.data.map((r) => (
+                <TodayRow
+                  key={r.userId}
+                  row={r}
+                  date={date}
+                  canOverride={canOverrideAbsence}
+                  dateIsLocked={dateIsLocked}
+                  isMarkOpen={openMarkFor === r.userId}
+                  reason={reason}
+                  errorMsg={openMarkFor === r.userId ? errorMsg : null}
+                  onOpenMark={() => {
+                    setOpenMarkFor(r.userId);
+                    setReason('');
+                    setErrorMsg(null);
+                  }}
+                  onCancelMark={() => {
+                    setOpenMarkFor(null);
+                    setReason('');
+                    setErrorMsg(null);
+                  }}
+                  onReasonChange={setReason}
+                  onSubmitMark={() => {
+                    markMutation.mutate({
+                      userId: r.userId,
+                      workDate: date,
+                      reason: reason.trim() ? reason.trim() : undefined,
+                    });
+                  }}
+                  isSubmitting={markMutation.isPending && openMarkFor === r.userId}
+                  onDeleteAbsence={(id: string) => {
+                    if (
+                      typeof window !== 'undefined' &&
+                      !window.confirm(
+                        `Yakin membatalkan status absen untuk ${r.fullName} pada ${date}?`,
+                      )
+                    ) {
+                      return;
+                    }
+                    deleteMutation.mutate(id);
+                  }}
+                  isDeleting={
+                    deleteMutation.isPending && deleteMutation.variables === r.absenceRecordId
                   }
-                  deleteMutation.mutate(id);
-                }}
-                isDeleting={
-                  deleteMutation.isPending && deleteMutation.variables === r.absenceRecordId
-                }
-              />
-            ))
-          ) : (
-            <tr>
-              <td colSpan={colCount} className="px-3 py-6 text-center text-sm text-muted-foreground">
-                Tidak ada anggota tim dalam scope Anda.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+                />
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={colCount}
+                  className="text-muted-foreground px-3 py-6 text-center text-sm"
+                >
+                  Tidak ada anggota tim dalam scope Anda.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -275,13 +277,15 @@ function TodayRow(props: TodayRowProps): JSX.Element {
       <tr className="border-t">
         <td className="px-3 py-2">
           <div className="font-medium">{row.fullName}</div>
-          <div className="text-[11px] text-muted-foreground">{row.email}</div>
+          <div className="text-muted-foreground text-[11px]">{row.email}</div>
         </td>
-        <td className="px-3 py-2 text-xs text-muted-foreground">
-          {row.departmentName ?? '—'}
+        <td className="text-muted-foreground px-3 py-2 text-xs">{row.departmentName ?? '—'}</td>
+        <td className="px-3 py-2 tabular-nums">
+          {row.clockInAt ? formatTime(row.clockInAt) : dash()}
         </td>
-        <td className="px-3 py-2 tabular-nums">{row.clockInAt ? formatTime(row.clockInAt) : dash()}</td>
-        <td className="px-3 py-2 tabular-nums">{row.clockOutAt ? formatTime(row.clockOutAt) : dash()}</td>
+        <td className="px-3 py-2 tabular-nums">
+          {row.clockOutAt ? formatTime(row.clockOutAt) : dash()}
+        </td>
         <td className="px-3 py-2">
           <div className="flex flex-col items-start gap-1">
             <TeamStatusPill status={row.status} />
@@ -305,7 +309,7 @@ function TodayRow(props: TodayRowProps): JSX.Element {
                 onClick={onOpenMark}
                 disabled={dateIsLocked}
                 title={dateIsLocked ? 'Periode terkunci payroll' : undefined}
-                className="rounded-md border px-2 py-1 text-xs text-muted-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                className="text-muted-foreground hover:bg-muted rounded-md border px-2 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Absenkan
               </button>
@@ -316,7 +320,7 @@ function TodayRow(props: TodayRowProps): JSX.Element {
                 onClick={() => onDeleteAbsence(row.absenceRecordId as string)}
                 disabled={isDeleting || dateIsLocked}
                 title={dateIsLocked ? 'Periode terkunci payroll' : undefined}
-                className="rounded-md border px-2 py-1 text-xs text-muted-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                className="text-muted-foreground hover:bg-muted rounded-md border px-2 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isDeleting ? 'Menghapus...' : 'Batalkan'}
               </button>
@@ -325,7 +329,7 @@ function TodayRow(props: TodayRowProps): JSX.Element {
         ) : null}
       </tr>
       {isMarkOpen ? (
-        <tr className="border-t bg-muted/20">
+        <tr className="bg-muted/20 border-t">
           <td colSpan={colCount} className="px-3 py-3">
             <form
               onSubmit={(e) => {
@@ -334,7 +338,7 @@ function TodayRow(props: TodayRowProps): JSX.Element {
               }}
               className="flex flex-wrap items-end gap-2"
             >
-              <label className="flex flex-1 flex-col text-xs text-muted-foreground">
+              <label className="text-muted-foreground flex flex-1 flex-col text-xs">
                 Alasan (opsional, maks. 500 karakter)
                 <input
                   autoFocus
@@ -343,28 +347,26 @@ function TodayRow(props: TodayRowProps): JSX.Element {
                   onChange={(e) => onReasonChange(e.target.value)}
                   maxLength={500}
                   placeholder={`Contoh: ${row.fullName} tidak masuk tanpa keterangan.`}
-                  className="mt-1 rounded-md border border-input bg-background px-2 py-1 text-sm"
+                  className="border-input bg-background mt-1 rounded-md border px-2 py-1 text-sm"
                 />
               </label>
               <div className="flex gap-2">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="rounded-md bg-destructive px-3 py-1 text-xs font-medium text-destructive-foreground disabled:opacity-50"
+                  className="bg-destructive text-destructive-foreground rounded-md px-3 py-1 text-xs font-medium disabled:opacity-50"
                 >
                   {isSubmitting ? 'Menyimpan...' : 'Konfirmasi absen'}
                 </button>
                 <button
                   type="button"
                   onClick={onCancelMark}
-                  className="rounded-md border px-3 py-1 text-xs text-muted-foreground"
+                  className="text-muted-foreground rounded-md border px-3 py-1 text-xs"
                 >
                   Batal
                 </button>
               </div>
-              {errorMsg ? (
-                <p className="w-full text-xs text-destructive">{errorMsg}</p>
-              ) : null}
+              {errorMsg ? <p className="text-destructive w-full text-xs">{errorMsg}</p> : null}
             </form>
           </td>
         </tr>
@@ -373,11 +375,7 @@ function TodayRow(props: TodayRowProps): JSX.Element {
   );
 }
 
-function AbsenceSourcePill({
-  source,
-}: {
-  source: 'AUTO_SCHEDULER' | 'MANUAL_HR';
-}): JSX.Element {
+function AbsenceSourcePill({ source }: { source: 'AUTO_SCHEDULER' | 'MANUAL_HR' }): JSX.Element {
   const label = source === 'AUTO_SCHEDULER' ? 'Otomatis' : 'HR';
   return (
     <span className="inline-flex items-center rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-700">
@@ -431,12 +429,12 @@ function SummaryTable({ range }: { range: RangePreset }): JSX.Element {
 
   return (
     <div className="space-y-2">
-      <p className="text-xs text-muted-foreground">
+      <p className="text-muted-foreground text-xs">
         Rentang: {from} → {to} · {days} hari
       </p>
       <div className="overflow-hidden rounded-md border">
         <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
+          <thead className="bg-muted/40 text-muted-foreground text-left text-xs uppercase tracking-wider">
             <tr>
               <th className="px-3 py-2">Nama</th>
               <th className="px-3 py-2">Departemen</th>
@@ -452,7 +450,7 @@ function SummaryTable({ range }: { range: RangePreset }): JSX.Element {
           <tbody>
             {query.isLoading ? (
               <tr>
-                <td colSpan={9} className="px-3 py-6 text-center text-sm text-muted-foreground">
+                <td colSpan={9} className="text-muted-foreground px-3 py-6 text-center text-sm">
                   Memuat...
                 </td>
               </tr>
@@ -460,7 +458,7 @@ function SummaryTable({ range }: { range: RangePreset }): JSX.Element {
               query.data.rows.map((r) => <SummaryRow key={r.userId} row={r} />)
             ) : (
               <tr>
-                <td colSpan={9} className="px-3 py-6 text-center text-sm text-muted-foreground">
+                <td colSpan={9} className="text-muted-foreground px-3 py-6 text-center text-sm">
                   Tidak ada data pada rentang ini.
                 </td>
               </tr>
@@ -487,11 +485,9 @@ function SummaryRow({ row }: { row: TeamMemberSummaryRow }): JSX.Element {
     <tr className="border-t">
       <td className="px-3 py-2">
         <div className="font-medium">{row.fullName}</div>
-        <div className="text-[11px] text-muted-foreground">{row.email}</div>
+        <div className="text-muted-foreground text-[11px]">{row.email}</div>
       </td>
-      <td className="px-3 py-2 text-xs text-muted-foreground">
-        {row.departmentName ?? '—'}
-      </td>
+      <td className="text-muted-foreground px-3 py-2 text-xs">{row.departmentName ?? '—'}</td>
       <td className="px-3 py-2 text-right tabular-nums">{row.presentDays}</td>
       <td className="px-3 py-2 text-right tabular-nums text-emerald-600">{row.onTimeDays}</td>
       <td className="px-3 py-2 text-right tabular-nums">

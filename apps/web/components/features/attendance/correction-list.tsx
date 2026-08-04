@@ -26,16 +26,14 @@ export function CorrectionList(): JSX.Element {
   });
 
   if (list.isLoading) {
-    return <p className="text-sm text-muted-foreground">Memuat riwayat koreksi...</p>;
+    return <p className="text-muted-foreground text-sm">Memuat riwayat koreksi...</p>;
   }
   if (list.isError) {
-    return <p className="text-sm text-destructive">Gagal memuat riwayat koreksi.</p>;
+    return <p className="text-destructive text-sm">Gagal memuat riwayat koreksi.</p>;
   }
   const rows = list.data ?? [];
   if (rows.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">Belum ada koreksi yang diajukan.</p>
-    );
+    return <p className="text-muted-foreground text-sm">Belum ada koreksi yang diajukan.</p>;
   }
 
   return (
@@ -43,7 +41,7 @@ export function CorrectionList(): JSX.Element {
       <h2 className="text-lg font-semibold">Riwayat koreksi Anda</h2>
       <div className="overflow-hidden rounded-md border">
         <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
+          <thead className="bg-muted/40 text-muted-foreground text-left text-xs uppercase tracking-wider">
             <tr>
               <th className="px-3 py-2">Tanggal</th>
               <th className="px-3 py-2">Diminta</th>
@@ -56,10 +54,8 @@ export function CorrectionList(): JSX.Element {
             {rows.map((r) => (
               <tr key={r.id} className="border-t align-top">
                 <td className="px-3 py-2 tabular-nums">{formatDate(r.workDate)}</td>
-                <td className="px-3 py-2 tabular-nums text-xs">
-                  {summarize(r)}
-                </td>
-                <td className="max-w-xs truncate px-3 py-2 text-xs text-muted-foreground">
+                <td className="px-3 py-2 text-xs tabular-nums">{summarize(r)}</td>
+                <td className="text-muted-foreground max-w-xs truncate px-3 py-2 text-xs">
                   {r.reason}
                 </td>
                 <td className="px-3 py-2">
@@ -71,12 +67,12 @@ export function CorrectionList(): JSX.Element {
                       type="button"
                       onClick={() => cancel.mutate(r.id)}
                       disabled={cancel.isPending}
-                      className="text-xs text-destructive hover:underline disabled:opacity-50"
+                      className="text-destructive text-xs hover:underline disabled:opacity-50"
                     >
                       Batalkan
                     </button>
                   ) : (
-                    <span className="text-xs text-muted-foreground">—</span>
+                    <span className="text-muted-foreground text-xs">—</span>
                   )}
                 </td>
               </tr>
@@ -85,7 +81,7 @@ export function CorrectionList(): JSX.Element {
         </table>
       </div>
       {cancel.isError ? (
-        <p className="text-xs text-destructive">{formatApiError(cancel.error)}</p>
+        <p className="text-destructive text-xs">{formatApiError(cancel.error)}</p>
       ) : null}
     </section>
   );

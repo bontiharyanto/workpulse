@@ -50,12 +50,12 @@ Ship a first-class DPIA module co-located with ROPA:
 
 `likelihood × impact` produces a score in `[1..25]`:
 
-| Score | Level    |
-| ----- | -------- |
-| <8    | LOW      |
-| 8..14 | MEDIUM   |
-| 15..19| HIGH     |
-| 20..25| CRITICAL |
+| Score  | Level    |
+| ------ | -------- |
+| <8     | LOW      |
+| 8..14  | MEDIUM   |
+| 15..19 | HIGH     |
+| 20..25 | CRITICAL |
 
 Thresholds match ENISA guidance for public-sector DPIAs. The DB stores the
 bucket as an enum for cheap reads, but the (likelihood, impact) columns
@@ -102,8 +102,8 @@ weaknesses.
 ## Alternatives Considered
 
 **Extend ROPA versions with risk items** — rejected. ROPA versions are
-the register of *what* is processed; DPIA is the assessment of *how much
-risk that processing carries*. Mixing them explodes the ROPA payload and
+the register of _what_ is processed; DPIA is the assessment of _how much
+risk that processing carries_. Mixing them explodes the ROPA payload and
 forces the schema to accommodate risk-only fields on activities that do
 not need a DPIA.
 
@@ -133,7 +133,7 @@ compliance survey. Ship it later once we have consumer signal.
 ### Negative
 
 - Manual data entry — no auto-populate from ROPA fields. Deliberate:
-  DPIA is a risk *analysis*, not a copy of the register.
+  DPIA is a risk _analysis_, not a copy of the register.
 - Requires a manual approver step per DPIA — no bulk approve. Also
   deliberate: bulk approve would defeat the compliance purpose.
 

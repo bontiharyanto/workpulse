@@ -71,10 +71,7 @@ export class TimesheetExportController {
     });
 
     res.setHeader('Content-Type', result.contentType);
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="${result.filename}"`,
-    );
+    res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
     res.setHeader('X-Payload-Sha256', result.export.payloadSha256);
     res.setHeader('X-Export-Id', result.export.id);
     res.setHeader('Content-Length', String(result.payload.length));

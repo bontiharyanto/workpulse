@@ -62,8 +62,7 @@ export class DpiaExportService {
         generatedAt: now,
         ropaActivitySlug: assessment.ropaActivity.slug,
         ropaActivityName:
-          assessment.ropaActivity.currentVersion?.name ??
-          assessment.ropaActivity.slug,
+          assessment.ropaActivity.currentVersion?.name ?? assessment.ropaActivity.slug,
       },
       assessment,
     );

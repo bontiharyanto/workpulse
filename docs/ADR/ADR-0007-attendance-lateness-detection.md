@@ -33,7 +33,7 @@ alasan:
 - **Grace period + timezone perusahaan** adalah policy — policy harus
   berada di trust boundary, bukan di UI.
 
-Client cukup mengirim koordinat + timestamp *dari server response*. Server
+Client cukup mengirim koordinat + timestamp _dari server response_. Server
 memakai `Date.now()` (wall clock) sebagai satu-satunya sumber kebenaran.
 
 ### D2. Grace period per-shift, bukan per-company
@@ -83,13 +83,13 @@ menambah counter di kedua ember.
 
 ### D5. Self-service vs HR report
 
-| Aspek             | Self-service (`/me/summary`, `/me/history`)          | HR Report (`/reports/attendance`)               |
-|-------------------|-------------------------------------------------------|--------------------------------------------------|
-| Scope             | Caller only                                           | Tenant-wide, filter dept/user                    |
-| Time range        | 1 bulan (summary) / 90-366 hari (history)             | Arbitrary (bounded 366 hari)                     |
-| Output            | JSON, dashboard widget                                | Streaming Excel + PDF                            |
-| Reducer           | `summarizeAttendance` (jam total, on-time %)          | `toAttendanceReportRows` (row-level detail)      |
-| Auth              | Semua role                                            | `HR_MANAGER` / `SUPER_ADMIN`                     |
+| Aspek      | Self-service (`/me/summary`, `/me/history`)  | HR Report (`/reports/attendance`)           |
+| ---------- | -------------------------------------------- | ------------------------------------------- |
+| Scope      | Caller only                                  | Tenant-wide, filter dept/user               |
+| Time range | 1 bulan (summary) / 90-366 hari (history)    | Arbitrary (bounded 366 hari)                |
+| Output     | JSON, dashboard widget                       | Streaming Excel + PDF                       |
+| Reducer    | `summarizeAttendance` (jam total, on-time %) | `toAttendanceReportRows` (row-level detail) |
+| Auth       | Semua role                                   | `HR_MANAGER` / `SUPER_ADMIN`                |
 
 Keduanya memakai kolom yang sama (`lateMinutes`, `earlyLeaveMinutes`,
 `status`) — perbedaan hanya di shape output. Tidak ada aggregate table

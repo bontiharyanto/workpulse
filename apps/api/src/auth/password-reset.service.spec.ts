@@ -39,13 +39,7 @@ function setup(): {
   config.get.mockImplementation((key: string, fallback?: unknown) =>
     key === 'WEB_URL' ? 'https://app.workpulse.local' : (fallback as never),
   );
-  const service = new PasswordResetService(
-    prisma,
-    password,
-    notifications,
-    config,
-    email as never,
-  );
+  const service = new PasswordResetService(prisma, password, notifications, config, email as never);
   return { service, prisma, password, notifications, config, email };
 }
 
@@ -100,9 +94,7 @@ describe('PasswordResetService.requestReset', () => {
     const s = setup();
     s.prisma.user.findFirst.mockResolvedValue(null);
 
-    await expect(
-      s.service.requestReset({ email: 'ghost@nowhere.test' }),
-    ).resolves.toBeUndefined();
+    await expect(s.service.requestReset({ email: 'ghost@nowhere.test' })).resolves.toBeUndefined();
     expect(s.prisma.passwordResetToken.create).not.toHaveBeenCalled();
     expect(s.email.send).not.toHaveBeenCalled();
   });
@@ -114,9 +106,7 @@ describe('PasswordResetService.requestReset', () => {
       employmentStatus: 'TERMINATED',
     } as never);
 
-    await expect(
-      s.service.requestReset({ email: baseUser.email }),
-    ).resolves.toBeUndefined();
+    await expect(s.service.requestReset({ email: baseUser.email })).resolves.toBeUndefined();
     expect(s.prisma.passwordResetToken.create).not.toHaveBeenCalled();
   });
 
@@ -126,9 +116,7 @@ describe('PasswordResetService.requestReset', () => {
     s.prisma.passwordResetToken.create.mockResolvedValue({} as never);
     s.email.send.mockRejectedValueOnce(new Error('SMTP down'));
 
-    await expect(
-      s.service.requestReset({ email: baseUser.email }),
-    ).resolves.toBeUndefined();
+    await expect(s.service.requestReset({ email: baseUser.email })).resolves.toBeUndefined();
   });
 });
 

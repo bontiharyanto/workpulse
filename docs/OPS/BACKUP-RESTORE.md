@@ -68,6 +68,7 @@ age-keygen -o /secure/backup-key.txt
 ```
 
 Simpan `/secure/backup-key.txt` di:
+
 - Password manager tim (1Password vault "Ops secrets").
 - YubiKey OTP / hardware token.
 - Copy fisik di safety box kantor (opsional untuk paranoid mode).
@@ -101,6 +102,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.production logs -f bac
 ```
 
 Log seharusnya menampilkan:
+
 ```
 [backup] cron schedule: 15 19 * * * (UTC)
 [backup] destination:   workpulse-backups/workpulse
@@ -153,6 +155,7 @@ NEWEST=10 ./scripts/list-backups.sh          # 10 terbaru
 ## 4. Drill Restore (WAJIB kuartalan)
 
 Setiap kuartal, minimal satu drill di **VPS staging terpisah** (bukan primary!). Drill mengukur:
+
 - Waktu total (unduh → dekripsi → load → sanity check).
 - Ukuran dump aktual (untuk kapasitas planning).
 - Bahwa **private key offline** benar-benar bisa dekripsi (kadang keypair yang salah tersimpan).
@@ -179,6 +182,7 @@ AGE_IDENTITY_FILE=/root/backup-key.txt \
 ```
 
 Script akan:
+
 1. Unduh dari R2.
 2. Dekripsi dengan private key.
 3. Buat DB `workpulse_restored_<timestamp>`.
@@ -235,6 +239,7 @@ Alur untuk kondisi worst-case: VPS primary hilang (provider outage lama, disk co
 Backup sidecar tidak punya notifikasi built-in. Untuk pilot cukup:
 
 **External monitor** (BetterStack / UptimeRobot free tier):
+
 - Setup **heartbeat check** dengan interval 25 jam.
 - Tambahkan curl POST ke heartbeat URL di ujung `run-backup.sh`:
   ```bash
@@ -252,6 +257,7 @@ Kalau > 25 jam tidak ada heartbeat → alert. Batas 25 jam memberi buffer 1 jam 
 ## 7. Rotasi Private Key age
 
 Jarang, tapi wajib saat:
+
 - Ops PIC keluar dan sempat pegang private key.
 - Suspected compromise pada password manager.
 - Rutin tahunan (best practice).
@@ -278,11 +284,11 @@ Prosedur:
 
 ## 8. Batasan yang Diketahui + Rencana Upgrade
 
-| Batasan | Dampak | Rencana upgrade |
-|---|---|---|
-| RPO 24 jam | Data 24 jam terakhir hilang saat DR total | Aktifkan WAL archiving ke R2 (via `wal-g`), atau migrasi ke Neon/Supabase yang punya PITR default. Effort: 1–2 hari. |
-| Restore drill manual | Butuh operator kuartalan | Otomatis via GitHub Action yang provision VPS ephemeral + jalankan drill + hancurkan. Effort: 3–5 hari. |
-| Single-region | Kalau seluruh region R2 down, backup unreachable | Enable R2 cross-region replication (Cloudflare feature) atau mirror ke bucket B2/S3 sebagai fallback. Effort: 1 hari. |
-| pg_dump lock table pendek | Untuk DB > 5 GB dump bisa memakan 5–10 menit lock read | Migrasi ke logical replication + Postgres streaming backup. |
+| Batasan                   | Dampak                                                 | Rencana upgrade                                                                                                       |
+| ------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| RPO 24 jam                | Data 24 jam terakhir hilang saat DR total              | Aktifkan WAL archiving ke R2 (via `wal-g`), atau migrasi ke Neon/Supabase yang punya PITR default. Effort: 1–2 hari.  |
+| Restore drill manual      | Butuh operator kuartalan                               | Otomatis via GitHub Action yang provision VPS ephemeral + jalankan drill + hancurkan. Effort: 3–5 hari.               |
+| Single-region             | Kalau seluruh region R2 down, backup unreachable       | Enable R2 cross-region replication (Cloudflare feature) atau mirror ke bucket B2/S3 sebagai fallback. Effort: 1 hari. |
+| pg_dump lock table pendek | Untuk DB > 5 GB dump bisa memakan 5–10 menit lock read | Migrasi ke logical replication + Postgres streaming backup.                                                           |
 
 Semua di atas berlebihan untuk 1–10 tenant. Angkat prioritas begitu DB tembus 5 GB atau tenant count > 15.

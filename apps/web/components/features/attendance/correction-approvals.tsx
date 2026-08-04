@@ -36,16 +36,14 @@ export function CorrectionApprovals(): JSX.Element {
   });
 
   if (list.isLoading) {
-    return <p className="text-sm text-muted-foreground">Memuat...</p>;
+    return <p className="text-muted-foreground text-sm">Memuat...</p>;
   }
   if (list.isError) {
-    return <p className="text-sm text-destructive">Gagal memuat daftar.</p>;
+    return <p className="text-destructive text-sm">Gagal memuat daftar.</p>;
   }
   const rows = list.data ?? [];
   if (rows.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">Tidak ada koreksi menunggu keputusan.</p>
-    );
+    return <p className="text-muted-foreground text-sm">Tidak ada koreksi menunggu keputusan.</p>;
   }
 
   return (
@@ -54,14 +52,12 @@ export function CorrectionApprovals(): JSX.Element {
         <ApprovalRow
           key={r.id}
           row={r}
-          onDecide={(action, note) =>
-            decide.mutate({ id: r.id, action, note: note || undefined })
-          }
+          onDecide={(action, note) => decide.mutate({ id: r.id, action, note: note || undefined })}
           submitting={decide.isPending}
         />
       ))}
       {decide.isError ? (
-        <p className="text-xs text-destructive">{formatApiError(decide.error)}</p>
+        <p className="text-destructive text-xs">{formatApiError(decide.error)}</p>
       ) : null}
     </div>
   );
@@ -84,14 +80,14 @@ function ApprovalRow({ row, onDecide, submitting }: ApprovalRowProps): JSX.Eleme
           <p className="text-sm font-medium">
             {row.userFullName ?? row.userId} · {formatDate(row.workDate)}
           </p>
-          <p className="text-xs text-muted-foreground">{summarize(row)}</p>
+          <p className="text-muted-foreground text-xs">{summarize(row)}</p>
         </div>
         {row.attachmentUrl ? (
           <a
             href={row.attachmentUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-primary underline"
+            className="text-primary text-xs underline"
           >
             Lampiran
           </a>
@@ -99,15 +95,13 @@ function ApprovalRow({ row, onDecide, submitting }: ApprovalRowProps): JSX.Eleme
       </header>
       <p className="text-sm">{row.reason}</p>
       <label className="block space-y-1 text-xs">
-        <span className="font-medium text-muted-foreground">
-          Catatan keputusan (opsional)
-        </span>
+        <span className="text-muted-foreground font-medium">Catatan keputusan (opsional)</span>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={2}
           maxLength={500}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
           placeholder="Ditampilkan ke pengaju jika ditolak."
         />
       </label>
@@ -124,7 +118,7 @@ function ApprovalRow({ row, onDecide, submitting }: ApprovalRowProps): JSX.Eleme
           type="button"
           onClick={() => onDecide('REJECT', note)}
           disabled={submitting}
-          className="rounded-md bg-destructive px-3 py-1.5 text-xs font-medium text-destructive-foreground disabled:opacity-50"
+          className="bg-destructive text-destructive-foreground rounded-md px-3 py-1.5 text-xs font-medium disabled:opacity-50"
         >
           Tolak
         </button>

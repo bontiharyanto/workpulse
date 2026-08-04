@@ -1,7 +1,4 @@
-import {
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import type { PrivacyPolicy, UserConsent } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
@@ -119,13 +116,9 @@ describe('ConsentService.accept', () => {
 
   it('404s when the policy id belongs to another tenant', async () => {
     const { service, prisma } = buildKit();
-    prisma.privacyPolicy.findUnique.mockResolvedValue(
-      makePolicy({ companyId: 'other-tenant' }),
-    );
+    prisma.privacyPolicy.findUnique.mockResolvedValue(makePolicy({ companyId: 'other-tenant' }));
 
-    await expect(
-      service.accept('u-1', 'c-1', 'pol-1'),
-    ).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.accept('u-1', 'c-1', 'pol-1')).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('409s when the policy has a future effectiveAt', async () => {
@@ -136,9 +129,7 @@ describe('ConsentService.accept', () => {
       }),
     );
 
-    await expect(
-      service.accept('u-1', 'c-1', 'pol-1'),
-    ).rejects.toBeInstanceOf(ConflictException);
+    await expect(service.accept('u-1', 'c-1', 'pol-1')).rejects.toBeInstanceOf(ConflictException);
   });
 });
 
@@ -176,9 +167,7 @@ describe('ConsentService.publish', () => {
 
     const tx = {
       privacyPolicy: {
-        create: jest.fn().mockRejectedValue(
-          Object.assign(new Error('unique'), { code: 'P2002' }),
-        ),
+        create: jest.fn().mockRejectedValue(Object.assign(new Error('unique'), { code: 'P2002' })),
       },
       auditLog: { create: jest.fn() },
     };

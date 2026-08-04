@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -53,9 +44,7 @@ export class OvertimeController {
   @Get('approvals/pending')
   @Roles('SUPERVISOR', 'HR_MANAGER', 'SUPER_ADMIN')
   @ApiOkResponse({ type: OvertimeRequestDto, isArray: true })
-  async listApprovals(
-    @CurrentUser() user: AuthenticatedUser,
-  ): Promise<OvertimeRequestDto[]> {
+  async listApprovals(@CurrentUser() user: AuthenticatedUser): Promise<OvertimeRequestDto[]> {
     const rows = await this.overtime.listPendingApprovals(user);
     const hydrated = await this.overtime.hydrate(rows, { includeRequester: true });
     return hydrated.map(toRequestDto);

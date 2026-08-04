@@ -9,8 +9,8 @@ Related: [ADR-0020](./ADR-0020-data-export-dsar.md), [ADR-0021](./ADR-0021-right
 
 Both **UU 27/2022 Pelindungan Data Pribadi Pasal 31** and **GDPR Art. 30**
 require every controller to maintain a **Record of Processing Activities**
-(ROPA): a living register describing *what* personal data is processed,
-*why*, on *what* legal basis, *who* it is shared with, and *how long*
+(ROPA): a living register describing _what_ personal data is processed,
+_why_, on _what_ legal basis, _who_ it is shared with, and _how long_
 it is retained. When a regulator inspects the tenant, the ROPA is the
 first artefact they ask to see.
 
@@ -41,7 +41,7 @@ Ship a first-class ROPA registry inside Workpulse, with:
 
 3. **Six seed blueprints** (`apps/api/src/ropa/domain/seed-catalogue.ts`)
    materialised via a **manual** `POST /admin/ropa/seed-defaults` button.
-   The blueprints are deliberately conservative *drafts* — the DPO must
+   The blueprints are deliberately conservative _drafts_ — the DPO must
    review before publish, because a regulator would reject "generic
    default" wording. Rerunning the helper is idempotent: existing slugs
    are skipped, missing ones created. The seed covers every built-in

@@ -38,10 +38,7 @@ export class ForbiddenTransitionError extends Error {
   }
 }
 
-export function transition(
-  current: OvertimeStatus,
-  event: OvertimeEvent,
-): OvertimeStatus {
+export function transition(current: OvertimeStatus, event: OvertimeEvent): OvertimeStatus {
   switch (event.kind) {
     case 'APPROVE':
     case 'REJECT': {
@@ -55,9 +52,7 @@ export function transition(
         throw new ForbiddenTransitionError('only supervisor/HR can decide');
       }
       if (event.actorRole === 'SUPERVISOR' && !event.isTeamSupervisor) {
-        throw new ForbiddenTransitionError(
-          'supervisor may only decide for their direct team',
-        );
+        throw new ForbiddenTransitionError('supervisor may only decide for their direct team');
       }
       return event.kind === 'APPROVE' ? 'APPROVED' : 'REJECTED';
     }

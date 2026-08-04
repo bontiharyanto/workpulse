@@ -35,16 +35,14 @@ export function MonthlySummaryWidget(): JSX.Element {
   return (
     <section className="space-y-3 rounded-lg border p-6 shadow-sm">
       <header className="space-y-0.5">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground">
-          Rekap bulan ini
-        </p>
+        <p className="text-muted-foreground text-xs uppercase tracking-widest">Rekap bulan ini</p>
         <p className="text-sm font-medium">{monthLabel}</p>
       </header>
 
       {summary.isLoading ? (
-        <p className="text-sm text-muted-foreground">Memuat...</p>
+        <p className="text-muted-foreground text-sm">Memuat...</p>
       ) : summary.isError ? (
-        <p className="text-sm text-destructive">Gagal memuat rekap.</p>
+        <p className="text-destructive text-sm">Gagal memuat rekap.</p>
       ) : summary.data ? (
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -86,42 +84,30 @@ interface StatTileProps {
 
 function StatTile({ label, value, suffix, tone = 'muted' }: StatTileProps): JSX.Element {
   const valueClass =
-    tone === 'ok'
-      ? 'text-emerald-600'
-      : tone === 'warn'
-        ? 'text-destructive'
-        : 'text-foreground';
+    tone === 'ok' ? 'text-emerald-600' : tone === 'warn' ? 'text-destructive' : 'text-foreground';
   return (
-    <div className="rounded-md border bg-muted/30 p-3">
-      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
+    <div className="bg-muted/30 rounded-md border p-3">
+      <p className="text-muted-foreground text-[11px] uppercase tracking-wider">{label}</p>
       <p className={`text-2xl font-semibold ${valueClass}`}>{value}</p>
-      {suffix ? <p className="text-[11px] text-muted-foreground">{suffix}</p> : null}
+      {suffix ? <p className="text-muted-foreground text-[11px]">{suffix}</p> : null}
     </div>
   );
 }
 
 function OnTimeBar({ percent }: { percent: number | null }): JSX.Element {
   if (percent === null) {
-    return (
-      <p className="text-xs text-muted-foreground">
-        Belum ada catatan kehadiran bulan ini.
-      </p>
-    );
+    return <p className="text-muted-foreground text-xs">Belum ada catatan kehadiran bulan ini.</p>;
   }
   const clamped = Math.max(0, Math.min(100, percent));
   const color =
-    clamped >= 90
-      ? 'bg-emerald-500'
-      : clamped >= 75
-        ? 'bg-amber-500'
-        : 'bg-destructive';
+    clamped >= 90 ? 'bg-emerald-500' : clamped >= 75 ? 'bg-amber-500' : 'bg-destructive';
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-xs">
         <span className="text-muted-foreground">Tingkat tepat waktu</span>
         <span className="font-medium tabular-nums">{clamped.toFixed(1)}%</span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+      <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
         <div className={`h-full ${color}`} style={{ width: `${clamped}%` }} />
       </div>
     </div>

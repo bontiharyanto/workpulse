@@ -10,7 +10,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }): 
   return (
     <RequireAuth>
       <div className="flex min-h-screen flex-col">
-        <header className="border-b bg-background">
+        <header className="bg-background border-b">
           <div className="container flex h-14 items-center justify-between">
             <Link href="/" className="font-semibold">
               Workpulse

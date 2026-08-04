@@ -23,7 +23,11 @@ import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
 import { AllowMustChangePassword } from './decorators/allow-must-change-password.decorator';
 import { AllowPendingConsent } from './decorators/allow-pending-consent.decorator';
-import { AuthenticatedUserDto, LoginResponseDto, RefreshResponseDto } from './dto/auth-response.dto';
+import {
+  AuthenticatedUserDto,
+  LoginResponseDto,
+  RefreshResponseDto,
+} from './dto/auth-response.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
@@ -52,8 +56,7 @@ export class AuthController {
     private readonly passwordReset: PasswordResetService,
     private readonly consent: ConsentService,
   ) {
-    this.mfaEnforceHrAdmin =
-      config.get<string>('MFA_ENFORCE_HR_ADMIN', 'true') !== 'false';
+    this.mfaEnforceHrAdmin = config.get<string>('MFA_ENFORCE_HR_ADMIN', 'true') !== 'false';
   }
 
   @Post('login')
@@ -74,7 +77,11 @@ export class AuthController {
       },
     );
 
-    res.cookie(REFRESH_COOKIE_NAME, tokens.refreshToken, this.buildRefreshCookieOptions(tokens.refreshTokenExpiresAt));
+    res.cookie(
+      REFRESH_COOKIE_NAME,
+      tokens.refreshToken,
+      this.buildRefreshCookieOptions(tokens.refreshTokenExpiresAt),
+    );
 
     return {
       accessToken: tokens.accessToken,
@@ -103,7 +110,11 @@ export class AuthController {
       ip: req.ip,
     });
 
-    res.cookie(REFRESH_COOKIE_NAME, pair.refreshToken, this.buildRefreshCookieOptions(pair.refreshTokenExpiresAt));
+    res.cookie(
+      REFRESH_COOKIE_NAME,
+      pair.refreshToken,
+      this.buildRefreshCookieOptions(pair.refreshTokenExpiresAt),
+    );
 
     return {
       accessToken: pair.accessToken,
@@ -114,10 +125,7 @@ export class AuthController {
   @Post('logout')
   @Public()
   @HttpCode(HttpStatus.NO_CONTENT)
-  async logout(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<void> {
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<void> {
     const raw = extractRefreshCookie(req);
     await this.auth.logout(raw);
     res.clearCookie(REFRESH_COOKIE_NAME, this.buildRefreshCookieOptions(new Date(0)));
@@ -174,8 +182,7 @@ export class AuthController {
     );
     res.clearCookie(REFRESH_COOKIE_NAME, this.buildRefreshCookieOptions(new Date(0)));
     return {
-      message:
-        'Password Anda telah berhasil diubah. Silakan login menggunakan password baru.',
+      message: 'Password Anda telah berhasil diubah. Silakan login menggunakan password baru.',
     };
   }
 
@@ -233,8 +240,7 @@ export class AuthController {
     // browser would linger until the next `/auth/refresh` failure.
     res.clearCookie(REFRESH_COOKIE_NAME, this.buildRefreshCookieOptions(new Date(0)));
     return {
-      message:
-        'Password Anda telah berhasil diubah. Silakan login menggunakan password baru.',
+      message: 'Password Anda telah berhasil diubah. Silakan login menggunakan password baru.',
     };
   }
 
@@ -261,8 +267,7 @@ export class AuthController {
     // `pendingConsent` is only interesting when the session is otherwise
     // usable — a user still stuck on mustChangePassword or pre-MFA has a
     // higher-priority redirect already, so we don't waste the DB read.
-    const shouldCheckConsent =
-      user.mustChangePassword !== true && user.mfaPassed !== false;
+    const shouldCheckConsent = user.mustChangePassword !== true && user.mfaPassed !== false;
     const pendingConsent = shouldCheckConsent
       ? await this.consent.getPendingConsentForUser(user.id, user.companyId)
       : null;
@@ -276,9 +281,7 @@ export class AuthController {
       mfaEnabled: user.mfaEnabled === true,
       mfaPassed: user.mfaPassed !== false,
       mfaEnrollmentRequired:
-        this.mfaEnforceHrAdmin &&
-        MFA_MANDATORY_ROLES.has(user.role) &&
-        user.mfaEnabled !== true,
+        this.mfaEnforceHrAdmin && MFA_MANDATORY_ROLES.has(user.role) && user.mfaEnabled !== true,
       pendingConsent: pendingConsent
         ? {
             id: pendingConsent.id,

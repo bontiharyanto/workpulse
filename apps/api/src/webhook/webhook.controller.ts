@@ -57,9 +57,7 @@ export class WebhookController {
   @Get()
   @ApiBearerAuth()
   @ApiOkResponse({ type: WebhookEndpointListDto })
-  async list(
-    @CurrentUser() actor: AuthenticatedUser,
-  ): Promise<WebhookEndpointListDto> {
+  async list(@CurrentUser() actor: AuthenticatedUser): Promise<WebhookEndpointListDto> {
     const items = await this.service.list(actor);
     return { items };
   }
@@ -94,10 +92,7 @@ export class WebhookController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth()
   @ApiNoContentResponse()
-  async remove(
-    @CurrentUser() actor: AuthenticatedUser,
-    @Param('id') id: string,
-  ): Promise<void> {
+  async remove(@CurrentUser() actor: AuthenticatedUser, @Param('id') id: string): Promise<void> {
     await this.service.remove(actor, id);
   }
 
@@ -130,8 +125,7 @@ export class WebhookController {
       select: { events: true },
     });
     if (!endpoint) throw new NotFoundException('WEBHOOK_NOT_FOUND');
-    const event: WebhookEventType =
-      endpoint.events[0] ?? 'TIMESHEET_EXPORT_CREATED';
+    const event: WebhookEventType = endpoint.events[0] ?? 'TIMESHEET_EXPORT_CREATED';
     await this.dispatcher.enqueue({
       companyId: actor.companyId,
       eventType: event,

@@ -2,7 +2,9 @@ import { haversineDistanceMeters } from './coordinates';
 
 describe('haversineDistanceMeters', () => {
   it('returns 0 for the same point', () => {
-    expect(haversineDistanceMeters({ latitude: 0, longitude: 0 }, { latitude: 0, longitude: 0 })).toBe(0);
+    expect(
+      haversineDistanceMeters({ latitude: 0, longitude: 0 }, { latitude: 0, longitude: 0 }),
+    ).toBe(0);
   });
 
   it('computes Jakarta Sudirman → Monas distance (~4.2km) within tolerance', () => {

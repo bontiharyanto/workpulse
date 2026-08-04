@@ -97,13 +97,13 @@ export function NotificationBell(): JSX.Element {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={`Notifikasi (${count} belum dibaca)`}
-        className="relative flex h-8 w-8 items-center justify-center rounded-md border border-input text-muted-foreground hover:bg-muted"
+        className="border-input text-muted-foreground hover:bg-muted relative flex h-8 w-8 items-center justify-center rounded-md border"
       >
         <BellIcon />
         {count > 0 ? (
           <span
             aria-hidden
-            className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground"
+            className="bg-primary text-primary-foreground absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold leading-none"
           >
             {badge}
           </span>
@@ -114,7 +114,7 @@ export function NotificationBell(): JSX.Element {
         <div
           role="menu"
           aria-label="Notifikasi"
-          className="absolute right-0 z-40 mt-2 w-96 rounded-md border bg-background shadow-lg"
+          className="bg-background absolute right-0 z-40 mt-2 w-96 rounded-md border shadow-lg"
         >
           <div className="flex items-center justify-between border-b px-3 py-2 text-sm">
             <span className="font-semibold">Notifikasi</span>
@@ -122,7 +122,7 @@ export function NotificationBell(): JSX.Element {
               type="button"
               onClick={() => markAllRead.mutate()}
               disabled={count === 0 || markAllRead.isPending}
-              className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-40"
+              className="text-muted-foreground hover:text-foreground text-xs disabled:opacity-40"
             >
               Tandai semua dibaca
             </button>
@@ -130,7 +130,7 @@ export function NotificationBell(): JSX.Element {
 
           <div className="max-h-96 overflow-y-auto">
             {list.isLoading ? (
-              <div className="p-4 text-sm text-muted-foreground">Memuat...</div>
+              <div className="text-muted-foreground p-4 text-sm">Memuat...</div>
             ) : list.data && list.data.length > 0 ? (
               <ul className="divide-y">
                 {list.data.map((n) => (
@@ -143,7 +143,7 @@ export function NotificationBell(): JSX.Element {
                 ))}
               </ul>
             ) : (
-              <div className="p-6 text-center text-sm text-muted-foreground">
+              <div className="text-muted-foreground p-6 text-center text-sm">
                 Belum ada notifikasi.
               </div>
             )}
@@ -153,7 +153,7 @@ export function NotificationBell(): JSX.Element {
             <Link
               href="/notifications"
               onClick={() => setOpen(false)}
-              className="text-xs font-medium text-primary hover:underline"
+              className="text-primary text-xs font-medium hover:underline"
             >
               Lihat semua notifikasi →
             </Link>
@@ -174,7 +174,8 @@ interface RowProps {
 
 function NotificationRow({ notification, onMarkRead, onNavigate }: RowProps): JSX.Element {
   const isUnread = !notification.readAt;
-  const href = typeof notification.data?.href === 'string' ? (notification.data.href as string) : null;
+  const href =
+    typeof notification.data?.href === 'string' ? (notification.data.href as string) : null;
   const timestamp = formatTimestamp(notification.createdAt);
 
   const handleClick = (): void => {
@@ -194,16 +195,14 @@ function NotificationRow({ notification, onMarkRead, onNavigate }: RowProps): JS
         <p className={`text-sm ${isUnread ? 'font-semibold' : 'font-normal'}`}>
           {notification.title}
         </p>
-        <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
-          {notification.body}
-        </p>
-        <p className="mt-1 text-[11px] text-muted-foreground">{timestamp}</p>
+        <p className="text-muted-foreground mt-0.5 line-clamp-2 text-xs">{notification.body}</p>
+        <p className="text-muted-foreground mt-1 text-[11px]">{timestamp}</p>
       </div>
     </div>
   );
 
   return (
-    <li className="px-3 py-2 hover:bg-muted/60">
+    <li className="hover:bg-muted/60 px-3 py-2">
       {href ? (
         <Link href={href as Route} className="block" onClick={handleClick}>
           {inner}

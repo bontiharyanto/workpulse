@@ -91,19 +91,22 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     }
   }, []);
 
-  const completeMfa = useCallback<AuthContextValue['completeMfa']>(async ({ accessToken, accessTokenExpiresIn }) => {
-    // Swap the in-memory token first so the follow-up /auth/me call
-    // carries `mfaPassed=true`. Otherwise the MfaVerifiedGuard would
-    // 403 it — /auth/me is @AllowMustChangePassword whitelisted so
-    // this works, but keeping the ordering makes the flow
-    // race-independent if we tighten the whitelist later.
-    authStore.set({
-      accessToken,
-      expiresAt: computeExpiryEpoch(accessTokenExpiresIn),
-    });
-    const me = await authApi.me();
-    authStore.set({ user: me });
-  }, []);
+  const completeMfa = useCallback<AuthContextValue['completeMfa']>(
+    async ({ accessToken, accessTokenExpiresIn }) => {
+      // Swap the in-memory token first so the follow-up /auth/me call
+      // carries `mfaPassed=true`. Otherwise the MfaVerifiedGuard would
+      // 403 it — /auth/me is @AllowMustChangePassword whitelisted so
+      // this works, but keeping the ordering makes the flow
+      // race-independent if we tighten the whitelist later.
+      authStore.set({
+        accessToken,
+        expiresAt: computeExpiryEpoch(accessTokenExpiresIn),
+      });
+      const me = await authApi.me();
+      authStore.set({ user: me });
+    },
+    [],
+  );
 
   const refreshMe = useCallback<AuthContextValue['refreshMe']>(async () => {
     const me = await authApi.me();

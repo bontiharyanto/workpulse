@@ -71,8 +71,7 @@ export function TimesheetConfigPanel(): JSX.Element {
   }, [config.data, form]);
 
   const mutation = useMutation({
-    mutationFn: (input: UpdateTimesheetConfigInput) =>
-      timesheetConfigApi.update(input),
+    mutationFn: (input: UpdateTimesheetConfigInput) => timesheetConfigApi.update(input),
     onSuccess: async () => {
       setSaved('saved');
       await qc.invalidateQueries({ queryKey: ['timesheet-config'] });
@@ -97,7 +96,7 @@ export function TimesheetConfigPanel(): JSX.Element {
       <div
         role="status"
         aria-live="polite"
-        className="rounded-md border border-dashed border-border p-6 text-sm text-muted-foreground"
+        className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm"
       >
         Memuat konfigurasi timesheet…
       </div>
@@ -108,7 +107,7 @@ export function TimesheetConfigPanel(): JSX.Element {
     return (
       <div
         role="alert"
-        className="rounded-md border border-destructive/50 bg-destructive/5 p-4 text-sm text-destructive"
+        className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-4 text-sm"
       >
         Gagal memuat konfigurasi. Coba muat ulang halaman.
       </div>
@@ -118,30 +117,27 @@ export function TimesheetConfigPanel(): JSX.Element {
   return (
     <form
       onSubmit={onSubmit}
-      className="space-y-6 rounded-lg border border-border bg-card p-6"
+      className="border-border bg-card space-y-6 rounded-lg border p-6"
       aria-labelledby="tsc-heading"
     >
       <div className="space-y-1">
         <h2 id="tsc-heading" className="text-lg font-semibold">
           Konfigurasi timesheet
         </h2>
-        <p className="text-sm text-muted-foreground">
-          Tentukan jenis periode dan zona waktu tenant. Perubahan berlaku
-          pada generate timesheet berikutnya.
+        <p className="text-muted-foreground text-sm">
+          Tentukan jenis periode dan zona waktu tenant. Perubahan berlaku pada generate timesheet
+          berikutnya.
         </p>
       </div>
 
       <div className="space-y-4">
         <div className="space-y-1">
-          <label
-            htmlFor="periodType"
-            className="text-sm font-medium text-foreground"
-          >
+          <label htmlFor="periodType" className="text-foreground text-sm font-medium">
             Jenis periode
           </label>
           <select
             id="periodType"
-            className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
             {...form.register('periodType')}
           >
             <option value="WEEKLY">Mingguan (7 hari)</option>
@@ -153,15 +149,12 @@ export function TimesheetConfigPanel(): JSX.Element {
 
         {periodType === 'WEEKLY' ? (
           <div className="space-y-1">
-            <label
-              htmlFor="weekStartDay"
-              className="text-sm font-medium text-foreground"
-            >
+            <label htmlFor="weekStartDay" className="text-foreground text-sm font-medium">
               Hari awal minggu
             </label>
             <select
               id="weekStartDay"
-              className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
               {...form.register('weekStartDay')}
             >
               <option value="MONDAY">Senin</option>
@@ -172,31 +165,25 @@ export function TimesheetConfigPanel(): JSX.Element {
 
         {periodType === 'BIWEEKLY' ? (
           <div className="space-y-1">
-            <label
-              htmlFor="biweeklyAnchor"
-              className="text-sm font-medium text-foreground"
-            >
+            <label htmlFor="biweeklyAnchor" className="text-foreground text-sm font-medium">
               Anchor bi-weekly (tanggal referensi)
             </label>
             <input
               id="biweeklyAnchor"
               type="date"
-              className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
               {...form.register('biweeklyAnchor')}
             />
-            <p className="text-xs text-muted-foreground">
-              Setiap periode 14 hari dihitung dari tanggal ini. Opsional —
-              kalau kosong sistem pakai anchor default.
+            <p className="text-muted-foreground text-xs">
+              Setiap periode 14 hari dihitung dari tanggal ini. Opsional — kalau kosong sistem pakai
+              anchor default.
             </p>
           </div>
         ) : null}
 
         {periodType === 'CUTOFF' ? (
           <div className="space-y-1">
-            <label
-              htmlFor="cutoffDayOfMonth"
-              className="text-sm font-medium text-foreground"
-            >
+            <label htmlFor="cutoffDayOfMonth" className="text-foreground text-sm font-medium">
               Tanggal cutoff bulanan (1–28)
             </label>
             <input
@@ -204,54 +191,50 @@ export function TimesheetConfigPanel(): JSX.Element {
               type="number"
               min={timesheetConfigBounds.cutoffDayOfMonth.min}
               max={timesheetConfigBounds.cutoffDayOfMonth.max}
-              className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
               {...form.register('cutoffDayOfMonth', { valueAsNumber: true })}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               Contoh: 25 → periode 26 bulan lalu s/d 25 bulan ini.
             </p>
           </div>
         ) : null}
 
         <div className="space-y-1">
-          <label
-            htmlFor="timezone"
-            className="text-sm font-medium text-foreground"
-          >
+          <label htmlFor="timezone" className="text-foreground text-sm font-medium">
             Zona waktu
           </label>
           <input
             id="timezone"
             type="text"
-            className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
             {...form.register('timezone')}
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             IANA timezone, e.g. <code>Asia/Jakarta</code>.
           </p>
         </div>
       </div>
 
-      <fieldset className="space-y-4 rounded-md border border-border p-4">
-        <legend className="px-1 text-sm font-semibold text-foreground">
+      <fieldset className="border-border space-y-4 rounded-md border p-4">
+        <legend className="text-foreground px-1 text-sm font-semibold">
           Otomasi &amp; pengingat
         </legend>
-        <p className="text-xs text-muted-foreground">
-          Scheduler harian menjalankan tugas ini pada 03:00 UTC (~10:00 WIB)
-          untuk setiap tenant.
+        <p className="text-muted-foreground text-xs">
+          Scheduler harian menjalankan tugas ini pada 03:00 UTC (~10:00 WIB) untuk setiap tenant.
         </p>
 
         <label className="flex items-start gap-3 text-sm">
           <input
             type="checkbox"
-            className="mt-0.5 h-4 w-4 rounded border-input"
+            className="border-input mt-0.5 h-4 w-4 rounded"
             {...form.register('autoGenerateEnabled')}
           />
           <span>
             <span className="font-medium">Auto-generate periode berikutnya</span>
-            <span className="mt-0.5 block text-xs text-muted-foreground">
-              Saat periode ditutup, sistem otomatis membuat periode &amp; DRAFT
-              timesheet untuk setiap karyawan aktif.
+            <span className="text-muted-foreground mt-0.5 block text-xs">
+              Saat periode ditutup, sistem otomatis membuat periode &amp; DRAFT timesheet untuk
+              setiap karyawan aktif.
             </span>
           </span>
         </label>
@@ -259,24 +242,21 @@ export function TimesheetConfigPanel(): JSX.Element {
         <label className="flex items-start gap-3 text-sm">
           <input
             type="checkbox"
-            className="mt-0.5 h-4 w-4 rounded border-input"
+            className="border-input mt-0.5 h-4 w-4 rounded"
             {...form.register('reminderEnabled')}
           />
           <span>
             <span className="font-medium">Kirim reminder otomatis</span>
-            <span className="mt-0.5 block text-xs text-muted-foreground">
-              Karyawan yang belum submit &amp; approver yang menunda review
-              akan dinotifikasi setiap hari selama window di bawah.
+            <span className="text-muted-foreground mt-0.5 block text-xs">
+              Karyawan yang belum submit &amp; approver yang menunda review akan dinotifikasi setiap
+              hari selama window di bawah.
             </span>
           </span>
         </label>
 
         <div className="grid grid-cols-2 gap-4 pt-2">
           <div className="space-y-1">
-            <label
-              htmlFor="submitStart"
-              className="text-xs font-medium text-foreground"
-            >
+            <label htmlFor="submitStart" className="text-foreground text-xs font-medium">
               Submit reminder mulai (hari ke-)
             </label>
             <input
@@ -284,17 +264,14 @@ export function TimesheetConfigPanel(): JSX.Element {
               type="number"
               min={timesheetConfigBounds.submitReminderStartDays.min}
               max={timesheetConfigBounds.submitReminderStartDays.max}
-              className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
               {...form.register('submitReminderStartDays', {
                 valueAsNumber: true,
               })}
             />
           </div>
           <div className="space-y-1">
-            <label
-              htmlFor="submitMax"
-              className="text-xs font-medium text-foreground"
-            >
+            <label htmlFor="submitMax" className="text-foreground text-xs font-medium">
               Submit reminder berhenti (hari ke-)
             </label>
             <input
@@ -302,17 +279,14 @@ export function TimesheetConfigPanel(): JSX.Element {
               type="number"
               min={timesheetConfigBounds.submitReminderMaxDays.min}
               max={timesheetConfigBounds.submitReminderMaxDays.max}
-              className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
               {...form.register('submitReminderMaxDays', {
                 valueAsNumber: true,
               })}
             />
           </div>
           <div className="space-y-1">
-            <label
-              htmlFor="approvalStart"
-              className="text-xs font-medium text-foreground"
-            >
+            <label htmlFor="approvalStart" className="text-foreground text-xs font-medium">
               Approval reminder mulai (hari ke-)
             </label>
             <input
@@ -320,17 +294,14 @@ export function TimesheetConfigPanel(): JSX.Element {
               type="number"
               min={timesheetConfigBounds.approvalReminderStartDays.min}
               max={timesheetConfigBounds.approvalReminderStartDays.max}
-              className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
               {...form.register('approvalReminderStartDays', {
                 valueAsNumber: true,
               })}
             />
           </div>
           <div className="space-y-1">
-            <label
-              htmlFor="approvalMax"
-              className="text-xs font-medium text-foreground"
-            >
+            <label htmlFor="approvalMax" className="text-foreground text-xs font-medium">
               Approval reminder berhenti (hari ke-)
             </label>
             <input
@@ -338,40 +309,36 @@ export function TimesheetConfigPanel(): JSX.Element {
               type="number"
               min={timesheetConfigBounds.approvalReminderMaxDays.min}
               max={timesheetConfigBounds.approvalReminderMaxDays.max}
-              className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
               {...form.register('approvalReminderMaxDays', {
                 valueAsNumber: true,
               })}
             />
           </div>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Range: 0..30 (mulai) / 1..60 (berhenti). Nilai &ldquo;berhenti&rdquo;
-          harus &gt;= &ldquo;mulai&rdquo;.
+        <p className="text-muted-foreground text-xs">
+          Range: 0..30 (mulai) / 1..60 (berhenti). Nilai &ldquo;berhenti&rdquo; harus &gt;=
+          &ldquo;mulai&rdquo;.
         </p>
       </fieldset>
 
       {inlineError ? (
         <div
           role="alert"
-          className="rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive"
+          className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-3 text-sm"
         >
           {inlineError}
         </div>
       ) : null}
 
       <div className="flex items-center justify-between gap-3">
-        <p
-          role="status"
-          aria-live="polite"
-          className="text-xs text-muted-foreground"
-        >
+        <p role="status" aria-live="polite" className="text-muted-foreground text-xs">
           {saved === 'saved' ? 'Perubahan tersimpan.' : ''}
         </p>
         <button
           type="submit"
           disabled={mutation.isPending || !form.formState.isDirty}
-          className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
         >
           {mutation.isPending ? 'Menyimpan…' : 'Simpan konfigurasi'}
         </button>

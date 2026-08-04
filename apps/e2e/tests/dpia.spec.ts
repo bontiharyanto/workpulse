@@ -66,9 +66,7 @@ test('HR full DPIA lifecycle: create → add risks → submit → approve → ex
       activityId: string;
       slug: string;
     }>;
-    const attendance = activities.find((a) =>
-      a.slug.includes('attendance'),
-    );
+    const attendance = activities.find((a) => a.slug.includes('attendance'));
     expect(attendance).toBeDefined();
 
     const createRes = await hr.ctx.post('/api/v1/admin/dpia/assessments', {
@@ -88,62 +86,53 @@ test('HR full DPIA lifecycle: create → add risks → submit → approve → ex
     const dpiaId = created.id;
 
     // Reject residual > inherent.
-    const badResidual = await hr.ctx.post(
-      `/api/v1/admin/dpia/assessments/${dpiaId}/risk-items`,
-      {
-        headers: authHeader(hr.accessToken),
-        data: {
-          title: 'Bad residual',
-          description: 'Residual harus ≤ inherent',
-          likelihood: 2,
-          impact: 3,
-          mitigations: 'Kontrol tambahan diklaim namun tidak realistis',
-          residualLikelihood: 5,
-          residualImpact: 5,
-        },
+    const badResidual = await hr.ctx.post(`/api/v1/admin/dpia/assessments/${dpiaId}/risk-items`, {
+      headers: authHeader(hr.accessToken),
+      data: {
+        title: 'Bad residual',
+        description: 'Residual harus ≤ inherent',
+        likelihood: 2,
+        impact: 3,
+        mitigations: 'Kontrol tambahan diklaim namun tidak realistis',
+        residualLikelihood: 5,
+        residualImpact: 5,
       },
-    );
+    });
     // Class-validator rejects at DTO level (>5) before service —
     // whichever layer catches it, the response must be 4xx.
     expect(badResidual.status()).toBeGreaterThanOrEqual(400);
     expect(badResidual.status()).toBeLessThan(500);
 
     // Legal residual > inherent within grid.
-    const rr = await hr.ctx.post(
-      `/api/v1/admin/dpia/assessments/${dpiaId}/risk-items`,
-      {
-        headers: authHeader(hr.accessToken),
-        data: {
-          title: 'Residual > inherent within grid',
-          description: 'Domain guard should still reject this',
-          likelihood: 2,
-          impact: 2,
-          mitigations: 'Mitigasi klaim ambigu',
-          residualLikelihood: 3,
-          residualImpact: 3,
-        },
+    const rr = await hr.ctx.post(`/api/v1/admin/dpia/assessments/${dpiaId}/risk-items`, {
+      headers: authHeader(hr.accessToken),
+      data: {
+        title: 'Residual > inherent within grid',
+        description: 'Domain guard should still reject this',
+        likelihood: 2,
+        impact: 2,
+        mitigations: 'Mitigasi klaim ambigu',
+        residualLikelihood: 3,
+        residualImpact: 3,
       },
-    );
+    });
     expect(rr.status()).toBe(400);
 
     // Add a valid risk item.
-    const good = await hr.ctx.post(
-      `/api/v1/admin/dpia/assessments/${dpiaId}/risk-items`,
-      {
-        headers: authHeader(hr.accessToken),
-        data: {
-          title: 'Kebocoran koordinat GPS pada log verbose',
-          description:
-            'Log verbose dapat memuat koordinat GPS presisi yang bocor ke pihak yang tidak berwenang.',
-          likelihood: 4,
-          impact: 4,
-          mitigations:
-            'Redaksi otomatis pada middleware log; retensi log 30 hari; akses SSO + audit trail.',
-          residualLikelihood: 2,
-          residualImpact: 3,
-        },
+    const good = await hr.ctx.post(`/api/v1/admin/dpia/assessments/${dpiaId}/risk-items`, {
+      headers: authHeader(hr.accessToken),
+      data: {
+        title: 'Kebocoran koordinat GPS pada log verbose',
+        description:
+          'Log verbose dapat memuat koordinat GPS presisi yang bocor ke pihak yang tidak berwenang.',
+        likelihood: 4,
+        impact: 4,
+        mitigations:
+          'Redaksi otomatis pada middleware log; retensi log 30 hari; akses SSO + audit trail.',
+        residualLikelihood: 2,
+        residualImpact: 3,
       },
-    );
+    });
     expect(good.status()).toBe(201);
     const afterAdd = (await good.json()) as {
       riskItems: Array<{ inherentLevel: string; residualLevel: string }>;
@@ -155,18 +144,18 @@ test('HR full DPIA lifecycle: create → add risks → submit → approve → ex
     expect(afterAdd.summaryResidualLevel).toBe('LOW');
 
     // Submit for review.
-    const sub = await hr.ctx.post(
-      `/api/v1/admin/dpia/assessments/${dpiaId}/submit-review`,
-      { headers: authHeader(hr.accessToken), data: {} },
-    );
+    const sub = await hr.ctx.post(`/api/v1/admin/dpia/assessments/${dpiaId}/submit-review`, {
+      headers: authHeader(hr.accessToken),
+      data: {},
+    });
     expect(sub.status()).toBe(200);
     expect(((await sub.json()) as { status: string }).status).toBe('REVIEW');
 
     // Approve.
-    const ap = await hr.ctx.post(
-      `/api/v1/admin/dpia/assessments/${dpiaId}/approve`,
-      { headers: authHeader(hr.accessToken), data: {} },
-    );
+    const ap = await hr.ctx.post(`/api/v1/admin/dpia/assessments/${dpiaId}/approve`, {
+      headers: authHeader(hr.accessToken),
+      data: {},
+    });
     expect(ap.status()).toBe(200);
     const approved = (await ap.json()) as {
       status: string;
@@ -176,27 +165,23 @@ test('HR full DPIA lifecycle: create → add risks → submit → approve → ex
     expect(approved.approvedAt).not.toBeNull();
 
     // Export PDF and verify audit hash header.
-    const exportRes = await hr.ctx.get(
-      `/api/v1/admin/dpia/assessments/${dpiaId}/export.pdf`,
-      { headers: authHeader(hr.accessToken) },
-    );
+    const exportRes = await hr.ctx.get(`/api/v1/admin/dpia/assessments/${dpiaId}/export.pdf`, {
+      headers: authHeader(hr.accessToken),
+    });
     expect(exportRes.status()).toBe(200);
     expect(exportRes.headers()['content-type']).toContain('application/pdf');
     const sha = exportRes.headers()['x-payload-sha256'];
     expect(sha).toMatch(/^[a-f0-9]{64}$/);
 
     // Audit log must include DPIA_APPROVED + DPIA_EXPORTED.
-    const auditRes = await hr.ctx.get(
-      `/api/v1/admin/audit-log?entityType=DpiaAssessment`,
-      { headers: authHeader(hr.accessToken) },
-    );
+    const auditRes = await hr.ctx.get(`/api/v1/admin/audit-log?entityType=DpiaAssessment`, {
+      headers: authHeader(hr.accessToken),
+    });
     expect(auditRes.status()).toBe(200);
     const body = (await auditRes.json()) as {
       rows: Array<{ action: string; entityId: string }>;
     };
-    const actionsForDpia = body.rows
-      .filter((r) => r.entityId === dpiaId)
-      .map((r) => r.action);
+    const actionsForDpia = body.rows.filter((r) => r.entityId === dpiaId).map((r) => r.action);
     expect(actionsForDpia).toEqual(
       expect.arrayContaining(['DPIA_CREATED', 'DPIA_APPROVED', 'DPIA_EXPORTED']),
     );
@@ -206,10 +191,7 @@ test('HR full DPIA lifecycle: create → add risks → submit → approve → ex
 });
 
 test('EMPLOYEE cannot access DPIA endpoints', async () => {
-  const emp = await login(
-    SEED_USERS.employee.email,
-    SEED_USERS.employee.password,
-  );
+  const emp = await login(SEED_USERS.employee.email, SEED_USERS.employee.password);
   try {
     const listRes = await emp.ctx.get('/api/v1/admin/dpia/assessments', {
       headers: authHeader(emp.accessToken),

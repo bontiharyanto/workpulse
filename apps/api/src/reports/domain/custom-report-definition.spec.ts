@@ -28,21 +28,15 @@ describe('validateDefinition', () => {
   });
 
   it('rejects unknown dimensions', () => {
-    expect(() =>
-      validateDefinition({ ...good, dimension: 'HOUR' }),
-    ).toThrow(/dimension/);
+    expect(() => validateDefinition({ ...good, dimension: 'HOUR' })).toThrow(/dimension/);
   });
 
   it('rejects unknown metrics', () => {
-    expect(() =>
-      validateDefinition({ ...good, metric: 'RANDOM_METRIC' }),
-    ).toThrow(/metric/);
+    expect(() => validateDefinition({ ...good, metric: 'RANDOM_METRIC' })).toThrow(/metric/);
   });
 
   it('rejects unknown window values', () => {
-    expect(() =>
-      validateDefinition({ ...good, filter: { windowDays: 45 } }),
-    ).toThrow(/windowDays/);
+    expect(() => validateDefinition({ ...good, filter: { windowDays: 45 } })).toThrow(/windowDays/);
   });
 
   it('rejects non-string departmentId', () => {

@@ -1,9 +1,6 @@
 import ExcelJS from 'exceljs';
 
-import type {
-  LeaveSummaryReportRow,
-  LeaveSummaryTotals,
-} from '../domain/leave-summary-report';
+import type { LeaveSummaryReportRow, LeaveSummaryTotals } from '../domain/leave-summary-report';
 
 import type { RendererStream } from './render-context';
 
@@ -48,7 +45,8 @@ export async function renderLeaveSummaryExcel(
   ws.getCell(2, 1).value = stream.header.subtitle;
 
   ws.mergeCells(3, 1, 3, COLUMNS.length);
-  ws.getCell(3, 1).value = `Dicetak: ${stream.header.generatedAt.toISOString()} · Oleh: ${stream.header.generatedByEmail}`;
+  ws.getCell(3, 1).value =
+    `Dicetak: ${stream.header.generatedAt.toISOString()} · Oleh: ${stream.header.generatedByEmail}`;
   ws.getCell(3, 1).font = { italic: true, color: { argb: 'FF666666' } };
 
   ws.getRow(5).values = COLUMNS.map((c) => c.header);

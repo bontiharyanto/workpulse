@@ -7,20 +7,10 @@ import { z } from 'zod';
  * `apps/api/src/dpia/dto/dpia.dto.ts` + mapper output.
  */
 
-export const dpiaStatusSchema = z.enum([
-  'DRAFT',
-  'REVIEW',
-  'APPROVED',
-  'ARCHIVED',
-]);
+export const dpiaStatusSchema = z.enum(['DRAFT', 'REVIEW', 'APPROVED', 'ARCHIVED']);
 export type DpiaStatus = z.infer<typeof dpiaStatusSchema>;
 
-export const dpiaRiskLevelSchema = z.enum([
-  'LOW',
-  'MEDIUM',
-  'HIGH',
-  'CRITICAL',
-]);
+export const dpiaRiskLevelSchema = z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
 export type DpiaRiskLevel = z.infer<typeof dpiaRiskLevelSchema>;
 
 // -----------------------------------------------------------------------------
@@ -67,9 +57,7 @@ export const dpiaAssessmentResponseSchema = z.object({
   riskItems: z.array(dpiaRiskItemResponseSchema),
   summaryResidualLevel: dpiaRiskLevelSchema,
 });
-export type DpiaAssessmentResponse = z.infer<
-  typeof dpiaAssessmentResponseSchema
->;
+export type DpiaAssessmentResponse = z.infer<typeof dpiaAssessmentResponseSchema>;
 
 export const dpiaAssessmentListItemSchema = z.object({
   id: z.string(),
@@ -82,16 +70,13 @@ export const dpiaAssessmentListItemSchema = z.object({
   riskItemCount: z.number().int().nonnegative(),
   updatedAt: z.string(),
 });
-export type DpiaAssessmentListItem = z.infer<
-  typeof dpiaAssessmentListItemSchema
->;
+export type DpiaAssessmentListItem = z.infer<typeof dpiaAssessmentListItemSchema>;
 
 // -----------------------------------------------------------------------------
 // Requests
 // -----------------------------------------------------------------------------
 
-const trimmed = (min: number, max: number) =>
-  z.string().trim().min(min).max(max);
+const trimmed = (min: number, max: number) => z.string().trim().min(min).max(max);
 
 export const createDpiaAssessmentInputSchema = z.object({
   ropaActivityId: z.string().trim().min(1),
@@ -100,9 +85,7 @@ export const createDpiaAssessmentInputSchema = z.object({
   necessity: trimmed(20, 4000),
   dpoOpinion: z.string().trim().max(4000).optional(),
 });
-export type CreateDpiaAssessmentInput = z.infer<
-  typeof createDpiaAssessmentInputSchema
->;
+export type CreateDpiaAssessmentInput = z.infer<typeof createDpiaAssessmentInputSchema>;
 
 export const updateDpiaAssessmentInputSchema = z.object({
   title: trimmed(4, 200).optional(),
@@ -111,9 +94,7 @@ export const updateDpiaAssessmentInputSchema = z.object({
   dpoOpinion: z.string().trim().max(4000).nullable().optional(),
   conclusion: z.string().trim().max(4000).nullable().optional(),
 });
-export type UpdateDpiaAssessmentInput = z.infer<
-  typeof updateDpiaAssessmentInputSchema
->;
+export type UpdateDpiaAssessmentInput = z.infer<typeof updateDpiaAssessmentInputSchema>;
 
 export const createDpiaRiskItemInputSchema = z.object({
   title: trimmed(4, 200),
@@ -124,9 +105,7 @@ export const createDpiaRiskItemInputSchema = z.object({
   residualLikelihood: z.number().int().min(1).max(5),
   residualImpact: z.number().int().min(1).max(5),
 });
-export type CreateDpiaRiskItemInput = z.infer<
-  typeof createDpiaRiskItemInputSchema
->;
+export type CreateDpiaRiskItemInput = z.infer<typeof createDpiaRiskItemInputSchema>;
 
 export const updateDpiaRiskItemInputSchema = z.object({
   title: trimmed(4, 200).optional(),
@@ -137,6 +116,4 @@ export const updateDpiaRiskItemInputSchema = z.object({
   residualLikelihood: z.number().int().min(1).max(5).optional(),
   residualImpact: z.number().int().min(1).max(5).optional(),
 });
-export type UpdateDpiaRiskItemInput = z.infer<
-  typeof updateDpiaRiskItemInputSchema
->;
+export type UpdateDpiaRiskItemInput = z.infer<typeof updateDpiaRiskItemInputSchema>;

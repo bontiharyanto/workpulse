@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-} from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiConflictResponse,
@@ -54,9 +47,7 @@ export class DataExportController {
       '`EXPORT_ALREADY_PENDING` when an in-flight request exists, `EXPORT_COOLDOWN` when the 24h window has not elapsed.',
   })
   @Throttle({ default: { limit: 5, ttl: 3_600_000 } })
-  async create(
-    @CurrentUser() user: AuthenticatedUser,
-  ): Promise<DataExportRequestDto> {
+  async create(@CurrentUser() user: AuthenticatedUser): Promise<DataExportRequestDto> {
     const row = await this.service.create(user.id, user.companyId);
     return toDto(row);
   }
@@ -64,9 +55,7 @@ export class DataExportController {
   @Get()
   @ApiBearerAuth()
   @ApiOkResponse({ type: DataExportListResponseDto })
-  async list(
-    @CurrentUser() user: AuthenticatedUser,
-  ): Promise<DataExportListResponseDto> {
+  async list(@CurrentUser() user: AuthenticatedUser): Promise<DataExportListResponseDto> {
     const rows = await this.service.list(user.id);
     return { requests: rows.map(toDto) };
   }

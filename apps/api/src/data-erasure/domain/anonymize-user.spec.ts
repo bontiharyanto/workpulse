@@ -90,8 +90,9 @@ describe('anonymizeUser', () => {
     expect(result.notificationPrefsDeleted).toBe(3);
     expect(result.dataExportFileKeys).toEqual(['data-exports/x.zip']);
 
-    const [userCall] = (tx as unknown as { __calls: Record<string, unknown[]> })
-      .__calls['user.update']!;
+    const [userCall] = (tx as unknown as { __calls: Record<string, unknown[]> }).__calls[
+      'user.update'
+    ]!;
     expect(userCall).toMatchObject({
       where: { id: 'user-1' },
       data: expect.objectContaining({
@@ -105,9 +106,7 @@ describe('anonymizeUser', () => {
       }),
     });
     // Guard against accidentally storing a decipherable hash.
-    const passwordHash = (
-      userCall as { data: { passwordHash: string } }
-    ).data.passwordHash;
+    const passwordHash = (userCall as { data: { passwordHash: string } }).data.passwordHash;
     expect(passwordHash).toHaveLength(128);
     expect(/^[0-9a-f]+$/.test(passwordHash)).toBe(true);
   });
@@ -120,8 +119,9 @@ describe('anonymizeUser', () => {
       erasureRequestId: 'era-1',
       now,
     });
-    const [rtCall] = (tx as unknown as { __calls: Record<string, unknown[]> })
-      .__calls['refreshToken.updateMany']!;
+    const [rtCall] = (tx as unknown as { __calls: Record<string, unknown[]> }).__calls[
+      'refreshToken.updateMany'
+    ]!;
     expect(rtCall).toMatchObject({
       where: {
         userId: 'user-1',
@@ -139,8 +139,9 @@ describe('anonymizeUser', () => {
       erasureRequestId: 'era-1',
       now,
     });
-    const [expCall] = (tx as unknown as { __calls: Record<string, unknown[]> })
-      .__calls['dataExportRequest.updateMany']!;
+    const [expCall] = (tx as unknown as { __calls: Record<string, unknown[]> }).__calls[
+      'dataExportRequest.updateMany'
+    ]!;
     expect(expCall).toMatchObject({
       where: { id: { in: ['exp-1', 'exp-2'] } },
       data: { status: 'EXPIRED', fileKey: null },

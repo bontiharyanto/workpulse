@@ -7,10 +7,7 @@ import {
 import type { Company, OvertimeRequest, Prisma } from '@prisma/client';
 import { Prisma as PrismaNs } from '@prisma/client';
 
-import {
-  PayrollLockedError,
-  assertPayrollNotLocked,
-} from '../common/domain/payroll-lock';
+import { PayrollLockedError, assertPayrollNotLocked } from '../common/domain/payroll-lock';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import {
   overtimeApproved,
@@ -216,10 +213,7 @@ export class OvertimeService {
       // (see migration 20260801190000) catches concurrent-submit races that
       // slip past the app-level `findFirst` check above. Re-surface as the
       // same 409 code the client already handles.
-      if (
-        e instanceof PrismaNs.PrismaClientKnownRequestError &&
-        e.code === 'P2002'
-      ) {
+      if (e instanceof PrismaNs.PrismaClientKnownRequestError && e.code === 'P2002') {
         throw new ConflictException('DUPLICATE_WORK_DATE');
       }
       throw e;
@@ -351,9 +345,7 @@ export class OvertimeService {
         note: input.note ?? null,
       };
       const content =
-        input.action === 'APPROVE'
-          ? overtimeApproved(eventInput)
-          : overtimeRejected(eventInput);
+        input.action === 'APPROVE' ? overtimeApproved(eventInput) : overtimeRejected(eventInput);
       await this.notifications.createOne(
         {
           companyId: actor.companyId,
@@ -507,11 +499,7 @@ function parseCalendarDateUtc(iso: string): Date | null {
   if (parts.length !== 3) return null;
   const [y, m, d] = parts as [number, number, number];
   const dt = new Date(Date.UTC(y, m - 1, d));
-  if (
-    dt.getUTCFullYear() !== y ||
-    dt.getUTCMonth() !== m - 1 ||
-    dt.getUTCDate() !== d
-  ) {
+  if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) {
     return null;
   }
   return dt;

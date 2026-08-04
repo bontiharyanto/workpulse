@@ -12,7 +12,7 @@ Workpulse already captures every atomic HR event we need for payroll:
 missing was a **per-period consolidation** that HR could review before
 handing numbers off to payroll — the industry-standard "timesheet".
 
-The user explicitly asked to introduce this module *before* moving on to the
+The user explicitly asked to introduce this module _before_ moving on to the
 next compliance sub-phase (Fase 31d). We had to decide four things up front:
 
 1. **How to slice time.** Weekly? Bi-weekly? Monthly? Cutoff-based?
@@ -55,16 +55,18 @@ read-only** first.
 ## Consequences
 
 Positive:
+
 - Payroll gets a **stable, per-period unit of aggregation** it can hang
   export flows off (Fase 32c).
 - The compose-order (Holiday → Leave → Attendance → Absence → Weekend) is
-  encoded in a *pure* domain helper (`buildEntry`) — trivially testable and
+  encoded in a _pure_ domain helper (`buildEntry`) — trivially testable and
   reusable when 32b adds correction re-generation.
 - HR can already inspect data quality before we bolt on the submit/approve
   flow; discovering a broken shift assignment during 32a is much cheaper
   than during a live approval queue.
 
 Negative / trade-offs:
+
 - Materialised entries mean **the generator must be re-run** whenever a
   source row changes retroactively (a supervisor-approved
   `AttendanceCorrection`, a late-arriving `OvertimeRequest` on the previous
