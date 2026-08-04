@@ -83,12 +83,28 @@ const config: Config = {
         sm: 'calc(var(--radius) - 4px)',
       },
       boxShadow: {
-        // Subtle depth stack — never more than 2 levels visible at once,
-        // matches Untitled UI's `shadow-xs` / `shadow-sm` tokens.
+        // Two-tier shadow scale.
+        //
+        //  1. Surface shadows (`xs`, `sm`) — for elements that sit
+        //     ON the page (cards, buttons, inputs). Kept intentionally
+        //     subtle so the UI reads as flat / Notion-quiet.
+        //  2. Floating shadows (`md`, `lg`, `popover`, `modal`) — for
+        //     elements that are supposed to visually DETACH from the
+        //     page (dropdowns, popovers, dialogs, sheets, toast).
+        //     These need real elevation because in a mostly-white
+        //     design system a soft shadow lets the surface bleed into
+        //     the content behind it and looks like a bug.
         xs: '0 1px 2px 0 rgb(0 0 0 / 0.04)',
         sm: '0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)',
-        md: '0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06)',
-        lg: '0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.06)',
+        md: '0 4px 8px -2px rgb(0 0 0 / 0.10), 0 2px 4px -2px rgb(0 0 0 / 0.06)',
+        lg: '0 12px 24px -4px rgb(0 0 0 / 0.12), 0 4px 8px -4px rgb(0 0 0 / 0.08)',
+        // Bespoke stack used by every portalled surface. Two layers
+        // for a real ambient penumbra plus a crisp key light — reads
+        // as a hovering card without looking like a drop-shadow.
+        popover:
+          '0 8px 16px -4px rgb(0 0 0 / 0.10), 0 4px 8px -2px rgb(0 0 0 / 0.06), 0 0 0 1px rgb(0 0 0 / 0.02)',
+        modal:
+          '0 24px 48px -12px rgb(0 0 0 / 0.18), 0 8px 16px -8px rgb(0 0 0 / 0.10), 0 0 0 1px rgb(0 0 0 / 0.04)',
       },
       keyframes: {
         'accordion-down': {
