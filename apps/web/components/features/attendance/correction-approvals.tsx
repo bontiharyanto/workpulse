@@ -2,8 +2,16 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AttendanceCorrection } from '@workpulse/shared-types';
-import { useState } from 'react';
+import { AlertTriangle, CheckCircle2, Inbox, Paperclip, User2, XCircle } from 'lucide-react';
+import { useState, type JSX } from 'react';
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
 import { ApiError, attendanceCorrectionsApi } from '@/lib/api-client';
 
 /**
@@ -11,9 +19,10 @@ import { ApiError, attendanceCorrectionsApi } from '@/lib/api-client';
  *   - SUPERVISOR: only the caller's direct reports.
  *   - HR_MANAGER / SUPER_ADMIN: the entire tenant.
  *
- * Each row expands inline into a decision form (note + APPROVE/REJECT
- * buttons). Rejection notes are surfaced back to the requester via the
- * notification content.
+ * Fase 4 rework: each row renders as a `<Card>` with a persistent
+ * decision form (previously required an inline expansion). The
+ * Approve / Reject buttons are semantic (`success` / `destructive`)
+ * and the optional note is a proper Textarea + Label pair.
  */
 export function CorrectionApprovals(): JSX.Element {
   const qc = useQueryClient();
@@ -30,19 +39,48 @@ export function CorrectionApprovals(): JSX.Element {
         note: input.note,
       }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['attendance', 'corrections', 'pending'] });
+      void qc.invalidateQueries({ queryKey: ['attendance', 'corrections', 'pending'] });
     },
   });
 
   if (list.isLoading) {
-    return <p className="text-muted-foreground text-sm">Memuat...</p>;
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <Card key={i}>
+            <CardContent className="space-y-3 p-6">
+              <Skeleton className="h-4 w-1/3" />
+              <Skeleton className="h-3 w-1/4" />
+              <Skeleton className="h-16 w-full" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
   }
+
   if (list.isError) {
-    return <p className="text-destructive text-sm">Gagal memuat daftar.</p>;
+    return (
+      <Alert variant="destructive">
+        <AlertTriangle aria-hidden />
+        <AlertTitle>Gagal memuat daftar</AlertTitle>
+        <AlertDescription>Coba muat ulang halaman.</AlertDescription>
+      </Alert>
+    );
   }
+
   const rows = list.data ?? [];
+
   if (rows.length === 0) {
-    return <p className="text-muted-foreground text-sm">Tidak ada koreksi menunggu keputusan.</p>;
+    return (
+      <Card>
+        <CardContent className="text-muted-foreground flex flex-col items-center gap-2 py-12">
+          <Inbox className="h-8 w-8" aria-hidden />
+          <p className="text-h6 text-foreground">Antrian kosong</p>
+          <p className="text-caption">Tidak ada koreksi yang menunggu keputusan Anda.</p>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -56,7 +94,11 @@ export function CorrectionApprovals(): JSX.Element {
         />
       ))}
       {decide.isError ? (
-        <p className="text-destructive text-xs">{formatApiError(decide.error)}</p>
+        <Alert variant="destructive">
+          <AlertTriangle aria-hidden />
+          <AlertTitle>Keputusan tidak dapat disimpan</AlertTitle>
+          <AlertDescription>{formatApiError(decide.error)}</AlertDescription>
+        </Alert>
       ) : null}
     </div>
   );
@@ -73,56 +115,74 @@ interface ApprovalRowProps {
 function ApprovalRow({ row, onDecide, submitting }: ApprovalRowProps): JSX.Element {
   const [note, setNote] = useState('');
   return (
-    <article className="space-y-3 rounded-md border p-4">
-      <header className="flex flex-wrap items-baseline justify-between gap-2">
-        <div>
-          <p className="text-sm font-medium">
-            {row.userFullName ?? row.userId} · {formatDate(row.workDate)}
-          </p>
-          <p className="text-muted-foreground text-xs">{summarize(row)}</p>
+    <Card>
+      <CardContent className="space-y-4 p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="bg-muted text-muted-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+              <User2 className="h-5 w-5" aria-hidden />
+            </div>
+            <div className="space-y-1">
+              <p className="text-body font-semibold">{row.userFullName ?? row.userId}</p>
+              <p className="text-muted-foreground text-caption">
+                {formatDate(row.workDate)} · {summarize(row)}
+              </p>
+            </div>
+          </div>
+          {row.attachmentUrl ? (
+            <a
+              href={row.attachmentUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary text-caption inline-flex items-center gap-1 hover:underline"
+            >
+              <Paperclip className="h-3.5 w-3.5" aria-hidden />
+              Lampiran
+            </a>
+          ) : null}
         </div>
-        {row.attachmentUrl ? (
-          <a
-            href={row.attachmentUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary text-xs underline"
+
+        <div className="bg-muted/30 border-border rounded-md border p-3">
+          <p className="text-muted-foreground text-overline mb-1 uppercase">Alasan</p>
+          <p className="text-body">{row.reason}</p>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor={`approval-note-${row.id}`}>
+            Catatan keputusan <Badge variant="muted">opsional</Badge>
+          </Label>
+          <Textarea
+            id={`approval-note-${row.id}`}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={2}
+            maxLength={500}
+            placeholder="Ditampilkan ke pengaju jika ditolak."
+          />
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="success"
+            size="sm"
+            onClick={() => onDecide('APPROVE', note)}
+            disabled={submitting}
           >
-            Lampiran
-          </a>
-        ) : null}
-      </header>
-      <p className="text-sm">{row.reason}</p>
-      <label className="block space-y-1 text-xs">
-        <span className="text-muted-foreground font-medium">Catatan keputusan (opsional)</span>
-        <textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          rows={2}
-          maxLength={500}
-          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
-          placeholder="Ditampilkan ke pengaju jika ditolak."
-        />
-      </label>
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => onDecide('APPROVE', note)}
-          disabled={submitting}
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
-        >
-          Setujui
-        </button>
-        <button
-          type="button"
-          onClick={() => onDecide('REJECT', note)}
-          disabled={submitting}
-          className="bg-destructive text-destructive-foreground rounded-md px-3 py-1.5 text-xs font-medium disabled:opacity-50"
-        >
-          Tolak
-        </button>
-      </div>
-    </article>
+            <CheckCircle2 className="h-4 w-4" aria-hidden />
+            Setujui
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => onDecide('REJECT', note)}
+            disabled={submitting}
+          >
+            <XCircle className="h-4 w-4" aria-hidden />
+            Tolak
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

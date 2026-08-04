@@ -2,12 +2,28 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AttendanceCorrection } from '@workpulse/shared-types';
+import { AlertTriangle, Inbox, X } from 'lucide-react';
+import { type JSX } from 'react';
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { ApiError, attendanceCorrectionsApi } from '@/lib/api-client';
 
 /**
- * Employee's own corrections list. Latest 100. Cancel available on any
- * PENDING_APPROVAL row (the API also enforces owner-only and cutoff).
+ * Employee's own corrections list. Latest 100. Cancel is available
+ * on any `PENDING_APPROVAL` row (the API also enforces owner-only
+ * and payroll cutoff).
  */
 export function CorrectionList(): JSX.Element {
   const qc = useQueryClient();
@@ -20,73 +36,135 @@ export function CorrectionList(): JSX.Element {
   const cancel = useMutation({
     mutationFn: (id: string) => attendanceCorrectionsApi.cancel(id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['attendance', 'corrections', 'mine'] });
+      void qc.invalidateQueries({ queryKey: ['attendance', 'corrections', 'mine'] });
     },
   });
 
-  if (list.isLoading) {
-    return <p className="text-muted-foreground text-sm">Memuat riwayat koreksi...</p>;
-  }
-  if (list.isError) {
-    return <p className="text-destructive text-sm">Gagal memuat riwayat koreksi.</p>;
-  }
-  const rows = list.data ?? [];
-  if (rows.length === 0) {
-    return <p className="text-muted-foreground text-sm">Belum ada koreksi yang diajukan.</p>;
-  }
-
   return (
-    <section className="space-y-2">
-      <h2 className="text-lg font-semibold">Riwayat koreksi Anda</h2>
-      <div className="overflow-hidden rounded-md border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-muted-foreground text-left text-xs uppercase tracking-wider">
-            <tr>
-              <th className="px-3 py-2">Tanggal</th>
-              <th className="px-3 py-2">Diminta</th>
-              <th className="px-3 py-2">Alasan</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2 text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} className="border-t align-top">
-                <td className="px-3 py-2 tabular-nums">{formatDate(r.workDate)}</td>
-                <td className="px-3 py-2 text-xs tabular-nums">{summarize(r)}</td>
-                <td className="text-muted-foreground max-w-xs truncate px-3 py-2 text-xs">
-                  {r.reason}
-                </td>
-                <td className="px-3 py-2">
-                  <StatusPill status={r.status} />
-                </td>
-                <td className="px-3 py-2 text-right">
-                  {r.status === 'PENDING_APPROVAL' ? (
-                    <button
-                      type="button"
-                      onClick={() => cancel.mutate(r.id)}
-                      disabled={cancel.isPending}
-                      className="text-destructive text-xs hover:underline disabled:opacity-50"
-                    >
-                      Batalkan
-                    </button>
-                  ) : (
-                    <span className="text-muted-foreground text-xs">—</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Riwayat koreksi Anda</CardTitle>
+        <p className="text-muted-foreground text-caption">
+          100 pengajuan terbaru. Anda dapat membatalkan pengajuan yang masih menunggu keputusan.
+        </p>
+      </CardHeader>
+
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Tanggal</TableHead>
+              <TableHead>Diminta</TableHead>
+              <TableHead>Alasan</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Aksi</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {list.isLoading ? (
+              <RowsSkeleton />
+            ) : list.isError ? (
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={5} className="text-destructive py-6 text-center">
+                  Gagal memuat riwayat koreksi.
+                </TableCell>
+              </TableRow>
+            ) : (list.data ?? []).length === 0 ? (
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={5}>
+                  <div className="text-muted-foreground flex flex-col items-center gap-2 py-8">
+                    <Inbox className="h-6 w-6" aria-hidden />
+                    <p className="text-body">Belum ada koreksi yang diajukan.</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              (list.data ?? []).map((r) => (
+                <TableRow key={r.id} className="align-top">
+                  <TableCell className="font-medium tabular-nums">
+                    {formatDate(r.workDate)}
+                  </TableCell>
+                  <TableCell className="text-caption tabular-nums">{summarize(r)}</TableCell>
+                  <TableCell className="text-muted-foreground text-caption max-w-xs truncate">
+                    {r.reason}
+                  </TableCell>
+                  <TableCell>
+                    <CorrectionStatusBadge status={r.status} />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {r.status === 'PENDING_APPROVAL' ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => cancel.mutate(r.id)}
+                        disabled={cancel.isPending}
+                      >
+                        <X className="h-3.5 w-3.5" aria-hidden />
+                        Batalkan
+                      </Button>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+
       {cancel.isError ? (
-        <p className="text-destructive text-xs">{formatApiError(cancel.error)}</p>
+        <div className="px-6 pb-6">
+          <Alert variant="destructive">
+            <AlertTriangle aria-hidden />
+            <AlertTitle>Gagal membatalkan</AlertTitle>
+            <AlertDescription>{formatApiError(cancel.error)}</AlertDescription>
+          </Alert>
+        </div>
       ) : null}
-    </section>
+    </Card>
+  );
+}
+
+function RowsSkeleton(): JSX.Element {
+  return (
+    <>
+      {Array.from({ length: 4 }).map((_, i) => (
+        <TableRow key={i} className="hover:bg-transparent">
+          {Array.from({ length: 5 }).map((__, j) => (
+            <TableCell key={j}>
+              <Skeleton className="h-4 w-full max-w-[120px]" />
+            </TableCell>
+          ))}
+        </TableRow>
+      ))}
+    </>
   );
 }
 
 // ---------------------------------------------------------------------------
+
+export function CorrectionStatusBadge({
+  status,
+}: {
+  status: AttendanceCorrection['status'];
+}): JSX.Element {
+  const config = STATUS_CONFIG[status] ?? {
+    label: status,
+    variant: 'muted' as const,
+  };
+  return <Badge variant={config.variant}>{config.label}</Badge>;
+}
+
+const STATUS_CONFIG: Record<
+  AttendanceCorrection['status'],
+  { label: string; variant: 'warning' | 'success' | 'destructive' | 'muted' }
+> = {
+  PENDING_APPROVAL: { label: 'Menunggu', variant: 'warning' },
+  APPROVED: { label: 'Disetujui', variant: 'success' },
+  REJECTED: { label: 'Ditolak', variant: 'destructive' },
+  CANCELLED: { label: 'Dibatalkan', variant: 'muted' },
+};
 
 function summarize(r: AttendanceCorrection): string {
   const parts: string[] = [];
@@ -109,32 +187,6 @@ function formatTime(iso: string): string {
     hour: '2-digit',
     minute: '2-digit',
   });
-}
-
-function StatusPill({ status }: { status: AttendanceCorrection['status'] }): JSX.Element {
-  const { label, cls } = pillStyle(status);
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${cls}`}
-    >
-      {label}
-    </span>
-  );
-}
-
-function pillStyle(status: AttendanceCorrection['status']): { label: string; cls: string } {
-  switch (status) {
-    case 'PENDING_APPROVAL':
-      return { label: 'Menunggu', cls: 'bg-amber-100 text-amber-800' };
-    case 'APPROVED':
-      return { label: 'Disetujui', cls: 'bg-emerald-100 text-emerald-800' };
-    case 'REJECTED':
-      return { label: 'Ditolak', cls: 'bg-destructive/10 text-destructive' };
-    case 'CANCELLED':
-      return { label: 'Dibatalkan', cls: 'bg-muted text-muted-foreground' };
-    default:
-      return { label: status, cls: 'bg-muted text-muted-foreground' };
-  }
 }
 
 function formatApiError(err: unknown): string {

@@ -1,19 +1,61 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { TeamMemberDailyRow, TeamMemberSummaryRow } from '@workpulse/shared-types';
-import { useMemo, useState } from 'react';
+import type {
+  AbsenceSource,
+  TeamAttendanceStatus,
+  TeamMemberDailyRow,
+  TeamMemberSummaryRow,
+} from '@workpulse/shared-types';
+import { AlertTriangle, Bot, Inbox, Lock, User2, UserX, X } from 'lucide-react';
+import { useMemo, useState, type JSX, type ReactNode } from 'react';
 
 import { useAuth } from '@/components/providers/auth-provider';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { attendanceApi, companyAdminApi } from '@/lib/api-client';
+import { cn } from '@/lib/utils';
+
+import { StatusBadge } from './_shared/status-badge';
 
 /**
- * Team attendance panel for supervisors / HR. Renders one of two tabs:
- *   - "Hari ini" (default) — roster + today's clock-in status.
- *   - "Rekap" — per-member summary over a rolling range (7 / 14 / 30 days).
+ * Team attendance panel for supervisors and HR. Two tabs:
+ *   - "Hari ini" — roster + today's clock-in status. HR can mark a
+ *     row absent or revoke an absence.
+ *   - "Rekap" — per-member summary over a rolling range (7/14/30).
  *
- * Access control is enforced server-side; on the client we just make sure
- * the entry point isn't offered to employees.
+ * Access control is enforced server-side; the client just hides
+ * the entry point from employees so they don't hit a 403.
+ *
+ * Fase 4 rework:
+ *   - Migrated to shadcn `<Card>` / `<Tabs>` / `<Table>` / `<Badge>`.
+ *   - `window.confirm()` for "revoke absence" replaced with a
+ *     branded `<AlertDialog>` per rules/20-security-and-business...
+ *   - Payroll-locked warning is now a proper `<Alert variant="warning">`.
  */
 
 type Tab = 'today' | 'summary';
@@ -28,43 +70,40 @@ export function TeamAttendance(): JSX.Element | null {
   const canView =
     !!user &&
     (user.role === 'SUPERVISOR' || user.role === 'HR_MANAGER' || user.role === 'SUPER_ADMIN');
-
-  // Manual absence override is HR-only (server enforces; UI hides for others).
   const canOverrideAbsence = !!user && (user.role === 'HR_MANAGER' || user.role === 'SUPER_ADMIN');
 
   if (!canView) return null;
 
   return (
-    <section className="space-y-4">
+    <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)} className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="bg-background flex gap-1 rounded-md border p-0.5 text-xs">
-          <TabButton active={tab === 'today'} onClick={() => setTab('today')}>
-            Hari ini
-          </TabButton>
-          <TabButton active={tab === 'summary'} onClick={() => setTab('summary')}>
-            Rekap
-          </TabButton>
-        </div>
+        <TabsList>
+          <TabsTrigger value="today">Hari ini</TabsTrigger>
+          <TabsTrigger value="summary">Rekap</TabsTrigger>
+        </TabsList>
 
         {tab === 'today' ? (
-          <label className="text-muted-foreground flex items-center gap-2 text-xs">
-            Tanggal
-            <input
+          <div className="flex items-center gap-2">
+            <Label htmlFor="team-attendance-date" className="text-muted-foreground text-caption">
+              Tanggal
+            </Label>
+            <Input
+              id="team-attendance-date"
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               max={toIsoDate(new Date())}
-              className="border-input bg-background rounded-md border px-2 py-1 text-xs"
+              className="w-auto"
             />
-          </label>
-        ) : (
-          <div className="bg-background flex gap-1 rounded-md border p-0.5 text-xs">
-            {(['7', '14', '30'] as RangePreset[]).map((p) => (
-              <TabButton key={p} active={range === p} onClick={() => setRange(p)}>
-                {p}h
-              </TabButton>
-            ))}
           </div>
+        ) : (
+          <Tabs value={range} onValueChange={(v) => setRange(v as RangePreset)}>
+            <TabsList>
+              <TabsTrigger value="7">7 hari</TabsTrigger>
+              <TabsTrigger value="14">14 hari</TabsTrigger>
+              <TabsTrigger value="30">30 hari</TabsTrigger>
+            </TabsList>
+          </Tabs>
         )}
       </div>
 
@@ -73,13 +112,19 @@ export function TeamAttendance(): JSX.Element | null {
       ) : (
         <SummaryTable range={range} />
       )}
-    </section>
+    </Tabs>
   );
 }
 
 // ---------------------------------------------------------------------------
 // Today
 // ---------------------------------------------------------------------------
+
+interface DeleteTarget {
+  absenceRecordId: string;
+  fullName: string;
+  date: string;
+}
 
 function TodayTable({
   date,
@@ -88,31 +133,29 @@ function TodayTable({
   date: string;
   canOverrideAbsence: boolean;
 }): JSX.Element {
+  const qc = useQueryClient();
+
   const list = useQuery({
     queryKey: ['attendance', 'team', 'today', date],
     queryFn: () => attendanceApi.teamToday({ date }),
-    refetchInterval: 60_000, // roster refreshes as people clock in
+    refetchInterval: 60_000,
     staleTime: 30_000,
   });
 
-  // HR + Super Admin get the company config so we can gate the mark/delete
-  // buttons against the payroll cutoff. Fetched lazily (canOverrideAbsence
-  // is required by the /admin/company RBAC anyway).
+  // Fetch company config (payroll cutoff) only when HR-level access.
   const config = useQuery({
     queryKey: ['company', 'config'],
     queryFn: () => companyAdminApi.get(),
     enabled: canOverrideAbsence,
-    staleTime: 5 * 60_000, // 5 min — cutoff changes are rare
+    staleTime: 5 * 60_000,
   });
   const payrollLockedUntil = config.data?.payrollLockedUntil ?? null;
   const dateIsLocked = !!payrollLockedUntil && date <= payrollLockedUntil;
 
-  // Track which row is expanded for the "mark absent" reason input.
   const [openMarkFor, setOpenMarkFor] = useState<string | null>(null);
   const [reason, setReason] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  const qc = useQueryClient();
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 
   const markMutation = useMutation({
     mutationFn: attendanceApi.markAbsent,
@@ -123,14 +166,13 @@ function TodayTable({
       await qc.invalidateQueries({ queryKey: ['attendance', 'team', 'today', date] });
       await qc.invalidateQueries({ queryKey: ['attendance', 'dashboard'] });
     },
-    onError: (err: unknown) => {
-      setErrorMsg(errorMessage(err));
-    },
+    onError: (err: unknown) => setErrorMsg(errorMessage(err)),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => attendanceApi.deleteAbsence(id),
     onSuccess: async () => {
+      setDeleteTarget(null);
       await qc.invalidateQueries({ queryKey: ['attendance', 'team', 'today', date] });
       await qc.invalidateQueries({ queryKey: ['attendance', 'dashboard'] });
     },
@@ -139,98 +181,114 @@ function TodayTable({
   const colCount = canOverrideAbsence ? 7 : 6;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {canOverrideAbsence && dateIsLocked ? (
-        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-          <span className="font-medium">Periode terkunci payroll</span> — {date} berada di dalam
-          cutoff <code className="rounded bg-white/70 px-1">{payrollLockedUntil}</code>. HR tidak
-          dapat menandai / mencabut absen pada tanggal ini; hubungi Super Admin bila diperlukan
-          koreksi.
-        </div>
+        <Alert variant="warning">
+          <Lock aria-hidden />
+          <AlertTitle>Periode terkunci payroll</AlertTitle>
+          <AlertDescription>
+            <span className="tabular-nums">{date}</span> berada di dalam cutoff{' '}
+            <code className="bg-background/60 text-caption rounded px-1 font-mono">
+              {payrollLockedUntil}
+            </code>
+            . HR tidak dapat menandai / mencabut absen pada tanggal ini; hubungi Super Admin untuk
+            koreksi.
+          </AlertDescription>
+        </Alert>
       ) : null}
 
-      <div className="overflow-hidden rounded-md border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-muted-foreground text-left text-xs uppercase tracking-wider">
-            <tr>
-              <th className="px-3 py-2">Nama</th>
-              <th className="px-3 py-2">Departemen</th>
-              <th className="px-3 py-2">Clock-in</th>
-              <th className="px-3 py-2">Clock-out</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2 text-right">Telat</th>
-              {canOverrideAbsence ? <th className="px-3 py-2 text-right">Aksi</th> : null}
-            </tr>
-          </thead>
-          <tbody>
-            {list.isLoading ? (
-              <tr>
-                <td
-                  colSpan={colCount}
-                  className="text-muted-foreground px-3 py-6 text-center text-sm"
-                >
-                  Memuat...
-                </td>
-              </tr>
-            ) : list.data && list.data.length > 0 ? (
-              list.data.map((r) => (
-                <TodayRow
-                  key={r.userId}
-                  row={r}
-                  date={date}
-                  canOverride={canOverrideAbsence}
-                  dateIsLocked={dateIsLocked}
-                  isMarkOpen={openMarkFor === r.userId}
-                  reason={reason}
-                  errorMsg={openMarkFor === r.userId ? errorMsg : null}
-                  onOpenMark={() => {
-                    setOpenMarkFor(r.userId);
-                    setReason('');
-                    setErrorMsg(null);
-                  }}
-                  onCancelMark={() => {
-                    setOpenMarkFor(null);
-                    setReason('');
-                    setErrorMsg(null);
-                  }}
-                  onReasonChange={setReason}
-                  onSubmitMark={() => {
-                    markMutation.mutate({
-                      userId: r.userId,
-                      workDate: date,
-                      reason: reason.trim() ? reason.trim() : undefined,
-                    });
-                  }}
-                  isSubmitting={markMutation.isPending && openMarkFor === r.userId}
-                  onDeleteAbsence={(id: string) => {
-                    if (
-                      typeof window !== 'undefined' &&
-                      !window.confirm(
-                        `Yakin membatalkan status absen untuk ${r.fullName} pada ${date}?`,
-                      )
-                    ) {
-                      return;
-                    }
-                    deleteMutation.mutate(id);
-                  }}
-                  isDeleting={
-                    deleteMutation.isPending && deleteMutation.variables === r.absenceRecordId
-                  }
-                />
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan={colCount}
-                  className="text-muted-foreground px-3 py-6 text-center text-sm"
-                >
-                  Tidak ada anggota tim dalam scope Anda.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nama</TableHead>
+                <TableHead>Departemen</TableHead>
+                <TableHead>Clock-in</TableHead>
+                <TableHead>Clock-out</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Telat</TableHead>
+                {canOverrideAbsence ? <TableHead className="text-right">Aksi</TableHead> : null}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {list.isLoading ? (
+                <RowsSkeleton cols={colCount} />
+              ) : list.data && list.data.length > 0 ? (
+                list.data.map((r) => (
+                  <TodayRow
+                    key={r.userId}
+                    row={r}
+                    date={date}
+                    canOverride={canOverrideAbsence}
+                    dateIsLocked={dateIsLocked}
+                    isMarkOpen={openMarkFor === r.userId}
+                    reason={reason}
+                    errorMsg={openMarkFor === r.userId ? errorMsg : null}
+                    onOpenMark={() => {
+                      setOpenMarkFor(r.userId);
+                      setReason('');
+                      setErrorMsg(null);
+                    }}
+                    onCancelMark={() => {
+                      setOpenMarkFor(null);
+                      setReason('');
+                      setErrorMsg(null);
+                    }}
+                    onReasonChange={setReason}
+                    onSubmitMark={() => {
+                      markMutation.mutate({
+                        userId: r.userId,
+                        workDate: date,
+                        reason: reason.trim() ? reason.trim() : undefined,
+                      });
+                    }}
+                    isSubmitting={markMutation.isPending && openMarkFor === r.userId}
+                    onRequestDelete={(target) => setDeleteTarget(target)}
+                  />
+                ))
+              ) : (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={colCount}>
+                    <EmptyState message="Tidak ada anggota tim dalam scope Anda." />
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <AlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Batalkan status absen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Anda akan mencabut status absen untuk{' '}
+              <span className="text-foreground font-medium">{deleteTarget?.fullName}</span> pada{' '}
+              <span className="text-foreground font-medium tabular-nums">{deleteTarget?.date}</span>
+              . Aksi ini tercatat di audit log.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+              onClick={() => {
+                if (deleteTarget) deleteMutation.mutate(deleteTarget.absenceRecordId);
+              }}
+            >
+              {deleteMutation.isPending ? 'Menghapus…' : 'Ya, batalkan absen'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -239,7 +297,6 @@ interface TodayRowProps {
   row: TeamMemberDailyRow;
   date: string;
   canOverride: boolean;
-  /** Whether the current date is inside the tenant's payroll lock. */
   dateIsLocked: boolean;
   isMarkOpen: boolean;
   reason: string;
@@ -249,13 +306,13 @@ interface TodayRowProps {
   onReasonChange: (v: string) => void;
   onSubmitMark: () => void;
   isSubmitting: boolean;
-  onDeleteAbsence: (id: string) => void;
-  isDeleting: boolean;
+  onRequestDelete: (target: DeleteTarget) => void;
 }
 
 function TodayRow(props: TodayRowProps): JSX.Element {
   const {
     row,
+    date,
     canOverride,
     dateIsLocked,
     isMarkOpen,
@@ -266,143 +323,147 @@ function TodayRow(props: TodayRowProps): JSX.Element {
     onReasonChange,
     onSubmitMark,
     isSubmitting,
-    onDeleteAbsence,
-    isDeleting,
+    onRequestDelete,
   } = props;
 
   const colCount = canOverride ? 7 : 6;
 
   return (
     <>
-      <tr className="border-t">
-        <td className="px-3 py-2">
-          <div className="font-medium">{row.fullName}</div>
-          <div className="text-muted-foreground text-[11px]">{row.email}</div>
-        </td>
-        <td className="text-muted-foreground px-3 py-2 text-xs">{row.departmentName ?? '—'}</td>
-        <td className="px-3 py-2 tabular-nums">
-          {row.clockInAt ? formatTime(row.clockInAt) : dash()}
-        </td>
-        <td className="px-3 py-2 tabular-nums">
-          {row.clockOutAt ? formatTime(row.clockOutAt) : dash()}
-        </td>
-        <td className="px-3 py-2">
+      <TableRow>
+        <TableCell>
+          <div className="flex items-center gap-2">
+            <div className="bg-muted text-muted-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
+              <User2 className="h-4 w-4" aria-hidden />
+            </div>
+            <div>
+              <div className="text-body font-medium">{row.fullName}</div>
+              <div className="text-muted-foreground text-caption">{row.email}</div>
+            </div>
+          </div>
+        </TableCell>
+        <TableCell className="text-muted-foreground text-caption">
+          {row.departmentName ?? '—'}
+        </TableCell>
+        <TableCell className="tabular-nums">
+          {row.clockInAt ? formatTime(row.clockInAt) : <MutedDash />}
+        </TableCell>
+        <TableCell className="tabular-nums">
+          {row.clockOutAt ? formatTime(row.clockOutAt) : <MutedDash />}
+        </TableCell>
+        <TableCell>
           <div className="flex flex-col items-start gap-1">
-            <TeamStatusPill status={row.status} />
+            <StatusBadge status={row.status as TeamAttendanceStatus} />
             {row.status === 'ABSENT' && row.absenceSource ? (
               <AbsenceSourcePill source={row.absenceSource} />
             ) : null}
           </div>
-        </td>
-        <td className="px-3 py-2 text-right tabular-nums">
+        </TableCell>
+        <TableCell className="text-right tabular-nums">
           {row.lateMinutes > 0 ? (
-            <span className="text-destructive">{row.lateMinutes}m</span>
+            <span className="text-warning font-medium">{row.lateMinutes}m</span>
           ) : (
-            dash()
+            <MutedDash />
           )}
-        </td>
+        </TableCell>
         {canOverride ? (
-          <td className="px-3 py-2 text-right">
+          <TableCell className="text-right">
             {row.status === 'NOT_CLOCKED_IN' && !isMarkOpen ? (
-              <button
-                type="button"
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={onOpenMark}
                 disabled={dateIsLocked}
                 title={dateIsLocked ? 'Periode terkunci payroll' : undefined}
-                className="text-muted-foreground hover:bg-muted rounded-md border px-2 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-50"
               >
+                <UserX className="h-3.5 w-3.5" aria-hidden />
                 Absenkan
-              </button>
+              </Button>
             ) : null}
             {row.status === 'ABSENT' && row.absenceRecordId ? (
-              <button
-                type="button"
-                onClick={() => onDeleteAbsence(row.absenceRecordId as string)}
-                disabled={isDeleting || dateIsLocked}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  onRequestDelete({
+                    absenceRecordId: row.absenceRecordId as string,
+                    fullName: row.fullName,
+                    date,
+                  })
+                }
+                disabled={dateIsLocked}
                 title={dateIsLocked ? 'Periode terkunci payroll' : undefined}
-                className="text-muted-foreground hover:bg-muted rounded-md border px-2 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isDeleting ? 'Menghapus...' : 'Batalkan'}
-              </button>
+                <X className="h-3.5 w-3.5" aria-hidden />
+                Batalkan
+              </Button>
             ) : null}
-          </td>
+          </TableCell>
         ) : null}
-      </tr>
+      </TableRow>
       {isMarkOpen ? (
-        <tr className="bg-muted/20 border-t">
-          <td colSpan={colCount} className="px-3 py-3">
+        <TableRow className="bg-muted/20 hover:bg-muted/20">
+          <TableCell colSpan={colCount}>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 onSubmitMark();
               }}
-              className="flex flex-wrap items-end gap-2"
+              className="flex flex-wrap items-end gap-3"
             >
-              <label className="text-muted-foreground flex flex-1 flex-col text-xs">
-                Alasan (opsional, maks. 500 karakter)
-                <input
+              <div className="min-w-[280px] flex-1 space-y-1.5">
+                <Label htmlFor={`mark-reason-${row.userId}`} className="text-caption">
+                  Alasan (opsional, maks. 500 karakter)
+                </Label>
+                <Input
+                  id={`mark-reason-${row.userId}`}
                   autoFocus
-                  type="text"
                   value={reason}
                   onChange={(e) => onReasonChange(e.target.value)}
                   maxLength={500}
                   placeholder={`Contoh: ${row.fullName} tidak masuk tanpa keterangan.`}
-                  className="border-input bg-background mt-1 rounded-md border px-2 py-1 text-sm"
                 />
-              </label>
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-destructive text-destructive-foreground rounded-md px-3 py-1 text-xs font-medium disabled:opacity-50"
-                >
-                  {isSubmitting ? 'Menyimpan...' : 'Konfirmasi absen'}
-                </button>
-                <button
-                  type="button"
-                  onClick={onCancelMark}
-                  className="text-muted-foreground rounded-md border px-3 py-1 text-xs"
-                >
-                  Batal
-                </button>
               </div>
-              {errorMsg ? <p className="text-destructive w-full text-xs">{errorMsg}</p> : null}
+              <div className="flex gap-2">
+                <Button type="submit" size="sm" variant="destructive" disabled={isSubmitting}>
+                  {isSubmitting ? 'Menyimpan…' : 'Konfirmasi absen'}
+                </Button>
+                <Button type="button" size="sm" variant="outline" onClick={onCancelMark}>
+                  Batal
+                </Button>
+              </div>
+              {errorMsg ? (
+                <p className="text-destructive text-caption inline-flex w-full items-center gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
+                  {errorMsg}
+                </p>
+              ) : null}
             </form>
-          </td>
-        </tr>
+          </TableCell>
+        </TableRow>
       ) : null}
     </>
   );
 }
 
-function AbsenceSourcePill({ source }: { source: 'AUTO_SCHEDULER' | 'MANUAL_HR' }): JSX.Element {
-  const label = source === 'AUTO_SCHEDULER' ? 'Otomatis' : 'HR';
+function AbsenceSourcePill({ source }: { source: AbsenceSource }): JSX.Element {
+  const isAuto = source === 'AUTO_SCHEDULER';
   return (
-    <span className="inline-flex items-center rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-700">
-      {label}
-    </span>
+    <Badge variant="muted" className="gap-1 text-[10px]">
+      {isAuto ? <Bot className="h-3 w-3" aria-hidden /> : <User2 className="h-3 w-3" aria-hidden />}
+      {isAuto ? 'Otomatis' : 'HR'}
+    </Badge>
   );
 }
 
 function errorMessage(err: unknown): string {
   if (err instanceof Error) {
-    // Common domain codes from the API; keep the raw code so QA can grep it,
-    // but wrap it in a human-readable sentence.
-    if (err.message === 'CLOCKED_IN') {
-      return 'Karyawan sudah melakukan clock-in pada tanggal ini.';
-    }
-    if (err.message === 'ALREADY_MARKED') {
-      return 'Karyawan sudah tercatat absen pada tanggal ini.';
-    }
-    if (err.message === 'DATE_IN_FUTURE') {
-      return 'Tanggal tidak boleh di masa depan.';
-    }
-    if (err.message === 'NOT_HIRED_YET') {
-      return 'Karyawan belum aktif pada tanggal tersebut.';
-    }
-    if (err.message === 'PAYROLL_LOCKED') {
+    if (err.message === 'CLOCKED_IN') return 'Karyawan sudah melakukan clock-in pada tanggal ini.';
+    if (err.message === 'ALREADY_MARKED') return 'Karyawan sudah tercatat absen pada tanggal ini.';
+    if (err.message === 'DATE_IN_FUTURE') return 'Tanggal tidak boleh di masa depan.';
+    if (err.message === 'NOT_HIRED_YET') return 'Karyawan belum aktif pada tanggal tersebut.';
+    if (err.message === 'PAYROLL_LOCKED')
       return 'Tanggal ini berada dalam periode payroll yang sudah terkunci. Hanya Super Admin yang dapat memodifikasi.';
-    }
     return err.message;
   }
   return 'Terjadi kesalahan. Coba lagi.';
@@ -428,44 +489,43 @@ function SummaryTable({ range }: { range: RangePreset }): JSX.Element {
   });
 
   return (
-    <div className="space-y-2">
-      <p className="text-muted-foreground text-xs">
-        Rentang: {from} → {to} · {days} hari
+    <div className="space-y-3">
+      <p className="text-muted-foreground text-caption">
+        Rentang: <span className="tabular-nums">{from}</span> →{' '}
+        <span className="tabular-nums">{to}</span> · {days} hari
       </p>
-      <div className="overflow-hidden rounded-md border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-muted-foreground text-left text-xs uppercase tracking-wider">
-            <tr>
-              <th className="px-3 py-2">Nama</th>
-              <th className="px-3 py-2">Departemen</th>
-              <th className="px-3 py-2 text-right">Hadir</th>
-              <th className="px-3 py-2 text-right">Tepat waktu</th>
-              <th className="px-3 py-2 text-right">Terlambat</th>
-              <th className="px-3 py-2 text-right">Absen</th>
-              <th className="px-3 py-2 text-right">Menit telat</th>
-              <th className="px-3 py-2 text-right">Total jam</th>
-              <th className="px-3 py-2 text-right">On-time %</th>
-            </tr>
-          </thead>
-          <tbody>
-            {query.isLoading ? (
-              <tr>
-                <td colSpan={9} className="text-muted-foreground px-3 py-6 text-center text-sm">
-                  Memuat...
-                </td>
-              </tr>
-            ) : query.data && query.data.rows.length > 0 ? (
-              query.data.rows.map((r) => <SummaryRow key={r.userId} row={r} />)
-            ) : (
-              <tr>
-                <td colSpan={9} className="text-muted-foreground px-3 py-6 text-center text-sm">
-                  Tidak ada data pada rentang ini.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nama</TableHead>
+                <TableHead>Departemen</TableHead>
+                <TableHead className="text-right">Hadir</TableHead>
+                <TableHead className="text-right">Tepat waktu</TableHead>
+                <TableHead className="text-right">Terlambat</TableHead>
+                <TableHead className="text-right">Absen</TableHead>
+                <TableHead className="text-right">Menit telat</TableHead>
+                <TableHead className="text-right">Total jam</TableHead>
+                <TableHead className="text-right">On-time %</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {query.isLoading ? (
+                <RowsSkeleton cols={9} />
+              ) : query.data && query.data.rows.length > 0 ? (
+                query.data.rows.map((r) => <SummaryRow key={r.userId} row={r} />)
+              ) : (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={9}>
+                    <EmptyState message="Tidak ada data pada rentang ini." />
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -476,93 +536,77 @@ function SummaryRow({ row }: { row: TeamMemberSummaryRow }): JSX.Element {
     rate === null
       ? 'text-muted-foreground'
       : rate >= 90
-        ? 'text-emerald-600'
+        ? 'text-success'
         : rate >= 75
-          ? 'text-amber-700'
+          ? 'text-warning'
           : 'text-destructive';
 
   return (
-    <tr className="border-t">
-      <td className="px-3 py-2">
-        <div className="font-medium">{row.fullName}</div>
-        <div className="text-muted-foreground text-[11px]">{row.email}</div>
-      </td>
-      <td className="text-muted-foreground px-3 py-2 text-xs">{row.departmentName ?? '—'}</td>
-      <td className="px-3 py-2 text-right tabular-nums">{row.presentDays}</td>
-      <td className="px-3 py-2 text-right tabular-nums text-emerald-600">{row.onTimeDays}</td>
-      <td className="px-3 py-2 text-right tabular-nums">
-        {row.lateDays > 0 ? <span className="text-destructive">{row.lateDays}</span> : dash()}
-      </td>
-      <td className="px-3 py-2 text-right tabular-nums">
-        {row.absentDays > 0 ? <span className="text-destructive">{row.absentDays}</span> : dash()}
-      </td>
-      <td className="px-3 py-2 text-right tabular-nums">
-        {row.totalLateMinutes > 0 ? row.totalLateMinutes : dash()}
-      </td>
-      <td className="px-3 py-2 text-right tabular-nums">{row.totalHoursWorked.toFixed(1)}</td>
-      <td className={`px-3 py-2 text-right font-medium tabular-nums ${rateClass}`}>
+    <TableRow>
+      <TableCell>
+        <div className="text-body font-medium">{row.fullName}</div>
+        <div className="text-muted-foreground text-caption">{row.email}</div>
+      </TableCell>
+      <TableCell className="text-muted-foreground text-caption">
+        {row.departmentName ?? '—'}
+      </TableCell>
+      <TableCell className="text-right tabular-nums">{row.presentDays}</TableCell>
+      <TableCell className="text-success text-right tabular-nums">{row.onTimeDays}</TableCell>
+      <TableCell className="text-right tabular-nums">
+        {row.lateDays > 0 ? (
+          <span className="text-warning font-medium">{row.lateDays}</span>
+        ) : (
+          <MutedDash />
+        )}
+      </TableCell>
+      <TableCell className="text-right tabular-nums">
+        {row.absentDays > 0 ? (
+          <span className="text-destructive font-medium">{row.absentDays}</span>
+        ) : (
+          <MutedDash />
+        )}
+      </TableCell>
+      <TableCell className="text-right tabular-nums">
+        {row.totalLateMinutes > 0 ? row.totalLateMinutes : <MutedDash />}
+      </TableCell>
+      <TableCell className="text-right tabular-nums">{row.totalHoursWorked.toFixed(1)}</TableCell>
+      <TableCell className={cn('text-right font-medium tabular-nums', rateClass)}>
         {rate === null ? '—' : `${rate.toFixed(1)}%`}
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Shared bits
 // ---------------------------------------------------------------------------
 
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}): JSX.Element {
+function RowsSkeleton({ cols }: { cols: number }): JSX.Element {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded px-2.5 py-1 ${
-        active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'
-      }`}
-    >
-      {children}
-    </button>
+    <>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <TableRow key={i} className="hover:bg-transparent">
+          {Array.from({ length: cols }).map((__, j) => (
+            <TableCell key={j}>
+              <Skeleton className="h-4 w-full max-w-[100px]" />
+            </TableCell>
+          ))}
+        </TableRow>
+      ))}
+    </>
   );
 }
 
-function TeamStatusPill({ status }: { status: string }): JSX.Element {
-  const styleFor = (): { label: string; className: string } => {
-    switch (status) {
-      case 'ON_TIME':
-        return { label: 'Tepat waktu', className: 'bg-emerald-100 text-emerald-800' };
-      case 'LATE':
-        return { label: 'Terlambat', className: 'bg-destructive/10 text-destructive' };
-      case 'EARLY_LEAVE':
-        return { label: 'Pulang cepat', className: 'bg-amber-100 text-amber-800' };
-      case 'ON_LEAVE':
-        return { label: 'Cuti', className: 'bg-sky-100 text-sky-800' };
-      case 'ABSENT':
-        return { label: 'Absen', className: 'bg-muted text-muted-foreground' };
-      case 'NOT_CLOCKED_IN':
-        return { label: 'Belum clock-in', className: 'bg-slate-200 text-slate-700' };
-      default:
-        return { label: status, className: 'bg-muted text-muted-foreground' };
-    }
-  };
-  const { label, className } = styleFor();
+function EmptyState({ message }: { message: string }): ReactNode {
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${className}`}
-    >
-      {label}
-    </span>
+    <div className="text-muted-foreground flex flex-col items-center gap-2 py-8">
+      <Inbox className="h-6 w-6" aria-hidden />
+      <p className="text-body">{message}</p>
+    </div>
   );
 }
 
-function dash(): JSX.Element {
+function MutedDash(): JSX.Element {
   return <span className="text-muted-foreground">—</span>;
 }
 

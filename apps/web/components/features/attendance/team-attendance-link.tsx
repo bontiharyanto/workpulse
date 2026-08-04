@@ -1,13 +1,16 @@
 'use client';
 
+import { Users } from 'lucide-react';
 import Link from 'next/link';
+import { type JSX } from 'react';
 
 import { useAuth } from '@/components/providers/auth-provider';
+import { Button } from '@/components/ui/button';
 
 /**
- * Renders the "Kehadiran Tim →" link only for roles that can see the
- * server-side team endpoints. Uses `null` render for employees so the
- * layout doesn't leave a gap where the button would be.
+ * "Kehadiran Tim →" entry — hidden for employees. Server-side RBAC
+ * enforces access; hiding the link is just to spare non-authorized
+ * roles a 403 round-trip.
  */
 export function TeamAttendanceLink(): JSX.Element | null {
   const { user } = useAuth();
@@ -16,11 +19,11 @@ export function TeamAttendanceLink(): JSX.Element | null {
     return null;
   }
   return (
-    <Link
-      href="/attendance/team"
-      className="border-input hover:bg-muted whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium"
-    >
-      Kehadiran Tim →
-    </Link>
+    <Button asChild variant="outline" size="sm">
+      <Link href="/attendance/team">
+        <Users className="h-4 w-4" aria-hidden />
+        Kehadiran Tim
+      </Link>
+    </Button>
   );
 }
