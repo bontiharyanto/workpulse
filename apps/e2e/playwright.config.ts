@@ -78,24 +78,30 @@ export default defineConfig({
       stdout: 'pipe',
       stderr: 'pipe',
       env: {
-        NODE_ENV: CI ? 'production' : (process.env.NODE_ENV ?? 'development'),
+        // NODE_ENV=test in every mode. Earlier this branched to `production`
+        // for `CI=true` under the theory that the E2E harness should
+        // exercise the exact runtime configuration that ships. In practice
+        // this contradicts the test-only env knobs below — `env.validation`
+        // rejects `THROTTLER_DISABLED=true`, `MFA_ENFORCE_HR_ADMIN=false`,
+        // and `WEBHOOK_BLOCK_PRIVATE_IPS=false` when `NODE_ENV=production`,
+        // and Playwright's webServer fails to boot on CI. `test` still runs
+        // the compiled `dist/` output (see the `start:prod` command below)
+        // so we ARE exercising the production build artefact; only the
+        // runtime posture is loosened for test pragmatism.
+        NODE_ENV: 'test',
         // Bypass the login/reset/change-password throttlers — many E2E tests
         // authenticate multiple times inside a 60-second window and would
-        // otherwise flake with 429s. This env is refused by env.validation.ts
-        // when NODE_ENV=production, so it can only ever leak in dev/test.
+        // otherwise flake with 429s.
         THROTTLER_DISABLED: 'true',
         // Disable MFA enrollment enforcement for HR / SUPER_ADMIN. The seed
         // users log in dozens of times per run; forcing enrollment on
         // every one would either fail every test or require adding a
         // pre-baked TOTP secret to the seed. The dedicated `mfa.spec.ts`
-        // exercises enrollment explicitly, so we're covered. The env
-        // validator refuses `false` when NODE_ENV=production.
+        // exercises enrollment explicitly, so we're covered.
         MFA_ENFORCE_HR_ADMIN: 'false',
         // Fase 32e — allow the webhook worker to POST to the loopback
         // sink at http://localhost:4000/api/v1/test-support/webhook-sink.
-        // Production must keep this at the safe default (true); the
-        // env validator refuses NODE_ENV=production alongside this
-        // flag when combined with the other test-only knobs above.
+        // Production must keep this at the safe default (true).
         WEBHOOK_BLOCK_PRIVATE_IPS: 'false',
       },
     },
