@@ -7,15 +7,48 @@ import type {
   TimesheetStatus,
   TimesheetSummaryDto,
 } from '@workpulse/shared-types';
-import { REOPEN_REASON_MIN, REOPEN_REASON_MAX } from '@workpulse/shared-types';
+import { REOPEN_REASON_MAX, REOPEN_REASON_MIN } from '@workpulse/shared-types';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ChevronUp,
+  Cog,
+  Download,
+  Inbox,
+  RotateCcw,
+  Sparkles,
+  XCircle,
+} from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, type JSX } from 'react';
 
 import { useAuth } from '@/components/providers/auth-provider';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 import { ApiError, timesheetAdminApi } from '@/lib/api-client';
 
-import { StatusBadge } from './my-timesheet-panel';
+import { TimesheetStatusBadge } from './timesheet-status-badge';
 
 const ERROR_COPY: Record<string, string> = {
   THROTTLED: 'Terlalu banyak percobaan. Coba lagi sebentar.',
@@ -29,8 +62,8 @@ const ERROR_COPY: Record<string, string> = {
   TIMESHEET_REOPEN_REASON_INVALID: `Alasan reopen wajib diisi ${REOPEN_REASON_MIN}..${REOPEN_REASON_MAX} karakter.`,
 };
 
-const STATUS_FILTERS: Array<{ value: '' | TimesheetStatus; label: string }> = [
-  { value: '', label: 'Semua' },
+const STATUS_FILTERS: Array<{ value: 'ALL' | TimesheetStatus; label: string }> = [
+  { value: 'ALL', label: 'Semua' },
   { value: 'DRAFT', label: 'Draft' },
   { value: 'PENDING_SUPERVISOR', label: 'Menunggu supervisor' },
   { value: 'PENDING_HR', label: 'Menunggu HR' },
@@ -39,16 +72,24 @@ const STATUS_FILTERS: Array<{ value: '' | TimesheetStatus; label: string }> = [
 ];
 
 /**
- * `/admin/timesheet` panel (Fase 32b).
- * - HR & Super Admin can generate, configure, and decide (HR-tier).
- * - Supervisor can decide (supervisor-tier) on their direct reports.
+ * `/admin/timesheet` approval queue.
+ *
+ * INVARIANTS (rules/20 §3–4):
+ * - Client role checks are UX only. Server `@Roles` guard is the
+ *   real authorization.
+ * - The approval state machine (PENDING_SUPERVISOR → PENDING_HR →
+ *   APPROVED, or reject to REJECTED, or reopen APPROVED → DRAFT)
+ *   is enforced server-side. FE only exposes valid transitions.
+ * - Reject requires `note`, reopen requires reason `10..500`
+ *   characters — Zod-enforced on the server too.
  */
 export function AdminTimesheetPanel(): JSX.Element {
   const qc = useQueryClient();
   const { user } = useAuth();
   const canConfigure = user?.role === 'HR_MANAGER' || user?.role === 'SUPER_ADMIN';
-  const [periodId, setPeriodId] = useState<string>('');
-  const [statusFilter, setStatusFilter] = useState<'' | TimesheetStatus>('');
+
+  const [periodId, setPeriodId] = useState<string>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | TimesheetStatus>('ALL');
 
   const periods = useQuery({
     queryKey: ['timesheet-periods'],
@@ -60,8 +101,8 @@ export function AdminTimesheetPanel(): JSX.Element {
     queryKey: ['timesheet-admin-list', periodId, statusFilter],
     queryFn: () =>
       timesheetAdminApi.list({
-        periodId: periodId || undefined,
-        status: statusFilter || undefined,
+        periodId: periodId === 'ALL' ? undefined : periodId,
+        status: statusFilter === 'ALL' ? undefined : statusFilter,
       }),
   });
 
@@ -98,149 +139,148 @@ export function AdminTimesheetPanel(): JSX.Element {
 
   return (
     <div className="space-y-6">
-      <section className="border-border bg-card flex flex-wrap items-end justify-between gap-4 rounded-lg border p-6">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="space-y-2">
-            <label htmlFor="period" className="text-sm font-medium">
-              Periode
-            </label>
-            <select
-              id="period"
-              value={periodId}
-              onChange={(e) => setPeriodId(e.target.value)}
-              className="border-input bg-background focus:border-primary focus:ring-primary min-w-[240px] rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
-              aria-label="Pilih periode"
-            >
-              <option value="">Terbaru (default)</option>
-              {(periods.data?.items ?? []).map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.label} ({p.periodStart} → {p.periodEnd})
-                </option>
-              ))}
-            </select>
+      <Card>
+        <CardContent className="flex flex-wrap items-end justify-between gap-4 p-6">
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="min-w-[240px] space-y-1.5">
+              <Label htmlFor="ts-filter-period">Periode</Label>
+              <Select value={periodId} onValueChange={setPeriodId}>
+                <SelectTrigger id="ts-filter-period" aria-label="Pilih periode">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Terbaru (default)</SelectItem>
+                  {(periods.data?.items ?? []).map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.label} ({p.periodStart} → {p.periodEnd})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="min-w-[200px] space-y-1.5">
+              <Label htmlFor="ts-filter-status">Status</Label>
+              <Select
+                value={statusFilter}
+                onValueChange={(v) => setStatusFilter(v as 'ALL' | TimesheetStatus)}
+              >
+                <SelectTrigger id="ts-filter-status" aria-label="Filter status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_FILTERS.map((f) => (
+                    <SelectItem key={f.value} value={f.value}>
+                      {f.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <div className="space-y-2">
-            <label htmlFor="status" className="text-sm font-medium">
-              Status
-            </label>
-            <select
-              id="status"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as '' | TimesheetStatus)}
-              className="border-input bg-background focus:border-primary focus:ring-primary min-w-[200px] rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
-              aria-label="Filter status"
-            >
-              {STATUS_FILTERS.map((f) => (
-                <option key={f.value} value={f.value}>
-                  {f.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
           {canConfigure ? (
-            <Link
-              href={'/admin/timesheet/config' as Route}
-              className="border-input bg-background hover:bg-accent inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium"
-            >
-              Konfigurasi
-            </Link>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button asChild variant="outline" size="sm">
+                <Link href={'/admin/timesheet/config' as Route}>
+                  <Cog className="h-4 w-4" aria-hidden />
+                  Konfigurasi
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href={'/admin/timesheet/exports' as Route} data-testid="ts-open-exports">
+                  <Download className="h-4 w-4" aria-hidden />
+                  Export payroll
+                </Link>
+              </Button>
+              <Button size="sm" onClick={() => generate.mutate()} disabled={generate.isPending}>
+                <Sparkles className="h-4 w-4" aria-hidden />
+                {generate.isPending ? 'Menghasilkan…' : 'Generate periode berjalan'}
+              </Button>
+            </div>
           ) : null}
-          {canConfigure ? (
-            <Link
-              href={'/admin/timesheet/exports' as Route}
-              className="border-input bg-background hover:bg-accent inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium"
-              data-testid="ts-open-exports"
-            >
-              Export payroll
-            </Link>
-          ) : null}
-          {canConfigure ? (
-            <button
-              type="button"
-              onClick={() => generate.mutate()}
-              disabled={generate.isPending}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {generate.isPending ? 'Menghasilkan…' : 'Generate periode berjalan'}
-            </button>
-          ) : null}
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {generateError ? (
-        <div
-          role="alert"
-          className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-3 text-sm"
-        >
-          {generateError}
-        </div>
+        <Alert variant="destructive">
+          <AlertTriangle aria-hidden />
+          <AlertTitle>Gagal generate timesheet</AlertTitle>
+          <AlertDescription>{generateError}</AlertDescription>
+        </Alert>
       ) : null}
       {decideError ? (
-        <div
-          role="alert"
-          className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-3 text-sm"
-        >
-          {decideError}
-        </div>
+        <Alert variant="destructive">
+          <AlertTriangle aria-hidden />
+          <AlertTitle>Keputusan tidak dapat disimpan</AlertTitle>
+          <AlertDescription>{decideError}</AlertDescription>
+        </Alert>
       ) : null}
       {reopenError ? (
-        <div
-          role="alert"
-          className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-3 text-sm"
-        >
-          {reopenError}
-        </div>
+        <Alert variant="destructive">
+          <AlertTriangle aria-hidden />
+          <AlertTitle>Tidak dapat membuka kembali timesheet</AlertTitle>
+          <AlertDescription>{reopenError}</AlertDescription>
+        </Alert>
       ) : null}
 
       {list.isLoading ? (
-        <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm">
-          Memuat…
-        </div>
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full rounded-md" />
+            ))}
+          </CardContent>
+        </Card>
       ) : list.isError ? (
-        <div
-          role="alert"
-          className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-4 text-sm"
-        >
-          Gagal memuat daftar timesheet.
-        </div>
+        <Alert variant="destructive">
+          <AlertTriangle aria-hidden />
+          <AlertTitle>Gagal memuat daftar timesheet</AlertTitle>
+          <AlertDescription>Coba muat ulang halaman.</AlertDescription>
+        </Alert>
       ) : (list.data?.items ?? []).length === 0 ? (
-        <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm">
-          Belum ada timesheet — klik “Generate periode berjalan”.
-        </div>
+        <Card>
+          <CardContent className="text-muted-foreground flex flex-col items-center gap-2 py-12">
+            <Inbox className="h-8 w-8" aria-hidden />
+            <p className="text-h6 text-foreground">Belum ada timesheet</p>
+            <p className="text-caption">Klik “Generate periode berjalan” untuk mulai.</p>
+          </CardContent>
+        </Card>
       ) : (
-        <section className="border-border bg-card overflow-x-auto rounded-lg border">
-          <table className="w-full min-w-[860px] text-sm">
-            <thead>
-              <tr className="text-muted-foreground border-b text-xs uppercase">
-                <th className="px-3 py-2 text-left">Karyawan</th>
-                <th className="px-3 py-2 text-left">Periode</th>
-                <th className="px-3 py-2 text-left">Status</th>
-                <th className="px-3 py-2 text-right">Kerja</th>
-                <th className="px-3 py-2 text-right">Lembur</th>
-                <th className="px-3 py-2 text-right">Cuti</th>
-                <th className="px-3 py-2 text-right">Absen</th>
-                <th className="px-3 py-2 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(list.data?.items ?? []).map((row) => (
-                <RowActions
-                  key={row.id}
-                  row={row}
-                  role={user?.role ?? 'EMPLOYEE'}
-                  pending={decide.isPending || reopen.isPending}
-                  onDecide={(body) => decide.mutate({ id: row.id, body })}
-                  onReopen={(body) => reopen.mutate({ id: row.id, body })}
-                />
-              ))}
-            </tbody>
-          </table>
-        </section>
+        <Card>
+          <CardHeader className="pb-0" />
+          <CardContent className="overflow-x-auto p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Karyawan</TableHead>
+                  <TableHead>Periode</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Kerja</TableHead>
+                  <TableHead className="text-right">Lembur</TableHead>
+                  <TableHead className="text-right">Cuti</TableHead>
+                  <TableHead className="text-right">Absen</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(list.data?.items ?? []).map((row) => (
+                  <RowActions
+                    key={row.id}
+                    row={row}
+                    role={user?.role ?? 'EMPLOYEE'}
+                    pending={decide.isPending || reopen.isPending}
+                    onDecide={(body) => decide.mutate({ id: row.id, body })}
+                    onReopen={(body) => reopen.mutate({ id: row.id, body })}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       )}
 
-      <p className="text-muted-foreground text-xs">Total: {list.data?.total ?? 0} timesheet.</p>
+      <p className="text-muted-foreground text-caption">
+        Total: <span className="tabular-nums">{list.data?.total ?? 0}</span> timesheet.
+      </p>
     </div>
   );
 }
@@ -265,17 +305,16 @@ function RowActions({
   const isHr = role === 'HR_MANAGER' || role === 'SUPER_ADMIN';
   const isSupervisor = role === 'SUPERVISOR';
 
-  const supervisorAction: 'approve' | 'reject' | null =
-    row.status === 'PENDING_SUPERVISOR' && (isSupervisor || isHr) ? 'approve' : null;
-  const hrAction: 'approve' | 'reject' | null =
-    row.status === 'PENDING_HR' && isHr ? 'approve' : null;
-  const canDecide = supervisorAction || hrAction;
+  const canDecide =
+    (row.status === 'PENDING_SUPERVISOR' && (isSupervisor || isHr)) ||
+    (row.status === 'PENDING_HR' && isHr);
   const canReopen = isHr && row.status === 'APPROVED';
 
   const submitReject = (): void => {
-    if (!note.trim()) return;
+    const trimmed = note.trim();
+    if (!trimmed) return;
     const action = row.status === 'PENDING_SUPERVISOR' ? 'SUPERVISOR_REJECT' : 'HR_REJECT';
-    onDecide({ action, note: note.trim() });
+    onDecide({ action, note: trimmed });
     setRejecting(false);
     setNote('');
   };
@@ -296,140 +335,157 @@ function RowActions({
 
   return (
     <>
-      <tr className="border-b last:border-b-0">
-        <td className="px-3 py-2">
-          <div className="font-medium">{row.user.fullName}</div>
-          <div className="text-muted-foreground text-xs">{row.user.email}</div>
-        </td>
-        <td className="text-muted-foreground px-3 py-2 text-xs">
-          {row.periodLabel}
-          <div className="text-[10px]">
+      <TableRow>
+        <TableCell>
+          <div className="text-body font-medium">{row.user.fullName}</div>
+          <div className="text-muted-foreground text-caption">{row.user.email}</div>
+        </TableCell>
+        <TableCell>
+          <div className="text-body">{row.periodLabel}</div>
+          <div className="text-muted-foreground text-caption tabular-nums">
             {row.periodStart} → {row.periodEnd}
           </div>
-        </td>
-        <td className="px-3 py-2">
+        </TableCell>
+        <TableCell>
           <div className="flex flex-col items-start gap-1">
-            <StatusBadge status={row.status} />
+            <TimesheetStatusBadge status={row.status} />
             {row.reopenCount > 0 ? (
-              <span
-                className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
+              <Badge
+                variant="warning"
                 title={row.lastReopenReason ?? undefined}
                 data-testid={`ts-reopen-badge-${row.id}`}
               >
                 Reopened ×{row.reopenCount}
-              </span>
+              </Badge>
             ) : null}
           </div>
-        </td>
-        <td className="px-3 py-2 text-right font-mono">{row.totals.regularHours.toFixed(2)}</td>
-        <td className="px-3 py-2 text-right font-mono">{row.totals.overtimeHours.toFixed(2)}</td>
-        <td className="px-3 py-2 text-right font-mono">{row.totals.leaveDays}</td>
-        <td className="px-3 py-2 text-right font-mono">{row.totals.absentDays}</td>
-        <td className="px-3 py-2 text-right">
+        </TableCell>
+        <TableCell className="text-right font-mono tabular-nums">
+          {row.totals.regularHours.toFixed(2)}
+        </TableCell>
+        <TableCell className="text-right font-mono tabular-nums">
+          {row.totals.overtimeHours.toFixed(2)}
+        </TableCell>
+        <TableCell className="text-right font-mono tabular-nums">
+          {row.totals.leaveDays}
+        </TableCell>
+        <TableCell className="text-right font-mono tabular-nums">
+          {row.totals.absentDays}
+        </TableCell>
+        <TableCell className="text-right">
           {canDecide ? (
-            <div className="inline-flex gap-2">
-              <button
-                type="button"
+            <div className="inline-flex flex-wrap justify-end gap-2">
+              <Button
+                size="sm"
+                variant="success"
                 onClick={submitApprove}
                 disabled={pending}
-                className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
                 data-testid={`ts-approve-${row.id}`}
               >
+                <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
                 Setujui
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => setRejecting((v) => !v)}
                 disabled={pending}
-                className="border-destructive/50 text-destructive hover:bg-destructive/5 rounded-md border px-3 py-1.5 text-xs font-medium disabled:opacity-50"
                 data-testid={`ts-reject-${row.id}`}
+                className="border-destructive/50 text-destructive hover:bg-destructive/5"
               >
+                {rejecting ? (
+                  <ChevronUp className="h-3.5 w-3.5" aria-hidden />
+                ) : (
+                  <XCircle className="h-3.5 w-3.5" aria-hidden />
+                )}
                 Tolak
-              </button>
+              </Button>
             </div>
           ) : canReopen ? (
-            <button
-              type="button"
+            <Button
+              size="sm"
+              variant="outline"
               onClick={() => setReopening((v) => !v)}
               disabled={pending}
-              className="rounded-md border border-amber-500/60 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-50 dark:text-amber-300 dark:hover:bg-amber-900/20"
               data-testid={`ts-reopen-${row.id}`}
+              className="border-warning/60 text-warning hover:bg-warning/10"
             >
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden />
               Buka kembali
-            </button>
+            </Button>
           ) : (
-            <span className="text-muted-foreground text-xs">-</span>
+            <span className="text-muted-foreground text-caption">-</span>
           )}
-        </td>
-      </tr>
-      {rejecting && canDecide && (
-        <tr className="bg-muted/40 border-b">
-          <td colSpan={8} className="px-3 py-3">
+        </TableCell>
+      </TableRow>
+
+      {rejecting && canDecide ? (
+        <TableRow className="bg-muted/40">
+          <TableCell colSpan={8} className="p-4">
             <div className="flex flex-wrap items-end gap-3">
-              <div className="min-w-[240px] flex-1">
-                <label htmlFor={`reject-note-${row.id}`} className="text-xs font-medium">
-                  Alasan penolakan
-                </label>
-                <textarea
+              <div className="min-w-[240px] flex-1 space-y-1.5">
+                <Label htmlFor={`reject-note-${row.id}`}>Alasan penolakan</Label>
+                <Textarea
                   id={`reject-note-${row.id}`}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   maxLength={500}
                   rows={2}
-                  className="border-input bg-background focus:border-primary focus:ring-primary mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1"
                   placeholder="Jelaskan yang perlu dikoreksi karyawan…"
                   data-testid={`ts-reject-note-${row.id}`}
                 />
               </div>
-              <button
-                type="button"
+              <Button
+                variant="destructive"
+                size="sm"
                 onClick={submitReject}
                 disabled={pending || !note.trim()}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-md px-3 py-1.5 text-xs font-medium disabled:opacity-50"
                 data-testid={`ts-reject-confirm-${row.id}`}
               >
+                <XCircle className="h-3.5 w-3.5" aria-hidden />
                 Kirim penolakan
-              </button>
+              </Button>
             </div>
-          </td>
-        </tr>
-      )}
-      {reopening && canReopen && (
-        <tr className="border-b bg-amber-50/60 dark:bg-amber-900/10">
-          <td colSpan={8} className="px-3 py-3">
+          </TableCell>
+        </TableRow>
+      ) : null}
+
+      {reopening && canReopen ? (
+        <TableRow className="bg-warning/5">
+          <TableCell colSpan={8} className="p-4">
             <div className="flex flex-wrap items-end gap-3">
-              <div className="min-w-[280px] flex-1">
-                <label htmlFor={`reopen-reason-${row.id}`} className="text-xs font-medium">
+              <div className="min-w-[280px] flex-1 space-y-1.5">
+                <Label htmlFor={`reopen-reason-${row.id}`}>
                   Alasan reopen (wajib, {REOPEN_REASON_MIN}–{REOPEN_REASON_MAX} karakter)
-                </label>
-                <textarea
+                </Label>
+                <Textarea
                   id={`reopen-reason-${row.id}`}
                   value={reopenReason}
                   onChange={(e) => setReopenReason(e.target.value)}
                   maxLength={REOPEN_REASON_MAX}
                   rows={2}
-                  className="border-input bg-background focus:border-primary focus:ring-primary mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1"
                   placeholder="Contoh: OT rate revised post-payroll — mohon submit ulang setelah verifikasi."
                   data-testid={`ts-reopen-reason-${row.id}`}
                 />
-                <div className="text-muted-foreground mt-1 text-[11px]">
+                <p className="text-muted-foreground text-caption">
                   Timesheet direset ke DRAFT; karyawan submit ulang → supervisor → HR. Webhook{' '}
                   <code>timesheet.reopened</code> akan dikirim ke vendor payroll.
-                </div>
+                </p>
               </div>
-              <button
-                type="button"
+              <Button
+                size="sm"
                 onClick={submitReopen}
                 disabled={pending || reopenReason.trim().length < REOPEN_REASON_MIN}
-                className="rounded-md bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 disabled:opacity-50"
                 data-testid={`ts-reopen-confirm-${row.id}`}
+                className="bg-warning text-warning-foreground hover:bg-warning/90"
               >
+                <RotateCcw className="h-3.5 w-3.5" aria-hidden />
                 Konfirmasi buka kembali
-              </button>
+              </Button>
             </div>
-          </td>
-        </tr>
-      )}
+          </TableCell>
+        </TableRow>
+      ) : null}
     </>
   );
 }
