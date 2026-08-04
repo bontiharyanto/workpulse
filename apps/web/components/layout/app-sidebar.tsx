@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { JSX } from 'react';
 
+import { StaggerItem, StaggerList } from '@/components/motion/motion-primitives';
 import { useAuth } from '@/components/providers/auth-provider';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -86,18 +87,16 @@ function NavGroup({ section, role, collapsed }: NavGroupProps): JSX.Element | nu
   return (
     <div className="flex flex-col gap-1">
       {!collapsed ? (
-        <h3 className="text-muted-foreground px-2 pb-1 text-[11px] font-medium uppercase tracking-wider">
-          {section.label}
-        </h3>
+        <h3 className="text-muted-foreground text-overline px-2 pb-1 uppercase">{section.label}</h3>
       ) : null}
 
-      <ul className="flex flex-col gap-0.5">
+      <StaggerList className="flex flex-col gap-0.5">
         {visibleItems.map((item) => (
-          <li key={item.href}>
+          <StaggerItem key={item.href}>
             <NavItemLink item={item} collapsed={collapsed} />
-          </li>
+          </StaggerItem>
         ))}
-      </ul>
+      </StaggerList>
     </div>
   );
 }

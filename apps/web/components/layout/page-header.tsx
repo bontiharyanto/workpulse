@@ -32,8 +32,8 @@ export function PageHeader({
       )}
     >
       <div className="flex-1 space-y-1">
-        <h1 className="text-foreground text-2xl font-semibold tracking-tight">{title}</h1>
-        {description ? <p className="text-muted-foreground text-sm">{description}</p> : null}
+        <h1 className="text-foreground text-h1">{title}</h1>
+        {description ? <p className="text-muted-foreground text-body">{description}</p> : null}
       </div>
 
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}

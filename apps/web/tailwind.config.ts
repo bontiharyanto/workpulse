@@ -15,6 +15,35 @@ const config: Config = {
         sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         mono: ['var(--font-mono)', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
+      fontSize: {
+        // Semantic scale (Untitled UI cadence) — used alongside
+        // Tailwind's default `text-xs`..`text-6xl` for ad-hoc sizing.
+        // Rule of thumb: use these tokens whenever the intent is
+        // "this is a page title / a subtitle / a caption". Fall back
+        // to raw sizes for one-off adjustments.
+        overline: ['0.6875rem', { lineHeight: '1rem', letterSpacing: '0.06em', fontWeight: '500' }],
+        caption: ['0.75rem', { lineHeight: '1rem', letterSpacing: '0.01em' }],
+        body: ['0.875rem', { lineHeight: '1.5' }],
+        'body-lg': ['1rem', { lineHeight: '1.5' }],
+        h6: ['0.875rem', { lineHeight: '1.25rem', fontWeight: '600' }],
+        h5: ['1rem', { lineHeight: '1.375rem', fontWeight: '600' }],
+        h4: ['1.125rem', { lineHeight: '1.5rem', fontWeight: '600' }],
+        h3: ['1.25rem', { lineHeight: '1.625rem', fontWeight: '600', letterSpacing: '-0.005em' }],
+        h2: ['1.5rem', { lineHeight: '1.875rem', fontWeight: '600', letterSpacing: '-0.01em' }],
+        h1: ['1.875rem', { lineHeight: '2.25rem', fontWeight: '600', letterSpacing: '-0.015em' }],
+        'display-sm': [
+          '2.25rem',
+          { lineHeight: '2.5rem', fontWeight: '700', letterSpacing: '-0.02em' },
+        ],
+        'display-md': [
+          '3rem',
+          { lineHeight: '3.25rem', fontWeight: '700', letterSpacing: '-0.02em' },
+        ],
+        'display-lg': [
+          '3.75rem',
+          { lineHeight: '4rem', fontWeight: '700', letterSpacing: '-0.025em' },
+        ],
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

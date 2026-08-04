@@ -2,11 +2,26 @@ import { forwardRef, type HTMLAttributes } from 'react';
 
 import { cn } from '@/lib/utils';
 
-const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
+interface CardProps extends HTMLAttributes<HTMLDivElement> {
+  /**
+   * When true the card renders with a hover lift + shadow bump.
+   * Only opt in when the card is clickable or otherwise carries an
+   * action — a static informational card should NOT be interactive
+   * because it teaches users to click things that don't respond.
+   */
+  interactive?: boolean;
+}
+
+const Card = forwardRef<HTMLDivElement, CardProps>(
+  ({ className, interactive = false, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('bg-card text-card-foreground shadow-xs rounded-xl border', className)}
+      className={cn(
+        'bg-card text-card-foreground shadow-xs rounded-xl border',
+        interactive &&
+          'cursor-pointer transition-[transform,box-shadow] duration-150 ease-out hover:-translate-y-0.5 hover:shadow-sm',
+        className,
+      )}
       {...props}
     />
   ),
@@ -22,18 +37,14 @@ CardHeader.displayName = 'CardHeader';
 
 const CardTitle = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn('text-lg font-semibold leading-none tracking-tight', className)}
-      {...props}
-    />
+    <div ref={ref} className={cn('text-h5 leading-none tracking-tight', className)} {...props} />
   ),
 );
 CardTitle.displayName = 'CardTitle';
 
 const CardDescription = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('text-muted-foreground text-sm', className)} {...props} />
+    <div ref={ref} className={cn('text-muted-foreground text-caption', className)} {...props} />
   ),
 );
 CardDescription.displayName = 'CardDescription';
