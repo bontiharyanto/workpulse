@@ -1,15 +1,27 @@
+import { ArrowLeft } from 'lucide-react';
+import type { Route } from 'next';
+import Link from 'next/link';
+import type { JSX } from 'react';
+
 import { ApprovalList } from '@/components/features/leave/approval-list';
+import { PageHeader } from '@/components/layout/page-header';
+import { Button } from '@/components/ui/button';
 
 export default function LeaveApprovalsPage(): JSX.Element {
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Approval Cuti</h1>
-        <p className="text-muted-foreground text-sm">
-          Setujui atau tolak pengajuan cuti sesuai tingkatan role Anda. Supervisor melihat pengajuan
-          dari tim langsung; HR Manager melihat pengajuan yang sudah lolos level 1.
-        </p>
-      </header>
+    <div className="mx-auto max-w-4xl">
+      <PageHeader
+        title="Approval Cuti"
+        description="Supervisor melihat pengajuan dari tim langsung; HR Manager melihat pengajuan yang sudah lolos level 1."
+        actions={
+          <Button asChild variant="outline" size="sm">
+            <Link href={'/leave' as Route}>
+              <ArrowLeft className="h-4 w-4" aria-hidden />
+              Kembali ke Cuti
+            </Link>
+          </Button>
+        }
+      />
       <ApprovalList />
     </div>
   );
