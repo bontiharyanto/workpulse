@@ -54,3 +54,4 @@ apps/api/prisma/*.db-journal
 storage/uploads/
 
 /generated/prisma
+controldesk/  # stray from another project; keep ignored
