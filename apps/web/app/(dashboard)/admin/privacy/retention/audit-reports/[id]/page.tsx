@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 /**
@@ -19,14 +19,15 @@ interface PageProps {
  * and the raw workerLastRunAt so an operator can correlate with
  * cron logs.
  */
-export default function AdminRetentionAuditReportDetailPage({
+export default async function AdminRetentionAuditReportDetailPage({
   params,
-}: PageProps): JSX.Element {
+}: PageProps): Promise<JSX.Element> {
+  const { id } = await params;
   return (
     <RequireAuth>
       <RequireRole roles={['HR_MANAGER', 'SUPER_ADMIN']}>
         <main className="mx-auto max-w-4xl space-y-6 px-4 py-8">
-          <RetentionAuditReportDetail reportId={params.id} />
+          <RetentionAuditReportDetail reportId={id} />
         </main>
       </RequireRole>
     </RequireAuth>

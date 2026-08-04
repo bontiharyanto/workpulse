@@ -145,8 +145,16 @@ jobs:
           provenance: mode=max
           sbom: true
 
+      # SLSA attestation via `actions/attest-build-provenance` is a paid
+      # feature on user-owned private repositories (returns 403 with
+      # "Feature not available for user-owned private repositories"). We
+      # still ship supply-chain metadata via buildx `provenance: mode=max`
+      # + `sbom: true` on the build step above (embedded in the OCI
+      # manifest). The dedicated attestation step is best-effort until
+      # the repo moves to a GitHub organisation.
       - name: Attest provenance (SLSA)
         uses: actions/attest-build-provenance@v1
+        continue-on-error: true
         with:
           subject-name: ${{ matrix.image }}
           subject-digest: ${{ steps.build.outputs.digest }}

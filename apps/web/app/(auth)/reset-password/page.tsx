@@ -9,12 +9,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false, nocache: true },
 };
 
-export default function ResetPasswordPage({
+export default async function ResetPasswordPage({
   searchParams,
 }: {
-  searchParams: { token?: string };
-}): JSX.Element {
-  const token = typeof searchParams.token === 'string' ? searchParams.token : null;
+  searchParams: Promise<{ token?: string }>;
+}): Promise<JSX.Element> {
+  const resolved = await searchParams;
+  const token = typeof resolved.token === 'string' ? resolved.token : null;
   return (
     <main className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
       <div className="w-full max-w-sm rounded-lg border bg-background p-6 shadow-sm">

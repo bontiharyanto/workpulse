@@ -10,13 +10,13 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  params: { activityId: string } | Promise<{ activityId: string }>;
+  params: Promise<{ activityId: string }>;
 }
 
 export default async function AdminRopaActivityPage({
   params,
 }: PageProps): Promise<JSX.Element> {
-  const { activityId } = await Promise.resolve(params);
+  const { activityId } = await params;
   return (
     <RequireAuth>
       <RequireRole roles={['HR_MANAGER', 'SUPER_ADMIN']}>
