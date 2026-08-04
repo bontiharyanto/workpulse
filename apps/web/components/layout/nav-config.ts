@@ -12,26 +12,48 @@
  *     component having to know the color
  *   - `icon` is a `lucide-react` component reference, not a JSX
  *     element, so config files stay declarative + easy to lint
+ *
+ * Admin surface: intentionally exploded into six topical sections
+ * (Data Master, Analytics & Laporan, Timesheet Admin, Compliance,
+ * System, and the singleton Persetujuan Backlog) rather than one
+ * gigantic "Admin" section. Reason: a flat 20+ item list overloads
+ * short-term memory. Topical grouping matches how HR practitioners
+ * actually chunk their workflows, and dropping the old
+ * `admin/_components/admin-subnav.tsx` horizontal tab bar in favour
+ * of this sidebar model gives us a single source of navigation truth.
  */
 import type { UserRole } from '@workpulse/shared-types';
 import {
   Activity,
   BarChart3,
   Bell,
+  Building2,
   Calendar,
+  CalendarClock,
   CheckCheck,
   CheckCircle2,
   ClipboardList,
   Clock,
+  Cog,
+  Download,
+  FileBarChart,
   FileSpreadsheet,
+  FileText,
+  Fingerprint,
+  Gauge,
+  HandCoins,
+  Inbox,
   KeyRound,
   Layers,
   LifeBuoy,
   LineChart,
+  MapPin,
   ScrollText,
   Settings,
   Shield,
+  ShieldAlert,
   Sun,
+  Trash2,
   UserCircle,
   Users,
   Webhook,
@@ -60,6 +82,7 @@ export interface NavSection {
 
 const APPROVER_ROLES: UserRole[] = ['SUPERVISOR', 'HR_MANAGER', 'SUPER_ADMIN'];
 const ADMIN_ROLES: UserRole[] = ['HR_MANAGER', 'SUPER_ADMIN'];
+const SUPER_ADMIN_ROLES: UserRole[] = ['SUPER_ADMIN'];
 
 export const workspaceSection: NavSection = {
   id: 'workspace',
@@ -122,22 +145,22 @@ export const approvalsSection: NavSection = {
       module: 'timesheet',
       roles: APPROVER_ROLES,
     },
-  ],
-};
-
-export const adminSection: NavSection = {
-  id: 'admin',
-  label: 'Admin',
-  roles: ADMIN_ROLES,
-  items: [
     {
-      href: '/admin/analytics',
-      label: 'Analytics',
-      icon: LineChart,
+      href: '/admin/approvals-backlog',
+      label: 'Backlog Approval',
+      icon: Inbox,
       module: 'admin',
       roles: ADMIN_ROLES,
     },
-    { href: '/admin/users', label: 'Pengguna', icon: Users, module: 'admin', roles: ADMIN_ROLES },
+  ],
+};
+
+export const dataMasterSection: NavSection = {
+  id: 'admin-master',
+  label: 'Data Master',
+  roles: ADMIN_ROLES,
+  items: [
+    { href: '/admin/users', label: 'Karyawan', icon: Users, module: 'admin', roles: ADMIN_ROLES },
     {
       href: '/admin/departments',
       label: 'Departemen',
@@ -145,7 +168,56 @@ export const adminSection: NavSection = {
       module: 'admin',
       roles: ADMIN_ROLES,
     },
-    { href: '/admin/shifts', label: 'Shift', icon: Calendar, module: 'admin', roles: ADMIN_ROLES },
+    {
+      href: '/admin/geofences',
+      label: 'Geofence',
+      icon: MapPin,
+      module: 'admin',
+      roles: ADMIN_ROLES,
+    },
+    {
+      href: '/admin/shifts',
+      label: 'Shift',
+      icon: Calendar,
+      module: 'admin',
+      roles: ADMIN_ROLES,
+    },
+    {
+      href: '/admin/leave-types',
+      label: 'Tipe Cuti',
+      icon: HandCoins,
+      module: 'admin',
+      roles: ADMIN_ROLES,
+    },
+    {
+      href: '/admin/holidays',
+      label: 'Hari Libur',
+      icon: CalendarClock,
+      module: 'admin',
+      roles: ADMIN_ROLES,
+    },
+    {
+      href: '/admin/company',
+      label: 'Konfigurasi Perusahaan',
+      icon: Building2,
+      module: 'admin',
+      roles: ADMIN_ROLES,
+    },
+  ],
+};
+
+export const analyticsSection: NavSection = {
+  id: 'admin-analytics',
+  label: 'Analytics & Laporan',
+  roles: ADMIN_ROLES,
+  items: [
+    {
+      href: '/admin/analytics',
+      label: 'Executive Dashboard',
+      icon: LineChart,
+      module: 'admin',
+      roles: ADMIN_ROLES,
+    },
     {
       href: '/admin/reports',
       label: 'Laporan',
@@ -154,6 +226,109 @@ export const adminSection: NavSection = {
       roles: ADMIN_ROLES,
     },
     {
+      href: '/admin/reports/schedules',
+      label: 'Jadwal Laporan',
+      icon: CalendarClock,
+      module: 'admin',
+      roles: ADMIN_ROLES,
+    },
+    {
+      href: '/admin/reports/custom',
+      label: 'Custom Report',
+      icon: FileBarChart,
+      module: 'admin',
+      roles: ADMIN_ROLES,
+    },
+    {
+      href: '/admin/usage',
+      label: 'Penggunaan API',
+      icon: Gauge,
+      module: 'admin',
+      roles: ADMIN_ROLES,
+    },
+  ],
+};
+
+export const timesheetAdminSection: NavSection = {
+  id: 'admin-timesheet',
+  label: 'Timesheet Admin',
+  roles: ADMIN_ROLES,
+  items: [
+    {
+      href: '/admin/timesheet',
+      label: 'Rekap Timesheet',
+      icon: ClipboardList,
+      module: 'timesheet',
+      roles: ADMIN_ROLES,
+    },
+    {
+      href: '/admin/timesheet/config',
+      label: 'Konfigurasi',
+      icon: Cog,
+      module: 'timesheet',
+      roles: ADMIN_ROLES,
+    },
+    {
+      href: '/admin/timesheet/exports',
+      label: 'Riwayat Ekspor',
+      icon: Download,
+      module: 'timesheet',
+      roles: ADMIN_ROLES,
+    },
+  ],
+};
+
+export const complianceSection: NavSection = {
+  id: 'admin-compliance',
+  label: 'Compliance',
+  roles: ADMIN_ROLES,
+  items: [
+    { href: '/admin/ropa', label: 'ROPA', icon: FileText, module: 'admin', roles: ADMIN_ROLES },
+    { href: '/admin/dpia', label: 'DPIA', icon: Shield, module: 'admin', roles: ADMIN_ROLES },
+    {
+      href: '/admin/privacy/policies',
+      label: 'Kebijakan Privasi',
+      icon: ScrollText,
+      module: 'admin',
+      roles: ADMIN_ROLES,
+    },
+    {
+      href: '/admin/privacy/vendors',
+      label: 'Vendor Register',
+      icon: Building2,
+      module: 'admin',
+      roles: ADMIN_ROLES,
+    },
+    {
+      href: '/admin/privacy/erasure-requests',
+      label: 'Permintaan Penghapusan',
+      icon: Trash2,
+      module: 'admin',
+      roles: ADMIN_ROLES,
+    },
+    {
+      href: '/admin/privacy/retention',
+      label: 'Retensi Data',
+      icon: CalendarClock,
+      module: 'admin',
+      roles: ADMIN_ROLES,
+    },
+    {
+      href: '/admin/security/breaches',
+      label: 'Breach Ledger',
+      icon: ShieldAlert,
+      module: 'admin',
+      roles: ADMIN_ROLES,
+    },
+  ],
+};
+
+export const systemSection: NavSection = {
+  id: 'admin-system',
+  label: 'System',
+  roles: ADMIN_ROLES,
+  items: [
+    {
       href: '/admin/webhooks',
       label: 'Webhooks',
       icon: Webhook,
@@ -161,18 +336,18 @@ export const adminSection: NavSection = {
       roles: ADMIN_ROLES,
     },
     {
-      href: '/admin/privacy',
-      label: 'Privasi',
-      icon: Shield,
+      href: '/admin/audit-log',
+      label: 'Audit Log',
+      icon: Fingerprint,
       module: 'admin',
       roles: ADMIN_ROLES,
     },
     {
-      href: '/admin/audit',
-      label: 'Audit Log',
-      icon: ScrollText,
+      href: '/admin/companies',
+      label: 'Tenant',
+      icon: Building2,
       module: 'admin',
-      roles: ADMIN_ROLES,
+      roles: SUPER_ADMIN_ROLES,
     },
   ],
 };
@@ -187,7 +362,15 @@ export const userMenuItems: NavItem[] = [
 
 export const helpItems: NavItem[] = [{ href: '/help', label: 'Bantuan', icon: LifeBuoy }];
 
-export const navSections: NavSection[] = [workspaceSection, approvalsSection, adminSection];
+export const navSections: NavSection[] = [
+  workspaceSection,
+  approvalsSection,
+  dataMasterSection,
+  analyticsSection,
+  timesheetAdminSection,
+  complianceSection,
+  systemSection,
+];
 
 /**
  * Pretty label for a raw URL segment. Used by the breadcrumb.
@@ -202,20 +385,34 @@ export const segmentLabels: Record<string, string> = {
   timesheet: 'Timesheet',
   me: 'Saya',
   admin: 'Admin',
-  users: 'Pengguna',
+  users: 'Karyawan',
   departments: 'Departemen',
+  geofences: 'Geofence',
   shifts: 'Shift',
+  'leave-types': 'Tipe Cuti',
+  holidays: 'Hari Libur',
+  company: 'Konfigurasi Perusahaan',
+  companies: 'Tenant',
   reports: 'Laporan',
+  schedules: 'Jadwal',
+  custom: 'Custom',
+  usage: 'Penggunaan API',
   webhooks: 'Webhooks',
   privacy: 'Privasi',
-  audit: 'Audit Log',
+  policies: 'Kebijakan',
+  vendors: 'Vendor',
+  'erasure-requests': 'Permintaan Penghapusan',
+  retention: 'Retensi',
+  'audit-reports': 'Laporan Audit',
+  'audit-log': 'Audit Log',
   analytics: 'Analytics',
   ropa: 'ROPA',
   dpia: 'DPIA',
-  retention: 'Retention',
-  breaches: 'Pelanggaran',
-  vendors: 'Vendor',
   security: 'Keamanan',
+  breaches: 'Breach Ledger',
+  'approvals-backlog': 'Backlog',
+  exports: 'Ekspor',
+  config: 'Konfigurasi',
   settings: 'Pengaturan',
   profile: 'Profil',
   notifications: 'Notifikasi',
