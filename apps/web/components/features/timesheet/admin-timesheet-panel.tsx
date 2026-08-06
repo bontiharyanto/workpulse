@@ -366,12 +366,8 @@ function RowActions({
         <TableCell className="text-right font-mono tabular-nums">
           {row.totals.overtimeHours.toFixed(2)}
         </TableCell>
-        <TableCell className="text-right font-mono tabular-nums">
-          {row.totals.leaveDays}
-        </TableCell>
-        <TableCell className="text-right font-mono tabular-nums">
-          {row.totals.absentDays}
-        </TableCell>
+        <TableCell className="text-right font-mono tabular-nums">{row.totals.leaveDays}</TableCell>
+        <TableCell className="text-right font-mono tabular-nums">{row.totals.absentDays}</TableCell>
         <TableCell className="text-right">
           {canDecide ? (
             <div className="inline-flex flex-wrap justify-end gap-2">

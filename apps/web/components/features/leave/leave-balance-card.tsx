@@ -69,8 +69,7 @@ function BalanceTile({ balance: b }: { balance: LeaveBalance }): JSX.Element {
   const usedAndReserved = b.used + b.reserved;
   const consumedPct = total > 0 ? Math.min(100, (usedAndReserved / total) * 100) : 0;
   const remainingPct = 100 - consumedPct;
-  const tone =
-    remainingPct >= 40 ? 'success' : remainingPct >= 15 ? 'warning' : 'destructive';
+  const tone = remainingPct >= 40 ? 'success' : remainingPct >= 15 ? 'warning' : 'destructive';
 
   return (
     <Card>
@@ -93,7 +92,7 @@ function BalanceTile({ balance: b }: { balance: LeaveBalance }): JSX.Element {
           <div className="flex items-baseline gap-2">
             <span
               className={cn(
-                'text-display-sm tabular-nums font-semibold',
+                'text-display-sm font-semibold tabular-nums',
                 tone === 'success'
                   ? 'text-foreground'
                   : tone === 'warning'
@@ -112,7 +111,7 @@ function BalanceTile({ balance: b }: { balance: LeaveBalance }): JSX.Element {
           </div>
         </div>
 
-        <dl className="grid grid-cols-3 gap-3 text-caption">
+        <dl className="text-caption grid grid-cols-3 gap-3">
           <BreakdownCell
             icon={<Wallet className="h-3.5 w-3.5" aria-hidden />}
             label="Terpakai"

@@ -124,10 +124,7 @@ export function ShiftAssignmentPanel({
   const rows = assignments.data ?? [];
 
   return (
-    <div
-      id={SHIFT_ASSIGNMENT_PANEL_ANCHOR}
-      className="space-y-3 rounded-lg border p-4 scroll-mt-4"
-    >
+    <div id={SHIFT_ASSIGNMENT_PANEL_ANCHOR} className="scroll-mt-4 space-y-3 rounded-lg border p-4">
       <div>
         <h3 className="text-sm font-semibold">Assignment Shift → Karyawan</h3>
         <p className="text-muted-foreground text-xs">

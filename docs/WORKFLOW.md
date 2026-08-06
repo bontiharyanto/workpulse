@@ -426,9 +426,9 @@ tetap tolak dengan `code` yang sesuai (`PASSWORD_CHANGE_REQUIRED`,
 
 #### 0.10.1 Kebijakan
 
-| Peran                   | MFA — MVP (2026-08)                                                                  |
-| ----------------------- | ------------------------------------------------------------------------------------ |
-| EMPLOYEE, SUPERVISOR    | **Opsional** (voluntary via `/settings/security`)                                    |
+| Peran                   | MFA — MVP (2026-08)                                                                          |
+| ----------------------- | -------------------------------------------------------------------------------------------- |
+| EMPLOYEE, SUPERVISOR    | **Opsional** (voluntary via `/settings/security`)                                            |
 | HR_MANAGER, SUPER_ADMIN | **Opsional** (voluntary) — ADR-0017 revision, di-relaks dari "wajib" untuk MVP HR onboarding |
 
 **Enforcement dikontrol per-tenant lewat `SecurityPolicy` table**
@@ -526,12 +526,12 @@ Semua di `/settings/security` (page baru) — panel `MfaManagementPanel`:
 
 #### 0.10.6 Env & Ops
 
-| Env                         | Wajib                     | Default     | Catatan                                    |
-| --------------------------- | ------------------------- | ----------- | ------------------------------------------ |
-| `MFA_SECRET_ENCRYPTION_KEY` | Prod: ya                  | (kosong)    | Base64 32 byte. `openssl rand -base64 32`  |
-| `MFA_ISSUER`                | Tidak                     | `Workpulse` | Muncul di entry authenticator app          |
-| `MFA_BACKUP_CODES_COUNT`    | Tidak                     | `8`         | Range 4–20                                 |
-| `MFA_ENFORCE_HR_ADMIN`      | Tidak (default `false`)   | `false`     | **Bootstrap only** sejak Revision 2 (ADR-0017). Setelah row `SecurityPolicy` tenant terbuat, env diabaikan — SUPER_ADMIN flip toggle di `/admin/security`. |
+| Env                         | Wajib                   | Default     | Catatan                                                                                                                                                    |
+| --------------------------- | ----------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MFA_SECRET_ENCRYPTION_KEY` | Prod: ya                | (kosong)    | Base64 32 byte. `openssl rand -base64 32`                                                                                                                  |
+| `MFA_ISSUER`                | Tidak                   | `Workpulse` | Muncul di entry authenticator app                                                                                                                          |
+| `MFA_BACKUP_CODES_COUNT`    | Tidak                   | `8`         | Range 4–20                                                                                                                                                 |
+| `MFA_ENFORCE_HR_ADMIN`      | Tidak (default `false`) | `false`     | **Bootstrap only** sejak Revision 2 (ADR-0017). Setelah row `SecurityPolicy` tenant terbuat, env diabaikan — SUPER_ADMIN flip toggle di `/admin/security`. |
 
 Rotasi `MFA_SECRET_ENCRYPTION_KEY`: **hentikan sesi user**, re-enroll
 setiap user manual. Tidak ada re-encryption otomatis di Fase 30a
@@ -2280,8 +2280,8 @@ Payload:
   "longitude": 106.8456,
   "radiusMeters": 150,
   // Tier-2 (2026-08-06) — opsional, keduanya default off untuk backwards-compat.
-  "maxAccuracyMeters": 100,            // null / omit = tidak ada gate
-  "allowedSsids": ["OFFICE-WIFI-JKT"]  // [] / omit = tidak ada fallback
+  "maxAccuracyMeters": 100, // null / omit = tidak ada gate
+  "allowedSsids": ["OFFICE-WIFI-JKT"], // [] / omit = tidak ada fallback
 }
 ```
 

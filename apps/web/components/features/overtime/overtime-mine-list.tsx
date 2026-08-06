@@ -67,7 +67,7 @@ export function OvertimeMineList(): JSX.Element {
         <div className="flex items-center gap-2">
           <Calendar className="text-muted-foreground h-4 w-4" aria-hidden />
           <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
-            <SelectTrigger className="h-8 w-24 text-caption">
+            <SelectTrigger className="text-caption h-8 w-24">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -155,22 +155,20 @@ function Row({
       <div className="text-caption text-muted-foreground mt-3 grid gap-2 sm:grid-cols-3">
         <div>
           <p className="text-overline uppercase">Tarif / jam</p>
-          <p className="text-foreground tabular-nums font-medium">{formatIDR(r.ratePerHour)}</p>
+          <p className="text-foreground font-medium tabular-nums">{formatIDR(r.ratePerHour)}</p>
         </div>
         <div>
           <p className="text-overline uppercase">Pengali</p>
-          <p className="text-foreground tabular-nums font-medium">×{r.rateMultiplier}</p>
+          <p className="text-foreground font-medium tabular-nums">×{r.rateMultiplier}</p>
         </div>
         <div>
           <p className="text-overline uppercase">Total</p>
-          <p className="text-foreground tabular-nums font-semibold">
-            {formatIDR(r.totalAmount)}
-          </p>
+          <p className="text-foreground font-semibold tabular-nums">{formatIDR(r.totalAmount)}</p>
         </div>
       </div>
 
       {r.decisionNote ? (
-        <p className="text-muted-foreground border-border mt-3 border-l-2 pl-3 text-caption italic">
+        <p className="text-muted-foreground border-border text-caption mt-3 border-l-2 pl-3 italic">
           Catatan approver: {r.decisionNote}
         </p>
       ) : null}

@@ -97,12 +97,7 @@ function buildCsp(opts: {
     // build-side hash pipeline — deferred.
     'style-src': [self, "'unsafe-inline'"],
     'script-src': scriptSrc,
-    'connect-src': [
-      self,
-      opts.apiUrl,
-      osmNominatimOrigin,
-      ...(opts.isProd ? [] : ['ws:']),
-    ],
+    'connect-src': [self, opts.apiUrl, osmNominatimOrigin, ...(opts.isProd ? [] : ['ws:'])],
     'manifest-src': [self],
     ...(opts.isProd && opts.isHttpsDeployment ? { 'upgrade-insecure-requests': [] } : {}),
   };

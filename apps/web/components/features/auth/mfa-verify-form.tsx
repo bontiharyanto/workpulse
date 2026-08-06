@@ -174,12 +174,7 @@ export function MfaVerifyForm({ redirectTo }: { redirectTo: string }): JSX.Eleme
         </Alert>
       ) : null}
 
-      <Button
-        type="submit"
-        className="w-full"
-        size="lg"
-        disabled={form.formState.isSubmitting}
-      >
+      <Button type="submit" className="w-full" size="lg" disabled={form.formState.isSubmitting}>
         <ShieldCheck className="h-4 w-4" aria-hidden />
         {form.formState.isSubmitting ? 'Memverifikasi…' : 'Verifikasi'}
       </Button>

@@ -158,12 +158,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string }): JSX.Element {
         </Alert>
       ) : null}
 
-      <Button
-        type="submit"
-        className="w-full"
-        size="lg"
-        disabled={form.formState.isSubmitting}
-      >
+      <Button type="submit" className="w-full" size="lg" disabled={form.formState.isSubmitting}>
         <LogIn className="h-4 w-4" aria-hidden />
         {form.formState.isSubmitting ? 'Masuk…' : 'Masuk'}
       </Button>

@@ -34,25 +34,25 @@ Dokumen ini berisi **skenario uji resmi** yang harus dieksekusi sebelum go-live.
 
 Setiap skenario ditulis dalam blok terstruktur:
 
-| Field | Keterangan |
-|---|---|
-| **ID** | Kode unik `MODUL-###` (contoh: `AUTH-001`) — referensi untuk laporan bug. |
-| **Judul** | Nama skenario singkat. |
-| **Prasyarat** | Kondisi awal (akun, data, konfigurasi) yang harus disiapkan sebelum eksekusi. |
-| **Peran** | Role yang menjalankan skenario. |
-| **Langkah** | Aksi-aksi berurutan (imperative). |
-| **Hasil Diharapkan** | Kondisi yang harus tercapai di setiap langkah. |
-| **Prioritas** | `P0` (blocker), `P1` (critical), `P2` (major), `P3` (minor). |
-| **Kriteria Pass** | Definisi *pass* (semua hasil diharapkan tercapai) vs *fail*. |
+| Field                | Keterangan                                                                    |
+| -------------------- | ----------------------------------------------------------------------------- |
+| **ID**               | Kode unik `MODUL-###` (contoh: `AUTH-001`) — referensi untuk laporan bug.     |
+| **Judul**            | Nama skenario singkat.                                                        |
+| **Prasyarat**        | Kondisi awal (akun, data, konfigurasi) yang harus disiapkan sebelum eksekusi. |
+| **Peran**            | Role yang menjalankan skenario.                                               |
+| **Langkah**          | Aksi-aksi berurutan (imperative).                                             |
+| **Hasil Diharapkan** | Kondisi yang harus tercapai di setiap langkah.                                |
+| **Prioritas**        | `P0` (blocker), `P1` (critical), `P2` (major), `P3` (minor).                  |
+| **Kriteria Pass**    | Definisi _pass_ (semua hasil diharapkan tercapai) vs _fail_.                  |
 
 ### 1.2 Konvensi Status
 
-| Status | Arti |
-|---|---|
-| ✅ PASS | Semua langkah menghasilkan hasil sesuai. |
-| ❌ FAIL | Ada langkah yang tidak sesuai; catat detail + screenshot. |
+| Status     | Arti                                                              |
+| ---------- | ----------------------------------------------------------------- |
+| ✅ PASS    | Semua langkah menghasilkan hasil sesuai.                          |
+| ❌ FAIL    | Ada langkah yang tidak sesuai; catat detail + screenshot.         |
 | ⚠️ BLOCKED | Tidak bisa dijalankan karena masalah environment atau dependency. |
-| ⏭️ SKIPPED | Sengaja dilewatkan (jelaskan alasan di kolom catatan). |
+| ⏭️ SKIPPED | Sengaja dilewatkan (jelaskan alasan di kolom catatan).            |
 
 ### 1.3 Definition of Done UAT
 
@@ -61,7 +61,7 @@ Go-live disetujui bila:
 - **100%** skenario `P0` PASS.
 - **≥ 95%** skenario `P1` PASS.
 - **≥ 90%** skenario `P2` PASS.
-- Tidak ada temuan open dengan tingkat *Critical* atau *Blocker*.
+- Tidak ada temuan open dengan tingkat _Critical_ atau _Blocker_.
 
 ---
 
@@ -83,7 +83,7 @@ Go-live disetujui bila:
 ### 2.2 Data & Waktu
 
 - **Timezone UAT:** `Asia/Jakarta` (WIB, UTC+7).
-- Semua *"tanggal hari ini"* di skenario mengacu ke waktu server UAT.
+- Semua _"tanggal hari ini"_ di skenario mengacu ke waktu server UAT.
 - Untuk skenario yang butuh **tanggal masa lalu / masa depan**, tester bebas menentukan.
 
 ### 2.3 Peralatan Tester
@@ -99,15 +99,15 @@ Go-live disetujui bila:
 
 Seed UAT membuat akun berikut. Password default: `password123` (harus diganti pada login pertama karena `mustChangePassword=true`).
 
-| Alias | Email | Role | Departemen | Supervisor |
-|---|---|---|---|---|
-| `EMP-1` | `budi@acme.test` | EMPLOYEE | ENG | `SUP-1` |
-| `EMP-2` | `citra@acme.test` | EMPLOYEE | ENG | `SUP-1` |
-| `EMP-3` | `dedi@acme.test` | EMPLOYEE | OPS | `SUP-2` |
-| `SUP-1` | `sari@acme.test` | SUPERVISOR | ENG | — |
-| `SUP-2` | `roni@acme.test` | SUPERVISOR | OPS | — |
-| `HR-1` | `hr@acme.test` | HR_MANAGER | HR | — |
-| `SA-1` | `admin@acme.test` | SUPER_ADMIN | — | — |
+| Alias   | Email             | Role        | Departemen | Supervisor |
+| ------- | ----------------- | ----------- | ---------- | ---------- |
+| `EMP-1` | `budi@acme.test`  | EMPLOYEE    | ENG        | `SUP-1`    |
+| `EMP-2` | `citra@acme.test` | EMPLOYEE    | ENG        | `SUP-1`    |
+| `EMP-3` | `dedi@acme.test`  | EMPLOYEE    | OPS        | `SUP-2`    |
+| `SUP-1` | `sari@acme.test`  | SUPERVISOR  | ENG        | —          |
+| `SUP-2` | `roni@acme.test`  | SUPERVISOR  | OPS        | —          |
+| `HR-1`  | `hr@acme.test`    | HR_MANAGER  | HR         | —          |
+| `SA-1`  | `admin@acme.test` | SUPER_ADMIN | —          | —          |
 
 ---
 
@@ -122,7 +122,7 @@ Seed UAT membuat akun berikut. Password default: `password123` (harus diganti pa
 1. Buka `/login`.
 2. Masukkan email `budi@acme.test`, password `password123`.
 3. Klik **Masuk**.
-4. Sistem meng-*redirect* ke `/change-password`.
+4. Sistem meng-_redirect_ ke `/change-password`.
 5. Isi password lama (`password123`), password baru (`Coba123!aman`), konfirmasi.
 6. Klik **Simpan**.
 7. Cek banner sukses & redirect ke `/attendance`.
@@ -151,7 +151,7 @@ Seed UAT membuat akun berikut. Password default: `password123` (harus diganti pa
 
 - Percobaan 1–4: Alert "Email atau kata sandi salah." tampil, form tetap responsif.
 - Percobaan 5: Alert berubah menjadi "Terlalu banyak percobaan. Silakan coba lagi nanti." (throttled).
-- Tidak ada info yang mengindikasikan apakah email tersebut *terdaftar* atau tidak (mencegah user enumeration).
+- Tidak ada info yang mengindikasikan apakah email tersebut _terdaftar_ atau tidak (mencegah user enumeration).
 
 **Kriteria Pass:** Throttling aktif setelah 5x fail; response time login tetap konstan (< 1s) walau user tidak ada (constant-time argon2 check).
 
@@ -254,7 +254,7 @@ Seed UAT membuat akun berikut. Password default: `password123` (harus diganti pa
 
 **Hasil Diharapkan:**
 
-- Langkah 4: sistem mendeteksi reuse `R1`, meng-*revoke* seluruh family (`R2` juga tak valid), redirect ke `/login`, `AuditLog(AUTH_REFRESH_REUSE_DETECTED)` terisi.
+- Langkah 4: sistem mendeteksi reuse `R1`, meng-_revoke_ seluruh family (`R2` juga tak valid), redirect ke `/login`, `AuditLog(AUTH_REFRESH_REUSE_DETECTED)` terisi.
 
 ---
 
@@ -299,7 +299,7 @@ Seed UAT membuat akun berikut. Password default: `password123` (harus diganti pa
 
 1. `/attendance`.
 
-**Hasil Diharapkan:** Tombol Clock-in disabled dengan tooltip "Izin lokasi diperlukan." Panduan cara meng-*allow* muncul.
+**Hasil Diharapkan:** Tombol Clock-in disabled dengan tooltip "Izin lokasi diperlukan." Panduan cara meng-_allow_ muncul.
 
 ---
 
@@ -339,7 +339,7 @@ Seed UAT membuat akun berikut. Password default: `password123` (harus diganti pa
 2. Jenis `MISSING_CLOCK_OUT`, waktu 17:30, alasan ≥ 10 karakter.
 3. Kirim.
 4. Login `SUP-1`, approve.
-5. Kembali ke `EMP-1` → cek status koreksi = APPROVED, baris kehadiran ter-*update* dengan flag "dikoreksi".
+5. Kembali ke `EMP-1` → cek status koreksi = APPROVED, baris kehadiran ter-_update_ dengan flag "dikoreksi".
 
 **Hasil Diharapkan:** Baris asli **tidak diubah**, ditandai `correctedById`; ada baris baru `AttendanceCorrection`.
 
@@ -790,7 +790,7 @@ Coba `UPDATE`/`DELETE` baris `AuditLog` via psql sebagai user aplikasi → opera
 
 ### PRV-008 — ROPA — CRUD aktivitas (P2)
 
-`HR-1` → `/admin/ropa` → tambah entri baru, edit, verifikasi field ter-*lock* setelah DPIA approve.
+`HR-1` → `/admin/ropa` → tambah entri baru, edit, verifikasi field ter-_lock_ setelah DPIA approve.
 
 ---
 
@@ -934,35 +934,35 @@ Waktu eksekusi target: **< 30 menit** manual atau **< 10 menit** via Playwright 
 
 ### 15.1 Rekap Eksekusi (isi setelah run)
 
-| Modul | Total | ✅ Pass | ❌ Fail | ⚠️ Blocked | ⏭️ Skipped |
-|---|---:|---:|---:|---:|---:|
-| AUTH | 8 |  |  |  |  |
-| ATT  | 8 |  |  |  |  |
-| LV   | 9 |  |  |  |  |
-| OT   | 6 |  |  |  |  |
-| TS   | 8 |  |  |  |  |
-| ADM  | 12 |  |  |  |  |
-| PRV  | 11 |  |  |  |  |
-| NTF  | 4 |  |  |  |  |
-| RBAC | 5 |  |  |  |  |
-| NFR  | 7 |  |  |  |  |
-| **Total** | **78** |  |  |  |  |
+| Modul     |  Total | ✅ Pass | ❌ Fail | ⚠️ Blocked | ⏭️ Skipped |
+| --------- | -----: | ------: | ------: | ---------: | ---------: |
+| AUTH      |      8 |         |         |            |            |
+| ATT       |      8 |         |         |            |            |
+| LV        |      9 |         |         |            |            |
+| OT        |      6 |         |         |            |            |
+| TS        |      8 |         |         |            |            |
+| ADM       |     12 |         |         |            |            |
+| PRV       |     11 |         |         |            |            |
+| NTF       |      4 |         |         |            |            |
+| RBAC      |      5 |         |         |            |            |
+| NFR       |      7 |         |         |            |            |
+| **Total** | **78** |         |         |            |            |
 
 ### 15.2 Temuan Terbuka
 
 | ID Bug | Judul | Modul | Skenario Asal | Prioritas | Status |
-|---|---|---|---|---|---|
-| |  |  |  |  |  |
+| ------ | ----- | ----- | ------------- | --------- | ------ |
+|        |       |       |               |           |        |
 
 ### 15.3 Sign-off
 
-| Nama | Peran | Tanda Tangan | Tanggal |
-|---|---|---|---|
-| _____________ | Product Owner |  |  |
-| _____________ | QA Lead |  |  |
-| _____________ | Engineering Lead |  |  |
-| _____________ | Data Protection Officer |  |  |
-| _____________ | HR Manager (pilot user) |  |  |
+| Nama          | Peran                   | Tanda Tangan | Tanggal |
+| ------------- | ----------------------- | ------------ | ------- |
+| _____________ | Product Owner           |              |         |
+| _____________ | QA Lead                 |              |         |
+| _____________ | Engineering Lead        |              |         |
+| _____________ | Data Protection Officer |              |         |
+| _____________ | HR Manager (pilot user) |              |         |
 
 **Keputusan:**
 
@@ -1013,13 +1013,13 @@ Workaround (bila ada):
 
 Beberapa skenario UAT juga dieksekusi otomatis di Playwright. Bila UAT manual berbeda hasil dengan CI otomatis, prioritaskan investigasi karena kemungkinan environment drift.
 
-| UAT ID | Playwright spec |
-|---|---|
-| AUTH-001, AUTH-002 | `apps/e2e/tests/auth.spec.ts` |
-| AUTH-004, AUTH-005, AUTH-006 | `apps/e2e/tests/mfa-ui.spec.ts` |
-| ATT-001..ATT-007 | `apps/e2e/tests/attendance-*.spec.ts` |
-| LV-001, LV-005 | `apps/e2e/tests/leave.spec.ts` |
-| OT-001 | `apps/e2e/tests/overtime.spec.ts` |
-| TS-001..TS-004 | (belum otomatis, targetkan Fase berikut) |
-| PRV-001, PRV-002 | `apps/e2e/tests/retention-consent-ui.spec.ts`, `data-export-ui.spec.ts` |
-| PRV-004, PRV-005 | `apps/e2e/tests/data-erasure-ui.spec.ts` |
+| UAT ID                       | Playwright spec                                                         |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| AUTH-001, AUTH-002           | `apps/e2e/tests/auth.spec.ts`                                           |
+| AUTH-004, AUTH-005, AUTH-006 | `apps/e2e/tests/mfa-ui.spec.ts`                                         |
+| ATT-001..ATT-007             | `apps/e2e/tests/attendance-*.spec.ts`                                   |
+| LV-001, LV-005               | `apps/e2e/tests/leave.spec.ts`                                          |
+| OT-001                       | `apps/e2e/tests/overtime.spec.ts`                                       |
+| TS-001..TS-004               | (belum otomatis, targetkan Fase berikut)                                |
+| PRV-001, PRV-002             | `apps/e2e/tests/retention-consent-ui.spec.ts`, `data-export-ui.spec.ts` |
+| PRV-004, PRV-005             | `apps/e2e/tests/data-erasure-ui.spec.ts`                                |

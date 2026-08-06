@@ -53,13 +53,10 @@ export function SecurityPolicyPanel(): JSX.Element {
   const qc = useQueryClient();
   const { user } = useAuth();
   const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState<
-    | null
-    | {
-        field: 'mfaEnforceHighPrivileged';
-        next: boolean;
-      }
-  >(null);
+  const [pending, setPending] = useState<null | {
+    field: 'mfaEnforceHighPrivileged';
+    next: boolean;
+  }>(null);
 
   // Self-lockout warning: if the current SUPER_ADMIN doesn't have MFA
   // enrolled and turns enforcement ON, the guard's cache invalidation
@@ -74,8 +71,7 @@ export function SecurityPolicyPanel(): JSX.Element {
   });
 
   const mutation = useMutation({
-    mutationFn: (body: { mfaEnforceHighPrivileged?: boolean }) =>
-      securityPolicyApi.update(body),
+    mutationFn: (body: { mfaEnforceHighPrivileged?: boolean }) => securityPolicyApi.update(body),
     onSuccess: (fresh) => {
       qc.setQueryData(['admin', 'security-policy'], fresh);
       setError(null);
@@ -166,9 +162,8 @@ export function SecurityPolicyPanel(): JSX.Element {
               </Label>
               <p className="text-muted-foreground text-xs">
                 Bila diaktifkan, semua HR/Super Admin yang belum mengenrol MFA akan diarahkan ke{' '}
-                <code>/setup-mfa</code> pada request berikutnya dan tidak dapat menggunakan
-                aplikasi sampai selesai enrol. Pengguna dengan MFA yang sudah aktif tidak
-                terdampak.
+                <code>/setup-mfa</code> pada request berikutnya dan tidak dapat menggunakan aplikasi
+                sampai selesai enrol. Pengguna dengan MFA yang sudah aktif tidak terdampak.
               </p>
               <p className="text-muted-foreground text-xs">
                 Karyawan &amp; Supervisor tetap opsional — mereka dapat mengenrol sendiri lewat{' '}
@@ -188,9 +183,7 @@ export function SecurityPolicyPanel(): JSX.Element {
 
           <p className="text-muted-foreground text-xs">
             Terakhir diubah:{' '}
-            <span className="font-medium">
-              {dateFormatter.format(new Date(current.updatedAt))}
-            </span>
+            <span className="font-medium">{dateFormatter.format(new Date(current.updatedAt))}</span>
             {current.updatedById ? (
               <>
                 {' '}
@@ -229,8 +222,8 @@ export function SecurityPolicyPanel(): JSX.Element {
                   {wouldSelfLockOut ? (
                     <p className="text-destructive font-medium">
                       Peringatan: akun Anda sendiri belum memiliki MFA. Setelah konfirmasi, Anda
-                      juga akan diarahkan ke <code>/setup-mfa</code> dan tidak dapat mengubah
-                      toggle ini lagi sampai selesai enrol. Enrol MFA dulu di{' '}
+                      juga akan diarahkan ke <code>/setup-mfa</code> dan tidak dapat mengubah toggle
+                      ini lagi sampai selesai enrol. Enrol MFA dulu di{' '}
                       <code>/settings/security</code> sebelum melanjutkan.
                     </p>
                   ) : null}
@@ -238,9 +231,9 @@ export function SecurityPolicyPanel(): JSX.Element {
               ) : (
                 <div className="space-y-2">
                   <p>
-                    Kebijakan enforcement dihapus. HR dan Super Admin yang belum mengenrol MFA
-                    masih dapat login tanpa faktor kedua. Perubahan ini menurunkan postur
-                    keamanan tenant Anda dan akan tercatat di audit log.
+                    Kebijakan enforcement dihapus. HR dan Super Admin yang belum mengenrol MFA masih
+                    dapat login tanpa faktor kedua. Perubahan ini menurunkan postur keamanan tenant
+                    Anda dan akan tercatat di audit log.
                   </p>
                 </div>
               )}

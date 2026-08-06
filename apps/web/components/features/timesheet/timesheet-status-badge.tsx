@@ -26,16 +26,14 @@ const LABELS: Record<TimesheetStatus, string> = {
   REJECTED: 'Ditolak',
 };
 
-const VARIANTS: Record<
-  TimesheetStatus,
-  'muted' | 'warning' | 'info' | 'success' | 'destructive'
-> = {
-  DRAFT: 'muted',
-  PENDING_SUPERVISOR: 'warning',
-  PENDING_HR: 'info',
-  APPROVED: 'success',
-  REJECTED: 'destructive',
-};
+const VARIANTS: Record<TimesheetStatus, 'muted' | 'warning' | 'info' | 'success' | 'destructive'> =
+  {
+    DRAFT: 'muted',
+    PENDING_SUPERVISOR: 'warning',
+    PENDING_HR: 'info',
+    APPROVED: 'success',
+    REJECTED: 'destructive',
+  };
 
 export function TimesheetStatusBadge({
   status,

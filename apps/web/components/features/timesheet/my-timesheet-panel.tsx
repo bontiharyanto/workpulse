@@ -128,9 +128,7 @@ function CurrentPeriodCard({
         <CardContent className="text-muted-foreground flex flex-col items-center gap-2 py-12">
           <CalendarClock className="h-8 w-8" aria-hidden />
           <p className="text-h6 text-foreground">Belum ada timesheet untuk periode ini</p>
-          <p className="text-caption">
-            Hubungi HR untuk generate timesheet periode berjalan.
-          </p>
+          <p className="text-caption">Hubungi HR untuk generate timesheet periode berjalan.</p>
         </CardContent>
       </Card>
     );
@@ -181,8 +179,8 @@ function CurrentPeriodCard({
                 <AlertDialogHeader>
                   <AlertDialogTitle>Submit timesheet ke supervisor?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Timesheet akan dikunci dan dikirim untuk review. Anda hanya dapat
-                    mengeditnya kembali bila supervisor menolak.
+                    Timesheet akan dikunci dan dikirim untuk review. Anda hanya dapat mengeditnya
+                    kembali bila supervisor menolak.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -236,7 +234,7 @@ function CurrentPeriodCard({
             <TableBody>
               {data.entries.map((e) => (
                 <TableRow key={e.workDate}>
-                  <TableCell className="font-mono text-caption">{e.workDate}</TableCell>
+                  <TableCell className="text-caption font-mono">{e.workDate}</TableCell>
                   <TableCell className={cn('text-body', KIND_TONE[e.kind])}>
                     {KIND_LABEL[e.kind]}
                   </TableCell>
@@ -249,7 +247,7 @@ function CurrentPeriodCard({
                   <TableCell className="text-right font-mono tabular-nums">
                     {formatHours(e.leaveHours)}
                   </TableCell>
-                  <TableCell className="text-right font-mono text-caption tabular-nums">
+                  <TableCell className="text-caption text-right font-mono tabular-nums">
                     {e.lateMinutes > 0 ? `${e.lateMinutes}m` : '-'}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-caption">
@@ -284,7 +282,7 @@ function Stat({ label, value }: { label: string; value: string }): JSX.Element {
   return (
     <div className="bg-muted/30 border-border rounded-md border p-3">
       <p className="text-muted-foreground text-overline uppercase">{label}</p>
-      <p className="text-foreground text-h5 tabular-nums font-semibold">{value}</p>
+      <p className="text-foreground text-h5 font-semibold tabular-nums">{value}</p>
     </div>
   );
 }
@@ -352,15 +350,15 @@ function PastPeriodsList({
                   {it.periodStart} → {it.periodEnd}
                 </p>
               </div>
-              <div className="text-muted-foreground text-right text-caption">
+              <div className="text-muted-foreground text-caption text-right">
                 <p>
-                  <span className="text-foreground tabular-nums font-medium">
+                  <span className="text-foreground font-medium tabular-nums">
                     {formatHours(it.totals.regularHours)}
                   </span>{' '}
                   jam reguler
                 </p>
                 <p>
-                  <span className="text-foreground tabular-nums font-medium">
+                  <span className="text-foreground font-medium tabular-nums">
                     {formatHours(it.totals.overtimeHours)}
                   </span>{' '}
                   jam lembur

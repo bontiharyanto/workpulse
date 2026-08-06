@@ -9,15 +9,7 @@ import {
   type AttachmentContentType,
   type LeaveRequestInput,
 } from '@workpulse/shared-types';
-import {
-  AlertTriangle,
-  CheckCircle2,
-  FileText,
-  Loader2,
-  Paperclip,
-  Send,
-  X,
-} from 'lucide-react';
+import { AlertTriangle, CheckCircle2, FileText, Loader2, Paperclip, Send, X } from 'lucide-react';
 import { useMemo, useRef, useState, type ChangeEvent, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -268,7 +260,7 @@ export function LeaveSubmitForm(): JSX.Element {
                 type="file"
                 accept="image/jpeg,image/png,image/webp,application/pdf"
                 disabled={uploading}
-                className="cursor-pointer file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1 file:text-sm file:text-primary-foreground hover:file:opacity-90"
+                className="file:bg-primary file:text-primary-foreground cursor-pointer file:mr-3 file:rounded-md file:border-0 file:px-3 file:py-1 file:text-sm hover:file:opacity-90"
                 onChange={(e) => {
                   void handleFileChange(e);
                 }}
@@ -285,7 +277,7 @@ export function LeaveSubmitForm(): JSX.Element {
               ) : null}
 
               {uploaded && !uploading ? (
-                <div className="flex items-center justify-between gap-2 text-caption">
+                <div className="text-caption flex items-center justify-between gap-2">
                   <span className="text-success inline-flex items-center gap-1.5">
                     <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
                     <span className="font-medium">{uploaded.filename}</span>

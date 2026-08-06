@@ -87,13 +87,9 @@ export class GeofenceService {
           // Only `undefined` skips the field, so we forward `null`
           // through explicitly.
           maxAccuracyMeters:
-            input.maxAccuracyMeters === undefined
-              ? undefined
-              : input.maxAccuracyMeters,
+            input.maxAccuracyMeters === undefined ? undefined : input.maxAccuracyMeters,
           allowedSsids:
-            input.allowedSsids === undefined
-              ? undefined
-              : sanitiseSsids(input.allowedSsids),
+            input.allowedSsids === undefined ? undefined : sanitiseSsids(input.allowedSsids),
         },
       });
       await tx.auditLog.create({

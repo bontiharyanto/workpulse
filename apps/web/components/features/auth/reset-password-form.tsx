@@ -91,12 +91,7 @@ export function ResetPasswordForm({ token }: { token: string | null }): JSX.Elem
           <AlertTitle>Password berhasil diubah</AlertTitle>
           <AlertDescription>Silakan masuk kembali menggunakan password baru.</AlertDescription>
         </Alert>
-        <Button
-          type="button"
-          onClick={() => router.replace('/login')}
-          className="w-full"
-          size="lg"
-        >
+        <Button type="button" onClick={() => router.replace('/login')} className="w-full" size="lg">
           <LogIn className="h-4 w-4" aria-hidden />
           Masuk sekarang
         </Button>
@@ -152,12 +147,7 @@ export function ResetPasswordForm({ token }: { token: string | null }): JSX.Elem
         </Alert>
       ) : null}
 
-      <Button
-        type="submit"
-        className="w-full"
-        size="lg"
-        disabled={form.formState.isSubmitting}
-      >
+      <Button type="submit" className="w-full" size="lg" disabled={form.formState.isSubmitting}>
         <Lock className="h-4 w-4" aria-hidden />
         {form.formState.isSubmitting ? 'Menyimpan…' : 'Simpan password baru'}
       </Button>

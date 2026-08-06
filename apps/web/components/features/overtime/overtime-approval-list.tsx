@@ -176,9 +176,7 @@ export function OvertimeApprovalList(): JSX.Element {
                       id={`overtime-approval-note-${r.id}`}
                       rows={2}
                       value={rowNote}
-                      onChange={(e) =>
-                        setNotes((prev) => ({ ...prev, [r.id]: e.target.value }))
-                      }
+                      onChange={(e) => setNotes((prev) => ({ ...prev, [r.id]: e.target.value }))}
                       placeholder="Ditampilkan ke pengaju jika ditolak."
                     />
                   </div>
@@ -196,9 +194,7 @@ export function OvertimeApprovalList(): JSX.Element {
                       }
                     >
                       <CheckCircle2 className="h-4 w-4" aria-hidden />
-                      {busy && decide.variables?.action === 'APPROVE'
-                        ? 'Menyetujui…'
-                        : 'Setujui'}
+                      {busy && decide.variables?.action === 'APPROVE' ? 'Menyetujui…' : 'Setujui'}
                     </Button>
                     <Button
                       variant="destructive"
@@ -250,8 +246,8 @@ function MetricCell({
       <p
         className={
           strong
-            ? 'text-foreground tabular-nums text-h6 font-semibold'
-            : 'text-foreground tabular-nums font-medium'
+            ? 'text-foreground text-h6 font-semibold tabular-nums'
+            : 'text-foreground font-medium tabular-nums'
         }
       >
         {value}

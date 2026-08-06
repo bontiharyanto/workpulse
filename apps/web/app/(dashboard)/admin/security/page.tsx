@@ -31,8 +31,8 @@ export default function AdminSecurityPolicyPage(): JSX.Element {
             description={
               <>
                 Atur kebijakan keamanan yang berlaku untuk seluruh tenant Anda. Perubahan berefek{' '}
-                <strong>real-time</strong> (dalam ~30 detik) tanpa restart API dan tercatat di
-                audit log dengan action <code>SECURITY_POLICY_UPDATED</code>.
+                <strong>real-time</strong> (dalam ~30 detik) tanpa restart API dan tercatat di audit
+                log dengan action <code>SECURITY_POLICY_UPDATED</code>.
               </>
             }
           />

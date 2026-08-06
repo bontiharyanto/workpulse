@@ -53,7 +53,7 @@ Di **MVP saat ini, MFA bersifat opsional untuk semua peran** — termasuk HR Man
 
 1. Buka **Pengaturan → Keamanan** (`/settings/security`).
 2. Klik **Aktifkan MFA**.
-3. Buka aplikasi *authenticator* (Google Authenticator, Authy, Microsoft Authenticator, 1Password).
+3. Buka aplikasi _authenticator_ (Google Authenticator, Authy, Microsoft Authenticator, 1Password).
 4. Pindai QR code yang tampil di layar. Bila tidak bisa memindai, ketik manual kode setup di aplikasi.
 5. Masukkan kode 6-digit yang muncul di aplikasi.
 6. **Simpan 10 backup codes** yang tampil — cetak atau simpan di password manager. Jangan simpan di email/HP yang sama.
@@ -100,7 +100,7 @@ Setelah login, Anda diarahkan ke **Kehadiran** sebagai halaman utama. Struktur n
   - Cuti
   - Lembur
   - Timesheet
-- **Persetujuan** *(hanya tampil untuk Supervisor/HR)*
+- **Persetujuan** _(hanya tampil untuk Supervisor/HR)_
   - Approval Cuti
   - Approval Lembur
   - Approval Timesheet
@@ -111,7 +111,7 @@ Menu kanan atas:
 - **Notifikasi** (ikon lonceng) — daftar notifikasi in-app.
 - **Menu profil** (inisial nama Anda) — akses ke Pengaturan, Ubah Password, Keluar.
 
-**Pencarian cepat:** Tekan `Ctrl + K` (Windows) / `⌘ + K` (Mac) untuk *command palette* — lompat cepat ke halaman apa pun.
+**Pencarian cepat:** Tekan `Ctrl + K` (Windows) / `⌘ + K` (Mac) untuk _command palette_ — lompat cepat ke halaman apa pun.
 
 ---
 
@@ -148,14 +148,14 @@ Di halaman `/attendance`, ada tab **Riwayat**. Filter berdasarkan rentang tangga
 
 Setiap baris menampilkan:
 
-| Kolom | Arti |
-|---|---|
-| Tanggal | Tanggal shift |
-| Clock-in | Waktu masuk aktual + status (tepat / terlambat) |
-| Clock-out | Waktu pulang aktual + status |
-| Durasi | Jam kerja bersih (setelah dipotong jam istirahat) |
-| Lokasi | Nama geofence tempat Anda clock-in |
-| Status | `PRESENT`, `LATE`, `EARLY_LEAVE`, `NO_CLOCKOUT`, `ON_LEAVE`, `PUBLIC_HOLIDAY` |
+| Kolom     | Arti                                                                          |
+| --------- | ----------------------------------------------------------------------------- |
+| Tanggal   | Tanggal shift                                                                 |
+| Clock-in  | Waktu masuk aktual + status (tepat / terlambat)                               |
+| Clock-out | Waktu pulang aktual + status                                                  |
+| Durasi    | Jam kerja bersih (setelah dipotong jam istirahat)                             |
+| Lokasi    | Nama geofence tempat Anda clock-in                                            |
+| Status    | `PRESENT`, `LATE`, `EARLY_LEAVE`, `NO_CLOCKOUT`, `ON_LEAVE`, `PUBLIC_HOLIDAY` |
 
 ### 5.5 Ajukan Koreksi Kehadiran
 
@@ -182,13 +182,13 @@ Bila ada kesalahan (lupa clock-out, HP habis baterai, sistem down), ajukan korek
 
 Di halaman Cuti, panel atas menampilkan saldo per tipe cuti:
 
-| Kolom | Arti |
-|---|---|
-| Tipe Cuti | Nama tipe (Cuti Tahunan, Cuti Sakit, dsb.) |
-| Kuota | Kuota tahun berjalan |
-| Terpakai | Sudah diapprove & diambil |
-| Pending | Sudah diajukan tapi belum diapprove |
-| Sisa | Kuota − Terpakai − Pending |
+| Kolom      | Arti                                                    |
+| ---------- | ------------------------------------------------------- |
+| Tipe Cuti  | Nama tipe (Cuti Tahunan, Cuti Sakit, dsb.)              |
+| Kuota      | Kuota tahun berjalan                                    |
+| Terpakai   | Sudah diapprove & diambil                               |
+| Pending    | Sudah diajukan tapi belum diapprove                     |
+| Sisa       | Kuota − Terpakai − Pending                              |
 | Carry-over | Sisa dari tahun sebelumnya (bila tipe cuti mengizinkan) |
 
 ### 6.2 Ajukan Cuti
@@ -216,13 +216,13 @@ Di halaman Cuti, panel atas menampilkan saldo per tipe cuti:
 
 ### 6.4 Status Pengajuan
 
-| Status | Arti |
-|---|---|
-| `PENDING` | Menunggu review Supervisor |
+| Status        | Arti                              |
+| ------------- | --------------------------------- |
+| `PENDING`     | Menunggu review Supervisor        |
 | `APPROVED_L1` | Disetujui Supervisor, menunggu HR |
 | `APPROVED_L2` | Disetujui HR — cuti resmi berlaku |
-| `REJECTED` | Ditolak; alasan tampil di baris |
-| `CANCELLED` | Anda batalkan sendiri |
+| `REJECTED`    | Ditolak; alasan tampil di baris   |
+| `CANCELLED`   | Anda batalkan sendiri             |
 
 ---
 
@@ -274,21 +274,21 @@ Bila belum ada baris — pesan "Belum ada timesheet untuk periode ini" muncul. I
 
 Tabel menampilkan per-hari:
 
-| Kolom | Arti |
-|---|---|
-| Tanggal | Tanggal kalender |
-| Shift | Nama shift Anda pada hari itu |
-| Kehadiran | Jam kerja aktual (dari clock-in/out) |
-| Cuti | Bila hari itu Anda cuti/izin/sakit yang sudah diapprove |
-| Lembur | Jam lembur yang sudah diapprove |
-| Total | Total jam yang dihitung (kehadiran + lembur) |
+| Kolom     | Arti                                                    |
+| --------- | ------------------------------------------------------- |
+| Tanggal   | Tanggal kalender                                        |
+| Shift     | Nama shift Anda pada hari itu                           |
+| Kehadiran | Jam kerja aktual (dari clock-in/out)                    |
+| Cuti      | Bila hari itu Anda cuti/izin/sakit yang sudah diapprove |
+| Lembur    | Jam lembur yang sudah diapprove                         |
+| Total     | Total jam yang dihitung (kehadiran + lembur)            |
 
 Ringkasan di atas tabel: total jam periode, total lembur, total cuti, ketidakhadiran (bila ada).
 
 ### 8.3 Konfirmasi Timesheet
 
 1. Review baris per baris. Bila ada yang salah:
-   - Kehadiran salah → kembali ke **Kehadiran** → ajukan koreksi. Setelah koreksi diapprove, HR akan me-*refresh* timesheet.
+   - Kehadiran salah → kembali ke **Kehadiran** → ajukan koreksi. Setelah koreksi diapprove, HR akan me-_refresh_ timesheet.
    - Cuti/lembur belum masuk → cek statusnya (mungkin masih pending).
 2. Bila semua benar, klik **Konfirmasi timesheet**.
 3. Timesheet berpindah status ke `SUBMITTED`. Supervisor lalu HR akan melakukan approval.
@@ -375,7 +375,7 @@ Tombol **Logout semua sesi lain** untuk cabut semua kecuali browser saat ini (be
 2. Isi alasan (opsional tapi disarankan).
 3. Kirim. Status: `PENDING`.
 4. HR akan review dalam beberapa hari kerja.
-5. **Bila disetujui:** akan ada `scheduledFor` (default T+7 hari) untuk periode *grace*. Anda bisa **Batalkan** selama periode ini.
+5. **Bila disetujui:** akan ada `scheduledFor` (default T+7 hari) untuk periode _grace_. Anda bisa **Batalkan** selama periode ini.
 6. Setelah `scheduledFor` tiba, data dihapus/dianonimkan. Anda akan menerima laporan email.
 
 Data yang dihapus mengikuti aturan yang dijelaskan di [Panduan Admin §13.3](./ADMIN-GUIDE.md#133-yang-dihapus-vs-yang-dianonimkan).
@@ -481,46 +481,46 @@ Setelah 48 jam, permintaan Anda akan muncul di **Backlog HR**. HR bisa mengambil
 
 Bila muncul pop-up merah dengan kode error, cari di tabel ini:
 
-| Kode | Arti | Cara Mengatasi |
-|---|---|---|
-| `UNAUTHORIZED` | Email/password salah atau sesi kedaluwarsa | Login ulang. Pastikan tidak Caps Lock. |
-| `MFA_REQUIRED` | Sesi Anda perlu verifikasi MFA | Lengkapi kode TOTP di layar berikutnya |
-| `MUST_CHANGE_PASSWORD` | Password lama masih aktif | Sistem akan mengarahkan ke halaman ganti password |
-| `PENDING_CONSENT` | Ada kebijakan privasi baru | Terima kebijakan di halaman `/consent` |
-| `OUTSIDE_GEOFENCE` | Lokasi Anda di luar area kantor | Pindah lokasi, atau ajukan koreksi setelah masuk kantor |
-| `LOCATION_DENIED` | Browser tidak memberi izin lokasi | Buka settings browser → Izinkan lokasi untuk situs ini |
-| `INSUFFICIENT_BALANCE` | Saldo cuti tidak cukup | Kurangi jumlah hari, atau ubah tipe cuti |
-| `LEAVE_OVERLAP` | Tanggal cuti tumpang tindih dengan pengajuan lain | Batalkan/edit pengajuan yang tumpang tindih |
-| `ADVANCE_NOTICE_REQUIRED` | Ajukan terlalu mendekati tanggal | Ajukan lebih awal (lihat tipe cuti untuk minimum N hari) |
-| `OVERTIME_CAP_EXCEEDED` | Melebihi batas lembur harian/bulanan | Kurangi jam, atau minta exception ke HR |
-| `THROTTLED` | Terlalu banyak percobaan (biasanya di login) | Tunggu 1 menit, coba lagi. Bila berulang, hubungi HR |
-| `SESSION_EXPIRED` | Refresh token kedaluwarsa | Login ulang |
-| `EXPORT_COOLDOWN` | Baru saja mengajukan ekspor data | Tunggu sampai 7 hari sejak permintaan sebelumnya |
-| `ATTACHMENT_TOO_LARGE` | File > 5 MB | Kompres atau potong file |
-| `ATTACHMENT_TYPE_NOT_ALLOWED` | Tipe file tidak diizinkan (hanya PDF/JPG/PNG) | Konversi ke tipe yang didukung |
-| `CORRECTION_WINDOW_CLOSED` | Sudah lewat 7 hari sejak tanggal koreksi | Hubungi HR untuk exception |
+| Kode                          | Arti                                              | Cara Mengatasi                                           |
+| ----------------------------- | ------------------------------------------------- | -------------------------------------------------------- |
+| `UNAUTHORIZED`                | Email/password salah atau sesi kedaluwarsa        | Login ulang. Pastikan tidak Caps Lock.                   |
+| `MFA_REQUIRED`                | Sesi Anda perlu verifikasi MFA                    | Lengkapi kode TOTP di layar berikutnya                   |
+| `MUST_CHANGE_PASSWORD`        | Password lama masih aktif                         | Sistem akan mengarahkan ke halaman ganti password        |
+| `PENDING_CONSENT`             | Ada kebijakan privasi baru                        | Terima kebijakan di halaman `/consent`                   |
+| `OUTSIDE_GEOFENCE`            | Lokasi Anda di luar area kantor                   | Pindah lokasi, atau ajukan koreksi setelah masuk kantor  |
+| `LOCATION_DENIED`             | Browser tidak memberi izin lokasi                 | Buka settings browser → Izinkan lokasi untuk situs ini   |
+| `INSUFFICIENT_BALANCE`        | Saldo cuti tidak cukup                            | Kurangi jumlah hari, atau ubah tipe cuti                 |
+| `LEAVE_OVERLAP`               | Tanggal cuti tumpang tindih dengan pengajuan lain | Batalkan/edit pengajuan yang tumpang tindih              |
+| `ADVANCE_NOTICE_REQUIRED`     | Ajukan terlalu mendekati tanggal                  | Ajukan lebih awal (lihat tipe cuti untuk minimum N hari) |
+| `OVERTIME_CAP_EXCEEDED`       | Melebihi batas lembur harian/bulanan              | Kurangi jam, atau minta exception ke HR                  |
+| `THROTTLED`                   | Terlalu banyak percobaan (biasanya di login)      | Tunggu 1 menit, coba lagi. Bila berulang, hubungi HR     |
+| `SESSION_EXPIRED`             | Refresh token kedaluwarsa                         | Login ulang                                              |
+| `EXPORT_COOLDOWN`             | Baru saja mengajukan ekspor data                  | Tunggu sampai 7 hari sejak permintaan sebelumnya         |
+| `ATTACHMENT_TOO_LARGE`        | File > 5 MB                                       | Kompres atau potong file                                 |
+| `ATTACHMENT_TYPE_NOT_ALLOWED` | Tipe file tidak diizinkan (hanya PDF/JPG/PNG)     | Konversi ke tipe yang didukung                           |
+| `CORRECTION_WINDOW_CLOSED`    | Sudah lewat 7 hari sejak tanggal koreksi          | Hubungi HR untuk exception                               |
 
 ---
 
 ## Lampiran A — Peta Shortcut Keyboard
 
-| Shortcut | Aksi |
-|---|---|
-| `Ctrl/⌘ + K` | Buka command palette |
-| `g` lalu `a` | Ke Kehadiran |
-| `g` lalu `l` | Ke Cuti |
-| `g` lalu `o` | Ke Lembur |
-| `g` lalu `t` | Ke Timesheet |
-| `?` | Tampilkan daftar shortcut lengkap |
+| Shortcut     | Aksi                              |
+| ------------ | --------------------------------- |
+| `Ctrl/⌘ + K` | Buka command palette              |
+| `g` lalu `a` | Ke Kehadiran                      |
+| `g` lalu `l` | Ke Cuti                           |
+| `g` lalu `o` | Ke Lembur                         |
+| `g` lalu `t` | Ke Timesheet                      |
+| `?`          | Tampilkan daftar shortcut lengkap |
 
 ## Lampiran B — Batas Ukuran Attachment
 
-| Konteks | Batas | Format Diizinkan |
-|---|---|---|
-| Koreksi kehadiran | 5 MB | JPG, PNG, PDF |
-| Cuti (lampiran surat dokter) | 5 MB | JPG, PNG, PDF |
-| Lembur (bukti proyek) | 5 MB | JPG, PNG, PDF |
-| Foto profil | 2 MB | JPG, PNG |
+| Konteks                      | Batas | Format Diizinkan |
+| ---------------------------- | ----- | ---------------- |
+| Koreksi kehadiran            | 5 MB  | JPG, PNG, PDF    |
+| Cuti (lampiran surat dokter) | 5 MB  | JPG, PNG, PDF    |
+| Lembur (bukti proyek)        | 5 MB  | JPG, PNG, PDF    |
+| Foto profil                  | 2 MB  | JPG, PNG         |
 
 ## Lampiran C — Kontak Bantuan
 

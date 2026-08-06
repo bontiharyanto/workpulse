@@ -39,7 +39,7 @@ function ProfileContent(): JSX.Element {
 
   if (status === 'loading' || !user) {
     return (
-      <div className="text-muted-foreground flex items-center gap-2 py-6 text-body">
+      <div className="text-muted-foreground text-body flex items-center gap-2 py-6">
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
         <span>Memuat profil…</span>
       </div>
@@ -87,8 +87,8 @@ function ProfileContent(): JSX.Element {
         <CardHeader>
           <CardTitle>Tindakan cepat</CardTitle>
           <p className="text-muted-foreground text-caption">
-            Password &amp; MFA dikelola pada masing-masing halamannya. Semua perubahan tercatat
-            pada audit log.
+            Password &amp; MFA dikelola pada masing-masing halamannya. Semua perubahan tercatat pada
+            audit log.
           </p>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
@@ -122,7 +122,7 @@ function Field({
   return (
     <div className="space-y-1">
       <p className="text-muted-foreground text-overline uppercase">{label}</p>
-      <div className={mono ? 'text-foreground font-mono text-body' : 'text-foreground text-body'}>
+      <div className={mono ? 'text-foreground text-body font-mono' : 'text-foreground text-body'}>
         {value}
       </div>
     </div>

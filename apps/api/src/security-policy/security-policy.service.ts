@@ -49,8 +49,7 @@ export class SecurityPolicyService {
   ) {
     // Bootstrap-only fallback. Runtime toggles all flow through the
     // per-tenant row — see class-level comment.
-    this.envDefaultMfaEnforce =
-      config.get<string>('MFA_ENFORCE_HR_ADMIN', 'false') === 'true';
+    this.envDefaultMfaEnforce = config.get<string>('MFA_ENFORCE_HR_ADMIN', 'false') === 'true';
   }
 
   /**

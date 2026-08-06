@@ -136,8 +136,8 @@ export function TimesheetConfigPanel(): JSX.Element {
         <CardHeader>
           <CardTitle id="tsc-heading">Konfigurasi timesheet</CardTitle>
           <CardDescription>
-          Tentukan jenis periode dan zona waktu tenant. Perubahan berlaku pada generate timesheet
-          berikutnya.
+            Tentukan jenis periode dan zona waktu tenant. Perubahan berlaku pada generate timesheet
+            berikutnya.
           </CardDescription>
         </CardHeader>
 
@@ -190,8 +190,8 @@ export function TimesheetConfigPanel(): JSX.Element {
                 <Label htmlFor="biweeklyAnchor">Anchor bi-weekly (tanggal referensi)</Label>
                 <Input id="biweeklyAnchor" type="date" {...form.register('biweeklyAnchor')} />
                 <p className="text-muted-foreground text-caption">
-              Setiap periode 14 hari dihitung dari tanggal ini. Opsional — kalau kosong sistem pakai
-              anchor default.
+                  Setiap periode 14 hari dihitung dari tanggal ini. Opsional — kalau kosong sistem
+                  pakai anchor default.
                 </p>
               </div>
             ) : null}
@@ -224,17 +224,20 @@ export function TimesheetConfigPanel(): JSX.Element {
           <Separator />
 
           <fieldset className="space-y-4">
-            <legend className="text-foreground text-body font-semibold">Otomasi &amp; pengingat</legend>
+            <legend className="text-foreground text-body font-semibold">
+              Otomasi &amp; pengingat
+            </legend>
             <p className="text-muted-foreground text-caption">
-              Scheduler harian menjalankan tugas ini pada 03:00 UTC (~10:00 WIB) untuk setiap tenant.
+              Scheduler harian menjalankan tugas ini pada 03:00 UTC (~10:00 WIB) untuk setiap
+              tenant.
             </p>
 
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
                 <Label htmlFor="autoGenerateEnabled">Auto-generate periode berikutnya</Label>
                 <p className="text-muted-foreground text-caption">
-                  Saat periode ditutup, sistem otomatis membuat periode &amp; DRAFT timesheet untuk setiap
-                  karyawan aktif.
+                  Saat periode ditutup, sistem otomatis membuat periode &amp; DRAFT timesheet untuk
+                  setiap karyawan aktif.
                 </p>
               </div>
               <Switch
@@ -250,8 +253,8 @@ export function TimesheetConfigPanel(): JSX.Element {
               <div className="space-y-1">
                 <Label htmlFor="reminderEnabled">Kirim reminder otomatis</Label>
                 <p className="text-muted-foreground text-caption">
-                  Karyawan yang belum submit &amp; approver yang menunda review akan dinotifikasi setiap
-                  hari selama window di bawah.
+                  Karyawan yang belum submit &amp; approver yang menunda review akan dinotifikasi
+                  setiap hari selama window di bawah.
                 </p>
               </div>
               <Switch
@@ -266,19 +269,43 @@ export function TimesheetConfigPanel(): JSX.Element {
             <div className="grid gap-4 pt-2 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="submitStart">Submit reminder mulai (hari ke-)</Label>
-                <Input id="submitStart" type="number" min={timesheetConfigBounds.submitReminderStartDays.min} max={timesheetConfigBounds.submitReminderStartDays.max} {...form.register('submitReminderStartDays', { valueAsNumber: true })} />
+                <Input
+                  id="submitStart"
+                  type="number"
+                  min={timesheetConfigBounds.submitReminderStartDays.min}
+                  max={timesheetConfigBounds.submitReminderStartDays.max}
+                  {...form.register('submitReminderStartDays', { valueAsNumber: true })}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="submitMax">Submit reminder berhenti (hari ke-)</Label>
-                <Input id="submitMax" type="number" min={timesheetConfigBounds.submitReminderMaxDays.min} max={timesheetConfigBounds.submitReminderMaxDays.max} {...form.register('submitReminderMaxDays', { valueAsNumber: true })} />
+                <Input
+                  id="submitMax"
+                  type="number"
+                  min={timesheetConfigBounds.submitReminderMaxDays.min}
+                  max={timesheetConfigBounds.submitReminderMaxDays.max}
+                  {...form.register('submitReminderMaxDays', { valueAsNumber: true })}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="approvalStart">Approval reminder mulai (hari ke-)</Label>
-                <Input id="approvalStart" type="number" min={timesheetConfigBounds.approvalReminderStartDays.min} max={timesheetConfigBounds.approvalReminderStartDays.max} {...form.register('approvalReminderStartDays', { valueAsNumber: true })} />
+                <Input
+                  id="approvalStart"
+                  type="number"
+                  min={timesheetConfigBounds.approvalReminderStartDays.min}
+                  max={timesheetConfigBounds.approvalReminderStartDays.max}
+                  {...form.register('approvalReminderStartDays', { valueAsNumber: true })}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="approvalMax">Approval reminder berhenti (hari ke-)</Label>
-                <Input id="approvalMax" type="number" min={timesheetConfigBounds.approvalReminderMaxDays.min} max={timesheetConfigBounds.approvalReminderMaxDays.max} {...form.register('approvalReminderMaxDays', { valueAsNumber: true })} />
+                <Input
+                  id="approvalMax"
+                  type="number"
+                  min={timesheetConfigBounds.approvalReminderMaxDays.min}
+                  max={timesheetConfigBounds.approvalReminderMaxDays.max}
+                  {...form.register('approvalReminderMaxDays', { valueAsNumber: true })}
+                />
               </div>
             </div>
             <p className="text-muted-foreground text-caption">
@@ -287,7 +314,11 @@ export function TimesheetConfigPanel(): JSX.Element {
             </p>
           </fieldset>
 
-          {inlineError ? <Alert variant="destructive"><AlertDescription>{inlineError}</AlertDescription></Alert> : null}
+          {inlineError ? (
+            <Alert variant="destructive">
+              <AlertDescription>{inlineError}</AlertDescription>
+            </Alert>
+          ) : null}
 
           <div className="flex items-center justify-between gap-3">
             <p role="status" aria-live="polite" className="text-muted-foreground text-caption">

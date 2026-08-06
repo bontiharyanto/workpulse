@@ -102,12 +102,7 @@ export function ForgotPasswordForm(): JSX.Element {
         </Alert>
       ) : null}
 
-      <Button
-        type="submit"
-        className="w-full"
-        size="lg"
-        disabled={form.formState.isSubmitting}
-      >
+      <Button type="submit" className="w-full" size="lg" disabled={form.formState.isSubmitting}>
         <Mail className="h-4 w-4" aria-hidden />
         {form.formState.isSubmitting ? 'Mengirim…' : 'Kirim link reset'}
       </Button>

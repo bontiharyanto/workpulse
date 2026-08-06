@@ -32,7 +32,7 @@ export default function SetupMfaPage(): JSX.Element {
   if (status === 'loading') {
     return (
       <AuthShell title="Memuat sesi…" size="sm">
-        <div className="text-muted-foreground flex items-center justify-center gap-2 py-6 text-body">
+        <div className="text-muted-foreground text-body flex items-center justify-center gap-2 py-6">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
           <span>Menyiapkan pengaturan MFA…</span>
         </div>

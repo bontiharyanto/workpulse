@@ -93,7 +93,6 @@ enrollment gate behaviour is the only knob that changed.
 
 ---
 
-
 ## Context
 
 Workpulse's authentication surface, prior to Fase 30a, was single-factor

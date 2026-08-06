@@ -23,10 +23,7 @@ const LABELS: Record<OvertimeStatus, string> = {
   CANCELLED: 'Dibatalkan',
 };
 
-const VARIANTS: Record<
-  OvertimeStatus,
-  'muted' | 'warning' | 'success' | 'info' | 'destructive'
-> = {
+const VARIANTS: Record<OvertimeStatus, 'muted' | 'warning' | 'success' | 'info' | 'destructive'> = {
   PENDING_APPROVAL: 'warning',
   APPROVED: 'success',
   COMPLETED: 'info',

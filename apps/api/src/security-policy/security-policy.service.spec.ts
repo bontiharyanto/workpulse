@@ -3,8 +3,8 @@ import type { SecurityPolicy } from '@prisma/client';
 import type { DeepMockProxy } from 'jest-mock-extended';
 import { mockDeep, mockReset } from 'jest-mock-extended';
 
-import { PrismaService } from '../prisma/prisma.service';
 import { SecurityPolicyService } from './security-policy.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 interface Kit {
   service: SecurityPolicyService;
@@ -50,9 +50,7 @@ describe('SecurityPolicyService.getForCompany', () => {
   it('materialises the row using env default when missing (env=true)', async () => {
     const { service, prisma } = buildKit(true);
     prisma.securityPolicy.findUnique.mockResolvedValue(null);
-    prisma.securityPolicy.upsert.mockResolvedValue(
-      makePolicy({ mfaEnforceHighPrivileged: true }),
-    );
+    prisma.securityPolicy.upsert.mockResolvedValue(makePolicy({ mfaEnforceHighPrivileged: true }));
 
     const result = await service.getForCompany('c-1');
 
@@ -92,10 +90,7 @@ describe('SecurityPolicyService.update', () => {
     const row = makePolicy();
     prisma.securityPolicy.findUnique.mockResolvedValue(row);
 
-    const result = await service.update(
-      { id: 'u-1', companyId: 'c-1', role: 'SUPER_ADMIN' },
-      {},
-    );
+    const result = await service.update({ id: 'u-1', companyId: 'c-1', role: 'SUPER_ADMIN' }, {});
 
     expect(result).toBe(row);
     expect(prisma.$transaction).not.toHaveBeenCalled();
@@ -153,9 +148,7 @@ describe('SecurityPolicyService.update', () => {
 
     const tx = mockDeep<PrismaService>();
     tx.securityPolicy.upsert.mockResolvedValue(before);
-    tx.securityPolicy.update.mockResolvedValue(
-      makePolicy({ mfaEnforceHighPrivileged: true }),
-    );
+    tx.securityPolicy.update.mockResolvedValue(makePolicy({ mfaEnforceHighPrivileged: true }));
     tx.auditLog.create.mockResolvedValue({} as never);
     prisma.$transaction.mockImplementation(async (cb: unknown) => {
       if (typeof cb !== 'function') throw new Error('transaction expected a callback');

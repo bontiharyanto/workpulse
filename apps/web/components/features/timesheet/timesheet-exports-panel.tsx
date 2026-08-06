@@ -172,9 +172,7 @@ export function TimesheetExportsPanel(): JSX.Element {
               <Label htmlFor="ts-export-mode">Mode</Label>
               <Select
                 value={form.mode}
-                onValueChange={(v) =>
-                  setForm((f) => ({ ...f, mode: v as TimesheetExportMode }))
-                }
+                onValueChange={(v) => setForm((f) => ({ ...f, mode: v as TimesheetExportMode }))}
               >
                 <SelectTrigger id="ts-export-mode" data-testid="ts-export-mode">
                   <SelectValue />
@@ -229,9 +227,9 @@ export function TimesheetExportsPanel(): JSX.Element {
         <CardHeader>
           <CardTitle>Riwayat export</CardTitle>
           <p className="text-muted-foreground text-caption">
-            Audit trail append-only. Klik <span className="text-foreground font-medium">Bagikan</span>{' '}
-            untuk membuat link download bertanda tangan yang bisa dikirim ke vendor payroll tanpa
-            akun.
+            Audit trail append-only. Klik{' '}
+            <span className="text-foreground font-medium">Bagikan</span> untuk membuat link download
+            bertanda tangan yang bisa dikirim ke vendor payroll tanpa akun.
           </p>
         </CardHeader>
         <CardContent className="overflow-x-auto p-0">
@@ -303,7 +301,7 @@ function ExportRow({ row: r }: { row: ExportRowData }): JSX.Element {
   return (
     <>
       <TableRow>
-        <TableCell className="font-mono text-caption tabular-nums">
+        <TableCell className="text-caption font-mono tabular-nums">
           {r.createdAt.replace('T', ' ').slice(0, 19)}
         </TableCell>
         <TableCell>
@@ -327,7 +325,7 @@ function ExportRow({ row: r }: { row: ExportRowData }): JSX.Element {
           <div className="text-body">{r.requestedBy.fullName}</div>
           <div className="text-muted-foreground text-caption">{r.requestedBy.email}</div>
         </TableCell>
-        <TableCell className="text-muted-foreground font-mono text-caption">
+        <TableCell className="text-muted-foreground text-caption font-mono">
           {r.payloadSha256.slice(0, 16)}…
         </TableCell>
         <TableCell className="text-right">
@@ -343,11 +341,7 @@ function ExportRow({ row: r }: { row: ExportRowData }): JSX.Element {
         </TableCell>
       </TableRow>
 
-      <ShareDialog
-        exportId={r.id}
-        open={shareOpen}
-        onOpenChange={setShareOpen}
-      />
+      <ShareDialog exportId={r.id} open={shareOpen} onOpenChange={setShareOpen} />
     </>
   );
 }
@@ -538,7 +532,7 @@ function ShareRow({
   );
 
   return (
-    <li className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-caption">
+    <li className="text-caption flex flex-wrap items-center justify-between gap-2 px-3 py-2">
       <div className="space-y-1">
         <div className="flex flex-wrap items-center gap-2">
           {badge}
@@ -547,7 +541,8 @@ function ShareRow({
           </span>
         </div>
         <div className="text-muted-foreground">
-          Dibuat <span className="tabular-nums">{share.createdAt.replace('T', ' ').slice(0, 16)}</span>{' '}
+          Dibuat{' '}
+          <span className="tabular-nums">{share.createdAt.replace('T', ' ').slice(0, 16)}</span>{' '}
           oleh {share.createdBy.email} · {share.downloadCount} unduhan
           {share.note ? ` · "${share.note}"` : ''}
         </div>

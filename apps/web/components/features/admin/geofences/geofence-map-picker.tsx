@@ -35,14 +35,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Loader2, LocateFixed, Search } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Circle,
-  MapContainer,
-  Marker,
-  TileLayer,
-  useMap,
-  useMapEvents,
-} from 'react-leaflet';
+import { Circle, MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,8 +49,7 @@ import { Input } from '@/components/ui/input';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
@@ -170,9 +162,7 @@ export function GeofenceMapPicker({
       setSearchResults(data);
       if (data.length === 0) setSearchError('Tidak ada hasil untuk kueri ini.');
     } catch (err) {
-      setSearchError(
-        err instanceof Error ? err.message : 'Gagal mencari alamat.',
-      );
+      setSearchError(err instanceof Error ? err.message : 'Gagal mencari alamat.');
     } finally {
       setSearchLoading(false);
     }
@@ -243,9 +233,7 @@ export function GeofenceMapPicker({
             </Button>
           </div>
 
-          {searchError ? (
-            <p className="text-destructive text-xs">{searchError}</p>
-          ) : null}
+          {searchError ? <p className="text-destructive text-xs">{searchError}</p> : null}
 
           {searchResults.length > 0 ? (
             <ul className="bg-card divide-y rounded-md border text-sm shadow-sm">
@@ -268,22 +256,12 @@ export function GeofenceMapPicker({
             </ul>
           ) : null}
 
-          {locateError ? (
-            <p className="text-destructive text-xs">{locateError}</p>
-          ) : null}
+          {locateError ? <p className="text-destructive text-xs">{locateError}</p> : null}
         </div>
       ) : null}
 
-      <div
-        className="overflow-hidden rounded-md border"
-        style={{ height: `${heightPx}px` }}
-      >
-        <MapContainer
-          center={center}
-          zoom={DEFAULT_ZOOM}
-          scrollWheelZoom
-          className="h-full w-full"
-        >
+      <div className="overflow-hidden rounded-md border" style={{ height: `${heightPx}px` }}>
+        <MapContainer center={center} zoom={DEFAULT_ZOOM} scrollWheelZoom className="h-full w-full">
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap contributors</a>'
@@ -318,15 +296,15 @@ export function GeofenceMapPicker({
 
       <div className="text-muted-foreground grid grid-cols-1 gap-2 text-xs md:grid-cols-3">
         <div>
-          <span className="font-medium text-foreground">Lat:</span>{' '}
+          <span className="text-foreground font-medium">Lat:</span>{' '}
           <span className="tabular-nums">{value.latitude.toFixed(6)}</span>
         </div>
         <div>
-          <span className="font-medium text-foreground">Lng:</span>{' '}
+          <span className="text-foreground font-medium">Lng:</span>{' '}
           <span className="tabular-nums">{value.longitude.toFixed(6)}</span>
         </div>
         <div>
-          <span className="font-medium text-foreground">Radius:</span>{' '}
+          <span className="text-foreground font-medium">Radius:</span>{' '}
           <span className="tabular-nums">{value.radiusMeters} m</span>
         </div>
       </div>

@@ -28,9 +28,7 @@ export default async function LoginPage({
         <Alert variant="success" role="status">
           <CheckCircle2 aria-hidden />
           <AlertTitle>Password berhasil diubah</AlertTitle>
-          <AlertDescription>
-            Silakan masuk kembali dengan password baru Anda.
-          </AlertDescription>
+          <AlertDescription>Silakan masuk kembali dengan password baru Anda.</AlertDescription>
         </Alert>
       ) : null}
       <LoginForm redirectTo={params.next ?? '/attendance'} />

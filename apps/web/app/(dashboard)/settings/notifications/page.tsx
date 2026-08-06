@@ -10,8 +10,8 @@ export default function NotificationSettingsPage(): JSX.Element {
       <header className="space-y-1">
         <h2 className="text-h4 text-foreground tracking-tight">Preferensi Notifikasi</h2>
         <p className="text-muted-foreground text-body">
-          Atur channel pengiriman (in-app / email) untuk setiap jenis notifikasi. Semua tipe
-          menyala secara default — matikan yang tidak Anda butuhkan.
+          Atur channel pengiriman (in-app / email) untuk setiap jenis notifikasi. Semua tipe menyala
+          secara default — matikan yang tidak Anda butuhkan.
         </p>
       </header>
       <NotificationPreferencesForm />

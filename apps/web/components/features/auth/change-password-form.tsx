@@ -149,18 +149,13 @@ export function ChangePasswordForm(): JSX.Element {
         </Alert>
       ) : null}
 
-      <Button
-        type="submit"
-        className="w-full"
-        size="lg"
-        disabled={form.formState.isSubmitting}
-      >
+      <Button type="submit" className="w-full" size="lg" disabled={form.formState.isSubmitting}>
         <Lock className="h-4 w-4" aria-hidden />
         {form.formState.isSubmitting ? 'Menyimpan…' : 'Simpan password baru'}
       </Button>
 
       {!isForced ? (
-        <p className="text-muted-foreground text-center text-caption">
+        <p className="text-muted-foreground text-caption text-center">
           <Link href="/settings/notifications" className="underline underline-offset-4">
             Batal
           </Link>

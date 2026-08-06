@@ -3,8 +3,8 @@ import type { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { SecurityPolicy } from '@prisma/client';
 
-import type { SecurityPolicyService } from '../../security-policy/security-policy.service';
 import { MfaEnrollmentGuard } from './mfa-enrollment.guard';
+import type { SecurityPolicyService } from '../../security-policy/security-policy.service';
 
 function buildPolicyService(enforce: boolean): SecurityPolicyService {
   return {

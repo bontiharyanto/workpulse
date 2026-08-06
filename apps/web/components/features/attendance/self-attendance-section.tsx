@@ -55,16 +55,15 @@ function SuperAdminCallout(): JSX.Element {
   return (
     <Card>
       <CardHeader className="space-y-1.5">
-        <div className="text-info flex items-center gap-2 text-overline uppercase tracking-widest">
+        <div className="text-info text-overline flex items-center gap-2 uppercase tracking-widest">
           <ShieldCheck className="h-4 w-4" aria-hidden />
           <span>Peran administrator</span>
         </div>
         <CardTitle className="text-h4">Akun Super Admin tidak melakukan clock-in</CardTitle>
         <CardDescription>
-          Kehadiran adalah aksi yang dilakukan karyawan pada shift &amp; geofence
-          tertentu. Akun Super Admin bersifat lintas tenant dan tidak terikat
-          pada salah satu. Gunakan salah satu surface administrator di bawah untuk
-          memantau kehadiran perusahaan atau tim.
+          Kehadiran adalah aksi yang dilakukan karyawan pada shift &amp; geofence tertentu. Akun
+          Super Admin bersifat lintas tenant dan tidak terikat pada salah satu. Gunakan salah satu
+          surface administrator di bawah untuk memantau kehadiran perusahaan atau tim.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-wrap gap-2">

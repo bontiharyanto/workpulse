@@ -1501,9 +1501,7 @@ async function main(): Promise<void> {
         })()
       : null;
 
-    const decidedById = c.decidedByEmail
-      ? (userByEmail.get(c.decidedByEmail)?.id ?? null)
-      : null;
+    const decidedById = c.decidedByEmail ? (userByEmail.get(c.decidedByEmail)?.id ?? null) : null;
     const decidedAt =
       c.finalStatus === 'APPROVED'
         ? (() => {
@@ -1896,9 +1894,7 @@ async function main(): Promise<void> {
     const mfaKey = process.env.MFA_SECRET_ENCRYPTION_KEY;
     if (!mfaKey) {
       // eslint-disable-next-line no-console
-      console.warn(
-        '[seed-uat] MFA_SECRET_ENCRYPTION_KEY not set — skipping MFA-enabled user seed',
-      );
+      console.warn('[seed-uat] MFA_SECRET_ENCRYPTION_KEY not set — skipping MFA-enabled user seed');
     } else {
       try {
         const key = decodeEncryptionKey(mfaKey);

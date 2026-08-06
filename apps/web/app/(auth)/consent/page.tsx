@@ -47,7 +47,7 @@ export default function ConsentPage(): JSX.Element {
   if (status === 'loading') {
     return (
       <AuthShell title="Memuat sesi…" size="sm">
-        <div className="text-muted-foreground flex items-center justify-center gap-2 py-6 text-body">
+        <div className="text-muted-foreground text-body flex items-center justify-center gap-2 py-6">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
           <span>Mempersiapkan halaman persetujuan…</span>
         </div>
@@ -63,7 +63,7 @@ export default function ConsentPage(): JSX.Element {
   if (!pending) {
     return (
       <AuthShell title="Mengarahkan…" size="sm">
-        <div className="text-muted-foreground flex items-center justify-center gap-2 py-6 text-body">
+        <div className="text-muted-foreground text-body flex items-center justify-center gap-2 py-6">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
           <span>Membuka halaman utama…</span>
         </div>
@@ -103,7 +103,7 @@ export default function ConsentPage(): JSX.Element {
         <pre className="text-body whitespace-pre-wrap p-4 font-sans">{pending.body}</pre>
       </ScrollArea>
 
-      <Label className="flex items-start gap-2 text-body font-normal">
+      <Label className="text-body flex items-start gap-2 font-normal">
         <input
           type="checkbox"
           checked={ack}

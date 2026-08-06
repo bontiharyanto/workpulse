@@ -41,7 +41,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Run Trivy
-        uses: aquasecurity/trivy-action@0.24.0
+        # v0.36.0 is the current maintained tag. Older un-prefixed tags
+        # (e.g. `0.24.0`) were force-pushed to malicious commits during the
+        # March 2026 supply-chain incident and are no longer resolvable via
+        # the Actions API; all releases now use the `v` prefix.
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -65,7 +69,7 @@ jobs:
       # (a) always publish SARIF, and (b) still fail on CRITICAL without
       # short-circuiting the upload.
       - name: Trivy CRITICAL gate
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -79,6 +83,15 @@ jobs:
   # Production dep audit. Only PROD deps (dev deps skipped) because a HIGH
   # advisory in `jest` doesn't ship to customers. Threshold `high` mirrors
   # the Trivy gate philosophy.
+  #
+  # Ignore list: `pnpm.auditConfig.ignoreGhsas` in the root `package.json`
+  # holds the small set of transitive HIGH advisories that we've reviewed
+  # and accepted for MVP (multer, lodash, nodemailer — all pulled in by
+  # `@nestjs/core@10.x` or `@nestjs/config`, unfixable until we upgrade
+  # NestJS to v11 in a dedicated PR). Every entry there has an explicit
+  # module + patched-version comment inline; new HIGH advisories NOT on
+  # that list still fail this job. Weekly cron + dependabot keep us
+  # honest that the list stays as short as possible.
   # ---------------------------------------------------------------------------
   pnpm-audit:
     name: pnpm audit (prod deps)
@@ -103,7 +116,16 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Audit — prod-only, fail on HIGH+
+        # Honours `pnpm.auditConfig.ignoreGhsas` in `package.json`.
         run: pnpm audit --prod --audit-level high
+
+      # Advisory-only sweep of MODERATE+ so weekly triage can browse the
+      # queue without CI-gating on advisories that won't ship to users.
+      # Never breaks the job.
+      - name: Advisory — moderate sweep
+        if: always()
+        continue-on-error: true
+        run: pnpm audit --prod --audit-level moderate
 
   # ---------------------------------------------------------------------------
   # Gitleaks — HEAD scan is cheap and runs on every event. The scheduled
@@ -117,8 +139,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Weekly job needs full history; PR/push can use a shallow clone.
-          fetch-depth: ${{ github.event_name == 'schedule' && 0 || 1 }}
+          # Full history for every event. The gitleaks action defaults to
+          # scanning `parent^..HEAD` on PR/push, which fails with
+          # `fatal: ambiguous argument` when only HEAD is fetched (see
+          # gitleaks-action#88). The weekly cron already needed depth 0 to
+          # sweep history — no reason to save bytes on PRs by breaking them.
+          fetch-depth: 0
 
       - name: Run gitleaks
         uses: gitleaks/gitleaks-action@v2
@@ -161,7 +187,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trivy image scan
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ matrix.image }}
           format: sarif

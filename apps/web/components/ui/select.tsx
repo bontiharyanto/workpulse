@@ -2,11 +2,7 @@
 
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { Check, ChevronDown, ChevronUp } from 'lucide-react';
-import {
-  forwardRef,
-  type ComponentPropsWithoutRef,
-  type ElementRef,
-} from 'react';
+import { forwardRef, type ComponentPropsWithoutRef, type ElementRef } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -79,7 +75,7 @@ const SelectContent = forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        'bg-popover text-popover-foreground border-border relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-lg border shadow-popover',
+        'bg-popover text-popover-foreground border-border shadow-popover relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-lg border',
         'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
         position === 'popper' &&
           'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
@@ -110,7 +106,7 @@ const SelectLabel = forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
     ref={ref}
-    className={cn('py-1.5 pl-8 pr-2 text-caption font-semibold', className)}
+    className={cn('text-caption py-1.5 pl-8 pr-2 font-semibold', className)}
     {...props}
   />
 ));

@@ -944,10 +944,7 @@ export class AttendanceService {
       allowedSsids: string[];
     },
   ): { distanceMeters: number; via: 'GEOFENCE' | 'WIFI_SSID' } {
-    if (
-      geofence.maxAccuracyMeters !== null &&
-      dto.accuracyMeters > geofence.maxAccuracyMeters
-    ) {
+    if (geofence.maxAccuracyMeters !== null && dto.accuracyMeters > geofence.maxAccuracyMeters) {
       throw new ForbiddenException({
         statusCode: 403,
         code: 'WEAK_GPS_ACCURACY',

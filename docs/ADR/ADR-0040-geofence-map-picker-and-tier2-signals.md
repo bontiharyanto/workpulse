@@ -26,12 +26,12 @@ that was, frankly, painful:
 
 We evaluated several map providers and gave HR a decision:
 
-| Option | Cost | API key | Verdict |
-|---|---|---|---|
-| Google Maps | Free credit → paid tier | Yes | Rejected: vendor lock-in, credit-card requirement in prod |
-| Mapbox | 50k free loads/mo | Yes | Deferred: overkill for an admin-only page |
-| MapLibre + OpenFreeMap | Free | No | Deferred: WebGL, needs CSP relaxation for workers |
-| **Leaflet + OpenStreetMap raster** | **Free** | **No** | **Accepted** |
+| Option                             | Cost                    | API key | Verdict                                                   |
+| ---------------------------------- | ----------------------- | ------- | --------------------------------------------------------- |
+| Google Maps                        | Free credit → paid tier | Yes     | Rejected: vendor lock-in, credit-card requirement in prod |
+| Mapbox                             | 50k free loads/mo       | Yes     | Deferred: overkill for an admin-only page                 |
+| MapLibre + OpenFreeMap             | Free                    | No      | Deferred: WebGL, needs CSP relaxation for workers         |
+| **Leaflet + OpenStreetMap raster** | **Free**                | **No**  | **Accepted**                                              |
 
 ## Decision
 

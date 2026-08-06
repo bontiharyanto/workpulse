@@ -39,12 +39,7 @@ interface Props {
   onCancel: () => void;
 }
 
-export function GeofenceForm({
-  initial,
-  submitting,
-  onSubmit,
-  onCancel,
-}: Props): JSX.Element {
+export function GeofenceForm({ initial, submitting, onSubmit, onCancel }: Props): JSX.Element {
   const form = useForm<CreateGeofenceInput>({
     resolver: zodResolver(createGeofenceSchema),
     defaultValues: {
@@ -94,11 +89,7 @@ export function GeofenceForm({
         <Label htmlFor="geofence-name" className="text-xs uppercase tracking-wider">
           Nama Lokasi
         </Label>
-        <Input
-          id="geofence-name"
-          {...form.register('name')}
-          placeholder="Head Office Jakarta"
-        />
+        <Input id="geofence-name" {...form.register('name')} placeholder="Head Office Jakarta" />
         {form.formState.errors.name && (
           <p className="text-destructive text-xs">{form.formState.errors.name.message}</p>
         )}
@@ -130,8 +121,7 @@ export function GeofenceForm({
         <Label className="text-xs uppercase tracking-wider">Lokasi Geofence</Label>
         <p className="text-muted-foreground text-xs">
           Klik peta atau seret pin untuk memindahkan pusat geofence. Gunakan tombol{' '}
-          <span className="font-medium">lokasi saat ini</span> atau ketik alamat di kotak
-          pencarian.
+          <span className="font-medium">lokasi saat ini</span> atau ketik alamat di kotak pencarian.
         </p>
         <GeofenceMapPicker
           value={{ latitude, longitude, radiusMeters }}
@@ -152,9 +142,7 @@ export function GeofenceForm({
             {...form.register('latitude', { valueAsNumber: true })}
           />
           {form.formState.errors.latitude && (
-            <p className="text-destructive text-xs">
-              {form.formState.errors.latitude.message}
-            </p>
+            <p className="text-destructive text-xs">{form.formState.errors.latitude.message}</p>
           )}
         </div>
 
@@ -170,9 +158,7 @@ export function GeofenceForm({
             {...form.register('longitude', { valueAsNumber: true })}
           />
           {form.formState.errors.longitude && (
-            <p className="text-destructive text-xs">
-              {form.formState.errors.longitude.message}
-            </p>
+            <p className="text-destructive text-xs">{form.formState.errors.longitude.message}</p>
           )}
         </div>
 
@@ -188,15 +174,13 @@ export function GeofenceForm({
             {...form.register('radiusMeters', { valueAsNumber: true })}
           />
           {form.formState.errors.radiusMeters && (
-            <p className="text-destructive text-xs">
-              {form.formState.errors.radiusMeters.message}
-            </p>
+            <p className="text-destructive text-xs">{form.formState.errors.radiusMeters.message}</p>
           )}
         </div>
       </div>
       <p className="text-muted-foreground text-xs">
-        Rekomendasi: 30–100 m untuk kantor kecil, 200–500 m untuk pabrik / kompleks. Maksimum
-        5000 m.
+        Rekomendasi: 30–100 m untuk kantor kecil, 200–500 m untuk pabrik / kompleks. Maksimum 5000
+        m.
       </p>
 
       <details className="border-input rounded-md border">
@@ -270,9 +254,9 @@ function AccuracyBudgetField({
         </Label>
       </div>
       <p className="text-muted-foreground text-xs">
-        Jika aktif, clock-in dengan akurasi GPS lebih buruk dari nilai ini akan ditolak
-        dengan <code>WEAK_GPS_ACCURACY</code>. Efektif untuk mencegah clock-in dari device
-        yang meng-geolokasi lewat IP.
+        Jika aktif, clock-in dengan akurasi GPS lebih buruk dari nilai ini akan ditolak dengan{' '}
+        <code>WEAK_GPS_ACCURACY</code>. Efektif untuk mencegah clock-in dari device yang
+        meng-geolokasi lewat IP.
       </p>
       {value !== null ? (
         <div className="ml-6 flex items-center gap-2">
@@ -325,8 +309,8 @@ function SsidAllowlistField({
     <div className="space-y-2">
       <Label className="text-sm font-normal">Wi-Fi SSID allowlist (indoor fallback)</Label>
       <p className="text-muted-foreground text-xs">
-        Jika mobile app melaporkan SSID yang cocok dengan salah satu di bawah, clock-in
-        diterima meski GPS di luar radius. Cocok untuk gedung indoor GPS jelek. Browser web
+        Jika mobile app melaporkan SSID yang cocok dengan salah satu di bawah, clock-in diterima
+        meski GPS di luar radius. Cocok untuk gedung indoor GPS jelek. Browser web
         <span className="italic"> tidak dapat </span>memberikan SSID.
       </p>
       <div className="flex flex-wrap gap-2">

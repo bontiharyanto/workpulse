@@ -47,8 +47,7 @@ export function OvertimeCompletionRunner(): JSX.Element | null {
           <CardTitle className="text-h6">Penyelesaian otomatis (scheduler)</CardTitle>
           <p className="text-muted-foreground text-caption mt-1">
             Promote pengajuan berstatus <b>Disetujui</b> → <b>Selesai</b> setelah masa tenggang
-            lewat dan kehadiran pada tanggal tersebut terverifikasi. Cocok setelah backfill
-            manual.
+            lewat dan kehadiran pada tanggal tersebut terverifikasi. Cocok setelah backfill manual.
           </p>
         </div>
         <Button size="sm" disabled={run.isPending} onClick={() => run.mutate()}>
@@ -114,8 +113,8 @@ function Metric({
       <p
         className={
           tone === 'success'
-            ? 'text-success text-h5 tabular-nums font-semibold'
-            : 'text-foreground text-h5 tabular-nums font-semibold'
+            ? 'text-success text-h5 font-semibold tabular-nums'
+            : 'text-foreground text-h5 font-semibold tabular-nums'
         }
       >
         {value}
@@ -150,7 +149,7 @@ function SkippedMetric({ skipped }: { skipped: Record<string, number> }): JSX.El
         <SkipForward className="h-3.5 w-3.5" aria-hidden />
         Dilewati
       </div>
-      <dl className="mt-1.5 space-y-0.5 text-caption">
+      <dl className="text-caption mt-1.5 space-y-0.5">
         {entries.map(([reason, count]) => (
           <div key={reason} className="flex items-center justify-between gap-2">
             <dt className="text-muted-foreground">{SKIP_LABEL[reason] ?? reason}</dt>
