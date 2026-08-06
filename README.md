@@ -248,6 +248,28 @@ Runbook lengkap:
 
 ## Documentation
 
+> **Start here → [Documentation Portal](./docs/README.md)** — peta navigasi
+> lengkap ke semua dokumen (60+ file: ADR, workflow, API, ops runbook, dsb.)
+> yang mengarahkan berdasarkan peran (karyawan / HR / engineer / release
+> manager / on-call / security).
+
+Referensi cepat berdasarkan kategori:
+
+### Onboarding & referensi teknis
+
+- [Development Guide](./docs/DEVELOPMENT.md) — onboarding engineer baru 30 menit (clone → install → run → test).
+- [API Reference](./docs/API.md) — REST API surface, konvensi auth / error / pagination, katalog error code.
+- [Glossary](./docs/GLOSSARY.md) — kamus istilah domain (attendance, geofence, timesheet, dsb.) + singkatan.
+- [Demo Users](./docs/DEMO-USERS.md) — kredensial demo + skenario yang di-cover setiap user.
+
+### Panduan Pengguna & Operasional
+
+- [Panduan Administrasi](./docs/ADMIN-GUIDE.md) — panduan operasional HR / Super Admin: onboarding tenant, manajemen karyawan, konfigurasi shift/cuti/lembur, compliance, runbook insiden.
+- [Panduan Pengguna](./docs/USER-MANUAL.md) — manual end-user (Employee + Supervisor): login, MFA, kehadiran, cuti, lembur, timesheet, approval, privasi data.
+- [UAT End-to-End](./docs/UAT-E2E.md) — 78 skenario UAT terstruktur (P0–P3) untuk sign-off pre-go-live + template laporan bug.
+
+### Arsitektur & Alur Bisnis
+
 - [Architecture](./docs/ARCHITECTURE.md) — sistem, boundary, transaksi, timezone.
 - [Workflow](./docs/WORKFLOW.md) — alur bisnis attendance, leave, overtime, approval.
 - [Roadmap](./docs/ROADMAP.md) — status progres + milestone berikutnya (M1 compliance → M6 GA readiness).
