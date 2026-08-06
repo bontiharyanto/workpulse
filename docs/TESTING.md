@@ -1,5 +1,10 @@
 # Testing Strategy
 
+> Dokumen ini fokus **strategi + arsitektur** test. Untuk **cara menulis /
+> debug / maintain** E2E test sehari-hari (selector strategy, flake
+> taxonomy, debug playbook, template spec) → baca
+> [E2E-GUIDE.md](./E2E-GUIDE.md).
+
 Workpulse memiliki dua lapis test yang saling melengkapi:
 
 | Lapis                                                 | Cakupan                                                       | Kecepatan              | Kapan Dijalankan                         |

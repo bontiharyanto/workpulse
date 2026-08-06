@@ -16,16 +16,16 @@ sini, telusuri ke dokumen sesuai peran Anda.
 
 Pilih peran Anda dan ikuti kolom “mulai dari”.
 
-| Peran                                          | Mulai dari                                             | Kemudian                                                                                                                                                             |
-| ---------------------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Karyawan / Supervisor** (pengguna aplikasi)  | [USER-MANUAL.md](./USER-MANUAL.md)                     | —                                                                                                                                                                    |
-| **HR Manager / Super Admin** (operator tenant) | [ADMIN-GUIDE.md](./ADMIN-GUIDE.md)                     | [WORKFLOW.md](./WORKFLOW.md) untuk semua alur bisnis; [OPS/](./OPS/) untuk operasional produksi                                                                      |
-| **Tester / QA** (E2E manual + UAT)             | [UAT-E2E.md](./UAT-E2E.md)                             | [DEMO-USERS.md](./DEMO-USERS.md) untuk kredensial demo; [../apps/e2e/tests/](../apps/e2e/tests/) untuk suite otomatis                                                |
-| **Engineer baru** (onboarding)                 | [DEVELOPMENT.md](./DEVELOPMENT.md)                     | [ARCHITECTURE.md](./ARCHITECTURE.md) → [WORKFLOW.md](./WORKFLOW.md) → [TESTING.md](./TESTING.md)                                                                     |
-| **Backend / Full-stack engineer**              | [ARCHITECTURE.md](./ARCHITECTURE.md)                   | [API.md](./API.md) · [MIGRATIONS.md](./MIGRATIONS.md) · [ADR/](./ADR/) sesuai fitur yang disentuh                                                                    |
-| **Release manager / DevOps**                   | [OPS/CICD.md](./OPS/CICD.md)                           | [OPS/DEPLOYMENT.md](./OPS/DEPLOYMENT.md) · [OPS/RUNBOOK-INDEX.md](./OPS/RUNBOOK-INDEX.md)                                                                            |
-| **On-call engineer** (incident)                | [OPS/INCIDENT-RESPONSE.md](./OPS/INCIDENT-RESPONSE.md) | [OPS/ON-CALL.md](./OPS/ON-CALL.md) · [OPS/BACKUP-RESTORE.md](./OPS/BACKUP-RESTORE.md) · [OPS/MONITORING.md](./OPS/MONITORING.md)                                     |
-| **Security officer / DPO**                     | [../SECURITY.md](../SECURITY.md)                       | [ADR-0017 (MFA)](./ADR/ADR-0017-mfa-totp.md) · [ADR-0020 (DSAR)](./ADR/ADR-0020-data-export-dsar.md) · [ADR-0022 (Consent)](./ADR/ADR-0022-retention-and-consent.md) |
+| Peran                                          | Mulai dari                                             | Kemudian                                                                                                                                                                                         |
+| ---------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Karyawan / Supervisor** (pengguna aplikasi)  | [USER-MANUAL.md](./USER-MANUAL.md)                     | —                                                                                                                                                                                                |
+| **HR Manager / Super Admin** (operator tenant) | [ADMIN-GUIDE.md](./ADMIN-GUIDE.md)                     | [WORKFLOW.md](./WORKFLOW.md) untuk semua alur bisnis; [OPS/](./OPS/) untuk operasional produksi                                                                                                  |
+| **Tester / QA** (E2E manual + UAT)             | [UAT-E2E.md](./UAT-E2E.md)                             | [E2E-GUIDE.md](./E2E-GUIDE.md) untuk playbook Playwright + flake taxonomy; [DEMO-USERS.md](./DEMO-USERS.md) untuk kredensial demo; [../apps/e2e/tests/](../apps/e2e/tests/) untuk suite otomatis |
+| **Engineer baru** (onboarding)                 | [DEVELOPMENT.md](./DEVELOPMENT.md)                     | [ARCHITECTURE.md](./ARCHITECTURE.md) → [WORKFLOW.md](./WORKFLOW.md) → [TESTING.md](./TESTING.md)                                                                                                 |
+| **Backend / Full-stack engineer**              | [ARCHITECTURE.md](./ARCHITECTURE.md)                   | [API.md](./API.md) · [MIGRATIONS.md](./MIGRATIONS.md) · [ADR/](./ADR/) sesuai fitur yang disentuh                                                                                                |
+| **Release manager / DevOps**                   | [OPS/CICD.md](./OPS/CICD.md)                           | [OPS/DEPLOYMENT.md](./OPS/DEPLOYMENT.md) · [OPS/RUNBOOK-INDEX.md](./OPS/RUNBOOK-INDEX.md)                                                                                                        |
+| **On-call engineer** (incident)                | [OPS/INCIDENT-RESPONSE.md](./OPS/INCIDENT-RESPONSE.md) | [OPS/ON-CALL.md](./OPS/ON-CALL.md) · [OPS/BACKUP-RESTORE.md](./OPS/BACKUP-RESTORE.md) · [OPS/MONITORING.md](./OPS/MONITORING.md)                                                                 |
+| **Security officer / DPO**                     | [../SECURITY.md](../SECURITY.md)                       | [ADR-0017 (MFA)](./ADR/ADR-0017-mfa-totp.md) · [ADR-0020 (DSAR)](./ADR/ADR-0020-data-export-dsar.md) · [ADR-0022 (Consent)](./ADR/ADR-0022-retention-and-consent.md)                             |
 
 ---
 
@@ -49,6 +49,7 @@ workpulse/
 │   ├── GLOSSARY.md                # Kamus istilah domain
 │   ├── MIGRATIONS.md              # Prisma migration workflow
 │   ├── TESTING.md                 # Strategi unit + E2E
+│   ├── E2E-GUIDE.md               # Playbook praktis Playwright (QA / QC)
 │   ├── ROADMAP.md                 # Fase yang sudah rilis + backlog
 │   ├── ADR/                       # 40+ Architecture Decision Records
 │   │   ├── ADR-0001-monorepo-and-stack.md
@@ -164,6 +165,10 @@ Lihat [MIGRATIONS.md](./MIGRATIONS.md). TL;DR: `pnpm --filter @workpulse/api pri
 ### "Saya mau menjalankan UAT end-to-end sebelum go-live."
 
 [UAT-E2E.md](./UAT-E2E.md). Tiap skenario dilengkapi role, pre-condition, langkah, dan expected result.
+
+### "Saya mau menulis / debug E2E test."
+
+[E2E-GUIDE.md](./E2E-GUIDE.md) — practitioner playbook: selector strategy, waiting, flake taxonomy, debug playbook, CI integration, template spec. [TESTING.md](./TESTING.md) untuk strategi tingkat tinggi.
 
 ### "Saya lupa istilah 'geofence' vs 'shift' vs 'assignment'."
 
