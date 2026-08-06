@@ -17,6 +17,7 @@ import type { CookieOptions, Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
 import { ConsentService } from '../consent/consent.service';
+import { SecurityPolicyService } from '../security-policy/security-policy.service';
 import { AllowMustChangePassword } from './decorators/allow-must-change-password.decorator';
 import { AllowPendingConsent } from './decorators/allow-pending-consent.decorator';
 import { Public } from './decorators/public.decorator';
@@ -46,16 +47,16 @@ const MFA_MANDATORY_ROLES = new Set(['HR_MANAGER', 'SUPER_ADMIN']);
 @ApiTags('auth')
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
-  private readonly mfaEnforceHrAdmin: boolean;
-
   constructor(
     private readonly auth: AuthService,
     private readonly config: ConfigService,
     private readonly passwordReset: PasswordResetService,
     private readonly consent: ConsentService,
-  ) {
-    this.mfaEnforceHrAdmin = config.get<string>('MFA_ENFORCE_HR_ADMIN', 'true') !== 'false';
-  }
+    // Read the caller's tenant policy so `mfaEnrollmentRequired`
+    // reflects the runtime toggle (see `SecurityPolicyService`) —
+    // not a boot-time env read that would go stale on flip.
+    private readonly securityPolicy: SecurityPolicyService,
+  ) {}
 
   @Post('login')
   @Public()
@@ -259,7 +260,7 @@ export class AuthController {
    * a field flow through as `false` — safe direction: we NEVER lock a
    * user out because of a missing claim. Also stamps
    * `mfaEnrollmentRequired` so the FE can mirror the backend's
-   * `MfaEnrollmentGuard` without duplicating its config-read.
+   * `MfaEnrollmentGuard` without duplicating its policy read.
    */
   private async toDto(user: AuthenticatedUser): Promise<AuthenticatedUserDto> {
     // `pendingConsent` is only interesting when the session is otherwise
@@ -269,6 +270,16 @@ export class AuthController {
     const pendingConsent = shouldCheckConsent
       ? await this.consent.getPendingConsentForUser(user.id, user.companyId)
       : null;
+
+    // Mirror `MfaEnrollmentGuard`'s per-tenant decision so the FE
+    // redirect matches the backend 403 exactly. The lookup is a
+    // cached read (see `SecurityPolicyService`).
+    let mfaEnrollmentRequired = false;
+    if (MFA_MANDATORY_ROLES.has(user.role) && user.mfaEnabled !== true) {
+      const policy = await this.securityPolicy.getForCompany(user.companyId);
+      mfaEnrollmentRequired = policy.mfaEnforceHighPrivileged;
+    }
+
     return {
       id: user.id,
       email: user.email,
@@ -278,8 +289,7 @@ export class AuthController {
       mustChangePassword: user.mustChangePassword === true,
       mfaEnabled: user.mfaEnabled === true,
       mfaPassed: user.mfaPassed !== false,
-      mfaEnrollmentRequired:
-        this.mfaEnforceHrAdmin && MFA_MANDATORY_ROLES.has(user.role) && user.mfaEnabled !== true,
+      mfaEnrollmentRequired,
       pendingConsent: pendingConsent
         ? {
             id: pendingConsent.id,

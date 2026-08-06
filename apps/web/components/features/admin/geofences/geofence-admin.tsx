@@ -121,6 +121,7 @@ export function GeofenceAdmin(): JSX.Element {
                 <th className="px-3 py-2 text-right">Latitude</th>
                 <th className="px-3 py-2 text-right">Longitude</th>
                 <th className="px-3 py-2 text-right">Radius (m)</th>
+                <th className="px-3 py-2 text-left">Fitur</th>
                 <th className="px-3 py-2 text-right">Shift</th>
                 <th className="px-3 py-2 text-right">Aksi</th>
               </tr>
@@ -138,6 +139,29 @@ export function GeofenceAdmin(): JSX.Element {
                       {r.longitude.toFixed(6)}
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums">{r.radiusMeters}</td>
+                    <td className="px-3 py-2">
+                      <div className="flex flex-wrap gap-1">
+                        {r.maxAccuracyMeters !== null ? (
+                          <span
+                            className="bg-info/10 text-info rounded px-1.5 py-0.5 text-[10px] font-medium"
+                            title={`Menolak clock-in dengan accuracy > ${r.maxAccuracyMeters}m`}
+                          >
+                            Acc ≤ {r.maxAccuracyMeters}m
+                          </span>
+                        ) : null}
+                        {r.allowedSsids.length > 0 ? (
+                          <span
+                            className="bg-success/10 text-success rounded px-1.5 py-0.5 text-[10px] font-medium"
+                            title={r.allowedSsids.join(', ')}
+                          >
+                            Wi-Fi × {r.allowedSsids.length}
+                          </span>
+                        ) : null}
+                        {r.maxAccuracyMeters === null && r.allowedSsids.length === 0 ? (
+                          <span className="text-muted-foreground text-[10px]">—</span>
+                        ) : null}
+                      </div>
+                    </td>
                     <td className="px-3 py-2 text-right tabular-nums">{r.shiftCount}</td>
                     <td className="px-3 py-2 text-right">
                       <div className="flex justify-end gap-2">

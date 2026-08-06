@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AdminUser, CreateShiftAssignmentInput, Shift } from '@workpulse/shared-types';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { ApiError, shiftAssignmentsAdminApi, usersAdminApi } from '@/lib/api-client';
 
@@ -10,7 +10,21 @@ interface Props {
   shifts: Shift[];
   onError: (message: string) => void;
   onClearError: () => void;
+  /**
+   * Optional userId to pre-select the assignment target. When it changes the
+   * panel switches focus to that user; typical trigger is the
+   * "Assign now" button on the "users without active shift" card, or an
+   * external deep link like `/admin/shifts?userId=<id>`.
+   */
+  initialUserId?: string;
 }
+
+/**
+ * Anchor id used by the "users without active shift" card to scroll the
+ * page down after preselecting a user. Kept as a stable constant so
+ * external links (e.g. notifications) can also target the same anchor.
+ */
+export const SHIFT_ASSIGNMENT_PANEL_ANCHOR = 'shift-assignment-panel';
 
 const ERROR_COPY: Record<string, string> = {
   ASSIGNMENT_OVERLAP: 'Karyawan sudah memiliki shift yang tumpang tindih di periode ini.',
@@ -21,9 +35,23 @@ const ERROR_COPY: Record<string, string> = {
   USER_INVALID: 'Karyawan tidak valid.',
 };
 
-export function ShiftAssignmentPanel({ shifts, onError, onClearError }: Props): JSX.Element {
+export function ShiftAssignmentPanel({
+  shifts,
+  onError,
+  onClearError,
+  initialUserId,
+}: Props): JSX.Element {
   const qc = useQueryClient();
-  const [selectedUserId, setSelectedUserId] = useState<string>('');
+  const [selectedUserId, setSelectedUserId] = useState<string>(initialUserId ?? '');
+
+  // Keep the local selection in sync with the external deep-link (URL search
+  // param). Doing it in an effect (rather than a controlled prop) preserves
+  // the panel's ability to be driven from an internal <select> too.
+  useEffect(() => {
+    if (initialUserId && initialUserId !== selectedUserId) {
+      setSelectedUserId(initialUserId);
+    }
+  }, [initialUserId, selectedUserId]);
   const [form, setForm] = useState<{
     shiftId: string;
     effectiveFrom: string;
@@ -45,13 +73,25 @@ export function ShiftAssignmentPanel({ shifts, onError, onClearError }: Props): 
     enabled: Boolean(selectedUserId),
   });
 
+  // Assignment mutations invalidate three query keys so every surface
+  // that depends on "who has an in-force shift" refreshes together:
+  //   1. `shift-assignments/<userId>`  — the timeline table below.
+  //   2. `admin/shifts`                 — the shift list (`activeAssignments` counter).
+  //   3. `users-without-active-shift`   — the warning card at the top.
+  function invalidateAll(): void {
+    void qc.invalidateQueries({ queryKey: ['admin', 'shift-assignments', selectedUserId] });
+    void qc.invalidateQueries({ queryKey: ['admin', 'shifts'] });
+    void qc.invalidateQueries({
+      queryKey: ['admin', 'shifts', 'users-without-active-shift'],
+    });
+  }
+
   const createMut = useMutation({
     mutationFn: (v: { shiftId: string; input: CreateShiftAssignmentInput }) =>
       shiftAssignmentsAdminApi.create(v.shiftId, v.input),
     onSuccess: () => {
       onClearError();
-      void qc.invalidateQueries({ queryKey: ['admin', 'shift-assignments', selectedUserId] });
-      void qc.invalidateQueries({ queryKey: ['admin', 'shifts'] });
+      invalidateAll();
     },
     onError: handleErr,
   });
@@ -61,8 +101,7 @@ export function ShiftAssignmentPanel({ shifts, onError, onClearError }: Props): 
       shiftAssignmentsAdminApi.end(v.id, { effectiveTo: v.effectiveTo }),
     onSuccess: () => {
       onClearError();
-      void qc.invalidateQueries({ queryKey: ['admin', 'shift-assignments', selectedUserId] });
-      void qc.invalidateQueries({ queryKey: ['admin', 'shifts'] });
+      invalidateAll();
     },
     onError: handleErr,
   });
@@ -71,7 +110,7 @@ export function ShiftAssignmentPanel({ shifts, onError, onClearError }: Props): 
     mutationFn: (id: string) => shiftAssignmentsAdminApi.remove(id),
     onSuccess: () => {
       onClearError();
-      void qc.invalidateQueries({ queryKey: ['admin', 'shift-assignments', selectedUserId] });
+      invalidateAll();
     },
     onError: handleErr,
   });
@@ -85,7 +124,10 @@ export function ShiftAssignmentPanel({ shifts, onError, onClearError }: Props): 
   const rows = assignments.data ?? [];
 
   return (
-    <div className="space-y-3 rounded-lg border p-4">
+    <div
+      id={SHIFT_ASSIGNMENT_PANEL_ANCHOR}
+      className="space-y-3 rounded-lg border p-4 scroll-mt-4"
+    >
       <div>
         <h3 className="text-sm font-semibold">Assignment Shift → Karyawan</h3>
         <p className="text-muted-foreground text-xs">

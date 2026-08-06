@@ -320,6 +320,13 @@ export const complianceSection: NavSection = {
       module: 'admin',
       roles: ADMIN_ROLES,
     },
+    {
+      href: '/admin/security',
+      label: 'Kebijakan Keamanan',
+      icon: Shield,
+      module: 'admin',
+      roles: SUPER_ADMIN_ROLES,
+    },
   ],
 };
 

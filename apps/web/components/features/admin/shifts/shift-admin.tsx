@@ -2,12 +2,15 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { CreateShiftInput, Shift, UpdateShiftInput } from '@workpulse/shared-types';
+import type { Route } from 'next';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 
 import { ApiError, geofencesAdminApi, shiftsAdminApi } from '@/lib/api-client';
 
 import { ShiftAssignmentPanel } from './shift-assignment-panel';
 import { ShiftForm } from './shift-form';
+import { UsersWithoutShiftCard } from './users-without-shift-card';
 
 const ERROR_COPY: Record<string, string> = {
   SHIFT_NAME_TAKEN: 'Nama shift sudah dipakai.',
@@ -19,8 +22,26 @@ const ERROR_COPY: Record<string, string> = {
 
 export function ShiftAdmin(): JSX.Element {
   const qc = useQueryClient();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [errorText, setErrorText] = useState<string | null>(null);
   const [editing, setEditing] = useState<Shift | 'new' | null>(null);
+
+  // The deep-link `?userId=<id>` is the single source of truth for
+  // preselecting an assignment target. Keeping state in the URL means
+  // reload / share preserves context, and multiple triggers (external
+  // link, "Assign now" button on the users-without-shift card) can drive
+  // the same behaviour without prop-drilling.
+  const preselectedUserId = searchParams.get('userId') ?? undefined;
+
+  function handleAssignUser(userId: string): void {
+    const next = new URLSearchParams(searchParams.toString());
+    next.set('userId', userId);
+    // Cast required because Next.js `typedRoutes` cannot infer the query
+    // string statically. Kept intentionally narrow to shift admin only.
+    router.replace(`${pathname}?${next.toString()}` as Route, { scroll: false });
+  }
 
   const shifts = useQuery({
     queryKey: ['admin', 'shifts'],
@@ -72,6 +93,8 @@ export function ShiftAdmin(): JSX.Element {
 
   return (
     <div className="space-y-6">
+      <UsersWithoutShiftCard onAssignUser={handleAssignUser} />
+
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -188,6 +211,7 @@ export function ShiftAdmin(): JSX.Element {
         shifts={rows}
         onError={(m) => setErrorText(m)}
         onClearError={() => setErrorText(null)}
+        initialUserId={preselectedUserId}
       />
     </div>
   );

@@ -12,16 +12,27 @@
  * NOT for production. Refuses to run when NODE_ENV=production.
  */
 import {
+  AttendanceCorrectionStatus,
   AttendanceStatus,
   EmploymentStatus,
   LeaveKind,
   LeaveStatus,
+  NotificationType,
   OvertimeStatus,
+  Prisma,
   PrismaClient,
   ShiftType,
+  TimesheetEntryKind,
+  TimesheetPeriodType,
+  TimesheetStatus,
   UserRole,
 } from '@prisma/client';
 import argon2 from 'argon2';
+
+// Reuse the production MFA encryption helper so seeded users can verify TOTP
+// codes through the real `/auth/mfa/verify` endpoint (rather than a seed-only
+// bypass). Keeps the seeded state one-to-one with hand-enrolled state.
+import { decodeEncryptionKey, encryptString } from '../src/auth/mfa/domain/crypto';
 
 const prisma = new PrismaClient();
 
@@ -332,6 +343,255 @@ const EMPLOYEES: PersonSeed[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Fixture data — extended UAT scenarios (Phase 2)
+// ---------------------------------------------------------------------------
+// These are curated end-to-end scenarios that populate the tenant with a
+// realistic backlog of activity: past holidays, approved/rejected leaves,
+// full overtime lifecycle (APPROVED → COMPLETED), 30-day attendance history,
+// correction requests, and a handful of user edge cases (must-change
+// password, on-leave, terminated). Everything is idempotent via unique
+// keys or defensive `findFirst → create` patterns.
+
+/** Public holidays for 2026 — enables overtime holiday-multiplier (3×) tests. */
+const HOLIDAYS_2026: readonly { date: string; name: string }[] = [
+  { date: '2026-01-01', name: 'Tahun Baru Masehi' },
+  { date: '2026-03-20', name: 'Hari Suci Nyepi' },
+  { date: '2026-04-03', name: 'Wafat Isa Al-Masih' },
+  { date: '2026-05-01', name: 'Hari Buruh Internasional' },
+  { date: '2026-05-14', name: 'Kenaikan Isa Al-Masih' },
+  { date: '2026-06-01', name: 'Hari Lahir Pancasila' },
+  { date: '2026-06-04', name: 'Hari Raya Waisak' },
+  { date: '2026-06-27', name: 'Idul Adha 1447 H' },
+  { date: '2026-08-17', name: 'Hari Kemerdekaan RI' },
+  { date: '2026-09-25', name: 'Maulid Nabi Muhammad SAW' },
+  { date: '2026-12-25', name: 'Hari Raya Natal' },
+];
+
+/**
+ * Approved leave history — completed leaves in the recent past.
+ * `startOffsetDays` is negative for past dates (matches existing daysAgoUtc convention).
+ */
+type LeaveHistorySeed = {
+  userEmail: string;
+  leaveTypeCode: 'ANNUAL' | 'SICK' | 'PERMIT';
+  startOffsetDays: number;
+  days: number;
+  reason: string;
+};
+
+const APPROVED_LEAVE_HISTORY: readonly LeaveHistorySeed[] = [
+  {
+    userEmail: 'siti.eng@acme.test',
+    leaveTypeCode: 'ANNUAL',
+    startOffsetDays: -45,
+    days: 2,
+    reason: 'Wedding attendance — family',
+  },
+  {
+    userEmail: 'andi.eng@acme.test',
+    leaveTypeCode: 'ANNUAL',
+    startOffsetDays: -30,
+    days: 3,
+    reason: 'Family trip to Yogyakarta',
+  },
+  {
+    userEmail: 'rio.fin@acme.test',
+    leaveTypeCode: 'SICK',
+    startOffsetDays: -20,
+    days: 2,
+    reason: 'Fever + doctor visit',
+  },
+  {
+    userEmail: 'maya.fin@acme.test',
+    leaveTypeCode: 'ANNUAL',
+    startOffsetDays: -60,
+    days: 1,
+    reason: 'Personal errand',
+  },
+  {
+    userEmail: 'lina.mkt@acme.test',
+    leaveTypeCode: 'PERMIT',
+    startOffsetDays: -15,
+    days: 1,
+    reason: 'Child school event',
+  },
+  {
+    userEmail: 'reza.ops@acme.test',
+    leaveTypeCode: 'ANNUAL',
+    startOffsetDays: -90,
+    days: 4,
+    reason: 'Vacation abroad',
+  },
+];
+
+type RejectedLeaveSeed = LeaveHistorySeed & { decisionNote: string };
+const REJECTED_LEAVE_HISTORY: readonly RejectedLeaveSeed[] = [
+  {
+    userEmail: 'tono.eng@acme.test',
+    leaveTypeCode: 'ANNUAL',
+    startOffsetDays: -10,
+    days: 5,
+    reason: 'Long vacation',
+    decisionNote: 'Conflict with sprint delivery — please re-submit for post-release week',
+  },
+  {
+    userEmail: 'bagus.mkt@acme.test',
+    leaveTypeCode: 'PERMIT',
+    startOffsetDays: -18,
+    days: 2,
+    reason: 'Personal matter',
+    decisionNote: 'Insufficient justification for 2 consecutive days',
+  },
+  {
+    userEmail: 'iqbal.ops@acme.test',
+    leaveTypeCode: 'ANNUAL',
+    startOffsetDays: -12,
+    days: 3,
+    reason: 'Trip planning',
+    decisionNote: 'Night-shift crew shortage — try dates after Aug 20',
+  },
+];
+
+/**
+ * Overtime lifecycle — exercises every OvertimeStatus that isn't already
+ * covered by the base `otRequests` (which are all PENDING_APPROVAL).
+ */
+type OtHistorySeed = {
+  userEmail: string;
+  workDateOffsetDays: number;
+  hours: string;
+  reason: string;
+  finalStatus: 'APPROVED' | 'COMPLETED' | 'REJECTED';
+  decisionNote?: string;
+};
+
+const OT_HISTORY: readonly OtHistorySeed[] = [
+  {
+    userEmail: 'siti.eng@acme.test',
+    workDateOffsetDays: 5,
+    hours: '2.0',
+    reason: 'Sprint hotfix — API 5xx spike',
+    finalStatus: 'APPROVED',
+  },
+  {
+    userEmail: 'rio.fin@acme.test',
+    workDateOffsetDays: 10,
+    hours: '1.5',
+    reason: 'Vendor bill audit close-out',
+    finalStatus: 'APPROVED',
+  },
+  {
+    userEmail: 'andi.eng@acme.test',
+    workDateOffsetDays: 25,
+    hours: '3.5',
+    reason: 'Production incident — root cause + rollback',
+    finalStatus: 'COMPLETED',
+  },
+  {
+    userEmail: 'tono.eng@acme.test',
+    workDateOffsetDays: 15,
+    hours: '4.0',
+    reason: 'Late-night deploy prep',
+    finalStatus: 'REJECTED',
+    decisionNote: 'No pre-approval received — please submit before working next time',
+  },
+];
+
+/**
+ * Users to receive an *extended* 30-workday attendance history so timesheet
+ * generation and dashboard charts have enough data to be meaningful. Distinct
+ * from the base `historyEmails` list which only covers ~5 workdays.
+ */
+const EXTENDED_ATTENDANCE_EMAILS: readonly string[] = [
+  'employee@acme.test',
+  'lead@acme.test',
+  'hr@acme.test',
+  'siti.eng@acme.test',
+  'andi.eng@acme.test',
+];
+
+/** Attendance correction requests — 1 PENDING + 1 APPROVED. */
+type CorrectionSeed = {
+  userEmail: string;
+  workDateOffsetDays: number;
+  requestedClockInHhmm?: string; // WIB
+  requestedClockOutHhmm?: string; // WIB
+  reason: string;
+  finalStatus: 'PENDING_APPROVAL' | 'APPROVED';
+  decidedByEmail?: string;
+};
+
+const CORRECTIONS: readonly CorrectionSeed[] = [
+  {
+    userEmail: 'siti.eng@acme.test',
+    workDateOffsetDays: 3,
+    requestedClockInHhmm: '09:15',
+    reason: 'Forgot to punch in — was in interview panel meeting',
+    finalStatus: 'PENDING_APPROVAL',
+  },
+  {
+    userEmail: 'andi.eng@acme.test',
+    workDateOffsetDays: 8,
+    requestedClockOutHhmm: '18:30',
+    reason: 'WiFi outage at building exit — could not clock out',
+    finalStatus: 'APPROVED',
+    decidedByEmail: 'lead@acme.test',
+  },
+];
+
+/**
+ * Edge-case users. Kept separate from `EMPLOYEES` so they don't get the
+ * default ACTIVE + Regular 9-6 treatment applied to the mainline crew.
+ */
+type EdgeUser = {
+  email: string;
+  fullName: string;
+  role: UserRole;
+  department: string;
+  hiredAt: string;
+  supervisorEmail: string;
+  /** Force a password change on first login (post-onboarding UX flow). */
+  mustChangePassword?: boolean;
+  /** Non-ACTIVE employment state. TERMINATED implies deletedAt is also set below. */
+  employmentStatus?: EmploymentStatus;
+  /** ISO date; setting this soft-deletes the user (won't appear in default queries). */
+  deletedAt?: string;
+};
+
+const EDGE_USERS: readonly EdgeUser[] = [
+  {
+    email: 'newbie.eng@acme.test',
+    fullName: 'Newbie Onboarding',
+    role: UserRole.EMPLOYEE,
+    department: 'Engineering',
+    hiredAt: '2026-08-01',
+    supervisorEmail: 'lead@acme.test',
+    mustChangePassword: true,
+  },
+  {
+    email: 'mira.eng@acme.test',
+    fullName: 'Mira Mahatma',
+    role: UserRole.EMPLOYEE,
+    department: 'Engineering',
+    hiredAt: '2023-05-10',
+    supervisorEmail: 'lead@acme.test',
+    employmentStatus: EmploymentStatus.ON_LEAVE, // maternity — still on payroll
+  },
+  {
+    email: 'exit.mkt@acme.test',
+    fullName: 'Exit Employee',
+    role: UserRole.EMPLOYEE,
+    department: 'Marketing',
+    hiredAt: '2022-07-15',
+    supervisorEmail: 'dewi.marketing@acme.test',
+    employmentStatus: EmploymentStatus.TERMINATED,
+    // Soft-deleted — won't show up in HR /admin/karyawan by default, but the
+    // row is preserved so audit trails linking to it stay intact.
+    deletedAt: '2025-12-31',
+  },
+];
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -450,6 +710,10 @@ async function main(): Promise<void> {
   const shiftByName = new Map<string, string>();
   for (const s of SHIFTS) {
     const geofenceId = geofenceByName.get(s.geofenceName);
+    // Do NOT overwrite `geofenceId` on update: HR may have manually
+    // re-linked a shift to a different geofence via the admin UI (e.g.
+    // moving "Regular 9-6" from the default "HQ Jakarta" to their real
+    // office "HQ LA TBS"). Re-seeding would silently revert that.
     const shift = await prisma.shift.upsert({
       where: { companyId_name: { companyId: company.id, name: s.name } },
       create: {
@@ -462,7 +726,7 @@ async function main(): Promise<void> {
         graceMinutes: s.graceMinutes,
         breakMinutes: s.breakMinutes,
       },
-      update: { geofenceId, breakMinutes: s.breakMinutes },
+      update: { breakMinutes: s.breakMinutes },
     });
     shiftByName.set(s.name, shift.id);
   }
@@ -911,7 +1175,1087 @@ async function main(): Promise<void> {
   }
 
   // -------------------------------------------------------------------------
-  // 12. Summary
+  // 12. Public holidays 2026 — enables holiday-multiplier (3×) overtime tests
+  //     and calendar-aware leave day counting. Idempotent via @@unique
+  //     ([companyId, date]).
+  // -------------------------------------------------------------------------
+  for (const h of HOLIDAYS_2026) {
+    const holidayDate = new Date(`${h.date}T00:00:00Z`);
+    await prisma.holiday.upsert({
+      where: { companyId_date: { companyId: company.id, date: holidayDate } },
+      create: { companyId: company.id, date: holidayDate, name: h.name },
+      update: { name: h.name },
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // 13. Leave history — APPROVED completed leaves (past dates).
+  //     Balance invariant: `used += days`, `remaining -= days`. We do NOT
+  //     touch `reserved` because these rows never sat in the pending pool.
+  //     Idempotency: skip if a matching (user, leaveType, startDate) already
+  //     exists in APPROVED / REJECTED state.
+  // -------------------------------------------------------------------------
+  const leaveTypeByCode = new Map<'ANNUAL' | 'SICK' | 'PERMIT', string>([
+    ['ANNUAL', annual.id],
+    ['SICK', sick.id],
+    ['PERMIT', permit.id],
+  ]);
+
+  for (const req of APPROVED_LEAVE_HISTORY) {
+    const user = userByEmail.get(req.userEmail);
+    if (!user) continue;
+    const leaveTypeId = leaveTypeByCode.get(req.leaveTypeCode);
+    if (!leaveTypeId) continue;
+
+    const startDate = daysAgoUtc(-req.startOffsetDays);
+    const endDate = daysAgoUtc(-(req.startOffsetDays + req.days - 1));
+
+    const dupe = await prisma.leaveRequest.findFirst({
+      where: {
+        userId: user.id,
+        leaveTypeId,
+        startDate,
+        status: { in: [LeaveStatus.APPROVED, LeaveStatus.REJECTED] },
+      },
+      select: { id: true },
+    });
+    if (dupe) continue;
+
+    // Look up supervisor + a plausible HR approver (for ANNUAL: 2-level flow).
+    const userRow = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { supervisorId: true, companyId: true },
+    });
+    const hrRow = await prisma.user.findFirst({
+      where: { companyId: userRow?.companyId ?? company.id, role: UserRole.HR_MANAGER },
+      select: { id: true },
+    });
+    const supervisorAt = new Date(startDate);
+    supervisorAt.setUTCDate(supervisorAt.getUTCDate() - 5);
+    const hrManagerAt = new Date(supervisorAt);
+    hrManagerAt.setUTCDate(hrManagerAt.getUTCDate() + 1);
+
+    await prisma.$transaction(async (tx) => {
+      await tx.leaveBalance.update({
+        where: {
+          userId_leaveTypeId_year: { userId: user.id, leaveTypeId, year },
+        },
+        data: {
+          used: { increment: req.days },
+          remaining: { decrement: req.days },
+          version: { increment: 1 },
+        },
+      });
+
+      await tx.leaveRequest.create({
+        data: {
+          companyId: company.id,
+          userId: user.id,
+          leaveTypeId,
+          status: LeaveStatus.APPROVED,
+          startDate,
+          endDate,
+          days: req.days,
+          reason: req.reason,
+          supervisorId: userRow?.supervisorId ?? null,
+          supervisorAt,
+          supervisorNote: 'Approved (UAT seed history)',
+          hrManagerId: hrRow?.id ?? null,
+          hrManagerAt,
+          hrManagerNote: 'Confirmed (UAT seed history)',
+        },
+      });
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // 14. Leave history — REJECTED at supervisor level. No balance mutation
+  //     needed because these rows never entered the reserved pool in seed.
+  // -------------------------------------------------------------------------
+  for (const req of REJECTED_LEAVE_HISTORY) {
+    const user = userByEmail.get(req.userEmail);
+    if (!user) continue;
+    const leaveTypeId = leaveTypeByCode.get(req.leaveTypeCode);
+    if (!leaveTypeId) continue;
+
+    const startDate = daysAgoUtc(-req.startOffsetDays);
+    const endDate = daysAgoUtc(-(req.startOffsetDays + req.days - 1));
+
+    const dupe = await prisma.leaveRequest.findFirst({
+      where: {
+        userId: user.id,
+        leaveTypeId,
+        startDate,
+        status: LeaveStatus.REJECTED,
+      },
+      select: { id: true },
+    });
+    if (dupe) continue;
+
+    const userRow = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { supervisorId: true },
+    });
+    const decisionAt = new Date(startDate);
+    decisionAt.setUTCDate(decisionAt.getUTCDate() - 3);
+
+    await prisma.leaveRequest.create({
+      data: {
+        companyId: company.id,
+        userId: user.id,
+        leaveTypeId,
+        status: LeaveStatus.REJECTED,
+        startDate,
+        endDate,
+        days: req.days,
+        reason: req.reason,
+        supervisorId: userRow?.supervisorId ?? null,
+        supervisorAt: decisionAt,
+        supervisorNote: req.decisionNote,
+      },
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // 15. Overtime lifecycle — APPROVED, COMPLETED, REJECTED. Multiplier is
+  //     computed from the workDate's weekday to keep rate math consistent
+  //     with what production would produce.
+  // -------------------------------------------------------------------------
+  const baseRate = 50000; // company default
+  for (const ot of OT_HISTORY) {
+    const user = userByEmail.get(ot.userEmail);
+    if (!user) continue;
+    const workDate = daysAgoUtc(ot.workDateOffsetDays);
+
+    const dupe = await prisma.overtimeRequest.findFirst({
+      where: {
+        userId: user.id,
+        workDate,
+        // We tolerate PENDING here — a fresh seed will produce PENDING via
+        // section 11, and we don't want section 15 to also create an
+        // APPROVED for the same (user, date). The status filter also stops
+        // us from re-inserting a COMPLETED on re-run.
+        status: {
+          in: [
+            OvertimeStatus.PENDING_APPROVAL,
+            OvertimeStatus.APPROVED,
+            OvertimeStatus.COMPLETED,
+            OvertimeStatus.REJECTED,
+          ],
+        },
+      },
+      select: { id: true },
+    });
+    if (dupe) continue;
+
+    const isWeekend = [0, 6].includes(workDate.getUTCDay());
+    const multiplier = isWeekend ? 2 : 1.5;
+    const ratePerHour = baseRate * multiplier;
+    const totalAmount = ratePerHour * Number(ot.hours);
+
+    // Approver: use user's supervisor (for eng users this is `lead@acme.test`).
+    const userRow = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { supervisorId: true },
+    });
+    const decisionAt = new Date(workDate);
+    decisionAt.setUTCDate(decisionAt.getUTCDate() + 1);
+
+    const targetStatus =
+      ot.finalStatus === 'APPROVED'
+        ? OvertimeStatus.APPROVED
+        : ot.finalStatus === 'COMPLETED'
+          ? OvertimeStatus.COMPLETED
+          : OvertimeStatus.REJECTED;
+
+    await prisma.overtimeRequest.create({
+      data: {
+        companyId: company.id,
+        userId: user.id,
+        workDate,
+        hours: ot.hours,
+        reason: ot.reason,
+        status: targetStatus,
+        baseRate: baseRate.toString(),
+        rateMultiplier: multiplier.toString(),
+        ratePerHour: ratePerHour.toString(),
+        totalAmount: totalAmount.toString(),
+        approvedById: userRow?.supervisorId ?? null,
+        approvedAt: targetStatus !== OvertimeStatus.REJECTED ? decisionAt : null,
+        rejectedAt: targetStatus === OvertimeStatus.REJECTED ? decisionAt : null,
+        completedAt:
+          targetStatus === OvertimeStatus.COMPLETED
+            ? new Date(decisionAt.getTime() + 3 * 24 * 60 * 60 * 1000) // 3 days after approval
+            : null,
+        decisionNote: ot.decisionNote ?? null,
+      },
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // 16. Extended 30-workday attendance history for 5 key users. Same
+  //     deterministic 70/20/10 (on-time/late/early-leave) distribution as
+  //     section 9, but with a wider window so timesheet generation and
+  //     the HR trend chart have meaningful data. Idempotent per (user, workDate).
+  // -------------------------------------------------------------------------
+  const extendedOffsets = weekdayOffsets(45); // ~30 weekdays
+  for (const email of EXTENDED_ATTENDANCE_EMAILS) {
+    const user = userByEmail.get(email);
+    if (!user) continue;
+    const person = allPersons.find((p) => p.email === email);
+    const shiftName = person?.shift ?? 'Regular 9-6';
+    const shiftDef = SHIFTS.find((s) => s.name === shiftName)!;
+    const shiftId = shiftByName.get(shiftName)!;
+    const [shiftStartH, shiftStartM] = shiftDef.startTime.split(':').map(Number) as [
+      number,
+      number,
+    ];
+    const [shiftEndH, shiftEndM] = shiftDef.endTime.split(':').map(Number) as [number, number];
+    const seed = email.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+
+    for (let idx = 0; idx < extendedOffsets.length; idx++) {
+      const offset = extendedOffsets[idx]!;
+      const workDate = daysAgoUtc(offset);
+
+      const bucket = (seed + idx) % 10;
+      let status: AttendanceStatus = AttendanceStatus.ON_TIME;
+      let lateMinutes = 0;
+      let earlyLeaveMinutes = 0;
+      let clockInMinutes = shiftStartM;
+      let clockOutMinutes = shiftEndM;
+      if (bucket < 2) {
+        status = AttendanceStatus.LATE;
+        lateMinutes = 25 + ((seed + idx) % 15);
+        clockInMinutes = shiftStartM + lateMinutes;
+      } else if (bucket === 2) {
+        status = AttendanceStatus.EARLY_LEAVE;
+        earlyLeaveMinutes = 30 + ((seed + idx) % 10);
+        clockOutMinutes = shiftEndM - earlyLeaveMinutes;
+      }
+
+      const clockInAt = timeOnDate(workDate, shiftStartH, clockInMinutes);
+      const clockOutAt = timeOnDate(workDate, shiftEndH, clockOutMinutes);
+      if (shiftEndH < shiftStartH) clockOutAt.setUTCDate(clockOutAt.getUTCDate() + 1);
+
+      const existing = await prisma.attendanceRecord.findFirst({
+        where: { userId: user.id, workDate },
+        select: { id: true },
+      });
+      if (existing) continue;
+
+      await prisma.attendanceRecord.create({
+        data: {
+          companyId: company.id,
+          userId: user.id,
+          shiftId,
+          workDate,
+          clockInAt,
+          clockOutAt,
+          clockInLatitude: -6.2088,
+          clockInLongitude: 106.8456,
+          clockInAccuracyM: 10,
+          clockOutLatitude: -6.2088,
+          clockOutLongitude: 106.8456,
+          clockOutAccuracyM: 12,
+          status,
+          lateMinutes,
+          earlyLeaveMinutes,
+        },
+      });
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // 17. Attendance corrections — 1 PENDING + 1 APPROVED. The APPROVED row
+  //     assumes the target AttendanceRecord already exists (from section 16
+  //     extended history), so we only insert the correction row itself —
+  //     re-applying it to the attendance row is out of scope for the seed
+  //     (that's the service layer's job).
+  // -------------------------------------------------------------------------
+  for (const c of CORRECTIONS) {
+    const user = userByEmail.get(c.userEmail);
+    if (!user) continue;
+    const workDate = daysAgoUtc(c.workDateOffsetDays);
+
+    const dupe = await prisma.attendanceCorrection.findFirst({
+      where: { userId: user.id, workDate, deletedAt: null },
+      select: { id: true },
+    });
+    if (dupe) continue;
+
+    const userRow = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { supervisorId: true },
+    });
+
+    const requestedClockInAt = c.requestedClockInHhmm
+      ? (() => {
+          const [hh, mm] = c.requestedClockInHhmm.split(':').map(Number) as [number, number];
+          return timeOnDate(workDate, hh, mm);
+        })()
+      : null;
+    const requestedClockOutAt = c.requestedClockOutHhmm
+      ? (() => {
+          const [hh, mm] = c.requestedClockOutHhmm.split(':').map(Number) as [number, number];
+          return timeOnDate(workDate, hh, mm);
+        })()
+      : null;
+
+    const decidedById = c.decidedByEmail
+      ? (userByEmail.get(c.decidedByEmail)?.id ?? null)
+      : null;
+    const decidedAt =
+      c.finalStatus === 'APPROVED'
+        ? (() => {
+            const d = new Date(workDate);
+            d.setUTCDate(d.getUTCDate() + 1);
+            return d;
+          })()
+        : null;
+
+    await prisma.attendanceCorrection.create({
+      data: {
+        companyId: company.id,
+        userId: user.id,
+        workDate,
+        requestedClockInAt,
+        requestedClockOutAt,
+        reason: c.reason,
+        status:
+          c.finalStatus === 'APPROVED'
+            ? AttendanceCorrectionStatus.APPROVED
+            : AttendanceCorrectionStatus.PENDING_APPROVAL,
+        supervisorId: userRow?.supervisorId ?? null,
+        decidedById,
+        decidedAt,
+        decisionNote:
+          c.finalStatus === 'APPROVED' ? 'Verified via clock event log — approved.' : null,
+      },
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // 18. Edge-case users — force-password-change, on-leave, terminated
+  //     (soft-deleted). Kept minimal so mainline queries stay clean but
+  //     the flows that filter on `mustChangePassword`, `employmentStatus`,
+  //     and `deletedAt` all have at least one row to exercise.
+  // -------------------------------------------------------------------------
+  const engDeptId = deptByName.get('Engineering')!;
+  const mktDeptId = deptByName.get('Marketing')!;
+  const deptIdByName = new Map<string, string>([
+    ['Engineering', engDeptId],
+    ['Marketing', mktDeptId],
+  ]);
+
+  for (const eu of EDGE_USERS) {
+    const supervisor = userByEmail.get(eu.supervisorEmail);
+    const deptId = deptIdByName.get(eu.department);
+    if (!deptId) continue;
+
+    const user = await prisma.user.upsert({
+      where: { companyId_email: { companyId: company.id, email: eu.email } },
+      create: {
+        companyId: company.id,
+        departmentId: deptId,
+        email: eu.email,
+        passwordHash,
+        fullName: eu.fullName,
+        role: eu.role,
+        hiredAt: new Date(eu.hiredAt),
+        supervisorId: supervisor?.id,
+        mustChangePassword: eu.mustChangePassword ?? false,
+        employmentStatus: eu.employmentStatus ?? EmploymentStatus.ACTIVE,
+        deletedAt: eu.deletedAt ? new Date(eu.deletedAt) : null,
+      },
+      update: {
+        // Passwords: only reset for the mustChangePassword flow user because
+        // an existing UAT tester may have already logged in and rotated the
+        // pw for `mira` / `exit`. Reverting silently on re-seed would be
+        // surprising.
+        ...(eu.mustChangePassword ? { passwordHash, mustChangePassword: true } : {}),
+        employmentStatus: eu.employmentStatus ?? EmploymentStatus.ACTIVE,
+        deletedAt: eu.deletedAt ? new Date(eu.deletedAt) : null,
+        supervisorId: supervisor?.id,
+      },
+      select: { id: true, role: true },
+    });
+    userByEmail.set(eu.email, user);
+
+    // Only assign a shift for still-employed users (skip the terminated one).
+    if (!eu.deletedAt) {
+      const shiftId = shiftByName.get('Regular 9-6')!;
+      const effectiveFrom = new Date(eu.hiredAt);
+      const existing = await prisma.userShiftAssignment.findFirst({
+        where: { userId: user.id, shiftId, effectiveFrom },
+        select: { id: true },
+      });
+      if (!existing) {
+        await prisma.userShiftAssignment.create({
+          data: { userId: user.id, shiftId, effectiveFrom },
+        });
+      }
+    }
+
+    // Leave balances for non-terminated edge users too so the "quota is
+    // configured" invariant holds tenant-wide.
+    if (!eu.deletedAt) {
+      for (const lt of leaveTypes) {
+        await prisma.leaveBalance.upsert({
+          where: {
+            userId_leaveTypeId_year: { userId: user.id, leaveTypeId: lt.id, year },
+          },
+          create: {
+            userId: user.id,
+            leaveTypeId: lt.id,
+            year,
+            quota: lt.defaultAnnualQuota,
+            used: 0,
+            reserved: 0,
+            carriedOver: 0,
+            remaining: lt.defaultAnnualQuota,
+          },
+          update: {},
+        });
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Backfill `userByEmail` with baseline users created by `seed.ts` (which
+  // runs BEFORE this UAT seed). The map is only populated with users this
+  // seed inserted, so `employee@`, `hr@`, `lead@`, `admin@` are missing —
+  // sections 19+ need those to attach timesheets, consents, and audit rows.
+  // -------------------------------------------------------------------------
+  {
+    const baselineUsers = await prisma.user.findMany({
+      where: { companyId: company.id, deletedAt: null },
+      select: { id: true, email: true, role: true },
+    });
+    for (const u of baselineUsers) {
+      if (!userByEmail.has(u.email)) {
+        userByEmail.set(u.email, { id: u.id, role: u.role });
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // 19. Timesheet workflow — MONTHLY period for last month with 3 rows in
+  //     different lifecycle states (PENDING_SUPERVISOR / PENDING_HR /
+  //     APPROVED). Prerequisite for exercising the timesheet review inbox
+  //     end-to-end without HR having to run generate-for-period first.
+  // -------------------------------------------------------------------------
+  {
+    // Use "last month" relative to today, but always land on the 1st .. last-day-of-month.
+    const nowLocal = new Date();
+    const lastMonthEnd = new Date(Date.UTC(nowLocal.getUTCFullYear(), nowLocal.getUTCMonth(), 0));
+    const lastMonthStart = new Date(
+      Date.UTC(lastMonthEnd.getUTCFullYear(), lastMonthEnd.getUTCMonth(), 1),
+    );
+
+    await prisma.timesheetConfig.upsert({
+      where: { companyId: company.id },
+      create: {
+        companyId: company.id,
+        periodType: TimesheetPeriodType.MONTHLY,
+        timezone: 'Asia/Jakarta',
+      },
+      update: {},
+    });
+
+    const monthLabel = lastMonthStart.toLocaleDateString('id-ID', {
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
+
+    const timesheetPeriod = await prisma.timesheetPeriod.upsert({
+      where: {
+        companyId_periodStart_periodEnd: {
+          companyId: company.id,
+          periodStart: lastMonthStart,
+          periodEnd: lastMonthEnd,
+        },
+      },
+      create: {
+        companyId: company.id,
+        periodType: TimesheetPeriodType.MONTHLY,
+        periodStart: lastMonthStart,
+        periodEnd: lastMonthEnd,
+        label: monthLabel,
+      },
+      update: { label: monthLabel },
+    });
+
+    type TsSeed = {
+      email: string;
+      status: 'PENDING_SUPERVISOR' | 'PENDING_HR' | 'APPROVED';
+    };
+    const timesheetSeeds: TsSeed[] = [
+      { email: 'employee@acme.test', status: 'PENDING_SUPERVISOR' },
+      { email: 'siti.eng@acme.test', status: 'PENDING_HR' },
+      { email: 'hr@acme.test', status: 'APPROVED' },
+    ];
+
+    // Precompute weekday list for the period so we can generate 1 entry per workday.
+    const workdaysInPeriod: Date[] = [];
+    for (
+      let d = new Date(lastMonthStart);
+      d <= lastMonthEnd;
+      d = new Date(d.getTime() + 24 * 60 * 60 * 1000)
+    ) {
+      const dow = d.getUTCDay();
+      if (dow !== 0 && dow !== 6) workdaysInPeriod.push(new Date(d));
+    }
+    const totalWorkdays = workdaysInPeriod.length;
+
+    // Find a supervisor and an HR to attribute the workflow decisions to.
+    const engSupervisor = await prisma.user.findFirst({
+      where: { companyId: company.id, email: 'lead@acme.test' },
+      select: { id: true },
+    });
+    const hrManager = await prisma.user.findFirst({
+      where: { companyId: company.id, email: 'hr@acme.test' },
+      select: { id: true },
+    });
+
+    for (const t of timesheetSeeds) {
+      const user = userByEmail.get(t.email);
+      if (!user) continue;
+
+      const status =
+        t.status === 'APPROVED'
+          ? TimesheetStatus.APPROVED
+          : t.status === 'PENDING_HR'
+            ? TimesheetStatus.PENDING_HR
+            : TimesheetStatus.PENDING_SUPERVISOR;
+
+      const submittedAt = new Date(lastMonthEnd.getTime() + 24 * 60 * 60 * 1000); // period+1
+      const supervisorAt =
+        t.status !== 'PENDING_SUPERVISOR'
+          ? new Date(submittedAt.getTime() + 3 * 60 * 60 * 1000)
+          : null;
+      const hrManagerAt =
+        t.status === 'APPROVED' ? new Date(submittedAt.getTime() + 24 * 60 * 60 * 1000) : null;
+
+      // Rollups — 8h regular per weekday.
+      const totalRegular = new Prisma.Decimal(totalWorkdays * 8);
+
+      const timesheet = await prisma.timesheet.upsert({
+        where: {
+          userId_periodId: { userId: user.id, periodId: timesheetPeriod.id },
+        },
+        create: {
+          companyId: company.id,
+          userId: user.id,
+          periodId: timesheetPeriod.id,
+          status,
+          totalRegularHours: totalRegular,
+          totalOvertimeHours: '0',
+          totalLeaveDays: 0,
+          totalAbsentDays: 0,
+          totalHolidays: 0,
+          totalWorkingDays: totalWorkdays,
+          totalLateMinutes: 0,
+          totalEarlyLeaveMinutes: 0,
+          submittedAt,
+          supervisorId: engSupervisor?.id ?? null,
+          supervisorAt,
+          supervisorNote: supervisorAt ? 'Reviewed — hours look correct.' : null,
+          hrManagerId: hrManagerAt ? (hrManager?.id ?? null) : null,
+          hrManagerAt,
+          hrManagerNote: hrManagerAt ? 'Approved for payroll cycle.' : null,
+        },
+        update: {},
+      });
+
+      // TimesheetEntry rows — idempotent by (timesheetId, workDate).
+      for (const workDate of workdaysInPeriod) {
+        await prisma.timesheetEntry.upsert({
+          where: {
+            timesheetId_workDate: { timesheetId: timesheet.id, workDate },
+          },
+          create: {
+            timesheetId: timesheet.id,
+            workDate,
+            kind: TimesheetEntryKind.WORKING,
+            expectedHours: '8.00',
+            regularHours: '8.00',
+            overtimeHours: '0',
+            leaveHours: '0',
+            lateMinutes: 0,
+            earlyLeaveMinutes: 0,
+            note: null,
+          },
+          update: {},
+        });
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // 20. Overdue overtime backlog — 3 PENDING_APPROVAL rows filed 22, 28,
+  //     and 35 days ago. Exercises the "backlog approval" queue in the
+  //     supervisor / HR dashboards which highlights aging pending items.
+  //     Note: `overtimeSubmitWindowDays` in seed's company config is 14,
+  //     which means these were submitted RETROACTIVELY (e.g. via HR
+  //     override) — a valid production scenario for late payroll fixes.
+  // -------------------------------------------------------------------------
+  type OverdueOtSeed = {
+    userEmail: string;
+    workDateOffsetDays: number;
+    hours: string;
+    reason: string;
+  };
+  const OVERDUE_OTS: readonly OverdueOtSeed[] = [
+    {
+      userEmail: 'lina.mkt@acme.test',
+      workDateOffsetDays: 22,
+      hours: '2.5',
+      reason: 'Overdue submit — was on sick leave the week of',
+    },
+    {
+      userEmail: 'bagus.mkt@acme.test',
+      workDateOffsetDays: 28,
+      hours: '3.0',
+      reason: 'Missed submit — sprint retro slipped',
+    },
+    {
+      userEmail: 'tia.ops@acme.test',
+      workDateOffsetDays: 35,
+      hours: '2.0',
+      reason: 'Warehouse audit backlog — approver was on leave',
+    },
+  ];
+
+  for (const ot of OVERDUE_OTS) {
+    const user = userByEmail.get(ot.userEmail);
+    if (!user) continue;
+    const workDate = daysAgoUtc(ot.workDateOffsetDays);
+
+    const dupe = await prisma.overtimeRequest.findFirst({
+      where: {
+        userId: user.id,
+        workDate,
+        status: {
+          in: [
+            OvertimeStatus.PENDING_APPROVAL,
+            OvertimeStatus.APPROVED,
+            OvertimeStatus.COMPLETED,
+            OvertimeStatus.REJECTED,
+          ],
+        },
+      },
+      select: { id: true },
+    });
+    if (dupe) continue;
+
+    const isWeekend = [0, 6].includes(workDate.getUTCDay());
+    const multiplier = isWeekend ? 2 : 1.5;
+    const ratePerHour = 50000 * multiplier;
+    const totalAmount = ratePerHour * Number(ot.hours);
+
+    // Backdate the createdAt via a raw update after insert — Prisma refuses
+    // to set `createdAt` at create-time for models that use @default(now()).
+    const created = await prisma.overtimeRequest.create({
+      data: {
+        companyId: company.id,
+        userId: user.id,
+        workDate,
+        hours: ot.hours,
+        reason: ot.reason,
+        status: OvertimeStatus.PENDING_APPROVAL,
+        baseRate: '50000',
+        rateMultiplier: multiplier.toString(),
+        ratePerHour: ratePerHour.toString(),
+        totalAmount: totalAmount.toString(),
+      },
+    });
+
+    // Force createdAt to the workDate + 1 so the aging calculation actually
+    // shows a stale row (default now() would make it look freshly filed).
+    const backdatedCreatedAt = new Date(workDate);
+    backdatedCreatedAt.setUTCDate(backdatedCreatedAt.getUTCDate() + 1);
+    await prisma.$executeRaw`
+      UPDATE "OvertimeRequest"
+      SET "createdAt" = ${backdatedCreatedAt}
+      WHERE id = ${created.id}
+    `;
+  }
+
+  // -------------------------------------------------------------------------
+  // 21. MFA-enabled user — `hr2@acme.test` gets a fixed test TOTP secret
+  //     so a UAT tester can add the same key to any authenticator app
+  //     and verify. Requires MFA_SECRET_ENCRYPTION_KEY in the process env
+  //     (the seed skips gracefully with a warning if it's missing).
+  //
+  //     TOTP secret used: `JBSWY3DPEHPK3PXP` — the classic RFC 6238 test
+  //     vector. Compatible with Google Authenticator, Authy, 1Password,
+  //     and every other TOTP client. Do NOT reuse in production.
+  // -------------------------------------------------------------------------
+  {
+    const mfaKey = process.env.MFA_SECRET_ENCRYPTION_KEY;
+    if (!mfaKey) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[seed-uat] MFA_SECRET_ENCRYPTION_KEY not set — skipping MFA-enabled user seed',
+      );
+    } else {
+      try {
+        const key = decodeEncryptionKey(mfaKey);
+        const testTotpSecret = 'JBSWY3DPEHPK3PXP'; // RFC 6238 test vector — base32
+        const encryptedSecret = encryptString(testTotpSecret, key);
+
+        const mfaTargetEmail = 'hr2@acme.test';
+        const mfaUser = await prisma.user.findFirst({
+          where: { companyId: company.id, email: mfaTargetEmail },
+          select: { id: true, mfaEnabledAt: true },
+        });
+        if (mfaUser && !mfaUser.mfaEnabledAt) {
+          await prisma.user.update({
+            where: { id: mfaUser.id },
+            data: {
+              mfaSecret: encryptedSecret,
+              mfaEnabledAt: daysAgoUtc(30),
+            },
+          });
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          '[seed-uat] MFA seed skipped — could not enroll user:',
+          err instanceof Error ? err.message : err,
+        );
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // 22. Privacy Policy versions + consents — v1 accepted by everyone (from
+  //     initial onboarding), v2 published recently and only some users
+  //     have accepted. The rest will be force-routed to `/consent` on
+  //     next login. Exercises the mandatory-consent auth gate.
+  // -------------------------------------------------------------------------
+  const policyV1 = await prisma.privacyPolicy.upsert({
+    where: { companyId_version: { companyId: company.id, version: '1.0' } },
+    create: {
+      companyId: company.id,
+      version: '1.0',
+      title: 'Kebijakan Privasi Workpulse — Rev 1',
+      body: [
+        'Kebijakan Privasi awal untuk penggunaan sistem Workpulse.',
+        '',
+        'Data yang dikumpulkan: nama, email, jam kerja, lokasi clock-in.',
+        'Retensi: 2 tahun untuk data attendance, 7 tahun untuk audit log.',
+        'Dasar hukum: kontrak kerja (Pasal 20 UU PDP).',
+      ].join('\n'),
+      effectiveAt: new Date('2026-01-01T00:00:00Z'),
+    },
+    update: {},
+  });
+
+  const policyV2 = await prisma.privacyPolicy.upsert({
+    where: { companyId_version: { companyId: company.id, version: '2.0' } },
+    create: {
+      companyId: company.id,
+      version: '2.0',
+      title: 'Kebijakan Privasi Workpulse — Rev 2 (UU PDP)',
+      body: [
+        'Update Kebijakan Privasi — kepatuhan UU PDP.',
+        '',
+        'Perubahan sejak Rev 1:',
+        '- Menambahkan hak subjek data (akses, koreksi, hapus).',
+        '- Memperjelas kategori data (data pribadi umum vs data spesifik).',
+        '- Menetapkan DPO sebagai kontak resmi.',
+      ].join('\n'),
+      effectiveAt: daysAgoUtc(5),
+    },
+    update: {},
+  });
+
+  // Users who have accepted v2 (the rest will hit /consent on next login).
+  // NOTE: `hr2@acme.test` is included even though it's the MFA-enabled demo
+  // user — otherwise the MFA verify flow surfaces the consent gate mid-login,
+  // which is confusing for UAT testers who just want to demo the TOTP path.
+  // A separate cohort of ~29 users still hits /consent for that scenario.
+  const CONSENTED_TO_V2 = new Set([
+    'employee@acme.test',
+    'hr@acme.test',
+    'hr2@acme.test',
+    'lead@acme.test',
+    'siti.eng@acme.test',
+    'admin@acme.test',
+  ]);
+
+  for (const [email, u] of userByEmail.entries()) {
+    // v1 — everyone historically accepted 6 months ago
+    await prisma.userConsent.upsert({
+      where: { userId_policyId: { userId: u.id, policyId: policyV1.id } },
+      create: {
+        userId: u.id,
+        policyId: policyV1.id,
+        companyId: company.id,
+        acceptedAt: new Date('2026-01-15T09:00:00Z'),
+        ip: '127.0.0.1',
+        userAgent: 'Chrome/UAT-seed',
+      },
+      update: {},
+    });
+
+    if (CONSENTED_TO_V2.has(email)) {
+      await prisma.userConsent.upsert({
+        where: { userId_policyId: { userId: u.id, policyId: policyV2.id } },
+        create: {
+          userId: u.id,
+          policyId: policyV2.id,
+          companyId: company.id,
+          acceptedAt: daysAgoUtc(3),
+          ip: '127.0.0.1',
+          userAgent: 'Chrome/UAT-seed',
+        },
+        update: {},
+      });
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // 23. Audit log — sample entries showing what the immutable log looks
+  //     like for real business events. Idempotent via a marker note in
+  //     `afterJson` we check on subsequent runs.
+  // -------------------------------------------------------------------------
+  const auditMarker = 'seed-uat:v1';
+  const alreadySeededAudit = await prisma.auditLog.count({
+    where: {
+      companyId: company.id,
+      afterJson: { path: ['_seedMarker'], equals: auditMarker },
+    },
+  });
+  if (alreadySeededAudit === 0) {
+    const adminId = (
+      await prisma.user.findFirst({
+        where: { companyId: company.id, email: 'admin@acme.test' },
+        select: { id: true },
+      })
+    )?.id;
+    const hrId = (
+      await prisma.user.findFirst({
+        where: { companyId: company.id, email: 'hr@acme.test' },
+        select: { id: true },
+      })
+    )?.id;
+    const supervisorId = (
+      await prisma.user.findFirst({
+        where: { companyId: company.id, email: 'lead@acme.test' },
+        select: { id: true },
+      })
+    )?.id;
+
+    const empId = userByEmail.get('employee@acme.test')?.id;
+    const siti = userByEmail.get('siti.eng@acme.test')?.id;
+
+    type AuditSeed = {
+      actorId: string | null;
+      action: string;
+      entityType: string;
+      entityId: string;
+      before?: Record<string, unknown>;
+      after: Record<string, unknown>;
+      daysAgo: number;
+    };
+    const AUDIT_SEEDS: AuditSeed[] = [
+      {
+        actorId: hrId ?? null,
+        action: 'RETENTION_POLICY_UPDATE',
+        entityType: 'RetentionPolicy',
+        entityId: 'company',
+        before: { attendanceRetentionDays: 730 },
+        after: { attendanceRetentionDays: 1095, _seedMarker: auditMarker },
+        daysAgo: 20,
+      },
+      {
+        actorId: hrId ?? null,
+        action: 'LEAVE_APPROVED',
+        entityType: 'LeaveRequest',
+        entityId: 'seed-lr-1',
+        after: { userId: empId, days: 3, _seedMarker: auditMarker },
+        daysAgo: 12,
+      },
+      {
+        actorId: supervisorId ?? null,
+        action: 'OVERTIME_APPROVED',
+        entityType: 'OvertimeRequest',
+        entityId: 'seed-ot-1',
+        after: { userId: siti, hours: '2.0', _seedMarker: auditMarker },
+        daysAgo: 8,
+      },
+      {
+        actorId: adminId ?? null,
+        action: 'GEOFENCE_UPDATED',
+        entityType: 'Geofence',
+        entityId: 'HQ LA TBS',
+        before: { radiusMeters: 150 },
+        after: { radiusMeters: 200, _seedMarker: auditMarker },
+        daysAgo: 5,
+      },
+      {
+        actorId: null, // system actor — cron
+        action: 'ATTENDANCE_AUTO_ABSENT_SCAN',
+        entityType: 'AttendanceRecord',
+        entityId: 'batch',
+        after: {
+          scannedDays: 1,
+          markedAbsent: 0,
+          _seedMarker: auditMarker,
+        },
+        daysAgo: 1,
+      },
+      {
+        actorId: hrId ?? null,
+        action: 'USER_PASSWORD_RESET_FORCED',
+        entityType: 'User',
+        entityId: userByEmail.get('newbie.eng@acme.test')?.id ?? 'unknown',
+        after: {
+          reason: 'Onboarding — first-login password change enforced',
+          _seedMarker: auditMarker,
+        },
+        daysAgo: 4,
+      },
+      {
+        actorId: hrId ?? null,
+        action: 'PRIVACY_POLICY_PUBLISHED',
+        entityType: 'PrivacyPolicy',
+        entityId: policyV2.id,
+        after: { version: '2.0', _seedMarker: auditMarker },
+        daysAgo: 5,
+      },
+    ];
+
+    for (const a of AUDIT_SEEDS) {
+      const createdAt = daysAgoUtc(a.daysAgo);
+      const created = await prisma.auditLog.create({
+        data: {
+          companyId: company.id,
+          actorId: a.actorId,
+          action: a.action,
+          entityType: a.entityType,
+          entityId: a.entityId,
+          beforeJson: a.before ? (a.before as Prisma.InputJsonValue) : undefined,
+          afterJson: a.after as Prisma.InputJsonValue,
+          ip: '127.0.0.1',
+          userAgent: 'seed-uat',
+        },
+      });
+      // Backdate createdAt so the log entries look historical, not seed-run-time.
+      await prisma.$executeRaw`
+        UPDATE "AuditLog" SET "createdAt" = ${createdAt} WHERE id = ${created.id}
+      `;
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // 24. Notifications — unread nudges so the bell icon has a badge on
+  //     first-login for both employees and approvers. Idempotency: skip
+  //     if this exact (recipient, type, title) already exists.
+  // -------------------------------------------------------------------------
+  type NotifSeed = {
+    recipientEmail: string;
+    type: NotificationType;
+    title: string;
+    body: string;
+    daysAgo: number;
+    data?: Record<string, unknown>;
+  };
+
+  const NOTIFICATIONS: NotifSeed[] = [
+    {
+      recipientEmail: 'employee@acme.test',
+      type: NotificationType.LEAVE_APPROVED_HR,
+      title: 'Pengajuan cuti disetujui HR',
+      body: 'Cuti tahunan 3 hari (12–14 Agustus) telah disetujui oleh HR Manager.',
+      daysAgo: 1,
+    },
+    {
+      recipientEmail: 'siti.eng@acme.test',
+      type: NotificationType.OVERTIME_APPROVED,
+      title: 'Lembur disetujui',
+      body: 'Lembur 2 jam pada 31 Juli 2026 telah disetujui. Total: Rp 150.000.',
+      daysAgo: 3,
+    },
+    {
+      recipientEmail: 'andi.eng@acme.test',
+      type: NotificationType.OVERTIME_COMPLETED,
+      title: 'Lembur dibayarkan',
+      body: 'Lembur 3.5 jam pada 11 Juli 2026 telah dibayarkan pada payroll bulan ini.',
+      daysAgo: 5,
+    },
+    {
+      recipientEmail: 'tono.eng@acme.test',
+      type: NotificationType.LEAVE_REJECTED,
+      title: 'Pengajuan cuti ditolak',
+      body: 'Cuti 5 hari (26 Juli) ditolak. Alasan: Conflict with sprint delivery.',
+      daysAgo: 8,
+    },
+    {
+      recipientEmail: 'hr@acme.test',
+      type: NotificationType.LEAVE_SUBMITTED,
+      title: 'Cuti baru menunggu approval HR',
+      body: 'Reza Firmansyah — 5 hari (26 Agustus). Klik untuk review.',
+      daysAgo: 1,
+    },
+    {
+      recipientEmail: 'hr@acme.test',
+      type: NotificationType.TIMESHEET_SUBMITTED,
+      title: 'Timesheet baru menunggu approval',
+      body: 'HR Manager — periode Juli 2026 sudah selesai supervisor review.',
+      daysAgo: 1,
+    },
+    {
+      recipientEmail: 'lead@acme.test',
+      type: NotificationType.LEAVE_SUBMITTED,
+      title: 'Cuti tim menunggu approval',
+      body: 'Siti Nurhaliza — 3 hari (12 Agustus). Klik untuk review.',
+      daysAgo: 2,
+    },
+    {
+      recipientEmail: 'lead@acme.test',
+      type: NotificationType.OVERTIME_SUBMITTED,
+      title: 'Pengajuan lembur baru',
+      body: 'Andi Prasetyo — 2.5 jam (3 Agustus). Klik untuk review.',
+      daysAgo: 2,
+    },
+  ];
+
+  for (const n of NOTIFICATIONS) {
+    const recipient = userByEmail.get(n.recipientEmail);
+    if (!recipient) continue;
+
+    const dupe = await prisma.notification.findFirst({
+      where: {
+        recipientId: recipient.id,
+        type: n.type,
+        title: n.title,
+      },
+      select: { id: true },
+    });
+    if (dupe) continue;
+
+    const createdAt = daysAgoUtc(n.daysAgo);
+    const created = await prisma.notification.create({
+      data: {
+        companyId: company.id,
+        recipientId: recipient.id,
+        type: n.type,
+        title: n.title,
+        body: n.body,
+        data: n.data ? (n.data as Prisma.InputJsonValue) : undefined,
+      },
+    });
+    await prisma.$executeRaw`
+      UPDATE "Notification" SET "createdAt" = ${createdAt} WHERE id = ${created.id}
+    `;
+  }
+
+  // -------------------------------------------------------------------------
+  // 25. Summary
   // -------------------------------------------------------------------------
   const counts = {
     departments: await prisma.department.count({ where: { companyId: company.id } }),
@@ -921,14 +2265,58 @@ async function main(): Promise<void> {
       where: { user: { companyId: company.id } },
     }),
     attendances: await prisma.attendanceRecord.count({ where: { companyId: company.id } }),
+    holidays: await prisma.holiday.count({ where: { companyId: company.id } }),
     pendingLeaves: await prisma.leaveRequest.count({
       where: {
         companyId: company.id,
         status: { in: [LeaveStatus.PENDING_SUPERVISOR, LeaveStatus.PENDING_HR] },
       },
     }),
+    approvedLeaves: await prisma.leaveRequest.count({
+      where: { companyId: company.id, status: LeaveStatus.APPROVED },
+    }),
+    rejectedLeaves: await prisma.leaveRequest.count({
+      where: { companyId: company.id, status: LeaveStatus.REJECTED },
+    }),
     pendingOts: await prisma.overtimeRequest.count({
       where: { companyId: company.id, status: OvertimeStatus.PENDING_APPROVAL },
+    }),
+    approvedOts: await prisma.overtimeRequest.count({
+      where: { companyId: company.id, status: OvertimeStatus.APPROVED },
+    }),
+    completedOts: await prisma.overtimeRequest.count({
+      where: { companyId: company.id, status: OvertimeStatus.COMPLETED },
+    }),
+    rejectedOts: await prisma.overtimeRequest.count({
+      where: { companyId: company.id, status: OvertimeStatus.REJECTED },
+    }),
+    corrections: await prisma.attendanceCorrection.count({ where: { companyId: company.id } }),
+    edgeUsers: await prisma.user.count({
+      where: {
+        companyId: company.id,
+        OR: [
+          { mustChangePassword: true },
+          { employmentStatus: { not: EmploymentStatus.ACTIVE } },
+          { deletedAt: { not: null } },
+        ],
+      },
+    }),
+    timesheets: await prisma.timesheet.count({ where: { companyId: company.id } }),
+    overdueOts: await prisma.overtimeRequest.count({
+      where: {
+        companyId: company.id,
+        status: OvertimeStatus.PENDING_APPROVAL,
+        createdAt: { lt: daysAgoUtc(14) },
+      },
+    }),
+    mfaEnabledUsers: await prisma.user.count({
+      where: { companyId: company.id, mfaEnabledAt: { not: null } },
+    }),
+    privacyPolicies: await prisma.privacyPolicy.count({ where: { companyId: company.id } }),
+    userConsents: await prisma.userConsent.count({ where: { companyId: company.id } }),
+    auditLogs: await prisma.auditLog.count({ where: { companyId: company.id } }),
+    unreadNotifications: await prisma.notification.count({
+      where: { companyId: company.id, readAt: null },
     }),
   };
 

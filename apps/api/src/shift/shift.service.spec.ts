@@ -227,6 +227,104 @@ describe('ShiftService.createAssignment', () => {
   });
 });
 
+describe('ShiftService.listUsersWithoutActiveShift', () => {
+  it('filters by tenant, active status, and non-SUPER_ADMIN roles', async () => {
+    const { service, prisma } = setup();
+    prisma.user.findMany.mockResolvedValue([] as never);
+
+    await service.listUsersWithoutActiveShift(hr);
+
+    expect(prisma.user.findMany).toHaveBeenCalledTimes(1);
+    const firstCall = prisma.user.findMany.mock.calls[0];
+    if (!firstCall) throw new Error('expected prisma.user.findMany to be called');
+    const call = firstCall[0] as {
+      where: {
+        companyId: string;
+        deletedAt: null;
+        employmentStatus: { in: string[] };
+        role: { in: string[] };
+        shiftAssignments: { none: unknown };
+      };
+    };
+    expect(call.where.companyId).toBe('company-1');
+    expect(call.where.deletedAt).toBeNull();
+    expect(call.where.role.in).toEqual(['EMPLOYEE', 'SUPERVISOR', 'HR_MANAGER']);
+    expect(call.where.role.in).not.toContain('SUPER_ADMIN');
+    expect(call.where.employmentStatus.in).toEqual(['ACTIVE', 'ON_LEAVE']);
+    expect(call.where.shiftAssignments).toEqual({
+      none: {
+        deletedAt: null,
+        effectiveFrom: { lte: expect.any(Date) as unknown as Date },
+        OR: [{ effectiveTo: null }, { effectiveTo: { gte: expect.any(Date) as unknown as Date } }],
+      },
+    });
+  });
+
+  it('adds case-insensitive OR search on email/fullName when provided', async () => {
+    const { service, prisma } = setup();
+    prisma.user.findMany.mockResolvedValue([] as never);
+
+    await service.listUsersWithoutActiveShift(hr, { search: 'Alice' });
+
+    const firstCall = prisma.user.findMany.mock.calls[0];
+    if (!firstCall) throw new Error('expected prisma.user.findMany to be called');
+    const call = firstCall[0] as {
+      where: {
+        OR: Array<{ email?: unknown; fullName?: unknown }>;
+      };
+    };
+    expect(call.where.OR).toEqual([
+      { email: { contains: 'Alice', mode: 'insensitive' } },
+      { fullName: { contains: 'Alice', mode: 'insensitive' } },
+    ]);
+  });
+
+  it('maps rows into flat UserWithoutShift DTO', async () => {
+    const { service, prisma } = setup();
+    prisma.user.findMany.mockResolvedValue([
+      {
+        id: 'u-super',
+        email: 'lead@a.test',
+        fullName: 'Team Lead',
+        role: 'SUPERVISOR',
+        hiredAt: new Date('2023-02-01T00:00:00Z'),
+        department: { id: 'd-eng', name: 'Engineering' },
+      },
+      {
+        id: 'u-emp',
+        email: 'bob@a.test',
+        fullName: 'Bob',
+        role: 'EMPLOYEE',
+        hiredAt: null,
+        department: null,
+      },
+    ] as never);
+
+    const rows = await service.listUsersWithoutActiveShift(hr);
+
+    expect(rows).toEqual([
+      {
+        id: 'u-super',
+        email: 'lead@a.test',
+        fullName: 'Team Lead',
+        role: 'SUPERVISOR',
+        departmentId: 'd-eng',
+        departmentName: 'Engineering',
+        hiredAt: '2023-02-01',
+      },
+      {
+        id: 'u-emp',
+        email: 'bob@a.test',
+        fullName: 'Bob',
+        role: 'EMPLOYEE',
+        departmentId: null,
+        departmentName: null,
+        hiredAt: null,
+      },
+    ]);
+  });
+});
+
 describe('ShiftService.endAssignment', () => {
   it('rejects effectiveTo before effectiveFrom', async () => {
     const { service, prisma } = setup();

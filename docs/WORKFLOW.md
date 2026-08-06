@@ -426,13 +426,21 @@ tetap tolak dengan `code` yang sesuai (`PASSWORD_CHANGE_REQUIRED`,
 
 #### 0.10.1 Kebijakan
 
-| Peran                   | MFA                                                                     |
-| ----------------------- | ----------------------------------------------------------------------- |
-| EMPLOYEE, SUPERVISOR    | **Opsional** (voluntary via `/settings/security`)                       |
-| HR_MANAGER, SUPER_ADMIN | **Wajib** — belum enroll = akses dikunci ke `/setup-mfa` sampai selesai |
+| Peran                   | MFA — MVP (2026-08)                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------------ |
+| EMPLOYEE, SUPERVISOR    | **Opsional** (voluntary via `/settings/security`)                                    |
+| HR_MANAGER, SUPER_ADMIN | **Opsional** (voluntary) — ADR-0017 revision, di-relaks dari "wajib" untuk MVP HR onboarding |
 
-Env `MFA_ENFORCE_HR_ADMIN=false` (test-only; ditolak di production oleh
-`env.validation.ts`) mematikan gate untuk HR/SA.
+**Enforcement dikontrol per-tenant lewat `SecurityPolicy` table**
+(ADR-0017 Revision 2). SUPER_ADMIN flip toggle di `/admin/security`
+→ berefek dalam ~30 detik (TTL cache di `SecurityPolicyService`) tanpa
+restart API. `MfaEnrollmentGuard` membaca policy tenant caller pada
+setiap request. Env `MFA_ENFORCE_HR_ADMIN` hanya digunakan untuk
+menetapkan nilai awal saat row `SecurityPolicy` pertama kali
+di-materialize untuk tenant baru — setelahnya, DB otoritatif.
+
+Default MVP: **OFF** (opt-in). Rencana rollback ke wajib ada di
+ADR-0017 "Path back to enforcement".
 
 #### 0.10.2 Enrollment (mandatory ATAU voluntary)
 
@@ -523,7 +531,7 @@ Semua di `/settings/security` (page baru) — panel `MfaManagementPanel`:
 | `MFA_SECRET_ENCRYPTION_KEY` | Prod: ya                  | (kosong)    | Base64 32 byte. `openssl rand -base64 32`  |
 | `MFA_ISSUER`                | Tidak                     | `Workpulse` | Muncul di entry authenticator app          |
 | `MFA_BACKUP_CODES_COUNT`    | Tidak                     | `8`         | Range 4–20                                 |
-| `MFA_ENFORCE_HR_ADMIN`      | Prod: ya (default `true`) | `true`      | `false` DITOLAK saat `NODE_ENV=production` |
+| `MFA_ENFORCE_HR_ADMIN`      | Tidak (default `false`)   | `false`     | **Bootstrap only** sejak Revision 2 (ADR-0017). Setelah row `SecurityPolicy` tenant terbuat, env diabaikan — SUPER_ADMIN flip toggle di `/admin/security`. |
 
 Rotasi `MFA_SECRET_ENCRYPTION_KEY`: **hentikan sesi user**, re-enroll
 setiap user manual. Tidak ada re-encryption otomatis di Fase 30a
@@ -2257,20 +2265,52 @@ menulis `AuditLog` di dalam transaksi yang sama.
 ### 5.5.1 Geofence CRUD
 
 ```
-POST   /admin/geofences               → create { name, latitude, longitude, radiusMeters }
+POST   /admin/geofences               → create
 GET    /admin/geofences               → list (+ shiftCount)
 PATCH  /admin/geofences/:id           → update
 DELETE /admin/geofences/:id           → soft delete
+```
+
+Payload:
+
+```jsonc
+{
+  "name": "HQ Jakarta",
+  "latitude": -6.2088,
+  "longitude": 106.8456,
+  "radiusMeters": 150,
+  // Tier-2 (2026-08-06) — opsional, keduanya default off untuk backwards-compat.
+  "maxAccuracyMeters": 100,            // null / omit = tidak ada gate
+  "allowedSsids": ["OFFICE-WIFI-JKT"]  // [] / omit = tidak ada fallback
+}
 ```
 
 Aturan:
 
 - `latitude ∈ [-90, 90]`, `longitude ∈ [-180, 180]` (dijaga oleh `class-validator`).
 - `radiusMeters ∈ [5, 5000]` — batas atas mencegah "geofence seluruh kota".
+- `maxAccuracyMeters ∈ [10, 500]` atau `null` — reject clock-in ketika
+  `accuracyMeters > threshold` (`403 WEAK_GPS_ACCURACY`).
+- `allowedSsids`: array (max 10) SSID Wi-Fi. String trim, case-sensitive,
+  di-dedupe server-side. Bila client mengirim `wifiSsid` yang cocok →
+  bypass distance check. Hanya mobile app yang bisa mengirim SSID.
 - Delete guard: `_count.shifts > 0` (non-deleted) → `409 GEOFENCE_IN_USE_BY_SHIFT`. Lepas
   dulu geofence dari Shift terkait sebelum menghapus.
 - Attendance historis tidak terpengaruh (nilai `distanceMeters` sudah didenormalisasi
-  pada `AttendanceEvent`).
+  pada `AttendanceEvent`). Bahkan saat clock-in lolos lewat SSID fallback, `distanceMeters`
+  tetap merekam jarak sebenarnya dari pusat geofence untuk kepentingan health dashboard.
+
+Server-side validation stack di `attendance.service.ts#assertLocationAllowed`:
+
+1. Accuracy budget (jika aktif).
+2. Wi-Fi SSID fallback (jika client kirim SSID valid).
+3. Haversine distance check.
+
+Urutan 1-sebelum-2 dijaga di test `attendance.service.spec.ts`
+("checks accuracy BEFORE the SSID fallback").
+
+Lihat [ADR-0040](./ADR/ADR-0040-geofence-map-picker-and-tier2-signals.md) untuk keputusan lengkap
+map picker (Leaflet + OpenStreetMap) dan sinyal Tier-2.
 
 ### 5.5.2 Shift CRUD
 

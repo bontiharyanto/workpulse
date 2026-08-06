@@ -1,9 +1,98 @@
 # ADR-0017 — Multi-Factor Authentication (TOTP + Backup Codes)
 
-- **Status**: Accepted
+- **Status**: Accepted — **Revised 2026-08-06 (twice)**
 - **Date**: 2026-08-02
 - **Authors**: Workpulse Platform
 - **Supersedes / Related**: [ADR-0002 (Auth & Sessions)](./ADR-0002-auth-strategy.md), [ADR-0014 (Must-change-password)](./ADR-0014-must-change-password.md)
+
+## Revision 2 — Per-tenant DB toggle (2026-08-06 PM)
+
+The env flag `MFA_ENFORCE_HR_ADMIN` was a **global boot-time**
+switch. Ops (or, in single-tenant installs, the customer's IT) had
+to edit the env, redeploy, and re-boot the API to change the tenant's
+security posture. That's inappropriate for a multi-tenant SaaS where
+each customer decides their own compliance posture.
+
+We introduce a new `SecurityPolicy` model, one row per Company:
+
+```prisma
+model SecurityPolicy {
+  id                        String   @id @default(cuid())
+  companyId                 String   @unique
+  mfaEnforceHighPrivileged  Boolean  @default(false)
+  updatedAt                 DateTime @updatedAt
+  updatedById               String?
+  createdAt                 DateTime @default(now())
+  // relations elided
+}
+```
+
+**Runtime contract**:
+
+- `MfaEnrollmentGuard` reads the caller's tenant policy via
+  `SecurityPolicyService.getForCompany`, which memoises the result
+  in a short-TTL in-process cache (`POLICY_CACHE_TTL_MS = 30_000`).
+  A toggle from `/admin/security` takes effect within the TTL
+  window on other replicas; the local replica sees the change
+  immediately via cache invalidation.
+- `PATCH /admin/security/policy` is `SUPER_ADMIN`-only and emits
+  an `audit_logs` row with action `SECURITY_POLICY_UPDATED`,
+  `beforeJson` + `afterJson` capturing the change.
+- The env `MFA_ENFORCE_HR_ADMIN` is now **bootstrap-only**: it seeds
+  the initial `mfaEnforceHighPrivileged` value on the first
+  `getForCompany` call for a fresh tenant. Once the row exists, the
+  env is ignored for that tenant.
+
+**Path back to enforcement (unchanged)** — a customer flips the
+toggle at `/admin/security` after their internal rollout drive
+lands. No API restart, no ops ticket.
+
+## Revision 1 — MVP enrollment policy (2026-08-06 AM)
+
+The **original decision** below made TOTP enrollment mandatory for
+`HR_MANAGER` and `SUPER_ADMIN`, enforced via `MfaEnrollmentGuard`
+whenever `MFA_ENFORCE_HR_ADMIN=true` — and the env validator refused
+to boot with `false` under `NODE_ENV=production`.
+
+Pilot feedback from the customer's HR team revealed a rollout blocker:
+authenticator-app onboarding is a non-trivial support cost when many
+HR staff don't yet have company-issued phones or IT support to guide
+them. Forcing enrollment on first login turned MFA into a
+deployment-day incident risk.
+
+Effective 2026-08-06 AM, MFA becomes **opt-in for every role** in the
+MVP:
+
+- `MFA_ENFORCE_HR_ADMIN` default flips from `'true'` → `'false'`.
+- The `env.validation` block that refused `false` in production is
+  removed.
+- The MFA **feature** stays fully intact: `/setup-mfa`,
+  `/settings/security`, `MfaVerifiedGuard`, backup codes, encrypted
+  secrets, and every audit-log emission continue to work. Users who
+  enrol voluntarily are still challenged at every login.
+- Seed data still enrolls one demo HR user (`hr2@acme.test`) so UAT
+  can exercise the flow; the primary HR account (`hr@acme.test`)
+  intentionally has no MFA so happy-flow demos aren't blocked on
+  TOTP setup.
+
+**Path back to enforcement** — the future hardening milestone:
+
+1. Communicate with HR + provide authenticator-app rollout guide.
+2. Run a "self-enroll drive" for two weeks; monitor
+   `mfaEnabledUsers` count via `/admin/reports`.
+3. Once enrollment is ≥95% of the target cohort, flip the tenant
+   toggle at `/admin/security` (**Revision 2**) — no env change,
+   no restart.
+4. Restore the `env.validation` `superRefine` that refuses `false`
+   with `NODE_ENV=production` (see the TODO comment left in
+   `env.validation.ts`) — behind a new `MFA_ENFORCE_OVERRIDE_ACK=true`
+   opt-out env to allow reversible incident-response toggles.
+
+Everything below this section documents the original design; the
+enrollment gate behaviour is the only knob that changed.
+
+---
+
 
 ## Context
 
@@ -303,10 +392,13 @@ order): `unauthenticated` → `/login`, `mustChangePassword` →
   validator refuses missing/short values in production. Rotate by
   running a batch job that decrypts under the old key and re-encrypts
   under the new one (not implemented in Fase 30a; see §out of scope).
-- **`MFA_ENFORCE_HR_ADMIN`** — `true` in production (env validator
-  refuses `false` when `NODE_ENV=production`). E2E sets it to `false`
-  in `apps/e2e/playwright.config.ts` (`webServer.api.env`) so seed
-  HR/SA can log in without pre-enrolling MFA.
+- **`MFA_ENFORCE_HR_ADMIN`** — MVP default `false` (see revision at
+  the top of this ADR). No environment refuses either value. E2E pins
+  it explicitly to `false` in `apps/e2e/playwright.config.ts`
+  (`webServer.api.env`) so seed HR/SA can log in without pre-enrolling
+  MFA regardless of the ambient default. Flip to `true` after HR
+  self-enrolls to a satisfactory rate; see the "Path back to
+  enforcement" checklist in the revision section.
 - **`MFA_ISSUER`** — default `Workpulse`. Shown in the authenticator
   app entry.
 - **`MFA_BACKUP_CODES_COUNT`** — default 8; range 4–20 enforced by

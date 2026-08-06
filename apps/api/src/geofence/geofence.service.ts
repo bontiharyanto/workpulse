@@ -10,6 +10,8 @@ export interface CreateGeofenceInput {
   latitude: number;
   longitude: number;
   radiusMeters: number;
+  maxAccuracyMeters?: number | null;
+  allowedSsids?: string[];
 }
 
 export interface UpdateGeofenceInput {
@@ -17,6 +19,8 @@ export interface UpdateGeofenceInput {
   latitude?: number;
   longitude?: number;
   radiusMeters?: number;
+  maxAccuracyMeters?: number | null;
+  allowedSsids?: string[];
 }
 
 @Injectable()
@@ -46,6 +50,8 @@ export class GeofenceService {
           latitude: input.latitude,
           longitude: input.longitude,
           radiusMeters: input.radiusMeters,
+          maxAccuracyMeters: input.maxAccuracyMeters ?? null,
+          allowedSsids: sanitiseSsids(input.allowedSsids),
         },
       });
       await tx.auditLog.create({
@@ -77,6 +83,17 @@ export class GeofenceService {
           latitude: input.latitude ?? undefined,
           longitude: input.longitude ?? undefined,
           radiusMeters: input.radiusMeters ?? undefined,
+          // `null` is a valid update — it clears the accuracy check.
+          // Only `undefined` skips the field, so we forward `null`
+          // through explicitly.
+          maxAccuracyMeters:
+            input.maxAccuracyMeters === undefined
+              ? undefined
+              : input.maxAccuracyMeters,
+          allowedSsids:
+            input.allowedSsids === undefined
+              ? undefined
+              : sanitiseSsids(input.allowedSsids),
         },
       });
       await tx.auditLog.create({
@@ -143,9 +160,22 @@ export class GeofenceService {
       latitude: Number(row.latitude),
       longitude: Number(row.longitude),
       radiusMeters: row.radiusMeters,
+      maxAccuracyMeters: row.maxAccuracyMeters,
+      allowedSsids: row.allowedSsids,
       shiftCount: row._count.shifts,
       createdAt: row.createdAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),
     };
   }
+}
+
+/**
+ * Trim whitespace, drop empty strings, and dedupe SSIDs. Callers
+ * pass raw form input; this defends against surprising duplicates
+ * and whitespace-only entries slipping past class-validator.
+ */
+function sanitiseSsids(input: string[] | undefined): string[] {
+  if (!input || input.length === 0) return [];
+  const cleaned = input.map((s) => s.trim()).filter((s) => s.length > 0);
+  return Array.from(new Set(cleaned));
 }

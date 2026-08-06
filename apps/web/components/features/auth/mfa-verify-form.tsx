@@ -60,6 +60,15 @@ export function MfaVerifyForm({ redirectTo }: { redirectTo: string }): JSX.Eleme
       });
       router.replace(redirectTo as Route);
     } catch (err) {
+      // Defense-in-depth: if the backend still returns CONSENT_REQUIRED
+      // here (e.g. an old deployment or a middleware ordering regression),
+      // send the user to `/consent` instead of showing a misleading
+      // "Verifikasi gagal" toast — the TOTP code they typed may well have
+      // been valid; consent is just an orthogonal follow-up gate.
+      if (err instanceof ApiError && err.code === 'CONSENT_REQUIRED') {
+        router.replace('/consent' as Route);
+        return;
+      }
       if (err instanceof ApiError) {
         setSubmitError(ERROR_COPY[err.code] ?? err.message ?? 'Terjadi kesalahan.');
       } else if (err instanceof Error) {

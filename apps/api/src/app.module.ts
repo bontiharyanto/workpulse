@@ -41,6 +41,7 @@ import { ReportModule } from './report/report.module';
 import { ReportsModule } from './reports/reports.module';
 import { RetentionModule } from './retention/retention.module';
 import { RopaModule } from './ropa/ropa.module';
+import { SecurityPolicyModule } from './security-policy/security-policy.module';
 import { ShiftModule } from './shift/shift.module';
 import { TenantUsageModule } from './tenant-usage/tenant-usage.module';
 import { TestSupportModule } from './test-support/test-support.module';
@@ -110,6 +111,7 @@ import { WebhookModule } from './webhook/webhook.module';
     RetentionModule,
     ConsentModule,
     RopaModule,
+    SecurityPolicyModule,
     DpiaModule,
     ReportsModule,
     BreachModule,

@@ -105,12 +105,16 @@ export default defineConfig({
         // for `CI=true` under the theory that the E2E harness should
         // exercise the exact runtime configuration that ships. In practice
         // this contradicts the test-only env knobs below — `env.validation`
-        // rejects `THROTTLER_DISABLED=true`, `MFA_ENFORCE_HR_ADMIN=false`,
-        // and `WEBHOOK_BLOCK_PRIVATE_IPS=false` when `NODE_ENV=production`,
-        // and Playwright's webServer fails to boot on CI. `test` still runs
-        // the compiled `dist/` output (see the `start:prod` command below)
-        // so we ARE exercising the production build artefact; only the
-        // runtime posture is loosened for test pragmatism.
+        // rejects `THROTTLER_DISABLED=true` and `WEBHOOK_BLOCK_PRIVATE_IPS=false`
+        // when `NODE_ENV=production`, and Playwright's webServer fails to boot
+        // on CI. `test` still runs the compiled `dist/` output (see the
+        // `start:prod` command below) so we ARE exercising the production
+        // build artefact; only the runtime posture is loosened for test
+        // pragmatism.
+        //
+        // MFA_ENFORCE_HR_ADMIN was also historically rejected under
+        // production but is now allowed at any value (MVP opt-in). We keep
+        // it pinned here for determinism regardless of the ambient default.
         NODE_ENV: 'test',
         // Bypass the login/reset/change-password throttlers — many E2E tests
         // authenticate multiple times inside a 60-second window and would

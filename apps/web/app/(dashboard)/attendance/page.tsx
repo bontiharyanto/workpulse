@@ -2,9 +2,8 @@ import { History, PencilLine } from 'lucide-react';
 import Link from 'next/link';
 import { type JSX } from 'react';
 
-import { ClockPanel } from '@/components/features/attendance/clock-panel';
 import { CompanyDashboardLink } from '@/components/features/attendance/company-dashboard-link';
-import { MonthlySummaryWidget } from '@/components/features/attendance/monthly-summary-widget';
+import { SelfAttendanceSection } from '@/components/features/attendance/self-attendance-section';
 import { TeamAttendanceLink } from '@/components/features/attendance/team-attendance-link';
 import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
@@ -35,8 +34,7 @@ export default function AttendancePage(): JSX.Element {
         }
       />
       <div className="space-y-6">
-        <ClockPanel />
-        <MonthlySummaryWidget />
+        <SelfAttendanceSection />
       </div>
     </div>
   );

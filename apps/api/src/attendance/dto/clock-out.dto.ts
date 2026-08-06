@@ -1,10 +1,11 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsLatitude,
   IsLongitude,
   IsNumber,
   IsOptional,
   IsString,
+  Length,
   Max,
   MaxLength,
   Min,
@@ -30,4 +31,10 @@ export class ClockOutDto {
   @IsString()
   @MaxLength(500)
   note?: string;
+
+  @ApiPropertyOptional({ example: 'OFFICE-WIFI-JKT' })
+  @IsOptional()
+  @IsString()
+  @Length(1, 64)
+  wifiSsid?: string;
 }

@@ -1,47 +1,41 @@
 import type { CanActivate, ExecutionContext } from '@nestjs/common';
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
+import { SecurityPolicyService } from '../../security-policy/security-policy.service';
 import { ALLOW_MFA_ENROLLMENT_PENDING_KEY } from '../decorators/allow-mfa-enrollment-pending.decorator';
 import { ALLOW_MUST_CHANGE_PASSWORD_KEY } from '../decorators/allow-must-change-password.decorator';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 /**
  * Enforces MFA enrollment for high-privilege roles (HR_MANAGER,
- * SUPER_ADMIN). If such a user's account has no `mfaEnabledAt`
- * (never enrolled), every non-`@AllowMfaEnrollmentPending` and
- * non-`@AllowMustChangePassword` route responds with a stable
- * `MFA_ENROLLMENT_REQUIRED` code so the FE can force-navigate to
- * `/setup-mfa`.
+ * SUPER_ADMIN) — but ONLY when the caller's tenant has
+ * `SecurityPolicy.mfaEnforceHighPrivileged=true`.
  *
- * The role list is intentionally narrow (regular employees never
- * hit this guard) and configured centrally in this file — changing
- * scope means editing `MANDATORY_ROLES` and a single WORKFLOW.md
- * entry. Do NOT read the env at request time.
+ * Migration (2026-08-06): what used to be a global env
+ * (`MFA_ENFORCE_HR_ADMIN`) is now a **per-tenant DB toggle** owned
+ * by `SecurityPolicyService`. The env is consulted only when a
+ * fresh tenant's row is first materialised — see the service for
+ * the bootstrap contract.
+ *
+ * MVP policy (see ADR-0017 revision): MFA is opt-in for every role
+ * by default. Users who choose to enroll (via `/settings/security`)
+ * still get challenged by `MfaVerifiedGuard` at every login; this
+ * guard only decides whether the enrollment itself is forced on
+ * the user's first request after the tenant flips its policy.
  */
 const MANDATORY_ROLES = new Set(['HR_MANAGER', 'SUPER_ADMIN']);
 
 @Injectable()
 export class MfaEnrollmentGuard implements CanActivate {
-  private readonly enforce: boolean;
-
   constructor(
     private readonly reflector: Reflector,
-    config: ConfigService,
-  ) {
-    // Read once at boot — flipping this at runtime would leave a
-    // window where in-flight requests see one policy and new ones
-    // see another. Prod always enforces (env validator refuses to
-    // start with `false`).
-    this.enforce = config.get<string>('MFA_ENFORCE_HR_ADMIN', 'true') !== 'false';
-  }
+    private readonly securityPolicy: SecurityPolicyService,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
-    if (!this.enforce) return true;
-
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -69,6 +63,11 @@ export class MfaEnrollmentGuard implements CanActivate {
     if (!user) return true;
 
     if (!MANDATORY_ROLES.has(user.role)) return true;
+
+    // Fetch tenant policy — cached in-process, so this is essentially
+    // free (see `SecurityPolicyService.getForCompany`).
+    const policy = await this.securityPolicy.getForCompany(user.companyId);
+    if (!policy.mfaEnforceHighPrivileged) return true;
 
     // `mfaEnabled === false` OR undefined => not enrolled. Legacy tokens
     // (pre-30a) don't carry `mfaEnabled`; fall back to `true` (allow)
