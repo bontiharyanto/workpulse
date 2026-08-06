@@ -2,6 +2,11 @@
 
 Terima kasih sudah tertarik berkontribusi. Dokumen ini memformalkan cara kerja tim & AI assistant pada repositori ini.
 
+> Baru pertama kali menyentuh repo? Baca [Development Guide](./docs/DEVELOPMENT.md)
+> lebih dulu (setup 30 menit) — dokumen ini fokus di **workflow git + coding
+> standard**, sedangkan Development Guide fokus di **cara menjalankan** aplikasi.
+> Peta lengkap semua dokumen: [Documentation Portal](./docs/README.md).
+
 ## Development Workflow
 
 1. **Sync main**: `git checkout main && git pull`.
@@ -97,7 +102,7 @@ Setiap PR wajib mencentang:
 - [ ] Unit test baru menyertai perubahan domain logic.
 - [ ] `AuditLog` dipanggil untuk operasi sensitif.
 - [ ] RBAC & tenant scoping diverifikasi (guard + query filter).
-- [ ] Dokumentasi diperbarui (`docs/WORKFLOW.md` untuk perubahan bisnis, `docs/ARCHITECTURE.md` untuk perubahan struktural).
+- [ ] Dokumentasi diperbarui (`docs/WORKFLOW.md` untuk perubahan bisnis, `docs/ARCHITECTURE.md` untuk perubahan struktural, `docs/API.md` bila endpoint publik berubah).
 - [ ] Bila mengubah Dockerfile atau CI: verifikasi `docker compose --profile full up --build` sukses secara lokal.
 - [ ] Tidak ada `any`, `TODO`, `console.log`, atau secret yang bocor.
 
