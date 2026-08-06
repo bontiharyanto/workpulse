@@ -124,10 +124,11 @@ export function MfaManagementPanel(): JSX.Element {
 
       {!s.enabled ? (
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">Aktifkan MFA</h2>
+          <h2 className="text-lg font-semibold tracking-tight">Aktifkan MFA (opsional)</h2>
           <p className="text-muted-foreground text-sm">
-            Tambahkan lapisan keamanan kedua untuk akun Anda. Setelah aktif, login akan meminta kode
-            dari aplikasi authenticator.
+            Anda boleh mengaktifkan sendiri kapan saja. Setelah aktif, setiap login akan meminta
+            kode dari aplikasi authenticator. Admin dapat mewajibkan MFA untuk HR / Super Admin
+            nanti lewat halaman keamanan tenant — sampai itu, tidak ada yang dipaksa.
           </p>
           <MfaEnrollmentPanel
             variant="voluntary"

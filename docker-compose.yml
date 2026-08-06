@@ -129,7 +129,10 @@ services:
       S3_ENDPOINT: http://minio:9000
       # CORS must allow the browser origin, which the user sees via the HOST
       # port. If they remap ${WEB_HOST_PORT}, CORS_ORIGIN follows.
-      CORS_ORIGIN: http://localhost:${WEB_HOST_PORT:-3000}
+      # Include both localhost and 127.0.0.1 — browsers treat them as
+      # different origins, and opening http://127.0.0.1:PORT otherwise
+      # fails login with opaque "Failed to fetch".
+      CORS_ORIGIN: http://localhost:${WEB_HOST_PORT:-3000},http://127.0.0.1:${WEB_HOST_PORT:-3000}
     depends_on:
       postgres:
         condition: service_healthy

@@ -17,7 +17,10 @@ export default function SecuritySettingsPage(): JSX.Element {
         <header className="space-y-1">
           <h2 className="text-h4 text-foreground tracking-tight">Keamanan akun</h2>
           <p className="text-muted-foreground text-body">
-            Kelola verifikasi 2 langkah (MFA), backup codes, dan sesi login aktif.
+            Kelola verifikasi 2 langkah (MFA), backup codes, dan sesi login aktif. MFA bersifat{' '}
+            <span className="text-foreground font-medium">opsional</span> untuk semua peran —
+            termasuk HR dan Super Admin — sampai Super Admin menyalakan kewajiban di{' '}
+            <code className="text-xs">/admin/security</code>.
           </p>
         </header>
         <MfaManagementPanel />

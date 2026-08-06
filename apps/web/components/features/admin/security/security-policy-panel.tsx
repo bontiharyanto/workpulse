@@ -134,9 +134,10 @@ export function SecurityPolicyPanel(): JSX.Element {
             <div>
               <CardTitle>Multi-Factor Authentication (MFA)</CardTitle>
               <CardDescription>
-                Wajibkan MFA untuk semua akun berperan{' '}
+                Default tenant: <span className="font-medium">opsional</span> (belum dipaksa).
+                Nyalakan toggle di bawah hanya saat organisasi siap mewajibkan MFA untuk{' '}
                 <span className="font-medium">HR Manager</span> dan{' '}
-                <span className="font-medium">Super Admin</span> di tenant ini.
+                <span className="font-medium">Super Admin</span>.
               </CardDescription>
             </div>
             <Badge

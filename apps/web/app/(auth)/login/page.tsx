@@ -21,6 +21,8 @@ export default async function LoginPage({
     <AuthShell
       title="Masuk ke akun Anda"
       description="Gunakan email perusahaan dan kata sandi."
+      brandCentered
+      brandSubtitle="klikhadir.site"
     >
       {justChanged ? (
         <Alert variant="success" role="status">

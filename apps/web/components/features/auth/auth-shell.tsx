@@ -22,6 +22,8 @@ export function AuthShell({
   footer,
   size = 'sm',
   className,
+  brandCentered = false,
+  brandSubtitle,
 }: {
   title: string;
   description?: ReactNode;
@@ -29,6 +31,10 @@ export function AuthShell({
   footer?: ReactNode;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  /** Center the Workpulse wordmark (used on the primary login screen). */
+  brandCentered?: boolean;
+  /** Optional line under the wordmark, e.g. product domain. */
+  brandSubtitle?: string;
 }): JSX.Element {
   const maxWidth = size === 'lg' ? 'max-w-2xl' : size === 'md' ? 'max-w-lg' : 'max-w-sm';
   return (
@@ -40,10 +46,20 @@ export function AuthShell({
           className,
         )}
       >
-        <div className="space-y-2">
-          <p className="text-muted-foreground text-overline uppercase tracking-widest">
-            Workpulse
-          </p>
+        <div className={cn('space-y-2', brandCentered && 'text-center')}>
+          <div className={cn(brandCentered && 'space-y-1')}>
+            <p
+              className={cn(
+                'text-foreground text-overline font-semibold uppercase tracking-widest',
+                brandCentered && 'text-h4 tracking-[0.2em]',
+              )}
+            >
+              Workpulse
+            </p>
+            {brandSubtitle ? (
+              <p className="text-muted-foreground text-caption tracking-wide">{brandSubtitle}</p>
+            ) : null}
+          </div>
           <h1 className="text-h3 text-foreground tracking-tight">{title}</h1>
           {description ? (
             <div className="text-muted-foreground text-body">{description}</div>

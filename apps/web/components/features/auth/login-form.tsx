@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginInputSchema, type LoginInput } from '@workpulse/shared-types';
-import { AlertTriangle, LogIn } from 'lucide-react';
+import { AlertTriangle, Eye, EyeOff, LogIn } from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -42,6 +42,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string }): JSX.Element {
   const { login, status, user } = useAuth();
   const router = useRouter();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginInputSchema),
@@ -107,21 +108,41 @@ export function LoginForm({ redirectTo }: { redirectTo: string }): JSX.Element {
 
       <div className="space-y-1.5">
         <div className="flex items-baseline justify-between gap-2">
-          <Label htmlFor="password">Kata sandi</Label>
+          <Label htmlFor="password">Password</Label>
           <Link
             href="/forgot-password"
-            className="text-muted-foreground hover:text-foreground text-caption underline underline-offset-4"
+            className="text-info hover:text-info/80 text-caption font-medium"
           >
-            Lupa password?
+            Forgot?
           </Link>
         </div>
-        <Input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          aria-invalid={Boolean(form.formState.errors.password) || undefined}
-          {...form.register('password')}
-        />
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? 'text' : 'password'}
+            autoComplete="current-password"
+            aria-invalid={Boolean(form.formState.errors.password) || undefined}
+            className="pr-12"
+            {...form.register('password')}
+          />
+          <div className="absolute inset-y-0 right-0 flex items-stretch">
+            <div className="border-border flex items-center border-l px-2.5">
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="text-muted-foreground hover:text-foreground rounded-sm p-0.5 transition-colors"
+                aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                aria-pressed={showPassword}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" aria-hidden />
+                ) : (
+                  <Eye className="h-4 w-4" aria-hidden />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
         {form.formState.errors.password ? (
           <p role="alert" className="text-destructive text-caption">
             {form.formState.errors.password.message}
