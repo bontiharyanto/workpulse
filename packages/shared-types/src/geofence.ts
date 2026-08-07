@@ -19,6 +19,13 @@ export const maxAccuracyMetersSchema = z.number().int().min(10).max(500);
  */
 export const wifiSsidSchema = z.string().trim().min(1).max(64);
 
+/**
+ * Cap on the "fuzzy radius" leeway (in meters). `0` = strict circle
+ * membership (legacy). `500` is the ceiling — beyond that a device
+ * with bad accuracy could effectively walk in from anywhere.
+ */
+export const maxLeewayMetersSchema = z.number().int().min(0).max(500);
+
 export const geofenceSchema = z.object({
   id: z.string(),
   companyId: z.string(),
@@ -38,6 +45,11 @@ export const geofenceSchema = z.object({
    * reports a whitelisted SSID.
    */
   allowedSsids: z.array(wifiSsidSchema),
+  /**
+   * Fuzzy-radius cap. `0` restores strict circle-membership. Server
+   * uses `effectiveRadius = radiusMeters + min(accuracyMeters, maxLeewayMeters)`.
+   */
+  maxLeewayMeters: z.number().int().nonnegative(),
   shiftCount: z.number().int().nonnegative(),
   createdAt: isoDateTimeSchema,
   updatedAt: isoDateTimeSchema,
@@ -51,6 +63,7 @@ export const createGeofenceSchema = z.object({
   radiusMeters: radiusMetersSchema,
   maxAccuracyMeters: maxAccuracyMetersSchema.nullable().optional(),
   allowedSsids: z.array(wifiSsidSchema).max(10).optional(),
+  maxLeewayMeters: maxLeewayMetersSchema.optional(),
 });
 export type CreateGeofenceInput = z.infer<typeof createGeofenceSchema>;
 
@@ -62,6 +75,7 @@ export const updateGeofenceSchema = z
     radiusMeters: radiusMetersSchema.optional(),
     maxAccuracyMeters: maxAccuracyMetersSchema.nullable().optional(),
     allowedSsids: z.array(wifiSsidSchema).max(10).optional(),
+    maxLeewayMeters: maxLeewayMetersSchema.optional(),
   })
   .refine((v) => Object.keys(v).length > 0, {
     message: 'Setidaknya satu field harus diubah',

@@ -394,6 +394,11 @@ model User {
 /// - `allowedSsids`: Wi-Fi network names that grant clock-in access
 ///   regardless of GPS distance. Empty = disabled. Non-empty acts as
 ///   an OR-fallback for indoor GPS-hostile buildings.
+/// - `maxLeewayMeters`: cap on the "fuzzy radius" extension granted
+///   proportionally to the client-reported GPS accuracy. See
+///   `AttendanceService.assertLocationAllowed`. Default `50` matches
+///   typical indoor drift in Jakarta CBD towers. `0` restores the
+///   strict circle-membership check (legacy behaviour).
 model Geofence {
   id                String    @id @default(cuid())
   companyId         String
@@ -410,6 +415,22 @@ model Geofence {
   /// Match is case-sensitive. Only relevant when the client is able
   /// to expose the SSID (currently: mobile app; browsers cannot).
   allowedSsids      String[]  @default([])
+  /// Cap on the "fuzzy radius" leeway granted per clock-in based on
+  /// the client-reported GPS accuracy. The effective radius used by
+  /// the server check is:
+  ///
+  ///   effectiveRadius = radiusMeters + min(accuracyMeters, maxLeewayMeters)
+  ///
+  /// Rationale: indoor GPS in urban CBD buildings routinely drifts
+  /// 30–200 m. A strict circle-membership check rejects legitimate
+  /// clock-ins from users clearly in the office. The leeway
+  /// generously accommodates poor-fix devices while capping the
+  /// exploit surface (a device claiming accuracy = 5 km can still
+  /// only borrow `maxLeewayMeters` of leeway, not the full 5 km).
+  ///
+  /// Set `0` to restore the strict legacy check. Sane range enforced
+  /// at the DTO layer: [0, 500].
+  maxLeewayMeters   Int       @default(50)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   deletedAt         DateTime?

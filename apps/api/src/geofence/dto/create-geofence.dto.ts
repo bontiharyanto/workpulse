@@ -51,4 +51,17 @@ export class CreateGeofenceDto {
   @IsString({ each: true })
   @Length(1, 64, { each: true })
   allowedSsids?: string[];
+
+  /**
+   * Cap on the "fuzzy radius" leeway granted per clock-in based on
+   * device-reported GPS accuracy. The server computes
+   * `effectiveRadius = radiusMeters + min(accuracyMeters, maxLeewayMeters)`.
+   * Default `50` m accommodates typical indoor drift; set `0` to
+   * restore the strict circle-membership check. Range [0, 500].
+   */
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(500)
+  maxLeewayMeters?: number;
 }

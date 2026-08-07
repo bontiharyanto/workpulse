@@ -925,9 +925,25 @@ export class AttendanceService {
    *    indoor GPS-hostile buildings; only the mobile app can
    *    provide `wifiSsid` — browsers cannot.
    *
-   * 3. **Haversine distance** — the classic circle-membership
-   *    check. Throws `OUTSIDE_GEOFENCE` when the pin lands outside
-   *    the radius.
+   * 3. **Fuzzy Haversine distance** — the classic circle-membership
+   *    check, extended by a bounded leeway proportional to (but
+   *    capped by) the device's own GPS uncertainty:
+   *
+   *      effectiveRadius = radiusMeters + min(accuracyMeters, maxLeewayMeters)
+   *
+   *    Indoor GPS in urban CBD buildings routinely drifts 30–200 m;
+   *    a strict `distance <= radius` check rejects legitimate
+   *    clock-ins from users who are clearly in the office. Adding
+   *    leeway *bounded by the device's declared accuracy* — not by
+   *    a fixed slack — means a device claiming perfect accuracy
+   *    (`accuracyMeters ≈ 0`) still faces the strict check, while
+   *    a phone honestly reporting `accuracyMeters = 150` gets the
+   *    slack it needs. `maxLeewayMeters` puts a ceiling on the
+   *    slack so a device claiming garbage accuracy can't walk in
+   *    from a kilometre away. Throws `OUTSIDE_GEOFENCE` when the
+   *    pin lands outside the effective radius. Set `maxLeewayMeters`
+   *    = 0 on a Geofence to restore the strict pre-2026-08-07
+   *    behaviour.
    *
    * The order is important: accuracy is checked BEFORE the fallback
    * so a spoofed SSID can never grant access from a device that's
@@ -941,9 +957,10 @@ export class AttendanceService {
       longitude: { toNumber: () => number };
       radiusMeters: number;
       maxAccuracyMeters: number | null;
+      maxLeewayMeters: number;
       allowedSsids: string[];
     },
-  ): { distanceMeters: number; via: 'GEOFENCE' | 'WIFI_SSID' } {
+  ): { distanceMeters: number; via: 'GEOFENCE' | 'WIFI_SSID' | 'LEEWAY' } {
     if (geofence.maxAccuracyMeters !== null && dto.accuracyMeters > geofence.maxAccuracyMeters) {
       throw new ForbiddenException({
         statusCode: 403,
@@ -976,10 +993,28 @@ export class AttendanceService {
       return { distanceMeters: result.distanceMeters, via: 'WIFI_SSID' };
     }
 
-    if (!result.inside) {
+    // Fuzzy radius: extend the strict radius by (at most) the
+    // client's reported accuracy uncertainty, bounded by the admin
+    // cap. `Math.max(0, ...)` defends against a legacy `null` or
+    // negative row that somehow escaped the DB default.
+    const leeway = Math.max(
+      0,
+      Math.min(Math.max(0, dto.accuracyMeters), Math.max(0, geofence.maxLeewayMeters)),
+    );
+    const effectiveRadius = geofence.radiusMeters + leeway;
+
+    if (result.distanceMeters > effectiveRadius) {
       throw new ForbiddenException('OUTSIDE_GEOFENCE');
     }
-    return { distanceMeters: result.distanceMeters, via: 'GEOFENCE' };
+
+    // Grant reason surfaces "did the leeway save this clock-in?" to
+    // callers that want to log it. We deliberately don't persist
+    // `via` to the DB — HR can reconstruct the answer from
+    // (distanceMeters, radiusMeters, accuracyMeters, maxLeewayMeters)
+    // stored across AttendanceEvent + Geofence.
+    const via: 'GEOFENCE' | 'LEEWAY' =
+      result.distanceMeters <= geofence.radiusMeters ? 'GEOFENCE' : 'LEEWAY';
+    return { distanceMeters: result.distanceMeters, via };
   }
 
   private assertHrOrSuper(actor: AuthenticatedUser): void {

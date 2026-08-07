@@ -2294,23 +2294,31 @@ Aturan:
 - `allowedSsids`: array (max 10) SSID Wi-Fi. String trim, case-sensitive,
   di-dedupe server-side. Bila client mengirim `wifiSsid` yang cocok →
   bypass distance check. Hanya mobile app yang bisa mengirim SSID.
+- `maxLeewayMeters ∈ [0, 500]` — cap "fuzzy radius" leeway. Server
+  menerima clock-in jika `distance ≤ radiusMeters + min(accuracyMeters, maxLeewayMeters)`.
+  Default **50 m** (indoor drift Jakarta CBD). Set `0` untuk mode
+  strict circle-membership (perilaku sebelum 2026-08-07). Slack
+  dibatasi oleh akurasi yang dilaporkan device, jadi device dengan
+  GPS bagus (`accuracyMeters ≈ 5m`) tetap menghadapi check ketat.
 - Delete guard: `_count.shifts > 0` (non-deleted) → `409 GEOFENCE_IN_USE_BY_SHIFT`. Lepas
   dulu geofence dari Shift terkait sebelum menghapus.
 - Attendance historis tidak terpengaruh (nilai `distanceMeters` sudah didenormalisasi
-  pada `AttendanceEvent`). Bahkan saat clock-in lolos lewat SSID fallback, `distanceMeters`
-  tetap merekam jarak sebenarnya dari pusat geofence untuk kepentingan health dashboard.
+  pada `AttendanceEvent`). Bahkan saat clock-in lolos lewat SSID fallback atau leeway,
+  `distanceMeters` tetap merekam jarak sebenarnya dari pusat geofence untuk kepentingan
+  health dashboard.
 
 Server-side validation stack di `attendance.service.ts#assertLocationAllowed`:
 
-1. Accuracy budget (jika aktif).
-2. Wi-Fi SSID fallback (jika client kirim SSID valid).
-3. Haversine distance check.
+1. Accuracy budget (jika aktif) — hard reject dengan `WEAK_GPS_ACCURACY`.
+2. Wi-Fi SSID fallback (jika client kirim SSID valid) — bypass distance.
+3. Fuzzy Haversine check — `distance ≤ radiusMeters + min(accuracyMeters, maxLeewayMeters)`.
 
 Urutan 1-sebelum-2 dijaga di test `attendance.service.spec.ts`
-("checks accuracy BEFORE the SSID fallback").
+("checks accuracy BEFORE the SSID fallback"). Fuzzy-radius invariant
+(anti-spoof cap) dijaga oleh test "caps leeway at maxLeewayMeters".
 
 Lihat [ADR-0040](./ADR/ADR-0040-geofence-map-picker-and-tier2-signals.md) untuk keputusan lengkap
-map picker (Leaflet + OpenStreetMap) dan sinyal Tier-2.
+map picker (Leaflet + OpenStreetMap), sinyal Tier-2, dan rasional fuzzy radius (Section 5).
 
 ### 5.5.2 Shift CRUD
 

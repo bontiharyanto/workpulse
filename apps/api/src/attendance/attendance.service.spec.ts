@@ -38,11 +38,17 @@ function buildAssignment(
     geofenceRadius: number;
     maxAccuracyMeters: number | null;
     allowedSsids: string[];
+    maxLeewayMeters: number;
   }> = {},
 ) {
   const radius = overrides.geofenceRadius ?? 150;
   const maxAccuracyMeters = overrides.maxAccuracyMeters ?? null;
   const allowedSsids = overrides.allowedSsids ?? [];
+  // Legacy tests were written before the fuzzy-radius feature and
+  // expect strict circle-membership. Default to `0` here so they
+  // keep passing, and override to a positive value in the new
+  // fuzzy-radius test cases.
+  const maxLeewayMeters = overrides.maxLeewayMeters ?? 0;
   return {
     id: 'ua-1',
     userId: user.id,
@@ -73,6 +79,7 @@ function buildAssignment(
         radiusMeters: radius,
         maxAccuracyMeters,
         allowedSsids,
+        maxLeewayMeters,
         createdAt: new Date(),
         updatedAt: new Date(),
         deletedAt: null,
@@ -312,6 +319,93 @@ describe('AttendanceService.clockIn', () => {
       const payload = (err as ForbiddenException).getResponse() as Record<string, unknown>;
       expect(payload.code).toBe('WEAK_GPS_ACCURACY');
     }
+  });
+
+  // ---- Fuzzy-radius (`maxLeewayMeters`) ---------------------------------
+
+  it('accepts a clock-in slightly outside radius when leeway covers the drift', async () => {
+    // Distance ~200m from centre (`0.0018` lat degrees ≈ 200m at equator),
+    // radius 150m, leeway 100m -> effective radius 250m, accuracy 60m ->
+    // leeway granted = min(60, 100) = 60m, so effective = 210m. Distance
+    // 200m fits. This is the exact indoor-drift scenario the feature
+    // was designed for.
+    prisma.userShiftAssignment.findFirst.mockResolvedValue(
+      buildAssignment({ geofenceRadius: 150, maxLeewayMeters: 100 }) as never,
+    );
+    prisma.attendanceRecord.findUnique.mockResolvedValue(null as never);
+    prisma.$transaction.mockImplementation(async (cb: unknown) => {
+      if (typeof cb !== 'function') throw new Error('expected transactional callback');
+      const tx = mockDeep<PrismaService>();
+      tx.attendanceRecord.create.mockResolvedValue({ id: 'rec-1' } as never);
+      tx.attendanceEvent.create.mockResolvedValue({} as never);
+      tx.auditLog.create.mockResolvedValue({} as never);
+      return (cb as (t: typeof tx) => Promise<unknown>)(tx);
+    });
+
+    await service.clockIn(user, {
+      latitude: jakartaHQ.latitude + 0.0018,
+      longitude: jakartaHQ.longitude,
+      accuracyMeters: 60,
+    });
+  });
+
+  it('still rejects when distance exceeds radius + leeway even with generous leeway', async () => {
+    // Distance ~1km from centre, radius 150, leeway 100 -> effective 250.
+    // No matter how honest the accuracy report is, 1km is beyond the cap.
+    prisma.userShiftAssignment.findFirst.mockResolvedValue(
+      buildAssignment({ geofenceRadius: 150, maxLeewayMeters: 100 }) as never,
+    );
+
+    await expect(
+      service.clockIn(user, {
+        latitude: jakartaHQ.latitude + 0.009,
+        longitude: jakartaHQ.longitude,
+        accuracyMeters: 500,
+      }),
+    ).rejects.toMatchObject({
+      name: 'ForbiddenException',
+      message: 'OUTSIDE_GEOFENCE',
+    });
+  });
+
+  it('caps leeway at maxLeewayMeters — a device claiming garbage accuracy cannot borrow more', async () => {
+    // Distance ~500m, radius 150, leeway cap 50 -> effective radius 200.
+    // Even if the device claims accuracy = 5000m, leeway = min(5000, 50) = 50.
+    // Total 200m < distance 500m -> REJECT. This is the anti-spoof property.
+    prisma.userShiftAssignment.findFirst.mockResolvedValue(
+      buildAssignment({ geofenceRadius: 150, maxLeewayMeters: 50 }) as never,
+    );
+
+    await expect(
+      service.clockIn(user, {
+        latitude: jakartaHQ.latitude + 0.0045, // ~500m north
+        longitude: jakartaHQ.longitude,
+        accuracyMeters: 5000, // Device claims terrible accuracy
+      }),
+    ).rejects.toMatchObject({
+      name: 'ForbiddenException',
+      message: 'OUTSIDE_GEOFENCE',
+    });
+  });
+
+  it('with leeway = 0 behaves exactly like the strict pre-2026-08-07 check', async () => {
+    // Distance ~200m, radius 150, leeway 0 -> effective 150. Distance
+    // outside -> reject regardless of accuracy. This preserves the
+    // legacy behaviour for admins who deliberately opt back into it.
+    prisma.userShiftAssignment.findFirst.mockResolvedValue(
+      buildAssignment({ geofenceRadius: 150, maxLeewayMeters: 0 }) as never,
+    );
+
+    await expect(
+      service.clockIn(user, {
+        latitude: jakartaHQ.latitude + 0.0018,
+        longitude: jakartaHQ.longitude,
+        accuracyMeters: 100, // Honest accuracy — irrelevant when leeway=0
+      }),
+    ).rejects.toMatchObject({
+      name: 'ForbiddenException',
+      message: 'OUTSIDE_GEOFENCE',
+    });
   });
 });
 

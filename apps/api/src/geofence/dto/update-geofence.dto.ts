@@ -45,4 +45,10 @@ export class UpdateGeofenceDto {
   @IsString({ each: true })
   @Length(1, 64, { each: true })
   allowedSsids?: string[];
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(500)
+  maxLeewayMeters?: number;
 }

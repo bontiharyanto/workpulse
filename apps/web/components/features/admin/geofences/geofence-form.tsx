@@ -49,6 +49,7 @@ export function GeofenceForm({ initial, submitting, onSubmit, onCancel }: Props)
       radiusMeters: initial?.radiusMeters ?? 100,
       maxAccuracyMeters: initial?.maxAccuracyMeters ?? null,
       allowedSsids: initial?.allowedSsids ?? [],
+      maxLeewayMeters: initial?.maxLeewayMeters ?? 50,
     },
   });
 
@@ -183,11 +184,26 @@ export function GeofenceForm({ initial, submitting, onSubmit, onCancel }: Props)
         m.
       </p>
 
-      <details className="border-input rounded-md border">
+      <details className="border-input rounded-md border" open>
         <summary className="hover:bg-accent cursor-pointer select-none px-3 py-2 text-sm font-medium">
           Pengaturan lanjutan (opsional)
         </summary>
         <div className="space-y-4 border-t p-4">
+          <LeewayField
+            value={form.watch('maxLeewayMeters') ?? 50}
+            onChange={(v) =>
+              form.setValue('maxLeewayMeters', v, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
+          />
+          {form.formState.errors.maxLeewayMeters ? (
+            <p className="text-destructive text-xs">
+              {form.formState.errors.maxLeewayMeters.message}
+            </p>
+          ) : null}
+
           <AccuracyBudgetField
             value={form.watch('maxAccuracyMeters') ?? null}
             onChange={(v) =>
@@ -224,6 +240,77 @@ export function GeofenceForm({ initial, submitting, onSubmit, onCancel }: Props)
         </Button>
       </div>
     </form>
+  );
+}
+
+/**
+ * Fuzzy-radius leeway cap. Controls how much slack (in meters) the
+ * server grants when comparing `distanceMeters` to `radiusMeters` —
+ * bounded by the device's own reported `accuracyMeters`. Default 50
+ * matches typical Jakarta CBD indoor drift; 0 restores the strict
+ * pre-2026-08-07 check.
+ *
+ * Rendered as a slider so admins immediately grasp the trade-off
+ * (small = strict, large = permissive). Numeric input mirrors the
+ * slider for keyboard users.
+ */
+function LeewayField({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+}): JSX.Element {
+  const preset =
+    value === 0 ? 'strict' : value <= 30 ? 'tight' : value <= 100 ? 'balanced' : 'permissive';
+  const presetLabel: Record<typeof preset, string> = {
+    strict: 'Strict (persis di dalam radius)',
+    tight: 'Ketat',
+    balanced: 'Seimbang (direkomendasikan)',
+    permissive: 'Longgar (untuk gedung indoor GPS jelek)',
+  };
+  return (
+    <div className="space-y-2">
+      <div className="flex items-baseline justify-between">
+        <Label htmlFor="geofence-leeway" className="text-sm font-normal">
+          Toleransi drift GPS (leeway)
+        </Label>
+        <span className="text-muted-foreground text-xs tabular-nums">
+          {value} m · {presetLabel[preset]}
+        </span>
+      </div>
+      <p className="text-muted-foreground text-xs">
+        Karena GPS indoor sering meleset 30–200 m, server menerima clock-in jika titik ada dalam{' '}
+        <code>radius + min(akurasi, leeway)</code>. Set <code>0</code> untuk memaksa titik persis di
+        dalam radius (perilaku lama). Nilai lebih besar mengurangi false-reject di gedung CBD tapi
+        memperluas area yang bisa clock-in.
+      </p>
+      <div className="flex items-center gap-3">
+        <input
+          id="geofence-leeway"
+          type="range"
+          min={0}
+          max={500}
+          step={10}
+          value={value}
+          onChange={(e) => onChange(Number.parseInt(e.target.value, 10))}
+          className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-200 accent-sky-600"
+        />
+        <Input
+          type="number"
+          step="1"
+          min="0"
+          max="500"
+          value={value}
+          onChange={(e) => {
+            const parsed = Number.parseInt(e.target.value, 10);
+            onChange(Number.isFinite(parsed) ? Math.max(0, Math.min(500, parsed)) : 0);
+          }}
+          className="w-20 tabular-nums"
+        />
+        <span className="text-muted-foreground text-xs">m</span>
+      </div>
+    </div>
   );
 }
 

@@ -1,6 +1,7 @@
 # ADR-0040 — Geofence map picker (OSM) & Tier-2 attendance signals
 
 **Status:** Accepted — 2026-08-06
+**Revised:** 2026-08-07 (+ Section 5 fuzzy radius)
 **Deciders:** Platform, HR Product
 **Supersedes:** —
 **Superseded by:** —
@@ -91,6 +92,61 @@ We still compute `distanceMeters` in every branch so
 ADR-0011 — carries a meaningful value for the Geofence Health
 dashboard (deferred, see Consequences).
 
+### 5. Fuzzy radius (Tier 2, revision 2026-08-07)
+
+**Problem observed post-launch:** in Jakarta CBD towers, indoor GPS
+routinely drifts 30–200 m. The strict `distance <= radius` check
+introduced in section 1 rejects legitimate clock-ins from users who
+are demonstrably in the office — screenshots showed users lit up on
+the map inside the fence yet `distanceMeters` reported 180 m against
+a 100 m radius. Widening every geofence to 300+ m to compensate
+weakens the whole system for outdoor / rural sites where 50 m radii
+work fine.
+
+**Decision:** Extend the strict check to a "fuzzy radius" bounded by
+device-reported GPS uncertainty, with an admin-set cap:
+
+```
+effectiveRadius = radiusMeters + min(accuracyMeters, maxLeewayMeters)
+```
+
+Add `Geofence.maxLeewayMeters: Int NOT NULL DEFAULT 50` (range
+0–500). Existing rows migrate to `50` (industry-standard indoor
+tolerance in Jakarta CBD). Set `0` to restore the strict
+pre-2026-08-07 behaviour on a per-geofence basis.
+
+**Why bounded by `accuracyMeters` and not a fixed slack?** A device
+honestly reporting `accuracyMeters ≈ 5 m` should still face the
+strict check — someone with a clean GPS fix outside the radius is
+outside. Only devices experiencing real uncertainty get the slack.
+This is the industry-standard approach used by Deputy, Homebase,
+and When I Work.
+
+**Why the `maxLeewayMeters` cap?** Without it, a spoofed
+`accuracyMeters: 5000` would let anyone walk in from 5 km. The cap
+puts a hard ceiling on the exploit surface. Combined with
+`maxAccuracyMeters` (section 3) which rejects the request outright
+at high uncertainty, the two form a defence-in-depth pair:
+
+- `maxAccuracyMeters` — "we don't trust your fix at all"
+- `maxLeewayMeters` — "we trust your fix but with a ceiling on how
+  much slack it can buy"
+
+**Check ordering (updated):**
+
+1. Accuracy budget (`WEAK_GPS_ACCURACY` if exceeded — early reject).
+2. Wi-Fi SSID fallback (if configured & matching — bypass distance).
+3. Fuzzy distance check (`OUTSIDE_GEOFENCE` if `distance > radius + leeway`).
+
+**Persisted state:** we deliberately do NOT add a `via` column to
+`AttendanceEvent`. HR can reconstruct whether leeway was used by
+comparing the already-stored `AttendanceEvent.distanceMeters` to the
+geofence's `radiusMeters`. Adding a column would double schema churn
+for a value derivable from data already at hand.
+
+**Rollback path:** set `Geofence.maxLeewayMeters = 0` on any tenant
+that dislikes the new behaviour. No code deploy needed.
+
 ## Alternatives considered
 
 - **Polygon geofences (PostGIS)** — deferred to Tier 3. Circle
@@ -138,6 +194,7 @@ dashboard (deferred, see Consequences).
 ## References
 
 - `apps/api/prisma/migrations/20260806084142_add_geofence_accuracy_and_ssid/migration.sql`
+- `apps/api/prisma/migrations/20260807070640_add_geofence_max_leeway/migration.sql`
 - `apps/web/components/features/admin/geofences/geofence-map-picker.tsx`
 - `apps/api/src/attendance/attendance.service.ts` (`assertLocationAllowed`)
 - ADR-0011 (denormalised `AttendanceEvent.distanceMeters`)

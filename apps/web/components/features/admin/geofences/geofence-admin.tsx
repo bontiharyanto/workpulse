@@ -141,6 +141,21 @@ export function GeofenceAdmin(): JSX.Element {
                     <td className="px-3 py-2 text-right tabular-nums">{r.radiusMeters}</td>
                     <td className="px-3 py-2">
                       <div className="flex flex-wrap gap-1">
+                        {r.maxLeewayMeters > 0 ? (
+                          <span
+                            className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-900"
+                            title={`Server menerima clock-in dalam radius + min(akurasi, ${r.maxLeewayMeters}m). Set 0 untuk mode strict.`}
+                          >
+                            Leeway {r.maxLeewayMeters}m
+                          </span>
+                        ) : (
+                          <span
+                            className="rounded bg-neutral-200 px-1.5 py-0.5 text-[10px] font-medium text-neutral-700"
+                            title="Strict: titik harus persis di dalam radius (leeway 0)."
+                          >
+                            Strict
+                          </span>
+                        )}
                         {r.maxAccuracyMeters !== null ? (
                           <span
                             className="bg-info/10 text-info rounded px-1.5 py-0.5 text-[10px] font-medium"
@@ -156,9 +171,6 @@ export function GeofenceAdmin(): JSX.Element {
                           >
                             Wi-Fi × {r.allowedSsids.length}
                           </span>
-                        ) : null}
-                        {r.maxAccuracyMeters === null && r.allowedSsids.length === 0 ? (
-                          <span className="text-muted-foreground text-[10px]">—</span>
                         ) : null}
                       </div>
                     </td>
