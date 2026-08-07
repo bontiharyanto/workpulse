@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Prisma, SecurityPolicy } from '@prisma/client';
+import { LOCATION_SHARING_CONSENT_COPY } from '@workpulse/shared-types';
 
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -26,8 +27,19 @@ import { PrismaService } from '../prisma/prisma.service';
  * the DB is authoritative — flipping the env has no effect until the
  * row is deleted.
  */
+export type SecurityPolicyLocationSharingAction =
+  | {
+      action: 'ENABLE';
+      /** APPROVED DpiaAssessment.id for activity=LOCATION_SHARING. */
+      dpiaId: string;
+      /** SHA-256 hex digest of the consent copy the tenant approved. */
+      consentCopySha: string;
+    }
+  | { action: 'DISABLE' };
+
 export interface SecurityPolicyUpdate {
   mfaEnforceHighPrivileged?: boolean;
+  locationSharing?: SecurityPolicyLocationSharingAction;
 }
 
 interface CachedPolicy {
@@ -103,6 +115,22 @@ export class SecurityPolicyService {
       return this.getForCompany(actor.companyId);
     }
 
+    // Location-sharing ENABLE requires an APPROVED DPIA whose parent
+    // ROPA activity slug is `location-sharing` AND a fresh consent
+    // copy SHA. Validate BEFORE the transaction so we don't roll back
+    // for input errors — cheaper on the DB and cleaner error surface.
+    let locationSharingPayload: Prisma.SecurityPolicyUpdateInput | null = null;
+    if (input.locationSharing?.action === 'ENABLE') {
+      locationSharingPayload = await this.validateLocationSharingEnable(actor, input.locationSharing);
+    } else if (input.locationSharing?.action === 'DISABLE') {
+      locationSharingPayload = {
+        locationSharingEnabled: false,
+        // Preserve `locationSharingEnabledAt / By / DpiaId /
+        // ConsentCopySha` so the "was-ever-enabled" audit answer
+        // survives (ADR-0041 §Rollout gate).
+      };
+    }
+
     const updated = await this.prisma.$transaction(async (tx) => {
       // Ensure the row exists so the update below never surprises with P2025.
       const before = await tx.securityPolicy.upsert({
@@ -114,27 +142,50 @@ export class SecurityPolicyService {
         update: {},
       });
 
+      const patch: Prisma.SecurityPolicyUpdateInput = {
+        updatedBy: { connect: { id: actor.id } },
+      };
+      if (input.mfaEnforceHighPrivileged !== undefined) {
+        patch.mfaEnforceHighPrivileged = input.mfaEnforceHighPrivileged;
+      }
+      if (locationSharingPayload) {
+        Object.assign(patch, locationSharingPayload);
+      }
+
       const row = await tx.securityPolicy.update({
         where: { companyId: actor.companyId },
-        data: {
-          ...input,
-          updatedById: actor.id,
-        },
+        data: patch,
       });
+
+      const beforeJson: Record<string, unknown> = {
+        mfaEnforceHighPrivileged: before.mfaEnforceHighPrivileged,
+      };
+      const afterJson: Record<string, unknown> = {
+        mfaEnforceHighPrivileged: row.mfaEnforceHighPrivileged,
+      };
+      if (input.locationSharing) {
+        beforeJson.locationSharingEnabled = before.locationSharingEnabled;
+        afterJson.locationSharingEnabled = row.locationSharingEnabled;
+        if (input.locationSharing.action === 'ENABLE') {
+          afterJson.locationSharingDpiaId = row.locationSharingDpiaId;
+          afterJson.locationSharingConsentCopySha = row.locationSharingConsentCopySha;
+        }
+      }
 
       await tx.auditLog.create({
         data: {
           companyId: actor.companyId,
           actorId: actor.id,
-          action: 'SECURITY_POLICY_UPDATED',
+          action:
+            input.locationSharing?.action === 'ENABLE'
+              ? 'LOCATION_SHARING_ENABLED'
+              : input.locationSharing?.action === 'DISABLE'
+              ? 'LOCATION_SHARING_DISABLED'
+              : 'SECURITY_POLICY_UPDATED',
           entityType: 'SecurityPolicy',
           entityId: row.id,
-          beforeJson: {
-            mfaEnforceHighPrivileged: before.mfaEnforceHighPrivileged,
-          } as Prisma.InputJsonValue,
-          afterJson: {
-            mfaEnforceHighPrivileged: row.mfaEnforceHighPrivileged,
-          } as Prisma.InputJsonValue,
+          beforeJson: beforeJson as Prisma.InputJsonValue,
+          afterJson: afterJson as Prisma.InputJsonValue,
         },
       });
 
@@ -147,8 +198,48 @@ export class SecurityPolicyService {
     this.cache.delete(actor.companyId);
 
     this.logger.log(
-      `security policy updated companyId=${actor.companyId} actor=${actor.id} mfaEnforceHighPrivileged=${updated.mfaEnforceHighPrivileged}`,
+      `security policy updated companyId=${actor.companyId} actor=${actor.id} mfaEnforce=${updated.mfaEnforceHighPrivileged} locationSharing=${updated.locationSharingEnabled}`,
     );
     return updated;
+  }
+
+  /**
+   * Server-side gate for the location-sharing enable flip. Rejects:
+   *
+   *   - Missing DPIA row (404).
+   *   - DPIA belongs to another tenant (404 — do not leak).
+   *   - DPIA is not APPROVED (400).
+   *   - DPIA's parent RopaActivity slug is not `location-sharing`
+   *     (400) — this ensures the DPIA that gates the flip was
+   *     actually scoped to this feature, not a random other DPIA
+   *     the tenant happens to have approved.
+   *   - Consent copy SHA is not the current in-repo value (400).
+   */
+  private async validateLocationSharingEnable(
+    actor: { id: string; companyId: string },
+    input: Extract<SecurityPolicyLocationSharingAction, { action: 'ENABLE' }>,
+  ): Promise<Prisma.SecurityPolicyUpdateInput> {
+    if (input.consentCopySha !== LOCATION_SHARING_CONSENT_COPY.id) {
+      throw new BadRequestException('CONSENT_COPY_STALE');
+    }
+    const dpia = await this.prisma.dpiaAssessment.findFirst({
+      where: {
+        id: input.dpiaId,
+        companyId: actor.companyId,
+      },
+      include: { ropaActivity: { select: { slug: true } } },
+    });
+    if (!dpia) throw new NotFoundException('DPIA_NOT_FOUND');
+    if (dpia.status !== 'APPROVED') throw new BadRequestException('DPIA_NOT_APPROVED');
+    if (dpia.ropaActivity.slug !== 'location-sharing') {
+      throw new BadRequestException('DPIA_ACTIVITY_MISMATCH');
+    }
+    return {
+      locationSharingEnabled: true,
+      locationSharingEnabledAt: new Date(),
+      locationSharingEnabledBy: { connect: { id: actor.id } },
+      locationSharingDpia: { connect: { id: dpia.id } },
+      locationSharingConsentCopySha: input.consentCopySha,
+    };
   }
 }

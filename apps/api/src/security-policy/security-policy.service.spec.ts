@@ -132,7 +132,10 @@ describe('SecurityPolicyService.update', () => {
         where: { companyId: 'c-1' },
         data: expect.objectContaining({
           mfaEnforceHighPrivileged: true,
-          updatedById: 'u-1',
+          // ADR-0041 rework: `updatedById` now flows via a relation
+          // connect so Prisma handles the FK integrity + audit-log
+          // consistency.
+          updatedBy: { connect: { id: 'u-1' } },
         }),
       }),
     );
@@ -174,5 +177,174 @@ describe('SecurityPolicyService.update', () => {
     const fresh = await service.getForCompany('c-1');
     expect(fresh.mfaEnforceHighPrivileged).toBe(true);
     expect(prisma.securityPolicy.findUnique).toHaveBeenCalledTimes(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ADR-0041 — location-sharing enable/disable gate
+// ---------------------------------------------------------------------------
+
+describe('SecurityPolicyService.update — location sharing (ADR-0041)', () => {
+  const CURRENT_SHA = require('@workpulse/shared-types').LOCATION_SHARING_CONSENT_COPY.id;
+
+  it('rejects ENABLE with a stale consent copy SHA', async () => {
+    const { service } = buildKit();
+    await expect(
+      service.update(
+        { id: 'u-1', companyId: 'c-1', role: 'SUPER_ADMIN' },
+        {
+          locationSharing: {
+            action: 'ENABLE',
+            dpiaId: 'd-1',
+            consentCopySha: '0'.repeat(64),
+          },
+        },
+      ),
+    ).rejects.toMatchObject({ message: 'CONSENT_COPY_STALE' });
+  });
+
+  it('rejects ENABLE when the DPIA is not found in the tenant', async () => {
+    const { service, prisma } = buildKit();
+    prisma.dpiaAssessment.findFirst.mockResolvedValue(null);
+    await expect(
+      service.update(
+        { id: 'u-1', companyId: 'c-1', role: 'SUPER_ADMIN' },
+        {
+          locationSharing: {
+            action: 'ENABLE',
+            dpiaId: 'd-missing',
+            consentCopySha: CURRENT_SHA,
+          },
+        },
+      ),
+    ).rejects.toMatchObject({ message: 'DPIA_NOT_FOUND' });
+  });
+
+  it('rejects ENABLE when the DPIA is not APPROVED', async () => {
+    const { service, prisma } = buildKit();
+    prisma.dpiaAssessment.findFirst.mockResolvedValue({
+      id: 'd-1',
+      status: 'DRAFT',
+      ropaActivity: { slug: 'location-sharing' },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    await expect(
+      service.update(
+        { id: 'u-1', companyId: 'c-1', role: 'SUPER_ADMIN' },
+        {
+          locationSharing: { action: 'ENABLE', dpiaId: 'd-1', consentCopySha: CURRENT_SHA },
+        },
+      ),
+    ).rejects.toMatchObject({ message: 'DPIA_NOT_APPROVED' });
+  });
+
+  it('rejects ENABLE when the DPIA is for a different activity slug', async () => {
+    const { service, prisma } = buildKit();
+    prisma.dpiaAssessment.findFirst.mockResolvedValue({
+      id: 'd-1',
+      status: 'APPROVED',
+      ropaActivity: { slug: 'attendance-geofencing' },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    await expect(
+      service.update(
+        { id: 'u-1', companyId: 'c-1', role: 'SUPER_ADMIN' },
+        {
+          locationSharing: { action: 'ENABLE', dpiaId: 'd-1', consentCopySha: CURRENT_SHA },
+        },
+      ),
+    ).rejects.toMatchObject({ message: 'DPIA_ACTIVITY_MISMATCH' });
+  });
+
+  it('happy path: ENABLE emits LOCATION_SHARING_ENABLED audit with the DPIA id + SHA', async () => {
+    const { service, prisma } = buildKit();
+    prisma.dpiaAssessment.findFirst.mockResolvedValue({
+      id: 'd-1',
+      status: 'APPROVED',
+      ropaActivity: { slug: 'location-sharing' },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+
+    const before = makePolicy();
+    const after = makePolicy({
+      locationSharingEnabled: true,
+      locationSharingDpiaId: 'd-1',
+      locationSharingConsentCopySha: CURRENT_SHA,
+    });
+    const tx = mockDeep<PrismaService>();
+    tx.securityPolicy.upsert.mockResolvedValue(before);
+    tx.securityPolicy.update.mockResolvedValue(after);
+    tx.auditLog.create.mockResolvedValue({} as never);
+    prisma.$transaction.mockImplementation(async (cb: unknown) => {
+      if (typeof cb !== 'function') throw new Error('transaction expected a callback');
+      return (cb as (t: typeof tx) => Promise<SecurityPolicy>)(tx);
+    });
+
+    const result = await service.update(
+      { id: 'u-1', companyId: 'c-1', role: 'SUPER_ADMIN' },
+      { locationSharing: { action: 'ENABLE', dpiaId: 'd-1', consentCopySha: CURRENT_SHA } },
+    );
+
+    expect(result.locationSharingEnabled).toBe(true);
+    expect(tx.auditLog.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          action: 'LOCATION_SHARING_ENABLED',
+          afterJson: expect.objectContaining({
+            locationSharingEnabled: true,
+            locationSharingDpiaId: 'd-1',
+            locationSharingConsentCopySha: CURRENT_SHA,
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('DISABLE keeps the historical dpiaId + enabledAt (regulator "was-ever-enabled" trace)', async () => {
+    const { service, prisma } = buildKit();
+
+    const before = makePolicy({
+      locationSharingEnabled: true,
+      locationSharingEnabledAt: new Date('2026-08-07T00:00:00Z'),
+      locationSharingDpiaId: 'd-1',
+    });
+    const tx = mockDeep<PrismaService>();
+    tx.securityPolicy.upsert.mockResolvedValue(before);
+    tx.securityPolicy.update.mockResolvedValue(
+      makePolicy({
+        locationSharingEnabled: false,
+        // Same fields preserved
+        locationSharingEnabledAt: before.locationSharingEnabledAt,
+        locationSharingDpiaId: before.locationSharingDpiaId,
+      }),
+    );
+    tx.auditLog.create.mockResolvedValue({} as never);
+    prisma.$transaction.mockImplementation(async (cb: unknown) => {
+      if (typeof cb !== 'function') throw new Error('transaction expected a callback');
+      return (cb as (t: typeof tx) => Promise<SecurityPolicy>)(tx);
+    });
+
+    await service.update(
+      { id: 'u-1', companyId: 'c-1', role: 'SUPER_ADMIN' },
+      { locationSharing: { action: 'DISABLE' } },
+    );
+
+    const updateCall = tx.securityPolicy.update.mock.calls[0];
+    if (!updateCall) throw new Error('expected update to be called');
+    // Update patch should NOT clear the audit fields — only flip the
+    // boolean.
+    expect(updateCall[0].data).toEqual(
+      expect.objectContaining({ locationSharingEnabled: false }),
+    );
+    expect(updateCall[0].data).not.toHaveProperty('locationSharingEnabledAt');
+    expect(updateCall[0].data).not.toHaveProperty('locationSharingDpia');
+
+    expect(tx.auditLog.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          action: 'LOCATION_SHARING_DISABLED',
+        }),
+      }),
+    );
   });
 });
