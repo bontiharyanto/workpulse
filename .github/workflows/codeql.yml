@@ -39,7 +39,7 @@ jobs:
         language: [javascript-typescript]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # No pnpm/build step needed — CodeQL for JS/TS runs on source, not
       # transpiled output. We still init pnpm so the `security-and-quality`
