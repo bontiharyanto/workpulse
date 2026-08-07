@@ -289,6 +289,71 @@ export const envValidationSchema = z
      * reads/writes to `BreachIncident` are always safe. Default `true`.
      */
     BREACH_REMINDER_WORKER_ENABLED: z.enum(['true', 'false']).default('true'),
+
+    // ---- Self-hosted maps (ADR-0042, Track 3) --------------------------------
+    /**
+     * Master kill switch for the `/maps/*` module. When `false`, every
+     * map endpoint returns 503 `MAPS_DISABLED` — used for the phased
+     * rollout described in ADR-0042 §Rollout plan (Phase 1 ships the
+     * code disabled; Phase 2 ops flips this to `true` after seeding
+     * the `MAPS_TILES_BUCKET`). Default `false` so a fresh deploy
+     * does not render broken maps to end users.
+     */
+    MAPS_ENABLED: z.enum(['true', 'false']).default('false'),
+    /**
+     * Name of the MinIO / S3 bucket holding the PMTiles archive +
+     * glyphs + sprites. Kept separate from `S3_BUCKET` (attachments)
+     * so the two have independent retention / rotation stories.
+     */
+    MAPS_TILES_BUCKET: z.string().default('workpulse-maptiles'),
+    /**
+     * Object key of the PMTiles archive inside `MAPS_TILES_BUCKET`.
+     * Ops swaps this key when publishing a new archive (typical
+     * pattern: upload `indonesia.2026-08.pmtiles` alongside the
+     * live one, verify, then repoint this env — atomic switch).
+     */
+    MAPS_PMTILES_KEY: z.string().default('indonesia.pmtiles'),
+    /**
+     * Prefix for the PBF glyphs directory in the bucket. Ends with
+     * `/`. Requests to `/maps/glyphs/{fontstack}/{range}.pbf` are
+     * translated to `<prefix>{fontstack}/{range}.pbf`.
+     */
+    MAPS_GLYPHS_PREFIX: z.string().default('glyphs/'),
+    /**
+     * Prefix for the sprite directory in the bucket. Ends with `/`.
+     * Requests to `/maps/sprites/{name}.{ext}` map to
+     * `<prefix>{name}.{ext}`.
+     */
+    MAPS_SPRITES_PREFIX: z.string().default('sprites/'),
+    /**
+     * Upstream Nominatim base URL for `/maps/geocode`. Defaults to
+     * the public OSM service. Rebrand-worthy — some tenants may
+     * front their own geocoder here. `getForCompany`-style
+     * per-tenant overrides are out of scope for this ADR.
+     */
+    MAPS_GEOCODE_UPSTREAM: z
+      .string()
+      .url()
+      .default('https://nominatim.openstreetmap.org'),
+    /**
+     * `User-Agent` string sent to the geocoder upstream. Required
+     * by Nominatim's AUP — anonymous requests are throttled or
+     * blocked. Include a contact email so upstream ops can reach
+     * us if we cause a problem.
+     */
+    MAPS_GEOCODE_USER_AGENT: z.string().default('Workpulse/1.0'),
+    /**
+     * Max queries per second the API sends to the upstream geocoder.
+     * Default `1` matches Nominatim's AUP; raise when self-hosting
+     * or using a paid geocoder that allows more.
+     */
+    MAPS_GEOCODE_QPS: z.coerce.number().int().min(1).max(50).default(1),
+    /**
+     * TTL for the in-memory geocode result cache. Aggressive default
+     * (24h) because address lookups are highly cacheable and the
+     * cost of a stale result is very low.
+     */
+    MAPS_GEOCODE_CACHE_TTL_S: z.coerce.number().int().min(60).max(604_800).default(86_400),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === 'production' && env.THROTTLER_DISABLED === 'true') {
