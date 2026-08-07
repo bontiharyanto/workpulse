@@ -72,16 +72,17 @@ function buildCsp(opts: {
     ? [nonceSource, "'strict-dynamic'"]
     : [nonceSource, "'strict-dynamic'", "'unsafe-eval'"];
 
-  // OpenStreetMap raster tile CDN + Nominatim search endpoint. Both
-  // are free and require no API key; attribution is displayed on the
-  // map card as mandated by the ODbL license. If we ever migrate to
-  // a paid tile provider, replace these origins.
+  // ADR-0042 (Track 3) tightening: all map traffic — tiles, glyphs,
+  // sprites, style JSON, geocoding — is now proxied by our own API
+  // at `${apiUrl}/api/v1/maps/*` (same-origin as far as CSP is
+  // concerned, granted by `connect-src ${apiUrl}` below). The
+  // previous per-host allowlist for `tile.openstreetmap.org` and
+  // `nominatim.openstreetmap.org` has been removed. See
+  // `docs/ADR/ADR-0042-self-hosted-map-tiles.md`.
   //
-  // Wildcard `*.tile.openstreetmap.org` covers a.tile / b.tile /
-  // c.tile subdomains which Leaflet round-robins to avoid connection
-  // limits on a single host.
-  const osmTileOrigin = 'https://*.tile.openstreetmap.org';
-  const osmNominatimOrigin = 'https://nominatim.openstreetmap.org';
+  // `img-src` keeps `data:` and `blob:` for MapLibre GL's canvas
+  // fallback and sprite atlas decoding respectively; MapLibre also
+  // uses `worker-src blob:` on browsers where it renders offscreen.
 
   const directives: Record<string, string[] | undefined> = {
     'default-src': [self],
@@ -89,7 +90,7 @@ function buildCsp(opts: {
     'font-src': [self, 'data:'],
     'form-action': [self],
     'frame-ancestors': ["'none'"],
-    'img-src': [self, 'data:', 'blob:', osmTileOrigin],
+    'img-src': [self, 'data:', 'blob:'],
     'object-src': ["'none'"],
     // Style is kept `'unsafe-inline'` because Tailwind emits many
     // small inline `style` attributes at build time and Next's dev
@@ -97,7 +98,12 @@ function buildCsp(opts: {
     // build-side hash pipeline — deferred.
     'style-src': [self, "'unsafe-inline'"],
     'script-src': scriptSrc,
-    'connect-src': [self, opts.apiUrl, osmNominatimOrigin, ...(opts.isProd ? [] : ['ws:'])],
+    // MapLibre spawns a Web Worker from a `blob:` URL to keep tile
+    // parsing off the main thread. Without `worker-src blob:` the
+    // worker fails and the map falls back to synchronous parsing
+    // that stalls large pans.
+    'worker-src': [self, 'blob:'],
+    'connect-src': [self, opts.apiUrl, ...(opts.isProd ? [] : ['ws:'])],
     'manifest-src': [self],
     ...(opts.isProd && opts.isHttpsDeployment ? { 'upgrade-insecure-requests': [] } : {}),
   };

@@ -104,7 +104,9 @@ services:
       mc alias set local http://minio:9000 workpulse workpulse-secret &&
       mc mb --ignore-existing local/workpulse &&
       mc anonymous set none local/workpulse &&
-      echo 'MinIO bucket ready: workpulse'
+      mc mb --ignore-existing local/workpulse-maptiles &&
+      mc anonymous set none local/workpulse-maptiles &&
+      echo 'MinIO buckets ready: workpulse, workpulse-maptiles (empty; seed via docs/OPS/MAP-BOOTSTRAP.md)'
       "
     restart: "no"
 

@@ -16,11 +16,14 @@ export const metadata: Metadata = {
  * notification when the coord is fetched (see ADR-0041 §Notifications
  * — every view notifies the target).
  */
-export default function LocationRequestDetailPage({
+export default async function LocationRequestDetailPage({
   params,
 }: {
-  params: { id: string };
-}): JSX.Element {
+  // Next.js 15 dynamic-segment `params` is a Promise — await once at
+  // the top of the server component; the panel expects a plain string.
+  params: Promise<{ id: string }>;
+}): Promise<JSX.Element> {
+  const { id } = await params;
   return (
     <RequireAuth>
       <div className="mx-auto max-w-3xl">
@@ -28,7 +31,7 @@ export default function LocationRequestDetailPage({
           title="Detail permintaan lokasi"
           description="Membuka halaman ini akan memberi tahu karyawan bahwa Anda melihat koordinat mereka. Setiap akses tercatat di audit log."
         />
-        <LocationRequestSupervisorDetail requestId={params.id} />
+        <LocationRequestSupervisorDetail requestId={id} />
       </div>
     </RequireAuth>
   );

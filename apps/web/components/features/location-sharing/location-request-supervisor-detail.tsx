@@ -12,15 +12,17 @@
  *
  * # Map
  *
- * We render coord as text + a low-key OSM link rather than an inline
- * MapLibre map — the PMTiles work (Track 3) is scoped separately.
- * That keeps this PR small; adding a map here is a trivial follow-up.
+ * ADR-0042 (Track 3): the coordinate card now embeds an inline
+ * MapLibre preview served by our own `/maps/*` endpoints. No more
+ * out-links to openstreetmap.org — HR can eyeball the ping in
+ * situ without leaking the coord to a third-party host.
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { LocationShareRequestDto } from '@workpulse/shared-types';
-import { AlertTriangle, ArrowLeft, Ban, ExternalLink, MapPin } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Ban, MapPin } from 'lucide-react';
 import type { Route } from 'next';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useState, type JSX } from 'react';
 
@@ -40,6 +42,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ApiError, locationSharingApi } from '@/lib/api-client';
+
+// MapLibre touches `window` on import — dynamic import with SSR
+// disabled keeps it out of the server bundle.
+const InlineMapPreview = dynamic(
+  () => import('@/components/features/maps/inline-map-preview').then((m) => m.InlineMapPreview),
+  { ssr: false, loading: () => <div className="bg-muted h-[220px] w-full animate-pulse rounded-md" /> },
+);
 
 const dateFormatter = new Intl.DateTimeFormat('id-ID', {
   dateStyle: 'long',
@@ -174,16 +183,11 @@ export function LocationRequestSupervisorDetail({
                     <dd className="tabular-nums">±{req.ping.accuracyMeters} m</dd>
                   </div>
                 </dl>
-                <Button variant="outline" size="sm" asChild>
-                  <a
-                    href={`https://www.openstreetmap.org/?mlat=${req.ping.latitude}&mlon=${req.ping.longitude}#map=17/${req.ping.latitude}/${req.ping.longitude}`}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                  >
-                    <ExternalLink className="mr-1 h-3.5 w-3.5" />
-                    Buka di OpenStreetMap
-                  </a>
-                </Button>
+                <InlineMapPreview
+                  latitude={req.ping.latitude}
+                  longitude={req.ping.longitude}
+                  ariaLabel={`Peta lokasi ${req.targetUserName} pada ${req.ping.latitude.toFixed(5)}, ${req.ping.longitude.toFixed(5)}`}
+                />
               </CardContent>
             </Card>
           ) : null}
