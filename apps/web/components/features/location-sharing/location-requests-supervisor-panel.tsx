@@ -28,7 +28,7 @@ import Link from 'next/link';
 import { useState, type JSX } from 'react';
 
 import { useAuth } from '@/components/providers/auth-provider';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

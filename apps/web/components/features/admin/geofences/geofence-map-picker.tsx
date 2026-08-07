@@ -3,23 +3,21 @@
 /**
  * Interactive map picker for `Geofence` create/edit.
  *
- * Design choices:
+ * # Track 3 rewrite (ADR-0042)
  *
- * - **Leaflet + OpenStreetMap raster tiles** — chosen for zero API-key
- *   management, permissive ODbL license (attribution shown on the
- *   card), and stable coverage of Indonesian cities. Alternative
- *   vendors (Mapbox/Google) can slot in later by swapping only
- *   `<TileLayer>` and the connect-src / img-src CSP entries.
- * - **Nominatim search** for address → coordinate lookup, again OSM
- *   ecosystem. Nominatim's public server enforces 1 req/second per
- *   IP — we debounce keystrokes to 400 ms and only fire on a
- *   completed word/submit to stay under the limit. Heavy users
- *   should self-host or upgrade to a paid geocoder.
- * - **Client-only rendering** — Leaflet accesses `window` on import
- *   so the whole component is loaded with `dynamic({ ssr: false })`
- *   from the form. This file assumes it runs in the browser.
- * - **No polygons** — Tier 1 keeps the model as-is: a single point +
- *   radius. Polygon support is Tier 3.
+ * Replaced the previous Leaflet + OpenStreetMap raster + Nominatim
+ * direct-call implementation with **MapLibre GL JS** talking to the
+ * app's own **`/maps/*`** endpoints. The public props of this
+ * component are unchanged so `geofence-form.tsx` needed no update.
+ *
+ * The design rationale (why self-host, why MapLibre, why proxy the
+ * geocoder) lives in `docs/ADR/ADR-0042-self-hosted-map-tiles.md`.
+ *
+ * # Client-only rendering
+ *
+ * MapLibre touches `window` at import time. The parent form wraps
+ * this file in `next/dynamic({ ssr: false })`, so we can assume a
+ * browser environment here — `useEffect` guards are unnecessary.
  *
  * # Security note
  *
@@ -30,35 +28,28 @@
  * enhancement — it is NEVER trusted for authorization.
  */
 
-import 'leaflet/dist/leaflet.css';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
-import L from 'leaflet';
+import { circle } from '@turf/circle';
 import { Loader2, LocateFixed, Search } from 'lucide-react';
+import * as maplibregl from 'maplibre-gl';
+import type {
+  ErrorEvent,
+  LngLat,
+  Map as MapLibreMap,
+  MapMouseEvent,
+  Marker,
+} from 'maplibre-gl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Circle, MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-
-// Leaflet's default marker icons ship as static asset paths that
-// break under Next.js's static-file pipeline. Rewire them to inline
-// data-URIs sourced from the same package so we don't need any
-// public-file copy step.
-//
-// (`_getIconUrl` is a private hook Leaflet reads at Marker init.)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
-// NOTE: the unpkg URLs above are also allowed in `img-src` via the
-// data:/blob:/self mix (the icons load via <img>, not via fetch(),
-// so the connect-src rule doesn't apply). If your CSP tightens
-// img-src, add `https://unpkg.com`.
+import { ApiError, mapsApi, type GeocodeSearchResult } from '@/lib/api-client';
 
 const DEFAULT_ZOOM = 15;
+const GEOFENCE_SOURCE_ID = 'geofence-radius';
+const GEOFENCE_LAYER_ID = 'geofence-radius-fill';
+const GEOFENCE_OUTLINE_LAYER_ID = 'geofence-radius-outline';
 
 interface Value {
   latitude: number;
@@ -81,17 +72,172 @@ export function GeofenceMapPicker({
   heightPx = 340,
   showControls = true,
 }: Props): JSX.Element {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<MapLibreMap | null>(null);
+  const markerRef = useRef<Marker | null>(null);
+  const valueRef = useRef<Value>(value);
+  const onChangeRef = useRef(onChange);
+  // Keep both callbacks + latest value in refs so the map init
+  // effect runs exactly once. Otherwise React would tear the
+  // MapLibre instance down and up every render.
+  valueRef.current = value;
+  onChangeRef.current = onChange;
+
   const [locating, setLocating] = useState(false);
   const [locateError, setLocateError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
-  const [searchResults, setSearchResults] = useState<NominatimResult[]>([]);
+  const [searchResults, setSearchResults] = useState<GeocodeSearchResult[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [mapLoadError, setMapLoadError] = useState<string | null>(null);
 
-  const center = useMemo<[number, number]>(
-    () => [value.latitude, value.longitude],
-    [value.latitude, value.longitude],
-  );
+  const applyValue = useCallback((next: Value) => {
+    onChangeRef.current(next);
+  }, []);
+
+  const buildGeofenceGeoJSON = useCallback((v: Value) => {
+    // `@turf/circle` needs radius in km. 64 segments is a good
+    // balance between visual smoothness and CPU at pan / zoom.
+    return circle([v.longitude, v.latitude], v.radiusMeters / 1000, {
+      steps: 64,
+      units: 'kilometers',
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const initial = valueRef.current;
+
+    const map = new maplibregl.Map({
+      container: containerRef.current,
+      style: mapsApi.styleUrl(),
+      center: [initial.longitude, initial.latitude],
+      zoom: DEFAULT_ZOOM,
+      // Attribution is baked into the style JSON's `attribution`
+      // field; the built-in control is fine on top of that.
+      attributionControl: { compact: true },
+    });
+    mapRef.current = map;
+
+    map.on('error', (evt: ErrorEvent) => {
+      // Surface upstream issues in the UI rather than swallowing
+      // silently — the most common cause is `MAPS_ENABLED=false`
+      // in a fresh deploy that hasn't had the bootstrap runbook
+      // run yet.
+      const msg =
+        evt.error && 'message' in evt.error
+          ? (evt.error as Error).message
+          : 'Peta gagal dimuat.';
+      // Ignore the noisy per-tile "AbortError" that fires when the
+      // user pans quickly — only surface the top-level style
+      // failure.
+      if (msg.includes('AbortError')) return;
+      setMapLoadError(msg);
+    });
+
+    map.addControl(
+      new maplibregl.NavigationControl({ showCompass: false, visualizePitch: false }),
+      'top-right',
+    );
+
+    map.on('load', () => {
+      // Add the geofence circle as a proper GeoJSON source so it
+      // reprojects correctly at any zoom (as opposed to a
+      // pixel-radius overlay that would drift at the equator vs.
+      // the poles).
+      map.addSource(GEOFENCE_SOURCE_ID, {
+        type: 'geojson',
+        data: buildGeofenceGeoJSON(initial),
+      });
+      map.addLayer({
+        id: GEOFENCE_LAYER_ID,
+        type: 'fill',
+        source: GEOFENCE_SOURCE_ID,
+        paint: {
+          'fill-color': '#0ea5e9',
+          'fill-opacity': 0.15,
+        },
+      });
+      map.addLayer({
+        id: GEOFENCE_OUTLINE_LAYER_ID,
+        type: 'line',
+        source: GEOFENCE_SOURCE_ID,
+        paint: {
+          'line-color': '#0284c7',
+          'line-width': 2,
+        },
+      });
+    });
+
+    // Draggable marker at the current centre. Kept as a Marker
+    // (not a symbol layer) so it can be picked up with a mouse
+    // drag without wrangling MapLibre's own drag-handling.
+    const marker = new maplibregl.Marker({ draggable: true, color: '#0284c7' })
+      .setLngLat([initial.longitude, initial.latitude])
+      .addTo(map);
+    markerRef.current = marker;
+
+    marker.on('dragend', () => {
+      const ll = marker.getLngLat();
+      applyValue({
+        ...valueRef.current,
+        latitude: Number(ll.lat.toFixed(7)),
+        longitude: Number(ll.lng.toFixed(7)),
+      });
+    });
+
+    // Click anywhere on the map = move the pin there.
+    map.on('click', (evt: MapMouseEvent) => {
+      const ll: LngLat = evt.lngLat;
+      applyValue({
+        ...valueRef.current,
+        latitude: Number(ll.lat.toFixed(7)),
+        longitude: Number(ll.lng.toFixed(7)),
+      });
+    });
+
+    return () => {
+      marker.remove();
+      map.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    };
+    // Deliberately empty deps — init once. `applyValue` + the
+    // GeoJSON helper are stable via `useCallback`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep the marker + geofence circle in sync when the parent
+  // updates `value` (from search, "use my location", radius
+  // input, etc.). Cheap: setLngLat + setData don't rerender the
+  // whole map.
+  useEffect(() => {
+    const map = mapRef.current;
+    const marker = markerRef.current;
+    if (!map || !marker) return;
+    marker.setLngLat([value.longitude, value.latitude]);
+    if (map.isStyleLoaded()) {
+      const src = map.getSource(GEOFENCE_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
+      if (src) src.setData(buildGeofenceGeoJSON(value));
+    }
+  }, [value, buildGeofenceGeoJSON]);
+
+  // Re-centre the map when the parent-supplied centre changes by
+  // more than a nudge (avoids jitter loops when the user drags
+  // the marker themselves).
+  const lastCenteredRef = useRef<[number, number]>([value.longitude, value.latitude]);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const [lastLng, lastLat] = lastCenteredRef.current;
+    if (
+      Math.abs(lastLng - value.longitude) > 1e-6 ||
+      Math.abs(lastLat - value.latitude) > 1e-6
+    ) {
+      lastCenteredRef.current = [value.longitude, value.latitude];
+      map.easeTo({ center: [value.longitude, value.latitude], duration: 400 });
+    }
+  }, [value.longitude, value.latitude]);
 
   const handleUseMyLocation = useCallback(() => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
@@ -102,8 +248,8 @@ export function GeofenceMapPicker({
     setLocateError(null);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        onChange({
-          ...value,
+        applyValue({
+          ...valueRef.current,
           latitude: Number(pos.coords.latitude.toFixed(7)),
           longitude: Number(pos.coords.longitude.toFixed(7)),
         });
@@ -121,14 +267,12 @@ export function GeofenceMapPicker({
       },
       { enableHighAccuracy: true, timeout: 10_000, maximumAge: 0 },
     );
-  }, [onChange, value]);
+  }, [applyValue]);
 
   const handleSearch = useCallback(async () => {
     const q = searchQuery.trim();
-    // Must NOT use a nested <form> here — this picker lives inside the
-    // parent GeofenceForm <form>, and nested forms are invalid HTML
-    // (browsers ignore the inner form, so type="submit" submits the
-    // outer create/update form instead of running the search).
+    // Must NOT use a nested <form> — parent GeofenceForm wraps
+    // this component in a <form>; nested forms are invalid HTML.
     if (q.length < 3) {
       setSearchError('Ketik minimal 3 karakter untuk mencari alamat.');
       setSearchResults([]);
@@ -138,46 +282,46 @@ export function GeofenceMapPicker({
     setSearchError(null);
     setSearchResults([]);
     try {
-      // Nominatim usage policy: 1 req/sec. Client-side fetch is allowed
-      // with CORS; keep the request lean (no custom User-Agent — browsers
-      // forbid setting UA from JS).
-      const url = new URL('https://nominatim.openstreetmap.org/search');
-      url.searchParams.set('q', q);
-      url.searchParams.set('format', 'json');
-      url.searchParams.set('limit', '5');
-      url.searchParams.set('countrycodes', 'id'); // Bias to Indonesia
-      url.searchParams.set('accept-language', 'id,en');
-      const res = await fetch(url.toString(), {
-        headers: { Accept: 'application/json' },
-      });
-      if (!res.ok) {
-        throw new Error(
-          res.status === 429
-            ? 'Terlalu banyak pencarian. Tunggu sebentar lalu coba lagi.'
-            : `Pencarian gagal (HTTP ${res.status}).`,
-        );
-      }
-      const data = (await res.json()) as NominatimResult[];
-      setSearchResults(data);
-      if (data.length === 0) setSearchError('Tidak ada hasil untuk kueri ini.');
+      const { results } = await mapsApi.geocode({ query: q, limit: 5, countryCode: 'id' });
+      setSearchResults(results);
+      if (results.length === 0) setSearchError('Tidak ada hasil untuk kueri ini.');
     } catch (err) {
-      setSearchError(err instanceof Error ? err.message : 'Gagal mencari alamat.');
+      if (err instanceof ApiError) {
+        setSearchError(
+          err.code === 'GEOCODE_RATE_LIMITED'
+            ? 'Terlalu banyak pencarian. Tunggu sebentar lalu coba lagi.'
+            : err.code === 'MAPS_DISABLED'
+              ? 'Layanan pencarian belum aktif. Hubungi admin.'
+              : err.message,
+        );
+      } else {
+        setSearchError(err instanceof Error ? err.message : 'Gagal mencari alamat.');
+      }
     } finally {
       setSearchLoading(false);
     }
   }, [searchQuery]);
 
   const handleSearchPick = useCallback(
-    (r: NominatimResult) => {
-      onChange({
-        ...value,
-        latitude: Number(Number.parseFloat(r.lat).toFixed(7)),
-        longitude: Number(Number.parseFloat(r.lon).toFixed(7)),
+    (r: GeocodeSearchResult) => {
+      applyValue({
+        ...valueRef.current,
+        latitude: Number(r.latitude.toFixed(7)),
+        longitude: Number(r.longitude.toFixed(7)),
       });
       setSearchResults([]);
-      setSearchQuery(r.display_name);
+      setSearchQuery(r.displayName);
     },
-    [onChange, value],
+    [applyValue],
+  );
+
+  const helperRows = useMemo(
+    () => [
+      { label: 'Lat', value: value.latitude.toFixed(6) },
+      { label: 'Lng', value: value.longitude.toFixed(6) },
+      { label: 'Radius', value: `${value.radiusMeters} m` },
+    ],
+    [value.latitude, value.longitude, value.radiusMeters],
   );
 
   return (
@@ -194,7 +338,6 @@ export function GeofenceMapPicker({
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    // Prevent parent GeofenceForm submit on Enter.
                     e.preventDefault();
                     void handleSearch();
                   }
@@ -237,17 +380,17 @@ export function GeofenceMapPicker({
           {searchResults.length > 0 ? (
             <ul className="bg-card divide-y rounded-md border text-sm shadow-sm">
               {searchResults.map((r) => (
-                <li key={`${r.lat}-${r.lon}`}>
+                <li key={`${r.latitude}-${r.longitude}-${r.displayName}`}>
                   <button
                     type="button"
                     onClick={() => handleSearchPick(r)}
                     className="hover:bg-accent w-full px-3 py-2 text-left"
                   >
                     <span className="line-clamp-1 font-medium">
-                      {r.display_name.split(',').slice(0, 2).join(', ')}
+                      {r.displayName.split(',').slice(0, 2).join(', ')}
                     </span>
                     <span className="text-muted-foreground line-clamp-1 text-xs">
-                      {r.display_name}
+                      {r.displayName}
                     </span>
                   </button>
                 </li>
@@ -259,105 +402,27 @@ export function GeofenceMapPicker({
         </div>
       ) : null}
 
-      <div className="overflow-hidden rounded-md border" style={{ height: `${heightPx}px` }}>
-        <MapContainer center={center} zoom={DEFAULT_ZOOM} scrollWheelZoom className="h-full w-full">
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap contributors</a>'
-            maxZoom={19}
-          />
-          <RecenterOnValue center={center} />
-          <MapClickToPlace value={value} onChange={onChange} />
-          <Marker
-            position={center}
-            draggable
-            eventHandlers={{
-              dragend: (evt) => {
-                const { lat, lng } = evt.target.getLatLng() as {
-                  lat: number;
-                  lng: number;
-                };
-                onChange({
-                  ...value,
-                  latitude: Number(lat.toFixed(7)),
-                  longitude: Number(lng.toFixed(7)),
-                });
-              },
-            }}
-          />
-          <Circle
-            center={center}
-            radius={value.radiusMeters}
-            pathOptions={{ color: '#0ea5e9', fillOpacity: 0.15 }}
-          />
-        </MapContainer>
+      <div className="relative overflow-hidden rounded-md border" style={{ height: `${heightPx}px` }}>
+        <div ref={containerRef} className="h-full w-full" />
+        {mapLoadError ? (
+          <div className="bg-muted/70 absolute inset-0 flex flex-col items-center justify-center gap-1 p-4 text-center text-sm">
+            <p className="text-destructive font-medium">Peta belum tersedia</p>
+            <p className="text-muted-foreground text-xs">
+              {mapLoadError}. Hubungi admin — lihat runbook{' '}
+              <code className="rounded bg-black/10 px-1">docs/OPS/MAP-BOOTSTRAP.md</code>.
+            </p>
+          </div>
+        ) : null}
       </div>
 
       <div className="text-muted-foreground grid grid-cols-1 gap-2 text-xs md:grid-cols-3">
-        <div>
-          <span className="text-foreground font-medium">Lat:</span>{' '}
-          <span className="tabular-nums">{value.latitude.toFixed(6)}</span>
-        </div>
-        <div>
-          <span className="text-foreground font-medium">Lng:</span>{' '}
-          <span className="tabular-nums">{value.longitude.toFixed(6)}</span>
-        </div>
-        <div>
-          <span className="text-foreground font-medium">Radius:</span>{' '}
-          <span className="tabular-nums">{value.radiusMeters} m</span>
-        </div>
+        {helperRows.map((r) => (
+          <div key={r.label}>
+            <span className="text-foreground font-medium">{r.label}:</span>{' '}
+            <span className="tabular-nums">{r.value}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
-}
-
-/**
- * Imperatively recentres the map when the parent's value changes
- * (e.g. after a template pick or address search). Without this the
- * map keeps its initial centre even after `value` updates.
- */
-function RecenterOnValue({ center }: { center: [number, number] }): null {
-  const map = useMap();
-  const last = useRef<[number, number]>(center);
-
-  useEffect(() => {
-    const [lat, lng] = center;
-    const [prevLat, prevLng] = last.current;
-    if (lat === prevLat && lng === prevLng) return;
-    last.current = center;
-    map.setView(center, map.getZoom(), { animate: true });
-  }, [center, map]);
-
-  return null;
-}
-
-/**
- * Clicking anywhere on the map moves the pin there. Kept as a
- * separate component so Leaflet's hooks (`useMapEvents`) can access
- * the parent `MapContainer` context.
- */
-function MapClickToPlace({
-  value,
-  onChange,
-}: {
-  value: Value;
-  onChange: (next: Value) => void;
-}): null {
-  useMapEvents({
-    click(e) {
-      onChange({
-        ...value,
-        latitude: Number(e.latlng.lat.toFixed(7)),
-        longitude: Number(e.latlng.lng.toFixed(7)),
-      });
-    },
-  });
-  return null;
-}
-
-interface NominatimResult {
-  place_id: number;
-  lat: string;
-  lon: string;
-  display_name: string;
 }

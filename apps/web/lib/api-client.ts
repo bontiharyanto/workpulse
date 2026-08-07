@@ -1659,3 +1659,46 @@ export const analyticsAdminApi = {
     });
   },
 };
+
+/**
+ * ADR-0042 — client for the self-hosted map endpoints.
+ *
+ * The style URL is exposed as a static string (not a `Promise<string>`)
+ * because MapLibre wants a URL, not a JSON blob — it fetches the style
+ * itself through the browser's cache. Do NOT prefetch the style body
+ * here; that would defeat the browser cache.
+ */
+export interface GeocodeSearchResult {
+  displayName: string;
+  latitude: number;
+  longitude: number;
+}
+
+export const mapsApi = {
+  /**
+   * URL to hand to `<Map mapStyle={...}>`. Same-origin — no CSP
+   * allowlist required beyond `NEXT_PUBLIC_API_URL` which is
+   * already granted `connect-src`.
+   */
+  styleUrl: (): string => `${baseUrl()}/api/v1/maps/style.json`,
+
+  /**
+   * Server-side proxied Nominatim search. Authenticated (JWT is
+   * added by `apiRequest`). See ADR-0042 §Backend for rate-limit
+   * semantics.
+   */
+  geocode: (opts: {
+    query: string;
+    limit?: number;
+    countryCode?: string;
+  }): Promise<{ results: GeocodeSearchResult[] }> => {
+    const params = new URLSearchParams();
+    params.set('q', opts.query);
+    if (opts.limit) params.set('limit', String(opts.limit));
+    if (opts.countryCode) params.set('countrycodes', opts.countryCode);
+    return apiRequest<{ results: GeocodeSearchResult[] }>(
+      `/maps/geocode?${params.toString()}`,
+      { method: 'GET' },
+    );
+  },
+};

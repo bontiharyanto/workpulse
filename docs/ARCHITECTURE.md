@@ -71,6 +71,32 @@ orkestrasi transaksi + audit + notifikasi fanout. Retention worker
 purge logic-nya berada di `purgeLocationSharingForCompany` yang bisa
 di-unit-test tanpa Nest scheduler.
 
+### 3.2 Maps Module Boundary (ADR-0042)
+
+Modul `src/maps/` adalah tenant-neutral read-through cache. Ia hanya
+bergantung pada `ConfigService` + kredensial S3 yang sudah diteruskan
+untuk `attachments`. Zero akses DB, zero akses `PrismaService`.
+
+- Depends **on** — hanya env (`MAPS_ENABLED`, `MAPS_TILES_BUCKET`,
+  `MAPS_PMTILES_KEY`, dan varian geocode). Membaca objek `pmtiles`
+  dan glyph/sprite lewat AWS SDK v3.
+- Depended **on by** — belum ada modul lain. FE memakainya langsung
+  via HTTP (`/api/v1/maps/*`) — jangan pernah mengimpor
+  `MapsService` dari service domain lain, karena request tile
+  tidak boleh ikut ke dalam transaksi domain.
+
+Domain helper (`domain/tile-coord.ts`) menangani parsing `z/x/y`,
+fontstack, glyph range, dan sprite asset — semua pure functions
+yang dites terpisah dari service. `S3PMTilesSource` adalah adapter
+tipis: PMTiles library membutuhkan `Source.getBytes(offset, length)`
+dan kita hanya menerjemahkan itu ke `GetObjectCommand` dengan header
+`Range`. Directory pages di-cache di dalam library PMTiles (bounded),
+jadi warm request rata-rata satu S3 hit per tile.
+
+Boot posture: `MAPS_ENABLED=false` (default) → semua endpoint 503
+`MAPS_DISABLED`. Ops flip ke `true` setelah menjalankan
+`docs/OPS/MAP-BOOTSTRAP.md` untuk mengisi bucket `workpulse-maptiles`.
+
 ## 4. Cross-Cutting Concerns
 
 | Concern                | Location                                                                   |

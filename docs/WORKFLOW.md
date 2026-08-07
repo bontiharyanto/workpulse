@@ -2412,8 +2412,13 @@ Urutan 1-sebelum-2 dijaga di test `attendance.service.spec.ts`
 ("checks accuracy BEFORE the SSID fallback"). Fuzzy-radius invariant
 (anti-spoof cap) dijaga oleh test "caps leeway at maxLeewayMeters".
 
-Lihat [ADR-0040](./ADR/ADR-0040-geofence-map-picker-and-tier2-signals.md) untuk keputusan lengkap
-map picker (Leaflet + OpenStreetMap), sinyal Tier-2, dan rasional fuzzy radius (Section 5).
+Lihat [ADR-0040](./ADR/ADR-0040-geofence-map-picker-and-tier2-signals.md) untuk keputusan awal
+map picker, sinyal Tier-2, dan rasional fuzzy radius (Section 5). Backend tile stack
+Leaflet + `tile.openstreetmap.org` di ADR-0040 sudah disuperseded oleh
+[ADR-0042](./ADR/ADR-0042-self-hosted-map-tiles.md) — sekarang MapLibre GL JS berbicara
+ke endpoint `/maps/*` sendiri yang membaca PMTiles dari MinIO. Search Nominatim dilayani
+melalui `/maps/geocode` (server-side rate-limit + 24h cache), FE tidak lagi kontak
+`*.tile.openstreetmap.org` atau `nominatim.openstreetmap.org` langsung.
 
 ### 5.5.2 Shift CRUD
 

@@ -15,6 +15,7 @@ Peta cepat dokumen ops. Kalau ragu, mulai dari sini.
 | [`INCIDENT-RESPONSE.md`](./INCIDENT-RESPONSE.md) | Saat pager berbunyi                                             | On-call         |
 | [`ON-CALL.md`](./ON-CALL.md)                     | Setiap awal shift + review bulanan                              | Semua on-call   |
 | [`CICD.md`](./CICD.md)                           | Sebelum cutting release, saat pipeline merah, rotasi secrets CI | Release manager |
+| [`MAP-BOOTSTRAP.md`](./MAP-BOOTSTRAP.md)         | Setup pertama map self-hosted, refresh archive bulanan          | Ops lead        |
 
 ---
 

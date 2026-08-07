@@ -19,11 +19,15 @@ export const metadata: Metadata = {
  * The route is authenticated + user-scoped: server rejects
  * the response with 404 if the caller isn't the request target.
  */
-export default function LocationShareInboxPage({
+export default async function LocationShareInboxPage({
   params,
 }: {
-  params: { id: string };
-}): JSX.Element {
+  // Next.js 15 changed dynamic-segment params to a Promise so RSC
+  // can stream them. Await once at the top; downstream props stay
+  // regular strings.
+  params: Promise<{ id: string }>;
+}): Promise<JSX.Element> {
+  const { id } = await params;
   return (
     <RequireAuth>
       <div className="mx-auto max-w-2xl">
@@ -31,7 +35,7 @@ export default function LocationShareInboxPage({
           title="Permintaan berbagi lokasi"
           description="Anda dapat menerima atau menolak. Setiap keputusan tercatat sebagai bukti bahwa lokasi hanya dibagikan atas persetujuan Anda."
         />
-        <LocationShareRespondPanel requestId={params.id} />
+        <LocationShareRespondPanel requestId={id} />
       </div>
     </RequireAuth>
   );

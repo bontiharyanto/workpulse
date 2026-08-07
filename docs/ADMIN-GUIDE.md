@@ -173,16 +173,23 @@ Setiap shift wajib dikaitkan ke **satu atau lebih geofence** (kantor mana yang v
 | Batas akurasi GPS (`maxAccuracyMeters`) | ❌     | `null` (off)    | 10–500 m. Jika aktif, clock-in dengan `accuracyMeters` lebih buruk dari ini ditolak dengan `WEAK_GPS_ACCURACY`. Mencegah device yang IP-geolokasi lolos.                              |
 | Wi-Fi SSID allowlist (`allowedSsids`)   | ❌     | `[]` (off)      | Sampai 10 SSID. Bila **mobile app** melaporkan salah satu, clock-in diterima meski GPS di luar radius. Fallback indoor untuk gedung GPS-hostile. Browser tidak dapat memberikan SSID. |
 
-#### 4.3.2 Interactive Map Picker (baru — 2026-08-06)
+#### 4.3.2 Interactive Map Picker (baru — 2026-08-06, rev 2026-08-07)
 
-Form geofence sekarang punya peta OpenStreetMap interaktif:
+Form geofence sekarang punya peta interaktif:
 
 1. **Klik peta** atau **seret pin** untuk memindahkan pusat geofence.
 2. Tombol **📍 lokasi saya** — pakai geolokasi browser (perlu HTTPS/localhost).
-3. Kotak **Cari alamat** — powered by Nominatim (OSM). Contoh: "Sudirman Central", "Menara BCA".
+3. Kotak **Cari alamat** — powered by Nominatim (OSM), diproksi melalui endpoint
+   `/maps/geocode` di API Workpulse. Contoh: "Sudirman Central", "Menara BCA".
 4. **Template picker** — tombol pintasan untuk Sudirman, SCBD, Kuningan, Thamrin, Menteng.
 
-Peta memakai **Leaflet + OpenStreetMap raster tiles** — 100% gratis, tanpa API key. Attribution `© OpenStreetMap contributors` ditampilkan di pojok peta sesuai lisensi ODbL. Lihat [ADR-0021](./ADR/ADR-0021-map-picker-osm.md).
+Peta sekarang memakai **MapLibre GL JS + PMTiles self-hosted** — semua tile disajikan
+dari MinIO milik Workpulse via endpoint `/maps/*` (lihat
+[ADR-0042](./ADR/ADR-0042-self-hosted-map-tiles.md) dan
+[runbook MAP-BOOTSTRAP](./OPS/MAP-BOOTSTRAP.md)). Attribution `© OpenStreetMap
+contributors` tetap ditampilkan sesuai lisensi ODbL. Ops harus menjalankan runbook
+seed sekali sebelum flip `MAPS_ENABLED=true` — kalau lupa, form geofence akan
+menampilkan kartu "Peta belum tersedia" dan lat/lng masih bisa diketik manual.
 
 #### 4.3.3 Server-side validation stack
 
