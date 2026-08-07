@@ -21,6 +21,6 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "otplib": "^12.0.1"
+    "otplib": "^13.4.1"
   }
 }
