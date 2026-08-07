@@ -9,9 +9,24 @@ import {
   type AttachmentContentType,
   type LeaveRequestInput,
 } from '@workpulse/shared-types';
-import { useMemo, useRef, useState } from 'react';
+import { AlertTriangle, CheckCircle2, FileText, Loader2, Paperclip, Send, X } from 'lucide-react';
+import { useMemo, useRef, useState, type ChangeEvent, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import {
   ApiError,
   attachmentsApi,
@@ -19,6 +34,23 @@ import {
   leaveTypesApi,
   uploadFileWithPresign,
 } from '@/lib/api-client';
+import { cn } from '@/lib/utils';
+
+/**
+ * Employee-facing form to submit a new leave request.
+ *
+ * INVARIANTS preserved verbatim from rules/20 §2:
+ *   - Attachment upload flow is server-signed:
+ *       1. `attachmentsApi.presign()` → returns opaque `fileKey` + headers.
+ *       2. `uploadFileWithPresign(file, presigned, onProgress)` — direct
+ *          PUT to S3 with `presigned.requiredHeaders` verbatim.
+ *       3. Submit sends `attachmentKey: presigned.fileKey`, never the
+ *          filename, URL, or a client-constructed key.
+ *   - Local MIME + size pre-check is UX only. Server also validates.
+ *   - `attachmentKey` is `undefined` when the leave type doesn't
+ *     require an attachment. Do not omit the field otherwise —
+ *     Zod refinement enforces this.
+ */
 
 const ERROR_COPY: Record<string, string> = {
   INSUFFICIENT_BALANCE: 'Saldo cuti tidak cukup untuk rentang ini.',
@@ -78,11 +110,10 @@ export function LeaveSubmitForm(): JSX.Element {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Local validation first — no network round-trip on obviously-invalid files.
     const parsedType = attachmentContentTypeSchema.safeParse(file.type);
     if (!parsedType.success) {
       setSubmitError('Tipe berkas tidak diizinkan (hanya JPG/PNG/WebP/PDF).');
@@ -139,158 +170,162 @@ export function LeaveSubmitForm(): JSX.Element {
   const onSubmit = form.handleSubmit((values) => submit.mutate(values));
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4 rounded-lg border p-6 shadow-sm" noValidate>
-      <h2 className="text-lg font-medium">Ajukan Cuti</h2>
+    <Card>
+      <CardHeader>
+        <CardTitle>Ajukan Cuti</CardTitle>
+        <p className="text-muted-foreground text-caption">
+          Pilih jenis cuti, tentukan tanggal, dan lampirkan dokumen bila diperlukan.
+        </p>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={onSubmit} className="space-y-4" noValidate>
+          <div className="space-y-1.5">
+            <Label htmlFor="leaveTypeId">Jenis Cuti</Label>
+            <Select
+              value={form.watch('leaveTypeId') || undefined}
+              onValueChange={(v) => form.setValue('leaveTypeId', v, { shouldValidate: true })}
+              disabled={types.isLoading}
+            >
+              <SelectTrigger id="leaveTypeId">
+                <SelectValue placeholder="— Pilih jenis cuti —" />
+              </SelectTrigger>
+              <SelectContent>
+                {types.data?.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.name}
+                    {t.requiresAttachment ? ' · butuh lampiran' : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {form.formState.errors.leaveTypeId ? (
+              <p role="alert" className="text-destructive text-caption">
+                {form.formState.errors.leaveTypeId.message}
+              </p>
+            ) : null}
+          </div>
 
-      <div className="space-y-1">
-        <label htmlFor="leaveTypeId" className="text-sm font-medium">
-          Jenis Cuti
-        </label>
-        <select
-          id="leaveTypeId"
-          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
-          disabled={types.isLoading}
-          {...form.register('leaveTypeId')}
-        >
-          <option value="">— Pilih —</option>
-          {types.data?.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name} {t.requiresAttachment ? '(butuh lampiran)' : ''}
-            </option>
-          ))}
-        </select>
-        {form.formState.errors.leaveTypeId && (
-          <p role="alert" className="text-destructive text-xs">
-            {form.formState.errors.leaveTypeId.message}
-          </p>
-        )}
-      </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="startDate">Tanggal Mulai</Label>
+              <Input id="startDate" type="date" {...form.register('startDate')} />
+              {form.formState.errors.startDate ? (
+                <p role="alert" className="text-destructive text-caption">
+                  {form.formState.errors.startDate.message}
+                </p>
+              ) : null}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="endDate">Tanggal Akhir</Label>
+              <Input id="endDate" type="date" {...form.register('endDate')} />
+              {form.formState.errors.endDate ? (
+                <p role="alert" className="text-destructive text-caption">
+                  {form.formState.errors.endDate.message}
+                </p>
+              ) : null}
+            </div>
+          </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="space-y-1">
-          <label htmlFor="startDate" className="text-sm font-medium">
-            Tanggal Mulai
-          </label>
-          <input
-            id="startDate"
-            type="date"
-            className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
-            {...form.register('startDate')}
-          />
-          {form.formState.errors.startDate && (
-            <p role="alert" className="text-destructive text-xs">
-              {form.formState.errors.startDate.message}
-            </p>
-          )}
-        </div>
-        <div className="space-y-1">
-          <label htmlFor="endDate" className="text-sm font-medium">
-            Tanggal Akhir
-          </label>
-          <input
-            id="endDate"
-            type="date"
-            className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
-            {...form.register('endDate')}
-          />
-          {form.formState.errors.endDate && (
-            <p role="alert" className="text-destructive text-xs">
-              {form.formState.errors.endDate.message}
-            </p>
-          )}
-        </div>
-      </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="reason">Alasan</Label>
+            <Textarea id="reason" rows={3} {...form.register('reason')} />
+            {form.formState.errors.reason ? (
+              <p role="alert" className="text-destructive text-caption">
+                {form.formState.errors.reason.message}
+              </p>
+            ) : null}
+          </div>
 
-      <div className="space-y-1">
-        <label htmlFor="reason" className="text-sm font-medium">
-          Alasan
-        </label>
-        <textarea
-          id="reason"
-          rows={3}
-          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
-          {...form.register('reason')}
-        />
-        {form.formState.errors.reason && (
-          <p role="alert" className="text-destructive text-xs">
-            {form.formState.errors.reason.message}
-          </p>
-        )}
-      </div>
-
-      {selectedType?.requiresAttachment && (
-        <div className="border-input space-y-2 rounded-md border border-dashed p-3">
-          <label htmlFor="attachmentFile" className="text-sm font-medium">
-            Lampiran (surat dokter, dll.)
-          </label>
-          <input
-            id="attachmentFile"
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp,application/pdf"
-            className="file:bg-primary file:text-primary-foreground block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:px-3 file:py-1.5 hover:file:opacity-90"
-            disabled={uploading}
-            onChange={(e) => {
-              void handleFileChange(e);
-            }}
-          />
-          {uploading && (
-            <div className="space-y-1">
-              <div className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
-                <div
-                  className="bg-primary h-full transition-[width]"
-                  style={{ width: `${uploadPercent}%` }}
-                />
+          {selectedType?.requiresAttachment ? (
+            <div
+              className={cn(
+                'border-border space-y-3 rounded-lg border border-dashed p-4',
+                uploaded && 'border-success/40 bg-success/5',
+              )}
+            >
+              <div className="flex items-center gap-2">
+                {uploaded ? (
+                  <FileText className="text-success h-4 w-4" aria-hidden />
+                ) : (
+                  <Paperclip className="text-muted-foreground h-4 w-4" aria-hidden />
+                )}
+                <Label htmlFor="attachmentFile" className="mb-0">
+                  Lampiran (surat dokter, dll.)
+                </Label>
               </div>
-              <p className="text-muted-foreground text-xs">Mengunggah… {uploadPercent}%</p>
-            </div>
-          )}
-          {uploaded && !uploading && (
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-emerald-700 dark:text-emerald-400">
-                ✓ {uploaded.filename} ({(uploaded.sizeBytes / 1024).toFixed(0)} KB) berhasil
-                diunggah
-              </span>
-              <button
-                type="button"
-                onClick={clearAttachment}
-                className="text-destructive underline-offset-2 hover:underline"
-              >
-                Hapus
-              </button>
-            </div>
-          )}
-          <p className="text-muted-foreground text-xs">
-            Format yang didukung: JPG, PNG, WebP, PDF. Maks {MAX_ATTACHMENT_BYTES / (1024 * 1024)}{' '}
-            MB.
-          </p>
-        </div>
-      )}
 
-      {submitError && (
-        <p
-          role="alert"
-          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
-        >
-          {submitError}
-        </p>
-      )}
-      {submitOk && (
-        <p
-          role="status"
-          className="rounded-md border border-emerald-500/40 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400"
-        >
-          {submitOk}
-        </p>
-      )}
+              <Input
+                id="attachmentFile"
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                disabled={uploading}
+                className="file:bg-primary file:text-primary-foreground cursor-pointer file:mr-3 file:rounded-md file:border-0 file:px-3 file:py-1 file:text-sm hover:file:opacity-90"
+                onChange={(e) => {
+                  void handleFileChange(e);
+                }}
+              />
 
-      <button
-        type="submit"
-        disabled={submit.isPending || uploading}
-        className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90 disabled:opacity-50"
-      >
-        {submit.isPending ? 'Mengirim...' : 'Ajukan'}
-      </button>
-    </form>
+              {uploading ? (
+                <div className="space-y-1.5">
+                  <Progress value={uploadPercent} />
+                  <p className="text-muted-foreground text-caption inline-flex items-center gap-1.5">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                    Mengunggah… {uploadPercent}%
+                  </p>
+                </div>
+              ) : null}
+
+              {uploaded && !uploading ? (
+                <div className="text-caption flex items-center justify-between gap-2">
+                  <span className="text-success inline-flex items-center gap-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+                    <span className="font-medium">{uploaded.filename}</span>
+                    <span className="text-muted-foreground">
+                      · {(uploaded.sizeBytes / 1024).toFixed(0)} KB
+                    </span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={clearAttachment}
+                    className="text-destructive inline-flex items-center gap-1 hover:underline"
+                  >
+                    <X className="h-3.5 w-3.5" aria-hidden />
+                    Hapus
+                  </button>
+                </div>
+              ) : null}
+
+              <p className="text-muted-foreground text-caption">
+                Format: JPG, PNG, WebP, PDF · maks {MAX_ATTACHMENT_BYTES / (1024 * 1024)} MB.
+              </p>
+            </div>
+          ) : null}
+
+          {submitError ? (
+            <Alert variant="destructive">
+              <AlertTriangle aria-hidden />
+              <AlertTitle>Gagal mengajukan cuti</AlertTitle>
+              <AlertDescription>{submitError}</AlertDescription>
+            </Alert>
+          ) : null}
+
+          {submitOk ? (
+            <Alert variant="success">
+              <CheckCircle2 aria-hidden />
+              <AlertTitle>{submitOk}</AlertTitle>
+              <AlertDescription>
+                Menunggu persetujuan supervisor · Anda akan mendapatkan notifikasi.
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
+          <Button type="submit" disabled={submit.isPending || uploading}>
+            <Send className="h-4 w-4" aria-hidden />
+            {submit.isPending ? 'Mengirim…' : 'Ajukan cuti'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

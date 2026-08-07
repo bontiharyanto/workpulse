@@ -1,35 +1,46 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type {
-  TimesheetStatus,
-  TimesheetSummaryDto,
-  TimesheetViewDto,
-} from '@workpulse/shared-types';
-import { useState } from 'react';
+import type { TimesheetSummaryDto, TimesheetViewDto } from '@workpulse/shared-types';
+import { AlertTriangle, CalendarClock, Inbox, Send } from 'lucide-react';
+import { type JSX } from 'react';
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { timesheetSelfApi } from '@/lib/api-client';
+import { cn } from '@/lib/utils';
 
-const KIND_LABEL: Record<TimesheetViewDto['entries'][number]['kind'], string> = {
-  WORKING: 'Kerja',
-  HOLIDAY: 'Libur nasional',
-  WEEKEND: 'Akhir pekan',
-  LEAVE: 'Cuti',
-  ABSENT: 'Absen',
-};
-
-const KIND_TONE: Record<TimesheetViewDto['entries'][number]['kind'], string> = {
-  WORKING: 'text-foreground',
-  HOLIDAY: 'text-amber-600',
-  WEEKEND: 'text-muted-foreground',
-  LEAVE: 'text-blue-600',
-  ABSENT: 'text-destructive',
-};
+import { TimesheetStatusBadge } from './timesheet-status-badge';
 
 /**
- * `/me/timesheet` main widget (Fase 32a). Shows the current-period
- * timesheet grid + totals + a short list of past periods. Everything
- * server-materialised — the FE never re-aggregates.
+ * `/me/timesheet` main widget. Renders the current-period timesheet
+ * grid + totals + a short list of past periods.
+ *
+ * INVARIANT: totals, entries, and period boundaries are server-
+ * materialized. The FE never re-aggregates — it only formats the
+ * numbers the API returns and forwards submit intent as-is.
  */
 export function MyTimesheetPanel(): JSX.Element {
   const queryClient = useQueryClient();
@@ -68,6 +79,22 @@ export function MyTimesheetPanel(): JSX.Element {
   );
 }
 
+const KIND_LABEL: Record<TimesheetViewDto['entries'][number]['kind'], string> = {
+  WORKING: 'Kerja',
+  HOLIDAY: 'Libur nasional',
+  WEEKEND: 'Akhir pekan',
+  LEAVE: 'Cuti',
+  ABSENT: 'Absen',
+};
+
+const KIND_TONE: Record<TimesheetViewDto['entries'][number]['kind'], string> = {
+  WORKING: 'text-foreground',
+  HOLIDAY: 'text-warning',
+  WEEKEND: 'text-muted-foreground',
+  LEAVE: 'text-info',
+  ABSENT: 'text-destructive',
+};
+
 function CurrentPeriodCard({
   data,
   loading,
@@ -83,33 +110,27 @@ function CurrentPeriodCard({
   submitPending: boolean;
   submitError: string | null;
 }): JSX.Element {
-  // Hooks must be called in the same order on every render — declare
-  // `useState` at the top before any conditional early-return branches
-  // (rules-of-hooks).
-  const [confirming, setConfirming] = useState(false);
+  if (loading) return <CurrentPeriodSkeleton />;
 
-  if (loading) {
-    return (
-      <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm">
-        Memuat timesheet periode berjalan…
-      </div>
-    );
-  }
   if (error) {
     return (
-      <div
-        role="alert"
-        className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-4 text-sm"
-      >
-        Gagal memuat timesheet.
-      </div>
+      <Alert variant="destructive">
+        <AlertTriangle aria-hidden />
+        <AlertTitle>Gagal memuat timesheet</AlertTitle>
+        <AlertDescription>Coba muat ulang halaman.</AlertDescription>
+      </Alert>
     );
   }
+
   if (!data) {
     return (
-      <div className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm">
-        Belum ada timesheet untuk periode ini. Hubungi HR untuk generate timesheet periode berjalan.
-      </div>
+      <Card>
+        <CardContent className="text-muted-foreground flex flex-col items-center gap-2 py-12">
+          <CalendarClock className="h-8 w-8" aria-hidden />
+          <p className="text-h6 text-foreground">Belum ada timesheet untuk periode ini</p>
+          <p className="text-caption">Hubungi HR untuk generate timesheet periode berjalan.</p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -117,116 +138,134 @@ function CurrentPeriodCard({
   const now = new Date();
   const periodEnded = new Date(data.periodEnd + 'T23:59:59Z') <= now;
   const submitDisabled = !canSubmit || !periodEnded || submitPending;
-  const handleSubmitClick = (): void => {
-    if (confirming) {
-      onSubmit(data.id);
-      setConfirming(false);
-    } else {
-      setConfirming(true);
-    }
-  };
+  const submitLabel = data.status === 'REJECTED' ? 'Ajukan ulang' : 'Submit untuk review';
 
   return (
-    <section
-      aria-labelledby="ts-current-heading"
-      className="border-border bg-card rounded-lg border p-6"
-    >
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 id="ts-current-heading" className="text-lg font-semibold">
-            Periode berjalan
-          </h2>
-          <StatusBadge status={data.status} />
+    <Card>
+      <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3 space-y-0">
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <CardTitle id="ts-current-heading">Periode berjalan</CardTitle>
+            <TimesheetStatusBadge status={data.status} />
+          </div>
+          <p className="text-muted-foreground text-caption">
+            {data.periodLabel} ·{' '}
+            <span className="tabular-nums">
+              {data.periodStart} → {data.periodEnd}
+            </span>
+          </p>
         </div>
-        <p className="text-muted-foreground text-sm">
-          {data.periodLabel} · {data.periodStart} → {data.periodEnd}
-        </p>
-      </div>
+      </CardHeader>
 
-      {data.status === 'REJECTED' && data.rejectionReason && (
-        <div
-          role="alert"
-          className="border-destructive/50 bg-destructive/5 text-destructive mt-3 rounded-md border p-3 text-sm"
-        >
-          <div className="font-medium">Ditolak — silakan koreksi</div>
-          <div className="mt-1 text-xs">{data.rejectionReason}</div>
+      <CardContent className="space-y-6">
+        {data.status === 'REJECTED' && data.rejectionReason ? (
+          <Alert variant="destructive">
+            <AlertTriangle aria-hidden />
+            <AlertTitle>Ditolak — silakan koreksi</AlertTitle>
+            <AlertDescription>{data.rejectionReason}</AlertDescription>
+          </Alert>
+        ) : null}
+
+        {canSubmit || data.status === 'PENDING_SUPERVISOR' || data.status === 'PENDING_HR' ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button disabled={submitDisabled} data-testid="ts-submit-button">
+                  <Send className="h-4 w-4" aria-hidden />
+                  {submitPending ? 'Mengirim…' : submitLabel}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Submit timesheet ke supervisor?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Timesheet akan dikunci dan dikirim untuk review. Anda hanya dapat mengeditnya
+                    kembali bila supervisor menolak.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Batal</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => onSubmit(data.id)}
+                    data-testid="ts-submit-confirm"
+                  >
+                    Ya, kirim untuk review
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            {!periodEnded && canSubmit ? (
+              <p className="text-muted-foreground text-caption">
+                Periode masih berjalan — submit tersedia setelah tanggal akhir.
+              </p>
+            ) : null}
+            {data.status === 'PENDING_SUPERVISOR' || data.status === 'PENDING_HR' ? (
+              <p className="text-muted-foreground text-caption">
+                Menunggu keputusan {data.status === 'PENDING_SUPERVISOR' ? 'supervisor' : 'HR'}.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {submitError ? (
+          <Alert variant="destructive" data-testid="ts-submit-error">
+            <AlertTriangle aria-hidden />
+            <AlertTitle>Gagal mengirim timesheet</AlertTitle>
+            <AlertDescription>{submitError}</AlertDescription>
+          </Alert>
+        ) : null}
+
+        <TotalsGrid totals={data.totals} />
+
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tanggal</TableHead>
+                <TableHead>Jenis</TableHead>
+                <TableHead className="text-right">Jam kerja</TableHead>
+                <TableHead className="text-right">Lembur</TableHead>
+                <TableHead className="text-right">Cuti</TableHead>
+                <TableHead className="text-right">Telat</TableHead>
+                <TableHead>Catatan</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.entries.map((e) => (
+                <TableRow key={e.workDate}>
+                  <TableCell className="text-caption font-mono">{e.workDate}</TableCell>
+                  <TableCell className={cn('text-body', KIND_TONE[e.kind])}>
+                    {KIND_LABEL[e.kind]}
+                  </TableCell>
+                  <TableCell className="text-right font-mono tabular-nums">
+                    {formatHours(e.regularHours)}
+                  </TableCell>
+                  <TableCell className="text-right font-mono tabular-nums">
+                    {formatHours(e.overtimeHours)}
+                  </TableCell>
+                  <TableCell className="text-right font-mono tabular-nums">
+                    {formatHours(e.leaveHours)}
+                  </TableCell>
+                  <TableCell className="text-caption text-right font-mono tabular-nums">
+                    {e.lateMinutes > 0 ? `${e.lateMinutes}m` : '-'}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-caption">
+                    {e.note ?? '-'}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
-      )}
-
-      {(canSubmit || data.status === 'PENDING_SUPERVISOR' || data.status === 'PENDING_HR') && (
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={handleSubmitClick}
-            disabled={submitDisabled}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
-            data-testid="ts-submit-button"
-          >
-            {submitPending
-              ? 'Mengirim…'
-              : confirming
-                ? 'Klik lagi untuk konfirmasi'
-                : data.status === 'REJECTED'
-                  ? 'Ajukan ulang'
-                  : 'Submit untuk review'}
-          </button>
-          {!periodEnded && canSubmit && (
-            <p className="text-muted-foreground text-xs">
-              Periode masih berjalan — submit tersedia setelah tanggal akhir.
-            </p>
-          )}
-          {(data.status === 'PENDING_SUPERVISOR' || data.status === 'PENDING_HR') && (
-            <p className="text-muted-foreground text-xs">
-              Menunggu keputusan {data.status === 'PENDING_SUPERVISOR' ? 'supervisor' : 'HR'}.
-            </p>
-          )}
-        </div>
-      )}
-      {submitError && (
-        <p role="alert" className="text-destructive mt-2 text-xs" data-testid="ts-submit-error">
-          {submitError}
-        </p>
-      )}
-
-      <TotalsGrid totals={data.totals} />
-
-      <div className="mt-6 overflow-x-auto">
-        <table className="w-full min-w-[720px] text-sm">
-          <thead>
-            <tr className="text-muted-foreground border-b text-xs uppercase">
-              <th className="px-3 py-2 text-left">Tanggal</th>
-              <th className="px-3 py-2 text-left">Jenis</th>
-              <th className="px-3 py-2 text-right">Jam kerja</th>
-              <th className="px-3 py-2 text-right">Lembur</th>
-              <th className="px-3 py-2 text-right">Cuti</th>
-              <th className="px-3 py-2 text-right">Telat</th>
-              <th className="px-3 py-2 text-left">Catatan</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.entries.map((e) => (
-              <tr key={e.workDate} className="border-b last:border-b-0">
-                <td className="px-3 py-2 font-mono text-xs">{e.workDate}</td>
-                <td className={`px-3 py-2 ${KIND_TONE[e.kind]}`}>{KIND_LABEL[e.kind]}</td>
-                <td className="px-3 py-2 text-right font-mono">{formatHours(e.regularHours)}</td>
-                <td className="px-3 py-2 text-right font-mono">{formatHours(e.overtimeHours)}</td>
-                <td className="px-3 py-2 text-right font-mono">{formatHours(e.leaveHours)}</td>
-                <td className="px-3 py-2 text-right font-mono text-xs">
-                  {e.lateMinutes > 0 ? `${e.lateMinutes}m` : '-'}
-                </td>
-                <td className="text-muted-foreground px-3 py-2 text-xs">{e.note ?? '-'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   );
 }
 
 function TotalsGrid({ totals }: { totals: TimesheetViewDto['totals'] }): JSX.Element {
   return (
-    <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       <Stat label="Jam kerja" value={formatHours(totals.regularHours)} />
       <Stat label="Jam lembur" value={formatHours(totals.overtimeHours)} />
       <Stat label="Hari kerja" value={String(totals.workingDays)} />
@@ -241,9 +280,9 @@ function TotalsGrid({ totals }: { totals: TimesheetViewDto['totals'] }): JSX.Ele
 
 function Stat({ label, value }: { label: string; value: string }): JSX.Element {
   return (
-    <div className="border-border bg-background rounded-md border p-3">
-      <div className="text-muted-foreground text-xs uppercase">{label}</div>
-      <div className="mt-1 text-base font-semibold">{value}</div>
+    <div className="bg-muted/30 border-border rounded-md border p-3">
+      <p className="text-muted-foreground text-overline uppercase">{label}</p>
+      <p className="text-foreground text-h5 font-semibold tabular-nums">{value}</p>
     </div>
   );
 }
@@ -257,66 +296,99 @@ function PastPeriodsList({
   loading: boolean;
   error: boolean;
 }): JSX.Element | null {
-  if (loading) return null;
-  if (error) return null;
-  if (items.length === 0) return null;
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-5 w-40" />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-14 w-full rounded-md" />
+          ))}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertTriangle aria-hidden />
+        <AlertTitle>Gagal memuat riwayat periode</AlertTitle>
+        <AlertDescription>Coba muat ulang halaman.</AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <Card>
+        <CardContent className="text-muted-foreground flex flex-col items-center gap-2 py-10">
+          <Inbox className="h-6 w-6" aria-hidden />
+          <p className="text-body text-foreground">Belum ada riwayat periode</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <section
-      aria-labelledby="ts-past-heading"
-      className="border-border bg-card rounded-lg border p-6"
-    >
-      <h2 id="ts-past-heading" className="mb-3 text-lg font-semibold">
-        Riwayat periode
-      </h2>
-      <ul className="divide-border divide-y">
-        {items.map((it) => (
-          <li key={it.id} className="flex items-center justify-between py-3">
-            <div>
-              <div className="flex items-center gap-2 text-sm font-medium">
-                {it.periodLabel}
-                <StatusBadge status={it.status} />
+    <Card>
+      <CardHeader>
+        <CardTitle id="ts-past-heading">Riwayat periode</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ul className="divide-border divide-y">
+          {items.map((it) => (
+            <li key={it.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="muted">{it.periodLabel}</Badge>
+                  <TimesheetStatusBadge status={it.status} />
+                </div>
+                <p className="text-muted-foreground text-caption tabular-nums">
+                  {it.periodStart} → {it.periodEnd}
+                </p>
               </div>
-              <div className="text-muted-foreground text-xs">
-                {it.periodStart} → {it.periodEnd}
+              <div className="text-muted-foreground text-caption text-right">
+                <p>
+                  <span className="text-foreground font-medium tabular-nums">
+                    {formatHours(it.totals.regularHours)}
+                  </span>{' '}
+                  jam reguler
+                </p>
+                <p>
+                  <span className="text-foreground font-medium tabular-nums">
+                    {formatHours(it.totals.overtimeHours)}
+                  </span>{' '}
+                  jam lembur
+                </p>
               </div>
-            </div>
-            <div className="text-muted-foreground text-right text-xs">
-              <div>{formatHours(it.totals.regularHours)}h reguler</div>
-              <div>{formatHours(it.totals.overtimeHours)}h lembur</div>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </section>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
   );
 }
 
-const STATUS_LABEL: Record<TimesheetStatus, string> = {
-  DRAFT: 'Draft',
-  PENDING_SUPERVISOR: 'Menunggu supervisor',
-  PENDING_HR: 'Menunggu HR',
-  APPROVED: 'Disetujui',
-  REJECTED: 'Ditolak',
-};
-
-const STATUS_TONE: Record<TimesheetStatus, string> = {
-  DRAFT: 'bg-muted text-muted-foreground',
-  PENDING_SUPERVISOR: 'bg-blue-100 text-blue-900',
-  PENDING_HR: 'bg-blue-100 text-blue-900',
-  APPROVED: 'bg-emerald-100 text-emerald-900',
-  REJECTED: 'bg-destructive/10 text-destructive',
-};
-
-export function StatusBadge({ status }: { status: TimesheetStatus }): JSX.Element {
+function CurrentPeriodSkeleton(): JSX.Element {
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_TONE[status]}`}
-      data-testid="ts-status-badge"
-      data-status={status}
-    >
-      {STATUS_LABEL[status]}
-    </span>
+    <Card>
+      <CardHeader className="space-y-2">
+        <Skeleton className="h-6 w-56" />
+        <Skeleton className="h-4 w-48" />
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Skeleton className="h-9 w-40" />
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-md" />
+          ))}
+        </div>
+        <Skeleton className="h-40 w-full rounded-md" />
+      </CardContent>
+    </Card>
   );
 }
 

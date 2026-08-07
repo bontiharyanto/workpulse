@@ -1,19 +1,32 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import type { AttendanceStatus } from '@workpulse/shared-types';
+import { CalendarRange, Inbox } from 'lucide-react';
+import { useMemo, useState, type JSX } from 'react';
 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { attendanceApi } from '@/lib/api-client';
 
-/**
- * Employee-facing attendance history. Ranged filter: default 30 days back,
- * user can pick a preset (30/60/90) or open the year+month picker.
- *
- * Server bounds the max range to 365 days and clamps `limit` to 200 — this
- * component only offers 30/60/90 to keep the UI simple; a "year view" is
- * follow-up work.
- */
+import { StatusBadge } from './_shared/status-badge';
 
+/**
+ * Employee-facing attendance history — ranged filter (30/60/90d),
+ * one row per work-day. Server bounds the max range to 365d and
+ * clamps limit to 200; this component intentionally only offers
+ * 3 presets to keep the mental model tight. A "year view" would
+ * belong to a separate reports surface.
+ */
 type RangePreset = '30' | '60' | '90';
 
 export function AttendanceHistory(): JSX.Element {
@@ -28,93 +41,108 @@ export function AttendanceHistory(): JSX.Element {
   });
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold">Riwayat kehadiran</h2>
-          <p className="text-muted-foreground text-xs">
-            {from} → {to}
+    <Card>
+      <CardHeader className="flex-row items-start justify-between gap-3 space-y-0 pb-4">
+        <div className="space-y-1">
+          <CardTitle>Riwayat kehadiran</CardTitle>
+          <p className="text-muted-foreground text-caption inline-flex items-center gap-1.5">
+            <CalendarRange className="h-3.5 w-3.5" aria-hidden />
+            {formatRange(from, to)}
           </p>
         </div>
-        <div className="bg-background flex gap-1 rounded-md border p-0.5 text-xs">
-          {(['30', '60', '90'] as RangePreset[]).map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => setPreset(p)}
-              className={`rounded px-2.5 py-1 ${
-                preset === p ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'
-              }`}
-            >
-              {p}h
-            </button>
-          ))}
-        </div>
-      </div>
+        <Tabs value={preset} onValueChange={(v) => setPreset(v as RangePreset)}>
+          <TabsList>
+            <TabsTrigger value="30">30 hari</TabsTrigger>
+            <TabsTrigger value="60">60 hari</TabsTrigger>
+            <TabsTrigger value="90">90 hari</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </CardHeader>
 
-      <div className="overflow-hidden rounded-md border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-muted-foreground text-left text-xs uppercase tracking-wider">
-            <tr>
-              <th className="px-3 py-2">Tanggal</th>
-              <th className="px-3 py-2">Clock-in</th>
-              <th className="px-3 py-2">Clock-out</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2 text-right">Telat</th>
-              <th className="px-3 py-2 text-right">Cepat</th>
-            </tr>
-          </thead>
-          <tbody>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Tanggal</TableHead>
+              <TableHead>Clock-in</TableHead>
+              <TableHead>Clock-out</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Telat</TableHead>
+              <TableHead className="text-right">Cepat</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {list.isLoading ? (
-              <tr>
-                <td colSpan={6} className="text-muted-foreground px-3 py-6 text-center text-sm">
-                  Memuat...
-                </td>
-              </tr>
+              <HistoryRowsSkeleton />
             ) : list.data && list.data.length > 0 ? (
               list.data.map((r) => (
-                <tr key={r.id} className="border-t">
-                  <td className="px-3 py-2 tabular-nums">{formatDate(r.workDate)}</td>
-                  <td className="px-3 py-2 tabular-nums">{formatTime(r.clockInAt)}</td>
-                  <td className="px-3 py-2 tabular-nums">
+                <TableRow key={r.id}>
+                  <TableCell className="font-medium tabular-nums">
+                    {formatDate(r.workDate)}
+                  </TableCell>
+                  <TableCell className="tabular-nums">{formatTime(r.clockInAt)}</TableCell>
+                  <TableCell className="tabular-nums">
                     {r.clockOutAt ? formatTime(r.clockOutAt) : <MutedDash />}
-                  </td>
-                  <td className="px-3 py-2">
-                    <StatusPill status={r.status} />
-                  </td>
-                  <td className="px-3 py-2 text-right tabular-nums">
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={r.status as AttendanceStatus} />
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
                     {r.lateMinutes > 0 ? (
-                      <span className="text-destructive">{r.lateMinutes}m</span>
+                      <span className="text-warning font-medium">{r.lateMinutes}m</span>
                     ) : (
                       <MutedDash />
                     )}
-                  </td>
-                  <td className="px-3 py-2 text-right tabular-nums">
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
                     {r.earlyLeaveMinutes > 0 ? (
-                      <span className="text-amber-700">{r.earlyLeaveMinutes}m</span>
+                      <span className="text-warning font-medium">{r.earlyLeaveMinutes}m</span>
                     ) : (
                       <MutedDash />
                     )}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             ) : (
-              <tr>
-                <td colSpan={6} className="text-muted-foreground px-3 py-6 text-center text-sm">
-                  Tidak ada catatan kehadiran pada rentang ini.
-                </td>
-              </tr>
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={6} className="text-center">
+                  <EmptyRow />
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
-      </div>
-    </section>
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+
+function HistoryRowsSkeleton(): JSX.Element {
+  return (
+    <>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <TableRow key={i} className="hover:bg-transparent">
+          {Array.from({ length: 6 }).map((__, j) => (
+            <TableCell key={j}>
+              <Skeleton className="h-4 w-full max-w-[80px]" />
+            </TableCell>
+          ))}
+        </TableRow>
+      ))}
+    </>
+  );
+}
+
+function EmptyRow(): JSX.Element {
+  return (
+    <div className="text-muted-foreground flex flex-col items-center gap-2 py-8">
+      <Inbox className="h-6 w-6" aria-hidden />
+      <p className="text-body">Tidak ada catatan kehadiran pada rentang ini.</p>
+    </div>
+  );
+}
 
 function rangeFor(preset: RangePreset): { from: string; to: string } {
   const to = new Date();
@@ -146,34 +174,22 @@ function formatTime(iso: string): string {
   });
 }
 
+function formatRange(from: string, to: string): string {
+  const fromLabel = new Date(from).toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+  const toLabel = new Date(to).toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+  return `${fromLabel} — ${toLabel}`;
+}
+
 function MutedDash(): JSX.Element {
   return <span className="text-muted-foreground">—</span>;
-}
-
-function StatusPill({ status }: { status: string }): JSX.Element {
-  const { label, className } = statusStyle(status);
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${className}`}
-    >
-      {label}
-    </span>
-  );
-}
-
-function statusStyle(status: string): { label: string; className: string } {
-  switch (status) {
-    case 'ON_TIME':
-      return { label: 'Tepat waktu', className: 'bg-emerald-100 text-emerald-800' };
-    case 'LATE':
-      return { label: 'Terlambat', className: 'bg-destructive/10 text-destructive' };
-    case 'EARLY_LEAVE':
-      return { label: 'Pulang cepat', className: 'bg-amber-100 text-amber-800' };
-    case 'ON_LEAVE':
-      return { label: 'Cuti', className: 'bg-sky-100 text-sky-800' };
-    case 'ABSENT':
-      return { label: 'Absen', className: 'bg-muted text-muted-foreground' };
-    default:
-      return { label: status, className: 'bg-muted text-muted-foreground' };
-  }
 }

@@ -8,8 +8,23 @@ import {
   type UpdateTimesheetConfigInput,
 } from '@workpulse/shared-types';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import { ApiError, timesheetConfigApi } from '@/lib/api-client';
 
 const ERROR_COPY: Record<string, string> = {
@@ -93,256 +108,228 @@ export function TimesheetConfigPanel(): JSX.Element {
 
   if (config.isLoading) {
     return (
-      <div
-        role="status"
-        aria-live="polite"
-        className="border-border text-muted-foreground rounded-md border border-dashed p-6 text-sm"
-      >
-        Memuat konfigurasi timesheet…
-      </div>
+      <Card aria-live="polite" role="status">
+        <CardHeader>
+          <Skeleton className="h-6 w-52" />
+          <Skeleton className="h-4 w-full max-w-lg" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </CardContent>
+      </Card>
     );
   }
 
   if (config.isError || !config.data) {
     return (
-      <div
-        role="alert"
-        className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-4 text-sm"
-      >
-        Gagal memuat konfigurasi. Coba muat ulang halaman.
-      </div>
+      <Alert variant="destructive">
+        <AlertDescription>Gagal memuat konfigurasi. Coba muat ulang halaman.</AlertDescription>
+      </Alert>
     );
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="border-border bg-card space-y-6 rounded-lg border p-6"
-      aria-labelledby="tsc-heading"
-    >
-      <div className="space-y-1">
-        <h2 id="tsc-heading" className="text-lg font-semibold">
-          Konfigurasi timesheet
-        </h2>
-        <p className="text-muted-foreground text-sm">
-          Tentukan jenis periode dan zona waktu tenant. Perubahan berlaku pada generate timesheet
-          berikutnya.
-        </p>
-      </div>
+    <form onSubmit={onSubmit} aria-labelledby="tsc-heading">
+      <Card>
+        <CardHeader>
+          <CardTitle id="tsc-heading">Konfigurasi timesheet</CardTitle>
+          <CardDescription>
+            Tentukan jenis periode dan zona waktu tenant. Perubahan berlaku pada generate timesheet
+            berikutnya.
+          </CardDescription>
+        </CardHeader>
 
-      <div className="space-y-4">
-        <div className="space-y-1">
-          <label htmlFor="periodType" className="text-foreground text-sm font-medium">
-            Jenis periode
-          </label>
-          <select
-            id="periodType"
-            className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
-            {...form.register('periodType')}
-          >
-            <option value="WEEKLY">Mingguan (7 hari)</option>
-            <option value="BIWEEKLY">Dua-mingguan (14 hari)</option>
-            <option value="MONTHLY">Bulanan (kalender)</option>
-            <option value="CUTOFF">Cutoff harian</option>
-          </select>
-        </div>
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="periodType">Jenis periode</Label>
+              <Controller
+                control={form.control}
+                name="periodType"
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="periodType">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="WEEKLY">Mingguan (7 hari)</SelectItem>
+                      <SelectItem value="BIWEEKLY">Dua-mingguan (14 hari)</SelectItem>
+                      <SelectItem value="MONTHLY">Bulanan (kalender)</SelectItem>
+                      <SelectItem value="CUTOFF">Cutoff harian</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
 
-        {periodType === 'WEEKLY' ? (
-          <div className="space-y-1">
-            <label htmlFor="weekStartDay" className="text-foreground text-sm font-medium">
-              Hari awal minggu
-            </label>
-            <select
-              id="weekStartDay"
-              className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
-              {...form.register('weekStartDay')}
-            >
-              <option value="MONDAY">Senin</option>
-              <option value="SUNDAY">Minggu</option>
-            </select>
+            {periodType === 'WEEKLY' ? (
+              <div className="space-y-2">
+                <Label htmlFor="weekStartDay">Hari awal minggu</Label>
+                <Controller
+                  control={form.control}
+                  name="weekStartDay"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger id="weekStartDay">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="MONDAY">Senin</SelectItem>
+                        <SelectItem value="SUNDAY">Minggu</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+            ) : null}
+
+            {periodType === 'BIWEEKLY' ? (
+              <div className="space-y-2">
+                <Label htmlFor="biweeklyAnchor">Anchor bi-weekly (tanggal referensi)</Label>
+                <Input id="biweeklyAnchor" type="date" {...form.register('biweeklyAnchor')} />
+                <p className="text-muted-foreground text-caption">
+                  Setiap periode 14 hari dihitung dari tanggal ini. Opsional — kalau kosong sistem
+                  pakai anchor default.
+                </p>
+              </div>
+            ) : null}
+
+            {periodType === 'CUTOFF' ? (
+              <div className="space-y-2">
+                <Label htmlFor="cutoffDayOfMonth">Tanggal cutoff bulanan (1–28)</Label>
+                <Input
+                  id="cutoffDayOfMonth"
+                  type="number"
+                  min={timesheetConfigBounds.cutoffDayOfMonth.min}
+                  max={timesheetConfigBounds.cutoffDayOfMonth.max}
+                  {...form.register('cutoffDayOfMonth', { valueAsNumber: true })}
+                />
+                <p className="text-muted-foreground text-caption">
+                  Contoh: 25 → periode 26 bulan lalu s/d 25 bulan ini.
+                </p>
+              </div>
+            ) : null}
+
+            <div className="space-y-2">
+              <Label htmlFor="timezone">Zona waktu</Label>
+              <Input id="timezone" type="text" {...form.register('timezone')} />
+              <p className="text-muted-foreground text-caption">
+                IANA timezone, e.g. <code>Asia/Jakarta</code>.
+              </p>
+            </div>
           </div>
-        ) : null}
 
-        {periodType === 'BIWEEKLY' ? (
-          <div className="space-y-1">
-            <label htmlFor="biweeklyAnchor" className="text-foreground text-sm font-medium">
-              Anchor bi-weekly (tanggal referensi)
-            </label>
-            <input
-              id="biweeklyAnchor"
-              type="date"
-              className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
-              {...form.register('biweeklyAnchor')}
-            />
-            <p className="text-muted-foreground text-xs">
-              Setiap periode 14 hari dihitung dari tanggal ini. Opsional — kalau kosong sistem pakai
-              anchor default.
+          <Separator />
+
+          <fieldset className="space-y-4">
+            <legend className="text-foreground text-body font-semibold">
+              Otomasi &amp; pengingat
+            </legend>
+            <p className="text-muted-foreground text-caption">
+              Scheduler harian menjalankan tugas ini pada 03:00 UTC (~10:00 WIB) untuk setiap
+              tenant.
             </p>
-          </div>
-        ) : null}
 
-        {periodType === 'CUTOFF' ? (
-          <div className="space-y-1">
-            <label htmlFor="cutoffDayOfMonth" className="text-foreground text-sm font-medium">
-              Tanggal cutoff bulanan (1–28)
-            </label>
-            <input
-              id="cutoffDayOfMonth"
-              type="number"
-              min={timesheetConfigBounds.cutoffDayOfMonth.min}
-              max={timesheetConfigBounds.cutoffDayOfMonth.max}
-              className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
-              {...form.register('cutoffDayOfMonth', { valueAsNumber: true })}
-            />
-            <p className="text-muted-foreground text-xs">
-              Contoh: 25 → periode 26 bulan lalu s/d 25 bulan ini.
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <Label htmlFor="autoGenerateEnabled">Auto-generate periode berikutnya</Label>
+                <p className="text-muted-foreground text-caption">
+                  Saat periode ditutup, sistem otomatis membuat periode &amp; DRAFT timesheet untuk
+                  setiap karyawan aktif.
+                </p>
+              </div>
+              <Switch
+                id="autoGenerateEnabled"
+                checked={form.watch('autoGenerateEnabled')}
+                onCheckedChange={(checked) =>
+                  form.setValue('autoGenerateEnabled', checked, { shouldDirty: true })
+                }
+              />
+            </div>
+
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <Label htmlFor="reminderEnabled">Kirim reminder otomatis</Label>
+                <p className="text-muted-foreground text-caption">
+                  Karyawan yang belum submit &amp; approver yang menunda review akan dinotifikasi
+                  setiap hari selama window di bawah.
+                </p>
+              </div>
+              <Switch
+                id="reminderEnabled"
+                checked={form.watch('reminderEnabled')}
+                onCheckedChange={(checked) =>
+                  form.setValue('reminderEnabled', checked, { shouldDirty: true })
+                }
+              />
+            </div>
+
+            <div className="grid gap-4 pt-2 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="submitStart">Submit reminder mulai (hari ke-)</Label>
+                <Input
+                  id="submitStart"
+                  type="number"
+                  min={timesheetConfigBounds.submitReminderStartDays.min}
+                  max={timesheetConfigBounds.submitReminderStartDays.max}
+                  {...form.register('submitReminderStartDays', { valueAsNumber: true })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="submitMax">Submit reminder berhenti (hari ke-)</Label>
+                <Input
+                  id="submitMax"
+                  type="number"
+                  min={timesheetConfigBounds.submitReminderMaxDays.min}
+                  max={timesheetConfigBounds.submitReminderMaxDays.max}
+                  {...form.register('submitReminderMaxDays', { valueAsNumber: true })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="approvalStart">Approval reminder mulai (hari ke-)</Label>
+                <Input
+                  id="approvalStart"
+                  type="number"
+                  min={timesheetConfigBounds.approvalReminderStartDays.min}
+                  max={timesheetConfigBounds.approvalReminderStartDays.max}
+                  {...form.register('approvalReminderStartDays', { valueAsNumber: true })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="approvalMax">Approval reminder berhenti (hari ke-)</Label>
+                <Input
+                  id="approvalMax"
+                  type="number"
+                  min={timesheetConfigBounds.approvalReminderMaxDays.min}
+                  max={timesheetConfigBounds.approvalReminderMaxDays.max}
+                  {...form.register('approvalReminderMaxDays', { valueAsNumber: true })}
+                />
+              </div>
+            </div>
+            <p className="text-muted-foreground text-caption">
+              Range: 0..30 (mulai) / 1..60 (berhenti). Nilai &ldquo;berhenti&rdquo; harus &gt;=
+              &ldquo;mulai&rdquo;.
             </p>
+          </fieldset>
+
+          {inlineError ? (
+            <Alert variant="destructive">
+              <AlertDescription>{inlineError}</AlertDescription>
+            </Alert>
+          ) : null}
+
+          <div className="flex items-center justify-between gap-3">
+            <p role="status" aria-live="polite" className="text-muted-foreground text-caption">
+              {saved === 'saved' ? 'Perubahan tersimpan.' : ''}
+            </p>
+            <Button type="submit" disabled={mutation.isPending || !form.formState.isDirty}>
+              {mutation.isPending ? 'Menyimpan…' : 'Simpan konfigurasi'}
+            </Button>
           </div>
-        ) : null}
-
-        <div className="space-y-1">
-          <label htmlFor="timezone" className="text-foreground text-sm font-medium">
-            Zona waktu
-          </label>
-          <input
-            id="timezone"
-            type="text"
-            className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
-            {...form.register('timezone')}
-          />
-          <p className="text-muted-foreground text-xs">
-            IANA timezone, e.g. <code>Asia/Jakarta</code>.
-          </p>
-        </div>
-      </div>
-
-      <fieldset className="border-border space-y-4 rounded-md border p-4">
-        <legend className="text-foreground px-1 text-sm font-semibold">
-          Otomasi &amp; pengingat
-        </legend>
-        <p className="text-muted-foreground text-xs">
-          Scheduler harian menjalankan tugas ini pada 03:00 UTC (~10:00 WIB) untuk setiap tenant.
-        </p>
-
-        <label className="flex items-start gap-3 text-sm">
-          <input
-            type="checkbox"
-            className="border-input mt-0.5 h-4 w-4 rounded"
-            {...form.register('autoGenerateEnabled')}
-          />
-          <span>
-            <span className="font-medium">Auto-generate periode berikutnya</span>
-            <span className="text-muted-foreground mt-0.5 block text-xs">
-              Saat periode ditutup, sistem otomatis membuat periode &amp; DRAFT timesheet untuk
-              setiap karyawan aktif.
-            </span>
-          </span>
-        </label>
-
-        <label className="flex items-start gap-3 text-sm">
-          <input
-            type="checkbox"
-            className="border-input mt-0.5 h-4 w-4 rounded"
-            {...form.register('reminderEnabled')}
-          />
-          <span>
-            <span className="font-medium">Kirim reminder otomatis</span>
-            <span className="text-muted-foreground mt-0.5 block text-xs">
-              Karyawan yang belum submit &amp; approver yang menunda review akan dinotifikasi setiap
-              hari selama window di bawah.
-            </span>
-          </span>
-        </label>
-
-        <div className="grid grid-cols-2 gap-4 pt-2">
-          <div className="space-y-1">
-            <label htmlFor="submitStart" className="text-foreground text-xs font-medium">
-              Submit reminder mulai (hari ke-)
-            </label>
-            <input
-              id="submitStart"
-              type="number"
-              min={timesheetConfigBounds.submitReminderStartDays.min}
-              max={timesheetConfigBounds.submitReminderStartDays.max}
-              className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
-              {...form.register('submitReminderStartDays', {
-                valueAsNumber: true,
-              })}
-            />
-          </div>
-          <div className="space-y-1">
-            <label htmlFor="submitMax" className="text-foreground text-xs font-medium">
-              Submit reminder berhenti (hari ke-)
-            </label>
-            <input
-              id="submitMax"
-              type="number"
-              min={timesheetConfigBounds.submitReminderMaxDays.min}
-              max={timesheetConfigBounds.submitReminderMaxDays.max}
-              className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
-              {...form.register('submitReminderMaxDays', {
-                valueAsNumber: true,
-              })}
-            />
-          </div>
-          <div className="space-y-1">
-            <label htmlFor="approvalStart" className="text-foreground text-xs font-medium">
-              Approval reminder mulai (hari ke-)
-            </label>
-            <input
-              id="approvalStart"
-              type="number"
-              min={timesheetConfigBounds.approvalReminderStartDays.min}
-              max={timesheetConfigBounds.approvalReminderStartDays.max}
-              className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
-              {...form.register('approvalReminderStartDays', {
-                valueAsNumber: true,
-              })}
-            />
-          </div>
-          <div className="space-y-1">
-            <label htmlFor="approvalMax" className="text-foreground text-xs font-medium">
-              Approval reminder berhenti (hari ke-)
-            </label>
-            <input
-              id="approvalMax"
-              type="number"
-              min={timesheetConfigBounds.approvalReminderMaxDays.min}
-              max={timesheetConfigBounds.approvalReminderMaxDays.max}
-              className="border-input bg-background focus:border-primary focus:ring-primary block w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1"
-              {...form.register('approvalReminderMaxDays', {
-                valueAsNumber: true,
-              })}
-            />
-          </div>
-        </div>
-        <p className="text-muted-foreground text-xs">
-          Range: 0..30 (mulai) / 1..60 (berhenti). Nilai &ldquo;berhenti&rdquo; harus &gt;=
-          &ldquo;mulai&rdquo;.
-        </p>
-      </fieldset>
-
-      {inlineError ? (
-        <div
-          role="alert"
-          className="border-destructive/50 bg-destructive/5 text-destructive rounded-md border p-3 text-sm"
-        >
-          {inlineError}
-        </div>
-      ) : null}
-
-      <div className="flex items-center justify-between gap-3">
-        <p role="status" aria-live="polite" className="text-muted-foreground text-xs">
-          {saved === 'saved' ? 'Perubahan tersimpan.' : ''}
-        </p>
-        <button
-          type="submit"
-          disabled={mutation.isPending || !form.formState.isDirty}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center rounded-md px-4 py-2 text-sm font-medium shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {mutation.isPending ? 'Menyimpan…' : 'Simpan konfigurasi'}
-        </button>
-      </div>
+        </CardContent>
+      </Card>
     </form>
   );
 }

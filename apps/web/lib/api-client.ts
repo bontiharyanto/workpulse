@@ -80,6 +80,7 @@ import type {
   SessionRevokeOthersResponse,
   UpdateNotificationPreferencesInput,
   UpdateRetentionPolicyInput,
+  UpdateSecurityPolicyInput,
   UserConsentDto,
   UserConsentListResponseDto,
   OvertimeDecisionInput,
@@ -93,6 +94,7 @@ import type {
   PublishPolicyInput,
   RefreshResponse,
   RetentionPolicyDto,
+  SecurityPolicyDto,
   RetentionAuditReportDto,
   RetentionAuditListResponseDto,
   RegenerateRetentionAuditInput,
@@ -133,6 +135,7 @@ import type {
   AppendBreachNoteInput,
   Shift,
   ShiftAssignment,
+  UserWithoutShift,
   TimesheetConfigDto,
   TimesheetListDto,
   TimesheetPeriodListDto,
@@ -400,6 +403,18 @@ export const retentionApi = {
   update: (body: UpdateRetentionPolicyInput): Promise<RetentionPolicyDto> =>
     apiRequest<RetentionPolicyDto>('/admin/privacy/retention', {
       method: 'PUT',
+      json: body,
+    }),
+};
+
+export const securityPolicyApi = {
+  get: (): Promise<SecurityPolicyDto> =>
+    apiRequest<SecurityPolicyDto>('/admin/security/policy', {
+      method: 'GET',
+    }),
+  update: (body: UpdateSecurityPolicyInput): Promise<SecurityPolicyDto> =>
+    apiRequest<SecurityPolicyDto>('/admin/security/policy', {
+      method: 'PATCH',
       json: body,
     }),
 };
@@ -833,6 +848,15 @@ export const shiftsAdminApi = {
     apiRequest<Shift>(`/admin/shifts/${id}`, { method: 'PATCH', json: body }),
   remove: (id: string): Promise<void> =>
     apiRequest<void>(`/admin/shifts/${id}`, { method: 'DELETE' }),
+  /** Users in caller's tenant with no in-force UserShiftAssignment today. */
+  listUsersWithoutActiveShift: (params?: { search?: string }): Promise<UserWithoutShift[]> => {
+    const query = new URLSearchParams();
+    if (params?.search) query.set('search', params.search);
+    const suffix = query.toString() ? `?${query.toString()}` : '';
+    return apiRequest<UserWithoutShift[]>(`/admin/shifts/users/without-active-shift${suffix}`, {
+      method: 'GET',
+    });
+  },
 };
 
 export const shiftAssignmentsAdminApi = {

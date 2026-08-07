@@ -24,8 +24,15 @@ export function middleware(request: NextRequest): NextResponse {
   const nonce = generateNonce();
   const isProd = process.env.NODE_ENV === 'production';
   const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+  // `upgrade-insecure-requests` must ONLY be emitted when the app is
+  // actually served over HTTPS. On an HTTP origin, this directive
+  // (combined with HSTS from next.config.mjs) locks the origin into
+  // HTTPS-only in Chrome and every subsequent request is force-upgraded
+  // — which then fails because the dev server only listens on HTTP.
+  // See the matching gate in `next.config.mjs`.
+  const isHttpsDeployment = (process.env.WEB_URL ?? '').startsWith('https://');
 
-  const csp = buildCsp({ nonce, isProd, apiUrl });
+  const csp = buildCsp({ nonce, isProd, isHttpsDeployment, apiUrl });
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
@@ -48,7 +55,12 @@ function generateNonce(): string {
   return btoa(binary);
 }
 
-function buildCsp(opts: { nonce: string; isProd: boolean; apiUrl: string }): string {
+function buildCsp(opts: {
+  nonce: string;
+  isProd: boolean;
+  isHttpsDeployment: boolean;
+  apiUrl: string;
+}): string {
   const self = "'self'";
   const nonceSource = `'nonce-${opts.nonce}'`;
   // `strict-dynamic` lets any nonce-loaded script transitively load
@@ -60,13 +72,24 @@ function buildCsp(opts: { nonce: string; isProd: boolean; apiUrl: string }): str
     ? [nonceSource, "'strict-dynamic'"]
     : [nonceSource, "'strict-dynamic'", "'unsafe-eval'"];
 
+  // OpenStreetMap raster tile CDN + Nominatim search endpoint. Both
+  // are free and require no API key; attribution is displayed on the
+  // map card as mandated by the ODbL license. If we ever migrate to
+  // a paid tile provider, replace these origins.
+  //
+  // Wildcard `*.tile.openstreetmap.org` covers a.tile / b.tile /
+  // c.tile subdomains which Leaflet round-robins to avoid connection
+  // limits on a single host.
+  const osmTileOrigin = 'https://*.tile.openstreetmap.org';
+  const osmNominatimOrigin = 'https://nominatim.openstreetmap.org';
+
   const directives: Record<string, string[] | undefined> = {
     'default-src': [self],
     'base-uri': [self],
     'font-src': [self, 'data:'],
     'form-action': [self],
     'frame-ancestors': ["'none'"],
-    'img-src': [self, 'data:', 'blob:'],
+    'img-src': [self, 'data:', 'blob:', osmTileOrigin],
     'object-src': ["'none'"],
     // Style is kept `'unsafe-inline'` because Tailwind emits many
     // small inline `style` attributes at build time and Next's dev
@@ -74,9 +97,9 @@ function buildCsp(opts: { nonce: string; isProd: boolean; apiUrl: string }): str
     // build-side hash pipeline — deferred.
     'style-src': [self, "'unsafe-inline'"],
     'script-src': scriptSrc,
-    'connect-src': [self, opts.apiUrl, ...(opts.isProd ? [] : ['ws:'])],
+    'connect-src': [self, opts.apiUrl, osmNominatimOrigin, ...(opts.isProd ? [] : ['ws:'])],
     'manifest-src': [self],
-    ...(opts.isProd ? { 'upgrade-insecure-requests': [] } : {}),
+    ...(opts.isProd && opts.isHttpsDeployment ? { 'upgrade-insecure-requests': [] } : {}),
   };
 
   return Object.entries(directives)

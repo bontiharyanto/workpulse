@@ -1,10 +1,11 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsLatitude,
   IsLongitude,
   IsNumber,
   IsOptional,
   IsString,
+  Length,
   Max,
   MaxLength,
   Min,
@@ -30,4 +31,18 @@ export class ClockInDto {
   @IsString()
   @MaxLength(500)
   note?: string;
+
+  /**
+   * Optional Wi-Fi SSID reported by the client. Used as an
+   * OR-fallback to the geofence distance check for indoor
+   * GPS-hostile buildings: if `Geofence.allowedSsids` contains
+   * this value, the clock-in is accepted regardless of distance.
+   * Browsers cannot expose SSIDs — only the mobile app supplies
+   * this. Always trimmed server-side and case-sensitive.
+   */
+  @ApiPropertyOptional({ example: 'OFFICE-WIFI-JKT' })
+  @IsOptional()
+  @IsString()
+  @Length(1, 64)
+  wifiSsid?: string;
 }

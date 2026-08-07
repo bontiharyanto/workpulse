@@ -110,13 +110,19 @@ export const envValidationSchema = z
      * enrolled MFA are gated with `MFA_ENROLLMENT_REQUIRED` on every
      * non-`/auth` endpoint. Default `true` — production posture.
      *
-     * The E2E harness flips this to `false` because it logs in as HR
-     * and SUPER_ADMIN dozens of times per run and the tests exercise
-     * MFA enrollment flows explicitly under their own scenarios.
-     * `superRefine` below rejects `false` in production so a stray
-     * dotfile never accidentally weakens deployed traffic.
+     * MVP policy: MFA is **opt-in** for every role. HR / Super Admin
+     * can still enable MFA voluntarily via `/settings/security` and
+     * `MfaVerifiedGuard` still challenges them at login — this flag
+     * only controls whether enrollment is FORCED on their next
+     * request. Set to `'true'` in a future hardening milestone once
+     * ops has run a communications + support cycle with HR.
+     *
+     * The E2E harness leaves this at `'false'` for the same reason
+     * dev does — the MFA enrollment scenarios explicitly toggle it
+     * inside their own tests when they need to exercise the forced
+     * path.
      */
-    MFA_ENFORCE_HR_ADMIN: z.enum(['true', 'false']).default('true'),
+    MFA_ENFORCE_HR_ADMIN: z.enum(['true', 'false']).default('false'),
 
     // ---- Observability --------------------------------------------------------
     /** pino log level. Lower = noisier. */
@@ -300,13 +306,12 @@ export const envValidationSchema = z
           'MFA_SECRET_ENCRYPTION_KEY is required in production. Generate with `openssl rand -base64 32`.',
       });
     }
-    if (env.NODE_ENV === 'production' && env.MFA_ENFORCE_HR_ADMIN === 'false') {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['MFA_ENFORCE_HR_ADMIN'],
-        message: 'MFA_ENFORCE_HR_ADMIN=false is not allowed with NODE_ENV=production',
-      });
-    }
+    // NOTE: previously we refused `MFA_ENFORCE_HR_ADMIN=false` in
+    // production. That's been relaxed for MVP — MFA is opt-in
+    // regardless of NODE_ENV. When we re-tighten policy (see ADR-0017
+    // "Future work"), restore a superRefine block here that gates the
+    // `false` value behind a `MFA_ENFORCE_OVERRIDE_ACK=true` opt-out
+    // env, so a copy-paste accident can't silently disable MFA in prod.
     if (env.NODE_ENV === 'production' && !env.TIMESHEET_EXPORT_SIGNING_SECRET) {
       ctx.addIssue({
         code: 'custom',

@@ -19,6 +19,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../common/types/authenticated-user';
 import { AllowMfaEnrollmentPending } from '../decorators/allow-mfa-enrollment-pending.decorator';
 import { AllowMustChangePassword } from '../decorators/allow-must-change-password.decorator';
+import { AllowPendingConsent } from '../decorators/allow-pending-consent.decorator';
 import { AllowUnverifiedMfa } from '../decorators/allow-unverified-mfa.decorator';
 import {
   MfaBackupCodesResponseDto,
@@ -40,12 +41,16 @@ const REFRESH_COOKIE_NAME = 'wp_refresh';
  *
  * Guards & decorators cheat sheet:
  *
- *   enroll/*   → @AllowMfaEnrollmentPending (HR/SA can enroll)
- *   verify     → @AllowUnverifiedMfa (pre-MFA token is exactly the shape
- *                that reaches this route)
+ *   enroll/*   → @AllowMfaEnrollmentPending + @AllowPendingConsent
+ *                (HR/SA can enroll BEFORE accepting a new privacy policy —
+ *                consent is a lower-priority gate than security enrollment)
+ *   verify     → @AllowUnverifiedMfa + @AllowPendingConsent
+ *                (pre-MFA token is exactly the shape that reaches this route;
+ *                consent is enforced AFTER MFA lolos, not during it — otherwise
+ *                an MFA-enabled user with an unaccepted new policy deadlocks)
  *   backup     → normal auth (must already be MFA-verified)
- *   status     → @AllowMfaEnrollmentPending + @AllowUnverifiedMfa
- *                so FE can read status in any bootstrap phase
+ *   status     → @AllowMfaEnrollmentPending + @AllowUnverifiedMfa +
+ *                @AllowMustChangePassword (the last one also bypasses consent)
  *   disable    → normal auth (must already be MFA-verified)
  *
  * Throttling: enrollment + verification endpoints get stricter buckets
@@ -63,6 +68,7 @@ export class MfaController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @AllowMfaEnrollmentPending()
+  @AllowPendingConsent()
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @ApiOkResponse({ type: MfaEnrollStartResponseDto })
   async enrollStart(@CurrentUser() user: AuthenticatedUser): Promise<MfaEnrollStartResponseDto> {
@@ -73,6 +79,7 @@ export class MfaController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @AllowMfaEnrollmentPending()
+  @AllowPendingConsent()
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @ApiOkResponse({ type: MfaEnrollConfirmResponseDto })
   async enrollConfirm(
@@ -90,6 +97,7 @@ export class MfaController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @AllowUnverifiedMfa()
+  @AllowPendingConsent()
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @ApiOkResponse({ type: MfaVerifyResponseDto })
   async verify(

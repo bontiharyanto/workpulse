@@ -2,13 +2,19 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { mfaVerifyInputSchema, type MfaVerifyInput } from '@workpulse/shared-types';
+import { AlertTriangle, ShieldCheck } from 'lucide-react';
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { useAuth } from '@/components/providers/auth-provider';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { ApiError, mfaApi } from '@/lib/api-client';
+import { cn } from '@/lib/utils';
 
 const ERROR_COPY: Record<string, string> = {
   MFA_INVALID_CODE: 'Kode MFA tidak valid.',
@@ -35,8 +41,6 @@ export function MfaVerifyForm({ redirectTo }: { redirectTo: string }): JSX.Eleme
     mode: 'onSubmit',
   });
 
-  // Only reachable in the pre-MFA state. If someone lands here with a
-  // fully-verified session, ship them to the dashboard.
   useEffect(() => {
     if (status !== 'authenticated' || !user) return;
     if (user.mfaEnabled !== true || user.mfaPassed !== false) {
@@ -56,6 +60,15 @@ export function MfaVerifyForm({ redirectTo }: { redirectTo: string }): JSX.Eleme
       });
       router.replace(redirectTo as Route);
     } catch (err) {
+      // Defense-in-depth: if the backend still returns CONSENT_REQUIRED
+      // here (e.g. an old deployment or a middleware ordering regression),
+      // send the user to `/consent` instead of showing a misleading
+      // "Verifikasi gagal" toast — the TOTP code they typed may well have
+      // been valid; consent is just an orthogonal follow-up gate.
+      if (err instanceof ApiError && err.code === 'CONSENT_REQUIRED') {
+        router.replace('/consent' as Route);
+        return;
+      }
       if (err instanceof ApiError) {
         setSubmitError(ERROR_COPY[err.code] ?? err.message ?? 'Terjadi kesalahan.');
       } else if (err instanceof Error) {
@@ -68,45 +81,51 @@ export function MfaVerifyForm({ redirectTo }: { redirectTo: string }): JSX.Eleme
 
   return (
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
-      <div className="flex gap-2 text-xs">
+      <div
+        role="group"
+        aria-label="Metode verifikasi"
+        className="border-border grid grid-cols-2 rounded-md border p-1"
+      >
         <button
           type="button"
+          aria-pressed={mode === 'totp'}
           onClick={() => {
             setMode('totp');
             form.clearErrors();
             form.setValue('backupCode', '');
           }}
-          className={
+          className={cn(
+            'text-caption rounded px-3 py-1.5 font-medium transition-colors',
             mode === 'totp'
-              ? 'border-primary bg-primary/10 text-primary rounded-md border px-3 py-1 font-medium'
-              : 'border-input text-muted-foreground rounded-md border px-3 py-1'
-          }
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground',
+          )}
         >
           Kode aplikasi
         </button>
         <button
           type="button"
+          aria-pressed={mode === 'backup'}
           onClick={() => {
             setMode('backup');
             form.clearErrors();
             form.setValue('code', '');
           }}
-          className={
+          className={cn(
+            'text-caption rounded px-3 py-1.5 font-medium transition-colors',
             mode === 'backup'
-              ? 'border-primary bg-primary/10 text-primary rounded-md border px-3 py-1 font-medium'
-              : 'border-input text-muted-foreground rounded-md border px-3 py-1'
-          }
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground',
+          )}
         >
           Backup code
         </button>
       </div>
 
       {mode === 'totp' ? (
-        <div className="space-y-1">
-          <label htmlFor="code" className="text-sm font-medium">
-            Kode 6 digit dari authenticator app
-          </label>
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="code">Kode 6 digit dari authenticator app</Label>
+          <Input
             id="code"
             type="text"
             inputMode="numeric"
@@ -114,57 +133,51 @@ export function MfaVerifyForm({ redirectTo }: { redirectTo: string }): JSX.Eleme
             autoFocus
             maxLength={6}
             aria-invalid={Boolean(form.formState.errors.code) || undefined}
-            className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-center font-mono text-lg tracking-widest shadow-sm focus:outline-none focus:ring-2"
+            className="text-center font-mono text-lg tracking-widest"
             {...form.register('code')}
           />
-          {form.formState.errors.code && (
-            <p role="alert" className="text-destructive text-xs">
+          {form.formState.errors.code ? (
+            <p role="alert" className="text-destructive text-caption">
               {form.formState.errors.code.message}
             </p>
-          )}
+          ) : null}
         </div>
       ) : (
-        <div className="space-y-1">
-          <label htmlFor="backupCode" className="text-sm font-medium">
-            Backup code
-          </label>
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="backupCode">Backup code</Label>
+          <Input
             id="backupCode"
             type="text"
             inputMode="text"
             autoFocus
             autoComplete="off"
             aria-invalid={Boolean(form.formState.errors.backupCode) || undefined}
-            className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-center font-mono shadow-sm focus:outline-none focus:ring-2"
+            className="text-center font-mono"
             {...form.register('backupCode')}
           />
-          {form.formState.errors.backupCode && (
-            <p role="alert" className="text-destructive text-xs">
+          {form.formState.errors.backupCode ? (
+            <p role="alert" className="text-destructive text-caption">
               {form.formState.errors.backupCode.message}
             </p>
-          )}
-          <p className="text-muted-foreground text-xs">
+          ) : null}
+          <p className="text-muted-foreground text-caption">
             Setiap backup code hanya bisa digunakan satu kali.
           </p>
         </div>
       )}
 
-      {submitError && (
-        <p
-          role="alert"
-          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
-        >
-          {submitError}
-        </p>
-      )}
+      {submitError ? (
+        <Alert variant="destructive">
+          <AlertTriangle aria-hidden />
+          <AlertTitle>Verifikasi gagal</AlertTitle>
+          <AlertDescription>{submitError}</AlertDescription>
+        </Alert>
+      ) : null}
 
-      <button
-        type="submit"
-        disabled={form.formState.isSubmitting}
-        className="bg-primary text-primary-foreground w-full rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90 disabled:opacity-50"
-      >
-        {form.formState.isSubmitting ? 'Memverifikasi...' : 'Verifikasi'}
-      </button>
+      <Button type="submit" className="w-full" size="lg" disabled={form.formState.isSubmitting}>
+        <ShieldCheck className="h-4 w-4" aria-hidden />
+        {form.formState.isSubmitting ? 'Memverifikasi…' : 'Verifikasi'}
+      </Button>
     </form>
   );
 }

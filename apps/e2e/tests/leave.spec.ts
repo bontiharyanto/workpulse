@@ -31,33 +31,24 @@ test('leave: employee submits → supervisor approves → HR approves', async ({
   await loginAs(employeePage, 'employee');
   await employeePage.goto('/leave');
 
-  // Wait for the leave-types dropdown to load before touching it; the
-  // options are fetched via TanStack Query on mount and might be empty for
-  // a beat. `option:not([value=""])` is the CSS way to exclude the empty
-  // placeholder option — the `!=` syntax used previously is jQuery-only
-  // and Chromium's `querySelectorAll` rejects it as a SyntaxError.
-  const typeSelect = employeePage.locator('#leaveTypeId');
-  await expect(typeSelect.locator('option:not([value=""])')).not.toHaveCount(0, {
-    timeout: 10_000,
-  });
-  // Playwright's `selectOption({ label })` overload accepts a string, not
-  // a RegExp — pick the matching option manually so the type checker is
-  // happy while still tolerating trailing whitespace / casing drift in
-  // the seed data.
-  const annualLeaveValue = await typeSelect
-    .locator('option', { hasText: /Annual Leave/i })
+  // Leave-type select is a Radix `Select` (shadcn) whose trigger carries
+  // `id="leaveTypeId"` but is NOT a native `<select>`. Opening it lazily
+  // mounts a Radix portal with `role="listbox"` and `role="option"`
+  // children. Wait for the trigger to be enabled (types finish loading)
+  // then click through the portal.
+  const typeTrigger = employeePage.locator('#leaveTypeId');
+  await expect(typeTrigger).toBeEnabled({ timeout: 10_000 });
+  await typeTrigger.click();
+  await employeePage
+    .getByRole('option', { name: /Annual Leave/i })
     .first()
-    .getAttribute('value');
-  if (!annualLeaveValue) {
-    throw new Error('Annual Leave option not found in leave-type dropdown');
-  }
-  await typeSelect.selectOption(annualLeaveValue);
+    .click();
 
   await employeePage.locator('#startDate').fill(startDate);
   await employeePage.locator('#endDate').fill(endDate);
   await employeePage.locator('#reason').fill(`Family event — ${runId}`);
 
-  await employeePage.getByRole('button', { name: 'Ajukan', exact: true }).click();
+  await employeePage.getByRole('button', { name: /^Ajukan cuti$/ }).click();
 
   // The employee's own list should now render the fresh row in a
   // pending-supervisor state.
@@ -73,7 +64,12 @@ test('leave: employee submits → supervisor approves → HR approves', async ({
   await supervisorPage.goto('/leave/approvals');
 
   // Locate the row belonging to this run and click its Approve button.
-  const supRow = supervisorPage.locator('li', { hasText: `Family event — ${runId}` }).first();
+  // The approval list renders each request as a `<Card>` tagged with
+  // `data-testid="leave-approval-row"`.
+  const supRow = supervisorPage
+    .getByTestId('leave-approval-row')
+    .filter({ hasText: `Family event — ${runId}` })
+    .first();
   await expect(supRow).toBeVisible({ timeout: 10_000 });
   await supRow.getByRole('button', { name: 'Setujui', exact: true }).click();
 
@@ -88,7 +84,10 @@ test('leave: employee submits → supervisor approves → HR approves', async ({
   await loginAs(hrPage, 'hr');
   await hrPage.goto('/leave/approvals');
 
-  const hrRow = hrPage.locator('li', { hasText: `Family event — ${runId}` }).first();
+  const hrRow = hrPage
+    .getByTestId('leave-approval-row')
+    .filter({ hasText: `Family event — ${runId}` })
+    .first();
   await expect(hrRow).toBeVisible({ timeout: 10_000 });
   await hrRow.getByRole('button', { name: 'Setujui', exact: true }).click();
   await expect(hrRow).not.toBeVisible({ timeout: 10_000 });

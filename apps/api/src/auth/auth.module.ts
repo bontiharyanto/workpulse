@@ -7,6 +7,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { ConsentModule } from '../consent/consent.module';
 import { NotificationModule } from '../notification/notification.module';
+import { SecurityPolicyModule } from '../security-policy/security-policy.module';
 import { MfaController } from './mfa/mfa.controller';
 import { MfaService } from './mfa/mfa.service';
 import { PasswordResetService } from './password-reset.service';
@@ -29,6 +30,7 @@ import { TokenService } from './token.service';
     }),
     NotificationModule,
     ConsentModule,
+    SecurityPolicyModule,
   ],
   controllers: [AuthController, MfaController, SessionController],
   providers: [

@@ -3,11 +3,32 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { overtimeRequestInputSchema, type OvertimeRequestInput } from '@workpulse/shared-types';
-import { useState } from 'react';
+import { AlertTriangle, CheckCircle2, Send } from 'lucide-react';
+import { useState, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { ApiError, overtimeApi } from '@/lib/api-client';
 
+/**
+ * Employee-facing form to submit an overtime request.
+ *
+ * INVARIANT (rules/20 §4): overtime rate math (`baseRate`,
+ * `rateMultiplier`, `ratePerHour`, `totalAmount`, `dayKind`) is
+ * server-computed and MUST NOT be estimated on the FE. This form
+ * only collects `workDate + hours + reason` and shows the server
+ * response — no cost preview here on purpose.
+ *
+ * The 12-hour cap in `overtimeHoursSchema` is a hard schema cap;
+ * company-specific `overtimeMaxHoursPerDay` is server-enforced
+ * (returns `HOURS_EXCEEDS_DAILY_CAP`). Do not bake the tenant cap
+ * into the FE — surface the server error instead.
+ */
 const ERROR_COPY: Record<string, string> = {
   INVALID_DATE: 'Format tanggal tidak valid.',
   WORK_DATE_IN_FUTURE: 'Tanggal kerja tidak boleh di masa depan.',
@@ -53,88 +74,83 @@ export function OvertimeSubmitForm(): JSX.Element {
   );
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4 rounded-lg border p-6 shadow-sm" noValidate>
-      <h2 className="text-lg font-medium">Ajukan Lembur</h2>
-
-      <div className="space-y-1">
-        <label htmlFor="ot-workDate" className="text-sm font-medium">
-          Tanggal Lembur
-        </label>
-        <input
-          id="ot-workDate"
-          type="date"
-          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
-          {...form.register('workDate')}
-        />
-        {form.formState.errors.workDate && (
-          <p role="alert" className="text-destructive text-xs">
-            {form.formState.errors.workDate.message}
-          </p>
-        )}
-      </div>
-
-      <div className="space-y-1">
-        <label htmlFor="ot-hours" className="text-sm font-medium">
-          Jumlah Jam (0,25 – 12)
-        </label>
-        <input
-          id="ot-hours"
-          type="number"
-          step="0.25"
-          min="0.25"
-          max="12"
-          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
-          {...form.register('hours', { valueAsNumber: true })}
-        />
-        {form.formState.errors.hours && (
-          <p role="alert" className="text-destructive text-xs">
-            {form.formState.errors.hours.message}
-          </p>
-        )}
-      </div>
-
-      <div className="space-y-1">
-        <label htmlFor="ot-reason" className="text-sm font-medium">
-          Alasan
-        </label>
-        <textarea
-          id="ot-reason"
-          rows={3}
-          className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
-          placeholder="Deadline release / support incident / …"
-          {...form.register('reason')}
-        />
-        {form.formState.errors.reason && (
-          <p role="alert" className="text-destructive text-xs">
-            {form.formState.errors.reason.message}
-          </p>
-        )}
-      </div>
-
-      {error && (
-        <p
-          role="alert"
-          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
-        >
-          {error}
+    <Card>
+      <CardHeader>
+        <CardTitle>Ajukan Lembur</CardTitle>
+        <p className="text-muted-foreground text-caption">
+          Tarif lembur dihitung otomatis di server berdasarkan hari kerja / akhir pekan / hari
+          libur.
         </p>
-      )}
-      {ok && (
-        <p
-          role="status"
-          className="rounded-md border border-emerald-500/40 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400"
-        >
-          {ok}
-        </p>
-      )}
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={onSubmit} className="space-y-4" noValidate>
+          <div className="space-y-1.5">
+            <Label htmlFor="ot-workDate">Tanggal Lembur</Label>
+            <Input id="ot-workDate" type="date" {...form.register('workDate')} />
+            {form.formState.errors.workDate ? (
+              <p role="alert" className="text-destructive text-caption">
+                {form.formState.errors.workDate.message}
+              </p>
+            ) : null}
+          </div>
 
-      <button
-        type="submit"
-        disabled={submit.isPending}
-        className="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90 disabled:opacity-50"
-      >
-        {submit.isPending ? 'Mengirim...' : 'Ajukan'}
-      </button>
-    </form>
+          <div className="space-y-1.5">
+            <Label htmlFor="ot-hours">Jumlah Jam (0,25 – 12)</Label>
+            <Input
+              id="ot-hours"
+              type="number"
+              step="0.25"
+              min="0.25"
+              max="12"
+              className="tabular-nums"
+              {...form.register('hours', { valueAsNumber: true })}
+            />
+            {form.formState.errors.hours ? (
+              <p role="alert" className="text-destructive text-caption">
+                {form.formState.errors.hours.message}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="ot-reason">Alasan</Label>
+            <Textarea
+              id="ot-reason"
+              rows={3}
+              placeholder="Deadline release / support incident / …"
+              {...form.register('reason')}
+            />
+            {form.formState.errors.reason ? (
+              <p role="alert" className="text-destructive text-caption">
+                {form.formState.errors.reason.message}
+              </p>
+            ) : null}
+          </div>
+
+          {error ? (
+            <Alert variant="destructive">
+              <AlertTriangle aria-hidden />
+              <AlertTitle>Gagal mengajukan lembur</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : null}
+
+          {ok ? (
+            <Alert variant="success">
+              <CheckCircle2 aria-hidden />
+              <AlertTitle>{ok}</AlertTitle>
+              <AlertDescription>
+                Menunggu persetujuan · notifikasi akan dikirim jika keputusan sudah dibuat.
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
+          <Button type="submit" disabled={submit.isPending}>
+            <Send className="h-4 w-4" aria-hidden />
+            {submit.isPending ? 'Mengirim…' : 'Ajukan lembur'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

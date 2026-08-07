@@ -2,13 +2,18 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginInputSchema, type LoginInput } from '@workpulse/shared-types';
+import { AlertTriangle, Eye, EyeOff, LogIn } from 'lucide-react';
 import type { Route } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { useAuth } from '@/components/providers/auth-provider';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { ApiError } from '@/lib/api-client';
 
 const ERROR_COPY: Record<string, string> = {
@@ -27,9 +32,7 @@ const ERROR_COPY: Record<string, string> = {
  * cache can't skip any gate — the backend re-checks on the first
  * request that lands. The enrollment gate reads
  * `user.mfaEnrollmentRequired` (baked by the API from role + config)
- * instead of computing role membership on the client, so the
- * `MFA_ENFORCE_HR_ADMIN=false` override (test/emergency only) also
- * disables the FE redirect.
+ * instead of computing role membership on the client.
  */
 const CHANGE_PASSWORD_PATH = '/change-password';
 const MFA_VERIFY_PATH = '/login/mfa';
@@ -39,6 +42,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string }): JSX.Element {
   const { login, status, user } = useAuth();
   const router = useRouter();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginInputSchema),
@@ -67,10 +71,6 @@ export function LoginForm({ redirectTo }: { redirectTo: string }): JSX.Element {
     setSubmitError(null);
     try {
       const result = await login(values);
-      // `login()` populated authStore synchronously; the effect above
-      // will fire on the next re-render. Kick a router.replace here
-      // too so the caller doesn't briefly see the previous redirect
-      // target flash before the effect resolves.
       if (result.mfaRequired) {
         router.replace(MFA_VERIFY_PATH as Route);
       } else {
@@ -89,69 +89,79 @@ export function LoginForm({ redirectTo }: { redirectTo: string }): JSX.Element {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
-      <div className="space-y-1">
-        <label htmlFor="email" className="text-sm font-medium">
-          Email
-        </label>
-        <input
+      <div className="space-y-1.5">
+        <Label htmlFor="email">Email</Label>
+        <Input
           id="email"
           type="email"
           autoComplete="email"
           autoFocus
           aria-invalid={Boolean(form.formState.errors.email) || undefined}
-          className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2"
           {...form.register('email')}
         />
-        {form.formState.errors.email && (
-          <p role="alert" className="text-destructive text-xs">
+        {form.formState.errors.email ? (
+          <p role="alert" className="text-destructive text-caption">
             {form.formState.errors.email.message}
           </p>
-        )}
+        ) : null}
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <div className="flex items-baseline justify-between gap-2">
-          <label htmlFor="password" className="text-sm font-medium">
-            Kata sandi
-          </label>
+          <Label htmlFor="password">Password</Label>
           <Link
             href="/forgot-password"
-            className="text-muted-foreground hover:text-foreground text-xs underline underline-offset-4"
+            className="text-info hover:text-info/80 text-caption font-medium"
           >
-            Lupa password?
+            Forgot?
           </Link>
         </div>
-        <input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          aria-invalid={Boolean(form.formState.errors.password) || undefined}
-          className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2"
-          {...form.register('password')}
-        />
-        {form.formState.errors.password && (
-          <p role="alert" className="text-destructive text-xs">
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? 'text' : 'password'}
+            autoComplete="current-password"
+            aria-invalid={Boolean(form.formState.errors.password) || undefined}
+            className="pr-12"
+            {...form.register('password')}
+          />
+          <div className="absolute inset-y-0 right-0 flex items-stretch">
+            <div className="border-border flex items-center border-l px-2.5">
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="text-muted-foreground hover:text-foreground rounded-sm p-0.5 transition-colors"
+                aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                aria-pressed={showPassword}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" aria-hidden />
+                ) : (
+                  <Eye className="h-4 w-4" aria-hidden />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+        {form.formState.errors.password ? (
+          <p role="alert" className="text-destructive text-caption">
             {form.formState.errors.password.message}
           </p>
-        )}
+        ) : null}
       </div>
 
-      {submitError && (
-        <p
-          role="alert"
-          className="border-destructive/40 bg-destructive/5 text-destructive rounded-md border px-3 py-2 text-sm"
-        >
-          {submitError}
-        </p>
-      )}
+      {submitError ? (
+        <Alert variant="destructive">
+          <AlertTriangle aria-hidden />
+          <AlertTitle>Tidak dapat masuk</AlertTitle>
+          <AlertDescription>{submitError}</AlertDescription>
+        </Alert>
+      ) : null}
 
-      <button
-        type="submit"
-        disabled={form.formState.isSubmitting}
-        className="bg-primary text-primary-foreground w-full rounded-md px-4 py-2 text-sm font-medium shadow hover:opacity-90 disabled:opacity-50"
-      >
-        {form.formState.isSubmitting ? 'Masuk...' : 'Masuk'}
-      </button>
+      <Button type="submit" className="w-full" size="lg" disabled={form.formState.isSubmitting}>
+        <LogIn className="h-4 w-4" aria-hidden />
+        {form.formState.isSubmitting ? 'Masuk…' : 'Masuk'}
+      </Button>
     </form>
   );
 }

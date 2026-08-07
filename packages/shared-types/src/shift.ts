@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { userRoleSchema } from './auth.js';
 import { isoDateTimeSchema } from './common.js';
 import { calendarDateSchema } from './leave.js';
 
@@ -83,3 +84,24 @@ export const endShiftAssignmentSchema = z.object({
   effectiveTo: calendarDateSchema,
 });
 export type EndShiftAssignmentInput = z.infer<typeof endShiftAssignmentSchema>;
+
+// ---- Users without active shift -------------------------------------------
+// A read-only projection used by the admin "employees without an active shift"
+// panel. SUPER_ADMIN is intentionally excluded server-side because that role
+// is cross-tenant and never clocks in to a specific geofence.
+
+export const userWithoutShiftSchema = z.object({
+  id: z.string(),
+  email: z.string().email(),
+  fullName: z.string(),
+  role: userRoleSchema,
+  departmentId: z.string().nullable(),
+  departmentName: z.string().nullable(),
+  hiredAt: calendarDateSchema.nullable(),
+});
+export type UserWithoutShift = z.infer<typeof userWithoutShiftSchema>;
+
+export const listUsersWithoutShiftQuerySchema = z.object({
+  search: z.string().trim().min(1).max(120).optional(),
+});
+export type ListUsersWithoutShiftQuery = z.infer<typeof listUsersWithoutShiftQuerySchema>;

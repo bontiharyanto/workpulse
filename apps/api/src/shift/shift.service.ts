@@ -7,10 +7,12 @@ import {
 import type { Prisma, Shift, UserShiftAssignment } from '@prisma/client';
 
 import type { AuthenticatedUser } from '../common/types/authenticated-user';
+import type { UserRole } from '../common/types/user-role';
 import { PrismaService } from '../prisma/prisma.service';
 import { shiftDurationMinutes } from './domain/hh-mm';
 import { hasOverlappingAssignment } from './domain/shift-assignment-range';
 import type { ShiftTypeLiteral } from './dto/create-shift.dto';
+import type { UserWithoutShiftDto } from './dto/list-users-without-shift.dto';
 import type { ShiftAssignmentResponseDto, ShiftResponseDto } from './dto/shift-response.dto';
 
 export interface CreateShiftInput {
@@ -188,6 +190,70 @@ export class ShiftService {
         },
       });
     });
+  }
+
+  /**
+   * List active tenant users that have NO in-force UserShiftAssignment today.
+   *
+   * "In-force at now()" mirrors the same predicate used by
+   * {@link list} and the attendance clock-in guard, so this endpoint
+   * reveals exactly the users who would hit `SHIFT_NOT_FOUND` if they
+   * tried to clock in right now.
+   *
+   * SUPER_ADMIN is excluded because that role is cross-tenant by design
+   * and never clocks in against a single geofence. Terminated / suspended
+   * employees are also excluded — HR should assign shifts only to people
+   * who are supposed to work.
+   */
+  async listUsersWithoutActiveShift(
+    actor: AuthenticatedUser,
+    filter: { search?: string } = {},
+  ): Promise<UserWithoutShiftDto[]> {
+    const now = new Date();
+    const search = filter.search?.trim();
+
+    const rows = await this.prisma.user.findMany({
+      where: {
+        companyId: actor.companyId,
+        deletedAt: null,
+        employmentStatus: { in: ['ACTIVE', 'ON_LEAVE'] },
+        role: { in: ['EMPLOYEE', 'SUPERVISOR', 'HR_MANAGER'] },
+        shiftAssignments: {
+          none: {
+            deletedAt: null,
+            effectiveFrom: { lte: now },
+            OR: [{ effectiveTo: null }, { effectiveTo: { gte: now } }],
+          },
+        },
+        ...(search
+          ? {
+              OR: [
+                { email: { contains: search, mode: 'insensitive' } },
+                { fullName: { contains: search, mode: 'insensitive' } },
+              ],
+            }
+          : {}),
+      },
+      orderBy: [{ role: 'asc' }, { fullName: 'asc' }],
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        hiredAt: true,
+        department: { select: { id: true, name: true } },
+      },
+    });
+
+    return rows.map((r) => ({
+      id: r.id,
+      email: r.email,
+      fullName: r.fullName,
+      role: r.role as UserRole,
+      departmentId: r.department?.id ?? null,
+      departmentName: r.department?.name ?? null,
+      hiredAt: r.hiredAt ? r.hiredAt.toISOString().slice(0, 10) : null,
+    }));
   }
 
   // ==================================================================

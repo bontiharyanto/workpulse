@@ -1,8 +1,13 @@
-import type { Metadata } from 'next';
+import { ArrowLeft } from 'lucide-react';
+import type { Metadata, Route } from 'next';
+import Link from 'next/link';
+import type { JSX } from 'react';
 
 import { RequireAuth } from '@/components/features/auth/require-auth';
 import { RequireRole } from '@/components/features/auth/require-role';
 import { TimesheetConfigPanel } from '@/components/features/timesheet/timesheet-config-panel';
+import { PageHeader } from '@/components/layout/page-header';
+import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
   title: 'Konfigurasi Timesheet — Workpulse',
@@ -10,23 +15,28 @@ export const metadata: Metadata = {
 };
 
 /**
- * `/admin/timesheet/config` — Fase 32a. HR / Super Admin surface for
- * setting the tenant's timesheet period type and timezone.
+ * `/admin/timesheet/config` — HR / Super Admin surface for setting
+ * the tenant's timesheet period type and automation windows.
  */
 export default function AdminTimesheetConfigPage(): JSX.Element {
   return (
     <RequireAuth>
       <RequireRole roles={['HR_MANAGER', 'SUPER_ADMIN']}>
-        <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Konfigurasi Timesheet</h1>
-            <p className="text-muted-foreground text-sm">
-              Atur jenis periode (mingguan, dua-mingguan, bulanan, atau cutoff harian) yang dipakai
-              oleh timesheet generator.
-            </p>
-          </div>
+        <div className="mx-auto max-w-3xl">
+          <PageHeader
+            title="Konfigurasi Timesheet"
+            description="Atur jenis periode (mingguan, dua-mingguan, bulanan, atau cutoff harian) yang dipakai oleh timesheet generator."
+            actions={
+              <Button asChild variant="outline" size="sm">
+                <Link href={'/admin/timesheet' as Route}>
+                  <ArrowLeft className="h-4 w-4" aria-hidden />
+                  Kembali ke antrian
+                </Link>
+              </Button>
+            }
+          />
           <TimesheetConfigPanel />
-        </main>
+        </div>
       </RequireRole>
     </RequireAuth>
   );

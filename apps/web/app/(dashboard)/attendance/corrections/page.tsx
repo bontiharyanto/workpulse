@@ -1,28 +1,31 @@
+import { ClipboardCheck } from 'lucide-react';
 import Link from 'next/link';
+import { type JSX } from 'react';
 
 import { CorrectionForm } from '@/components/features/attendance/correction-form';
 import { CorrectionList } from '@/components/features/attendance/correction-list';
+import { PageHeader } from '@/components/layout/page-header';
+import { Button } from '@/components/ui/button';
 
 export default function CorrectionsPage(): JSX.Element {
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Koreksi Absensi</h1>
-          <p className="text-muted-foreground text-sm">
-            Ajukan koreksi jika Anda lupa clock-in atau clock-out. Permintaan Anda akan diteruskan
-            ke supervisor / HR untuk disetujui.
-          </p>
-        </div>
-        <Link
-          href="/attendance/corrections/approvals"
-          className="border-input hover:bg-muted whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium"
-        >
-          Antrian persetujuan →
-        </Link>
+    <div className="mx-auto max-w-4xl">
+      <PageHeader
+        title="Koreksi Absensi"
+        description="Ajukan koreksi jika Anda lupa clock-in atau clock-out. Permintaan Anda akan diteruskan ke supervisor / HR untuk disetujui."
+        actions={
+          <Button asChild variant="outline" size="sm">
+            <Link href="/attendance/corrections/approvals">
+              <ClipboardCheck className="h-4 w-4" aria-hidden />
+              Antrian persetujuan
+            </Link>
+          </Button>
+        }
+      />
+      <div className="space-y-6">
+        <CorrectionForm />
+        <CorrectionList />
       </div>
-      <CorrectionForm />
-      <CorrectionList />
     </div>
   );
 }

@@ -8,11 +8,16 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { CreateShiftAssignmentDto, EndShiftAssignmentDto } from './dto/assignment.dto';
 import { CreateShiftDto } from './dto/create-shift.dto';
+import {
+  ListUsersWithoutShiftQueryDto,
+  type UserWithoutShiftDto,
+} from './dto/list-users-without-shift.dto';
 import type { ShiftAssignmentResponseDto, ShiftResponseDto } from './dto/shift-response.dto';
 import { UpdateShiftDto } from './dto/update-shift.dto';
 import { ShiftService } from './shift.service';
@@ -68,6 +73,21 @@ export class ShiftController {
   }
 
   // ---------- Assignments ----------
+
+  /**
+   * List active users in the caller's tenant who lack an in-force
+   * UserShiftAssignment today. These are the exact users that would
+   * currently be blocked from clocking in with `SHIFT_NOT_FOUND`.
+   *
+   * Ordered by role then name; small result set — no pagination.
+   */
+  @Get('shifts/users/without-active-shift')
+  listUsersWithoutActiveShift(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Query() query: ListUsersWithoutShiftQueryDto,
+  ): Promise<UserWithoutShiftDto[]> {
+    return this.service.listUsersWithoutActiveShift(actor, { search: query.search });
+  }
 
   @Get('users/:userId/shift-assignments')
   listUserAssignments(

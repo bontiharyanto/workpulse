@@ -26,6 +26,7 @@ export * from './notification.js';
 export * from './report.js';
 export * from './retention.js';
 export * from './ropa.js';
+export * from './security-policy.js';
 export * from './session.js';
 export * from './shift.js';
 export * from './tenant-usage.js';

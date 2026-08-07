@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import type { JSX } from 'react';
 
+import { AuthShell } from '@/components/features/auth/auth-shell';
 import { MfaVerifyForm } from '@/components/features/auth/mfa-verify-form';
 
 export const metadata: Metadata = {
@@ -25,19 +27,11 @@ export default async function MfaVerifyPage({
 }): Promise<JSX.Element> {
   const params = await searchParams;
   return (
-    <main className="bg-muted/30 flex min-h-screen items-center justify-center px-4">
-      <div className="bg-background w-full max-w-sm rounded-lg border p-6 shadow-sm">
-        <div className="mb-6 space-y-1">
-          <p className="text-muted-foreground text-xs font-medium uppercase tracking-widest">
-            Workpulse
-          </p>
-          <h1 className="text-2xl font-semibold tracking-tight">Verifikasi 2 langkah</h1>
-          <p className="text-muted-foreground text-sm">
-            Masukkan kode dari aplikasi authenticator atau backup code untuk melanjutkan.
-          </p>
-        </div>
-        <MfaVerifyForm redirectTo={params.next ?? '/attendance'} />
-      </div>
-    </main>
+    <AuthShell
+      title="Verifikasi 2 langkah"
+      description="Masukkan kode dari aplikasi authenticator atau backup code untuk melanjutkan."
+    >
+      <MfaVerifyForm redirectTo={params.next ?? '/attendance'} />
+    </AuthShell>
   );
 }

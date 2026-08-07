@@ -1,25 +1,27 @@
 'use client';
 
+import { BarChart3 } from 'lucide-react';
 import Link from 'next/link';
+import { type JSX } from 'react';
 
 import { useAuth } from '@/components/providers/auth-provider';
+import { Button } from '@/components/ui/button';
 
 /**
- * Entry point to the HR / company-wide attendance dashboard. Rendered
- * only for HR and Super Admin — RBAC on the server refuses everyone
- * else anyway, but hiding the link keeps supervisors from wondering
- * why the URL 403's for them.
+ * Entry to the HR / company-wide dashboard. Rendered only for
+ * HR_MANAGER and SUPER_ADMIN — the server would 403 anyone else,
+ * so hiding the link avoids a confusing dead click.
  */
 export function CompanyDashboardLink(): JSX.Element | null {
   const { user } = useAuth();
   if (!user) return null;
   if (user.role !== 'HR_MANAGER' && user.role !== 'SUPER_ADMIN') return null;
   return (
-    <Link
-      href="/attendance/dashboard"
-      className="border-input hover:bg-muted whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium"
-    >
-      Dashboard HR →
-    </Link>
+    <Button asChild variant="outline" size="sm">
+      <Link href="/attendance/dashboard">
+        <BarChart3 className="h-4 w-4" aria-hidden />
+        Dashboard HR
+      </Link>
+    </Button>
   );
 }

@@ -48,5 +48,24 @@
     "*.{md,json}": [
       "prettier --write"
     ]
+  },
+  "pnpm": {
+    "overrides": {
+      "js-yaml@<4.3.0": ">=4.3.0",
+      "sharp@<0.35.0": ">=0.35.0",
+      "postcss@<8.5.18": ">=8.5.18",
+      "glob@>=10.0.0 <10.5.0": ">=10.5.0"
+    },
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-5528-5vmv-3xc2",
+        "GHSA-72gw-mp4g-v24j",
+        "GHSA-v52c-386h-88mc",
+        "GHSA-xf7r-hgr6-v32p",
+        "GHSA-p6gq-j5cr-w38f",
+        "GHSA-rcmh-qjqh-p98v",
+        "GHSA-r5fr-rjxr-66jc"
+      ]
+    }
   }
 }

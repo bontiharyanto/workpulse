@@ -1,15 +1,15 @@
+import { type JSX } from 'react';
+
 import { TeamAttendance } from '@/components/features/attendance/team-attendance';
+import { PageHeader } from '@/components/layout/page-header';
 
 export default function TeamAttendancePage(): JSX.Element {
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Kehadiran Tim</h1>
-        <p className="text-muted-foreground text-sm">
-          Pantau siapa yang sudah clock-in, siapa yang terlambat, dan rekap disiplin per anggota.
-          Supervisor melihat tim langsungnya; HR melihat seluruh tenant.
-        </p>
-      </div>
+    <div className="mx-auto max-w-7xl">
+      <PageHeader
+        title="Kehadiran Tim"
+        description="Pantau siapa yang sudah clock-in, siapa yang terlambat, dan rekap disiplin per anggota. Supervisor melihat tim langsungnya; HR melihat seluruh tenant."
+      />
       <TeamAttendance />
     </div>
   );

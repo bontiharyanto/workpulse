@@ -1,16 +1,22 @@
 import { ForbiddenException } from '@nestjs/common';
 import type { ExecutionContext } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
+import type { SecurityPolicy } from '@prisma/client';
 
 import { MfaEnrollmentGuard } from './mfa-enrollment.guard';
+import type { SecurityPolicyService } from '../../security-policy/security-policy.service';
 
-function buildConfig(enforce: boolean): ConfigService {
+function buildPolicyService(enforce: boolean): SecurityPolicyService {
   return {
-    get: jest.fn((key: string, def?: string) =>
-      key === 'MFA_ENFORCE_HR_ADMIN' ? (enforce ? 'true' : 'false') : def,
-    ),
-  } as unknown as ConfigService;
+    getForCompany: jest.fn(async (companyId: string): Promise<SecurityPolicy> => ({
+      id: 'sp-1',
+      companyId,
+      mfaEnforceHighPrivileged: enforce,
+      updatedAt: new Date(),
+      updatedById: null,
+      createdAt: new Date(),
+    })),
+  } as unknown as SecurityPolicyService;
 }
 
 function buildContext(user: unknown): ExecutionContext {
@@ -35,36 +41,36 @@ function buildContext(user: unknown): ExecutionContext {
 
 describe('MfaEnrollmentGuard', () => {
   const reflector = new Reflector();
-  const guard = new MfaEnrollmentGuard(reflector, buildConfig(true));
+  const guard = new MfaEnrollmentGuard(reflector, buildPolicyService(true));
 
   beforeEach(() => {
     jest.restoreAllMocks();
   });
 
-  it('is a no-op when MFA_ENFORCE_HR_ADMIN is false', () => {
-    const disabledGuard = new MfaEnrollmentGuard(reflector, buildConfig(false));
-    const ctx = buildContext({ role: 'HR_MANAGER', mfaEnabled: false });
+  it('is a no-op when the tenant policy has mfaEnforceHighPrivileged=false', async () => {
+    const disabledGuard = new MfaEnrollmentGuard(reflector, buildPolicyService(false));
+    const ctx = buildContext({ role: 'HR_MANAGER', mfaEnabled: false, companyId: 'c-1' });
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
-    expect(disabledGuard.canActivate(ctx)).toBe(true);
+    await expect(disabledGuard.canActivate(ctx)).resolves.toBe(true);
   });
 
-  it('lets requests through for EMPLOYEE without MFA', () => {
-    const ctx = buildContext({ role: 'EMPLOYEE', mfaEnabled: false });
+  it('lets requests through for EMPLOYEE without MFA', async () => {
+    const ctx = buildContext({ role: 'EMPLOYEE', mfaEnabled: false, companyId: 'c-1' });
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
-    expect(guard.canActivate(ctx)).toBe(true);
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
   });
 
-  it('lets requests through for SUPERVISOR without MFA', () => {
-    const ctx = buildContext({ role: 'SUPERVISOR', mfaEnabled: false });
+  it('lets requests through for SUPERVISOR without MFA', async () => {
+    const ctx = buildContext({ role: 'SUPERVISOR', mfaEnabled: false, companyId: 'c-1' });
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
-    expect(guard.canActivate(ctx)).toBe(true);
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
   });
 
-  it('blocks HR_MANAGER without MFA', () => {
-    const ctx = buildContext({ role: 'HR_MANAGER', mfaEnabled: false });
+  it('blocks HR_MANAGER without MFA when tenant enforces', async () => {
+    const ctx = buildContext({ role: 'HR_MANAGER', mfaEnabled: false, companyId: 'c-1' });
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
     try {
-      guard.canActivate(ctx);
+      await guard.canActivate(ctx);
       fail('should have thrown');
     } catch (err) {
       expect(err).toBeInstanceOf(ForbiddenException);
@@ -73,46 +79,46 @@ describe('MfaEnrollmentGuard', () => {
     }
   });
 
-  it('blocks SUPER_ADMIN without MFA', () => {
-    const ctx = buildContext({ role: 'SUPER_ADMIN', mfaEnabled: false });
+  it('blocks SUPER_ADMIN without MFA when tenant enforces', async () => {
+    const ctx = buildContext({ role: 'SUPER_ADMIN', mfaEnabled: false, companyId: 'c-1' });
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
-    expect(() => guard.canActivate(ctx)).toThrow(ForbiddenException);
+    await expect(guard.canActivate(ctx)).rejects.toBeInstanceOf(ForbiddenException);
   });
 
-  it('lets HR_MANAGER through when MFA is enabled', () => {
-    const ctx = buildContext({ role: 'HR_MANAGER', mfaEnabled: true });
+  it('lets HR_MANAGER through when MFA is enabled', async () => {
+    const ctx = buildContext({ role: 'HR_MANAGER', mfaEnabled: true, companyId: 'c-1' });
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
-    expect(guard.canActivate(ctx)).toBe(true);
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
   });
 
-  it('lets HR_MANAGER without MFA through when @AllowMfaEnrollmentPending is set', () => {
-    const ctx = buildContext({ role: 'HR_MANAGER', mfaEnabled: false });
+  it('lets HR_MANAGER without MFA through when @AllowMfaEnrollmentPending is set', async () => {
+    const ctx = buildContext({ role: 'HR_MANAGER', mfaEnabled: false, companyId: 'c-1' });
     jest
       .spyOn(reflector, 'getAllAndOverride')
       .mockReturnValueOnce(false) // public
       .mockReturnValueOnce(false) // allow-must-change-password
       .mockReturnValueOnce(true); // allow-mfa-enrollment-pending
-    expect(guard.canActivate(ctx)).toBe(true);
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
   });
 
-  it('lets HR_MANAGER through when route is @AllowMustChangePassword', () => {
-    const ctx = buildContext({ role: 'HR_MANAGER', mfaEnabled: false });
+  it('lets HR_MANAGER through when route is @AllowMustChangePassword', async () => {
+    const ctx = buildContext({ role: 'HR_MANAGER', mfaEnabled: false, companyId: 'c-1' });
     jest
       .spyOn(reflector, 'getAllAndOverride')
       .mockReturnValueOnce(false) // public
       .mockReturnValueOnce(true); // allow-must-change-password
-    expect(guard.canActivate(ctx)).toBe(true);
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
   });
 
-  it('lets HR_MANAGER through when mfaEnabled is undefined (legacy token)', () => {
-    const ctx = buildContext({ role: 'HR_MANAGER', mfaEnabled: undefined });
+  it('lets HR_MANAGER through when mfaEnabled is undefined (legacy token)', async () => {
+    const ctx = buildContext({ role: 'HR_MANAGER', mfaEnabled: undefined, companyId: 'c-1' });
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
-    expect(guard.canActivate(ctx)).toBe(true);
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
   });
 
-  it('is a no-op when no user is attached', () => {
+  it('is a no-op when no user is attached', async () => {
     const ctx = buildContext(undefined);
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
-    expect(guard.canActivate(ctx)).toBe(true);
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
   });
 });

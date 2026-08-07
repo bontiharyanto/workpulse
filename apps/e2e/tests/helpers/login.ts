@@ -22,7 +22,9 @@ export async function loginAs(page: Page, key: SeedUserKey): Promise<void> {
 
   // The login flow redirects to /attendance by default. We wait for either
   // that URL or any dashboard route (in case the redirect target changes) —
-  // whichever fires first.
-  await page.waitForURL(/\/(attendance|leave|overtime|admin)/, { timeout: 10_000 });
+  // whichever fires first. The generous 30s window is only needed on the
+  // very first hit in dev-mode when Next.js compiles the landing route
+  // lazily; subsequent tests reuse the compiled bundle.
+  await page.waitForURL(/\/(attendance|leave|overtime|admin)/, { timeout: 30_000 });
   await expect(page).not.toHaveURL(/\/login/);
 }

@@ -1,45 +1,43 @@
+import { CheckSquare } from 'lucide-react';
+import type { Route } from 'next';
 import Link from 'next/link';
+import type { JSX } from 'react';
 
 import { LeaveBalanceCard } from '@/components/features/leave/leave-balance-card';
 import { LeaveSubmitForm } from '@/components/features/leave/leave-submit-form';
 import { MyLeaveList } from '@/components/features/leave/my-leave-list';
+import { PageHeader } from '@/components/layout/page-header';
+import { Button } from '@/components/ui/button';
 
 export default function LeavePage(): JSX.Element {
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Manajemen Cuti</h1>
-          <p className="text-muted-foreground text-sm">
-            Saldo, riwayat pengajuan, dan pengajuan cuti baru.
-          </p>
-        </div>
-        <Link
-          href="/leave/approvals"
-          className="text-primary text-sm underline-offset-2 hover:underline"
-        >
-          Lihat halaman approval →
-        </Link>
-      </header>
+    <div className="mx-auto max-w-5xl">
+      <PageHeader
+        title="Manajemen Cuti"
+        description="Saldo, riwayat pengajuan, dan pengajuan cuti baru."
+        actions={
+          <Button asChild variant="outline" size="sm">
+            <Link href={'/leave/approvals' as Route}>
+              <CheckSquare className="h-4 w-4" aria-hidden />
+              Antrian approval
+            </Link>
+          </Button>
+        }
+      />
 
-      <section className="space-y-3">
-        <h2 className="text-muted-foreground text-sm font-medium uppercase tracking-widest">
-          Saldo Tahun Ini
-        </h2>
-        <LeaveBalanceCard />
-      </section>
-
-      <section className="grid gap-6 md:grid-cols-2">
-        <div className="space-y-3">
-          <h2 className="text-muted-foreground text-sm font-medium uppercase tracking-widest">
-            Pengajuan Saya
+      <div className="space-y-6">
+        <section className="space-y-3">
+          <h2 className="text-muted-foreground text-overline uppercase tracking-widest">
+            Saldo Tahun Ini
           </h2>
+          <LeaveBalanceCard />
+        </section>
+
+        <section className="grid gap-6 lg:grid-cols-2">
           <MyLeaveList />
-        </div>
-        <div>
           <LeaveSubmitForm />
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }

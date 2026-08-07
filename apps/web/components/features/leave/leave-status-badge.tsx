@@ -1,5 +1,19 @@
 import type { LeaveStatus } from '@workpulse/shared-types';
+import { type JSX } from 'react';
 
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+
+/**
+ * Server-safe status pill for leave requests. Maps each state to a
+ * semantic Badge variant so the visual language stays consistent
+ * with corrections, overtime, and other status pills across the app.
+ *
+ * `PENDING_SUPERVISOR` → warning (needs action, still reversible).
+ * `PENDING_HR` → info (progressed past supervisor, still open).
+ * `APPROVED` → success. `REJECTED` → destructive.
+ * `DRAFT` / `CANCELLED` → muted (inactive).
+ */
 const LABELS: Record<LeaveStatus, string> = {
   DRAFT: 'Draft',
   PENDING_SUPERVISOR: 'Menunggu Supervisor',
@@ -9,21 +23,28 @@ const LABELS: Record<LeaveStatus, string> = {
   CANCELLED: 'Dibatalkan',
 };
 
-const CLASSES: Record<LeaveStatus, string> = {
-  DRAFT: 'bg-muted text-muted-foreground',
-  PENDING_SUPERVISOR: 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
-  PENDING_HR: 'bg-blue-500/10 text-blue-700 dark:text-blue-400',
-  APPROVED: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
-  REJECTED: 'bg-destructive/10 text-destructive',
-  CANCELLED: 'bg-muted text-muted-foreground line-through',
+const VARIANTS: Record<LeaveStatus, 'muted' | 'warning' | 'info' | 'success' | 'destructive'> = {
+  DRAFT: 'muted',
+  PENDING_SUPERVISOR: 'warning',
+  PENDING_HR: 'info',
+  APPROVED: 'success',
+  REJECTED: 'destructive',
+  CANCELLED: 'muted',
 };
 
-export function LeaveStatusBadge({ status }: { status: LeaveStatus }): JSX.Element {
+export function LeaveStatusBadge({
+  status,
+  className,
+}: {
+  status: LeaveStatus;
+  className?: string;
+}): JSX.Element {
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${CLASSES[status]}`}
+    <Badge
+      variant={VARIANTS[status]}
+      className={cn(status === 'CANCELLED' && 'line-through', className)}
     >
       {LABELS[status]}
-    </span>
+    </Badge>
   );
 }

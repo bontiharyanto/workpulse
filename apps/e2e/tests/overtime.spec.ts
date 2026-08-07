@@ -44,7 +44,7 @@ test('overtime: employee submits → supervisor approves', async ({ browser }) =
   await employeePage.locator('#ot-hours').fill('2.5');
   await employeePage.locator('#ot-reason').fill(`Release deadline — ${runId}`);
 
-  await employeePage.getByRole('button', { name: 'Ajukan', exact: true }).click();
+  await employeePage.getByRole('button', { name: /^Ajukan lembur$/ }).click();
 
   await expect(employeePage.getByText(`Release deadline — ${runId}`, { exact: false })).toBeVisible(
     { timeout: 10_000 },
@@ -58,7 +58,8 @@ test('overtime: employee submits → supervisor approves', async ({ browser }) =
   await supervisorPage.goto('/overtime/approvals');
 
   const supRow = supervisorPage
-    .locator('li, article, section', { hasText: `Release deadline — ${runId}` })
+    .getByTestId('overtime-approval-row')
+    .filter({ hasText: `Release deadline — ${runId}` })
     .first();
   await expect(supRow).toBeVisible({ timeout: 10_000 });
   // The overtime approval UI is a two-step decision: click "Putuskan" to

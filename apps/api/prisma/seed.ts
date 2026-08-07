@@ -38,22 +38,47 @@ async function main(): Promise<void> {
     update: {},
   });
 
+  // Tenant security policy — seeded explicitly so E2E tests get a
+  // deterministic baseline (MFA opt-in for every role, matching the
+  // MVP posture documented in ADR-0017). Once the row exists, the
+  // env `MFA_ENFORCE_HR_ADMIN` is ignored for this tenant — the DB
+  // is authoritative. Flip the toggle from `/admin/security` UI.
+  await prisma.securityPolicy.upsert({
+    where: { companyId: company.id },
+    create: { companyId: company.id, mfaEnforceHighPrivileged: false },
+    update: {},
+  });
+
   const department = await prisma.department.upsert({
     where: { companyId_name: { companyId: company.id, name: 'Engineering' } },
     create: { companyId: company.id, name: 'Engineering' },
     update: {},
   });
 
-  const geofence = await prisma.geofence.create({
-    data: {
-      companyId: company.id,
-      name: 'HQ Jakarta',
-      latitude: -6.2088,
-      longitude: 106.8456,
-      radiusMeters: 150,
-    },
+  // Geofence has no composite unique on (companyId, name), so we can't use
+  // Prisma's upsert directly. `findFirst → create` keeps the seed idempotent
+  // — previously we used `create` unconditionally, which produced duplicate
+  // "HQ Jakarta" rows on every re-seed and (worse) reset the shift's
+  // geofenceId to the newest duplicate, breaking any HR-side re-linking
+  // done via the admin UI between seeds.
+  const existingGeofence = await prisma.geofence.findFirst({
+    where: { companyId: company.id, name: 'HQ Jakarta', deletedAt: null },
   });
+  const geofence =
+    existingGeofence ??
+    (await prisma.geofence.create({
+      data: {
+        companyId: company.id,
+        name: 'HQ Jakarta',
+        latitude: -6.2088,
+        longitude: 106.8456,
+        radiusMeters: 150,
+      },
+    }));
 
+  // Shift upsert intentionally does NOT overwrite `geofenceId` on update —
+  // HR may have relinked the shift to a different geofence (e.g. "HQ LA TBS")
+  // via the admin UI, and we don't want re-seeding to silently revert that.
   const shift = await prisma.shift.upsert({
     where: { companyId_name: { companyId: company.id, name: 'Regular 9-6' } },
     create: {
@@ -65,7 +90,7 @@ async function main(): Promise<void> {
       endTime: '18:00',
       graceMinutes: 15,
     },
-    update: { geofenceId: geofence.id },
+    update: {},
   });
 
   const passwordHash = await hashPassword('password123');
@@ -135,23 +160,24 @@ async function main(): Promise<void> {
   // rather than upsert because there is no composite unique index; two
   // seedings of the SAME row is what we want to avoid, not two seedings of
   // different (userId, shiftId) pairs.
-  const employeeAssignment = await prisma.userShiftAssignment.findFirst({
-    where: {
-      userId: employee.id,
-      shiftId: shift.id,
-      effectiveFrom: new Date('2024-06-01T00:00:00Z'),
-    },
-    select: { id: true },
-  });
-  if (!employeeAssignment) {
-    await prisma.userShiftAssignment.create({
-      data: {
-        userId: employee.id,
-        shiftId: shift.id,
-        effectiveFrom: new Date('2024-06-01T00:00:00Z'),
-      },
+  //
+  // HR Manager and Supervisor are also employees in the domain sense and
+  // must clock in physically. Only SUPER_ADMIN is intentionally excluded
+  // (cross-tenant actor, no physical presence tied to a single geofence).
+  async function ensureAssignment(userId: string, effectiveFrom: Date): Promise<void> {
+    const existing = await prisma.userShiftAssignment.findFirst({
+      where: { userId, shiftId: shift.id, effectiveFrom },
+      select: { id: true },
     });
+    if (!existing) {
+      await prisma.userShiftAssignment.create({
+        data: { userId, shiftId: shift.id, effectiveFrom },
+      });
+    }
   }
+  await ensureAssignment(employee.id, new Date('2024-06-01T00:00:00Z'));
+  await ensureAssignment(supervisor.id, new Date('2023-02-01T00:00:00Z'));
+  await ensureAssignment(hr.id, new Date('2023-01-01T00:00:00Z'));
 
   const annual = await prisma.leaveType.upsert({
     where: { companyId_code: { companyId: company.id, code: 'ANNUAL' } },

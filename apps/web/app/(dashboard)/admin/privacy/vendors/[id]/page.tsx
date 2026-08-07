@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { JSX } from 'react';
 
 import { RequireAuth } from '@/components/features/auth/require-auth';
 import { RequireRole } from '@/components/features/auth/require-role';
@@ -13,18 +14,14 @@ interface Params {
   params: Promise<{ id: string }>;
 }
 
-/**
- * `/admin/privacy/vendors/[id]` — Fase 31f. Detail page with edit,
- * mark-reviewed, terminate, and ROPA link management.
- */
-export default async function AdminVendorDetailPage({ params }: Params) {
+export default async function AdminVendorDetailPage({ params }: Params): Promise<JSX.Element> {
   const { id } = await params;
   return (
     <RequireAuth>
       <RequireRole roles={['HR_MANAGER', 'SUPER_ADMIN']}>
-        <main className="mx-auto max-w-5xl space-y-6 px-4 py-8">
+        <div className="mx-auto max-w-5xl">
           <VendorProcessorDetail vendorId={id} />
-        </main>
+        </div>
       </RequireRole>
     </RequireAuth>
   );

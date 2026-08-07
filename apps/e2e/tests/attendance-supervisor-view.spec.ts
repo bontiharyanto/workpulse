@@ -41,11 +41,13 @@ test('supervisor: team view renders roster on both tabs', async ({ page }) => {
   await expect(nameCellToday.first()).toBeVisible({ timeout: 10_000 });
 
   // ---- Rekap tab ---------------------------------------------------------
-  await page.getByRole('button', { name: 'Rekap', exact: true }).click();
+  // The Rekap / Hari ini toggle and the 7/14/30-day range preset are
+  // implemented with Radix `Tabs`, so they expose `role="tab"` (not
+  // `role="button"`). Labels are the full form "7 hari" / "14 hari".
+  await page.getByRole('tab', { name: 'Rekap', exact: true }).click();
 
-  // Range preset buttons should appear (they only render on the Rekap tab).
-  await expect(page.getByRole('button', { name: '7h', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: '14h', exact: true })).toBeVisible();
+  await expect(page.getByRole('tab', { name: '7 hari', exact: true })).toBeVisible();
+  await expect(page.getByRole('tab', { name: '14 hari', exact: true })).toBeVisible();
 
   // Employee row is still present in the summary reducer output.
   const nameCellRekap = page.getByRole('cell').filter({ hasText: employeeName });
