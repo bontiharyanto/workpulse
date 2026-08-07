@@ -643,9 +643,137 @@ export function vendorContractExpiring(input: VendorContractExpiringInput): Noti
 }
 
 // ---------------------------------------------------------------------------
+// Location Sharing (ADR-0041)
+// ---------------------------------------------------------------------------
+
+export interface LocationShareRequestedInput {
+  requestId: string;
+  supervisorName: string;
+  reason: string;
+  expiresAt: string; // ISO
+}
+
+/**
+ * Sent to the user being asked. Copy is written in first-person
+ * to match the consent screen ("Anda menerima permintaan…") so
+ * the user immediately understands they're the one who needs to
+ * decide.
+ */
+export function locationShareRequested(input: LocationShareRequestedInput): NotificationContent {
+  return {
+    type: 'LOCATION_SHARE_REQUESTED',
+    title: `Permintaan lokasi dari ${input.supervisorName}`,
+    body: `${input.supervisorName} meminta lokasi Anda saat ini. Alasan: "${truncate(input.reason, 160)}". Anda dapat menerima atau menolak — permintaan hangus otomatis pada ${formatTime(input.expiresAt)}.`,
+    data: {
+      requestId: input.requestId,
+      href: `/me/location-sharing/inbox/${input.requestId}`,
+    },
+  };
+}
+
+export interface LocationShareRespondedInput {
+  requestId: string;
+  targetUserName: string;
+  outcome: 'RESPONDED' | 'DECLINED' | 'EXPIRED' | 'CANCELLED';
+}
+
+/**
+ * Sent to the supervisor who initiated. `outcome` drives the
+ * wording so the supervisor's bell dropdown reads naturally.
+ */
+export function locationShareResponded(input: LocationShareRespondedInput): NotificationContent {
+  const verb: Record<LocationShareRespondedInput['outcome'], string> = {
+    RESPONDED: 'membagikan',
+    DECLINED: 'menolak membagikan',
+    EXPIRED: 'tidak sempat menjawab (hangus otomatis)',
+    CANCELLED: 'permintaan Anda dibatalkan',
+  };
+  return {
+    type: 'LOCATION_SHARE_RESPONDED',
+    title: `${input.targetUserName}: ${verb[input.outcome]} lokasi`,
+    body:
+      input.outcome === 'RESPONDED'
+        ? `${input.targetUserName} telah mengirim koordinat saat ini. Buka permintaan untuk melihat — mereka akan diberi tahu setiap kali Anda melihat lokasinya.`
+        : `${input.targetUserName} ${verb[input.outcome]} pada permintaan lokasi.`,
+    data: {
+      requestId: input.requestId,
+      outcome: input.outcome,
+      href: `/team/location-requests/${input.requestId}`,
+    },
+  };
+}
+
+export interface LocationShareViewedInput {
+  requestId: string;
+  viewerName: string;
+  /** Human role label — "supervisor", "HR", etc. */
+  viewerRole: string;
+}
+
+/**
+ * Sent to the user whose coord was viewed — the "no silent
+ * tracking" transparency notification. Fires EVERY view, not just
+ * the first. Deliberately terse: the user should feel informed,
+ * not alarmed.
+ */
+export function locationShareViewed(input: LocationShareViewedInput): NotificationContent {
+  return {
+    type: 'LOCATION_SHARE_VIEWED',
+    title: `${input.viewerName} melihat lokasi Anda`,
+    body: `${input.viewerName} (${input.viewerRole}) membuka koordinat yang Anda bagikan sebelumnya. Anda menerima notifikasi ini setiap kali koordinat Anda dilihat — sesuai janji pada layar persetujuan.`,
+    data: {
+      requestId: input.requestId,
+      href: `/me/location-sharing/history`,
+    },
+  };
+}
+
+export interface LocationSharingConsentChangedInput {
+  action: 'OPT_IN' | 'OPT_OUT';
+  actorSelf: boolean;
+}
+
+/**
+ * Sent to the user themselves as a permanent record of their own
+ * consent action. Doubles as the audit trail visible in their bell
+ * dropdown ("saya ingat pernah opt-out di…").
+ */
+export function locationSharingConsentChanged(
+  input: LocationSharingConsentChangedInput,
+): NotificationContent {
+  const verb = input.action === 'OPT_IN' ? 'mengaktifkan' : 'menonaktifkan';
+  return {
+    type: 'LOCATION_SHARING_CONSENT_CHANGED',
+    title:
+      input.action === 'OPT_IN'
+        ? 'Anda mengaktifkan berbagi lokasi'
+        : 'Anda menonaktifkan berbagi lokasi',
+    body: `Anda ${verb} fitur berbagi lokasi saat shift. Anda dapat mengubahnya kapan saja di Pengaturan → Privasi.`,
+    data: {
+      action: input.action,
+      href: `/settings/privacy`,
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 function truncate(s: string, max: number): string {
   return s.length <= max ? s : `${s.slice(0, max - 1)}…`;
+}
+
+/**
+ * Compact `HH:MM WIB` (Asia/Jakarta) for user-facing notification
+ * bodies. Uses `Intl.DateTimeFormat` so no dep on date-fns; the
+ * output is stable across Node LTS versions.
+ */
+function formatTime(iso: string): string {
+  return new Intl.DateTimeFormat('id-ID', {
+    timeZone: 'Asia/Jakarta',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(iso)) + ' WIB';
 }

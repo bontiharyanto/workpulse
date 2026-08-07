@@ -22,6 +22,8 @@ export * from './geofence.js';
 export * from './holiday.js';
 export * from './leave.js';
 export * from './leave-type.js';
+export * from './location-sharing.js';
+export * from './consent-copy/location-sharing.js';
 export * from './notification.js';
 export * from './report.js';
 export * from './retention.js';

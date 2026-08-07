@@ -185,6 +185,45 @@ enum NotificationType {
   /// date is approaching (default T-60d) or has passed with the
   /// vendor still `ACTIVE`. Signals urgent renewal negotiation.
   VENDOR_CONTRACT_EXPIRING
+  /// ADR-0041 — a supervisor asked a user to share their current
+  /// location during an active shift. Recipient: the user being
+  /// asked. Fired on every request creation (no throttling).
+  LOCATION_SHARE_REQUESTED
+  /// ADR-0041 — the target user answered (accept + reported coord,
+  /// or decline). Recipient: the supervisor who initiated.
+  LOCATION_SHARE_RESPONDED
+  /// ADR-0041 — the supervisor viewed a previously-reported
+  /// coordinate. Recipient: the user whose coord was viewed.
+  /// This is the "no silent tracking" transparency notification —
+  /// fires EVERY view, not just the first.
+  LOCATION_SHARE_VIEWED
+  /// ADR-0041 — the user toggled their opt-in for location
+  /// sharing (either enabled or revoked). Recipient: the user
+  /// themselves (audit trail visible in their bell dropdown) +
+  /// their supervisor (so the supervisor knows the "ask" button
+  /// is disabled).
+  LOCATION_SHARING_CONSENT_CHANGED
+}
+
+/// ADR-0041 — lifecycle for a supervisor-initiated location share
+/// request. Terminal states: RESPONDED, DECLINED, EXPIRED, CANCELLED.
+///
+/// Transitions:
+///   PENDING   -> RESPONDED     (user answered with coordinates)
+///   PENDING   -> DECLINED      (user answered "no" explicitly)
+///   PENDING   -> EXPIRED       (TTL cron flipped it, no user action)
+///   PENDING   -> CANCELLED     (supervisor withdrew before user replied)
+///
+/// State machine is enforced in service; DB carries the enum but
+/// does not police transitions (a partial unique on
+/// `(supervisorId, targetUserId) WHERE status = PENDING` is the only
+/// row-level constraint — one live request per (asker, askee) pair).
+enum LocationShareRequestStatus {
+  PENDING
+  RESPONDED
+  DECLINED
+  EXPIRED
+  CANCELLED
 }
 
 // ---------- Tenant & Identity ----------
@@ -273,6 +312,8 @@ model Company {
   retentionAuditReports   RetentionAuditReport[]
   tenantUsageSnapshots    TenantUsageSnapshot[]
   vendorProcessors        VendorProcessor[]
+  locationShareRequests   LocationShareRequest[]
+  locationPings           LocationPing[]
 
   @@index([deletedAt])
 }
@@ -323,61 +364,87 @@ model User {
   timezone           String? // fallback → company.timezone
   /// Overrides `Company.overtimeHourlyRate` for this specific user. Kept null for defaults.
   overtimeHourlyRate Decimal?         @db.Decimal(12, 2)
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  deletedAt          DateTime?
 
-  company                      Company                  @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  department                   Department?              @relation(fields: [departmentId], references: [id])
-  supervisor                   User?                    @relation("Subordinates", fields: [supervisorId], references: [id])
-  subordinates                 User[]                   @relation("Subordinates")
-  shiftAssignments             UserShiftAssignment[]
-  attendances                  AttendanceRecord[]
-  leaveBalances                LeaveBalance[]
-  leaveRequests                LeaveRequest[]
-  overtimes                    OvertimeRequest[]
-  auditLogs                    AuditLog[]               @relation("AuditActor")
-  refreshTokens                RefreshToken[]
-  notifications                Notification[]
-  notificationPreferences      NotificationPreference[]
-  passwordResetTokens          PasswordResetToken[]
-  absences                     AbsenceRecord[]
-  absencesMarked               AbsenceRecord[]          @relation("AbsenceMarker")
-  attendanceCorrections        AttendanceCorrection[]
-  attendanceCorrectionsDecided AttendanceCorrection[]   @relation("AttendanceCorrectionDecider")
-  mfaBackupCodes               MfaBackupCode[]
-  dataExportRequests           DataExportRequest[]
-  dataErasureRequests          DataErasureRequest[]     @relation("EraseTarget")
-  dataErasureDecisions         DataErasureRequest[]     @relation("EraseDecider")
-  retentionPolicyUpdates       RetentionPolicy[]        @relation("RetentionPolicyUpdater")
-  securityPolicyUpdates        SecurityPolicy[]         @relation("SecurityPolicyUpdater")
-  publishedPolicies            PrivacyPolicy[]          @relation("PolicyPublisher")
-  consents                     UserConsent[]
-  ropaVersionsCreated          RopaActivityVersion[]    @relation("RopaVersionCreator")
-  ropaVersionsReviewed         RopaActivityVersion[]    @relation("RopaVersionReviewer")
-  ropaVersionsPublished        RopaActivityVersion[]    @relation("RopaVersionPublisher")
-  dpiaAssessmentsCreated       DpiaAssessment[]         @relation("DpiaCreator")
-  dpiaAssessmentsReviewed      DpiaAssessment[]         @relation("DpiaReviewer")
-  dpiaAssessmentsApproved      DpiaAssessment[]         @relation("DpiaApprover")
-  reportSchedulesCreated       ReportSchedule[]         @relation("ReportScheduleCreator")
-  savedReportsCreated          SavedReport[]            @relation("SavedReportCreator")
-  timesheetConfigUpdates       TimesheetConfig[]        @relation("TimesheetConfigUpdater")
-  timesheets                   Timesheet[]              @relation("TimesheetsByUser")
-  timesheetsAsSupervisor       Timesheet[]              @relation("TimesheetSupervisor")
-  timesheetsAsHrManager        Timesheet[]              @relation("TimesheetHrManager")
-  timesheetsAsRejector         Timesheet[]              @relation("TimesheetRejector")
-  timesheetsAsReopener         Timesheet[]              @relation("TimesheetReopener")
-  timesheetExportsRequested    TimesheetExport[]        @relation("TimesheetExportRequester")
-  timesheetExportSharesCreated TimesheetExportShare[]   @relation("TimesheetExportShareCreator")
-  timesheetExportSharesRevoked TimesheetExportShare[]   @relation("TimesheetExportShareRevoker")
-  webhookEndpointsCreated      WebhookEndpoint[]        @relation("WebhookEndpointCreator")
-  timesheetReminderLogs        TimesheetReminderLog[]   @relation("TimesheetReminderRecipient")
-  breachIncidentsReported      BreachIncident[]         @relation("BreachReporter")
-  breachIncidentsAssigned      BreachIncident[]         @relation("BreachAssignee")
-  breachTimelineEvents         BreachTimelineEvent[]    @relation("BreachTimelineActor")
-  vendorProcessorsCreated      VendorProcessor[]        @relation("VendorProcessorCreator")
-  vendorProcessorsUpdated      VendorProcessor[]        @relation("VendorProcessorUpdater")
-  vendorProcessorsTerminated   VendorProcessor[]        @relation("VendorProcessorTerminator")
+  // ---- Location sharing during shift (ADR-0041) ----------------------------
+  /// HR-controlled flag: `true` means this user is eligible to be
+  /// **asked** for their location during an active shift (sales,
+  /// delivery, field technician, etc.). Toggled from the user admin
+  /// screen. Setting this to `true` does NOT itself opt the user
+  /// in — the user still has to accept the consent copy via
+  /// `/settings/privacy`. Setting back to `false` prevents any
+  /// future requests from being created for this user (existing
+  /// PENDING requests are cancelled by the service).
+  isFieldWorker                 Boolean   @default(false)
+  /// Timestamp when the user last accepted the location-sharing
+  /// consent copy. Null = never opted in (or opted out). The
+  /// service refuses to create a request when this is null.
+  locationSharingConsentedAt    DateTime?
+  /// SHA-256 of the consent copy file the user accepted. Locks the
+  /// user's consent to a specific wording — if Legal revises the
+  /// copy, the SHA changes and the service prompts the user to
+  /// re-accept before honouring further requests. Stored as hex
+  /// digest for easy grep-ability in support tickets.
+  locationSharingConsentCopySha String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  company                                Company                  @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  department                             Department?              @relation(fields: [departmentId], references: [id])
+  supervisor                             User?                    @relation("Subordinates", fields: [supervisorId], references: [id])
+  subordinates                           User[]                   @relation("Subordinates")
+  shiftAssignments                       UserShiftAssignment[]
+  attendances                            AttendanceRecord[]
+  leaveBalances                          LeaveBalance[]
+  leaveRequests                          LeaveRequest[]
+  overtimes                              OvertimeRequest[]
+  auditLogs                              AuditLog[]               @relation("AuditActor")
+  refreshTokens                          RefreshToken[]
+  notifications                          Notification[]
+  notificationPreferences                NotificationPreference[]
+  passwordResetTokens                    PasswordResetToken[]
+  absences                               AbsenceRecord[]
+  absencesMarked                         AbsenceRecord[]          @relation("AbsenceMarker")
+  attendanceCorrections                  AttendanceCorrection[]
+  attendanceCorrectionsDecided           AttendanceCorrection[]   @relation("AttendanceCorrectionDecider")
+  mfaBackupCodes                         MfaBackupCode[]
+  dataExportRequests                     DataExportRequest[]
+  dataErasureRequests                    DataErasureRequest[]     @relation("EraseTarget")
+  dataErasureDecisions                   DataErasureRequest[]     @relation("EraseDecider")
+  retentionPolicyUpdates                 RetentionPolicy[]        @relation("RetentionPolicyUpdater")
+  securityPolicyUpdates                  SecurityPolicy[]         @relation("SecurityPolicyUpdater")
+  publishedPolicies                      PrivacyPolicy[]          @relation("PolicyPublisher")
+  consents                               UserConsent[]
+  ropaVersionsCreated                    RopaActivityVersion[]    @relation("RopaVersionCreator")
+  ropaVersionsReviewed                   RopaActivityVersion[]    @relation("RopaVersionReviewer")
+  ropaVersionsPublished                  RopaActivityVersion[]    @relation("RopaVersionPublisher")
+  dpiaAssessmentsCreated                 DpiaAssessment[]         @relation("DpiaCreator")
+  dpiaAssessmentsReviewed                DpiaAssessment[]         @relation("DpiaReviewer")
+  dpiaAssessmentsApproved                DpiaAssessment[]         @relation("DpiaApprover")
+  reportSchedulesCreated                 ReportSchedule[]         @relation("ReportScheduleCreator")
+  savedReportsCreated                    SavedReport[]            @relation("SavedReportCreator")
+  timesheetConfigUpdates                 TimesheetConfig[]        @relation("TimesheetConfigUpdater")
+  timesheets                             Timesheet[]              @relation("TimesheetsByUser")
+  timesheetsAsSupervisor                 Timesheet[]              @relation("TimesheetSupervisor")
+  timesheetsAsHrManager                  Timesheet[]              @relation("TimesheetHrManager")
+  timesheetsAsRejector                   Timesheet[]              @relation("TimesheetRejector")
+  timesheetsAsReopener                   Timesheet[]              @relation("TimesheetReopener")
+  timesheetExportsRequested              TimesheetExport[]        @relation("TimesheetExportRequester")
+  timesheetExportSharesCreated           TimesheetExportShare[]   @relation("TimesheetExportShareCreator")
+  timesheetExportSharesRevoked           TimesheetExportShare[]   @relation("TimesheetExportShareRevoker")
+  webhookEndpointsCreated                WebhookEndpoint[]        @relation("WebhookEndpointCreator")
+  timesheetReminderLogs                  TimesheetReminderLog[]   @relation("TimesheetReminderRecipient")
+  breachIncidentsReported                BreachIncident[]         @relation("BreachReporter")
+  breachIncidentsAssigned                BreachIncident[]         @relation("BreachAssignee")
+  breachTimelineEvents                   BreachTimelineEvent[]    @relation("BreachTimelineActor")
+  vendorProcessorsCreated                VendorProcessor[]        @relation("VendorProcessorCreator")
+  vendorProcessorsUpdated                VendorProcessor[]        @relation("VendorProcessorUpdater")
+  vendorProcessorsTerminated             VendorProcessor[]        @relation("VendorProcessorTerminator")
+  locationShareRequestsAsSupervisor      LocationShareRequest[]   @relation("LocationShareRequestSupervisor")
+  locationShareRequestsAsTarget          LocationShareRequest[]   @relation("LocationShareRequestTarget")
+  locationPings                          LocationPing[]
+  securityPolicyLocationSharingEnabledBy SecurityPolicy[]         @relation("SecurityPolicyLocationSharingEnabler")
 
   @@unique([companyId, email])
   @@index([companyId, departmentId, deletedAt])
@@ -1011,21 +1078,50 @@ model RetentionPolicy {
 /// exists for a tenant, the env is ignored for that tenant — the
 /// DB row is authoritative.
 model SecurityPolicy {
-  id                          String   @id @default(cuid())
-  companyId                   String   @unique
+  id                       String  @id @default(cuid())
+  companyId                String  @unique
   /// Force `HR_MANAGER` and `SUPER_ADMIN` users in this tenant to
   /// enroll MFA on their next request via `MfaEnrollmentGuard`. When
   /// `false`, MFA remains fully available (self-service enroll via
   /// `/settings/security`) — users who choose to enrol are still
   /// challenged at every login. Default `false` (MVP opt-in, see
   /// ADR-0017 revision).
-  mfaEnforceHighPrivileged    Boolean  @default(false)
-  updatedAt                   DateTime @updatedAt
-  updatedById                 String?
-  createdAt                   DateTime @default(now())
+  mfaEnforceHighPrivileged Boolean @default(false)
 
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  updatedBy User?   @relation("SecurityPolicyUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+  // ---- Location sharing (ADR-0041) ---------------------------------
+  /// Master switch for the "supervisor asks user for current location"
+  /// feature. Default `false`; SUPER_ADMIN flips this from
+  /// `/admin/security` ONLY when the tenant's DPIA record for
+  /// `LOCATION_SHARING` is `APPROVED`. The controller enforces this
+  /// gate; the DB accepts any bool. See ADR-0041 §Rollout gate.
+  locationSharingEnabled        Boolean   @default(false)
+  /// Timestamp the flag was flipped to `true`. Frozen thereafter
+  /// (flipping to `false` does NOT clear this — we want a
+  /// "was-ever-enabled" audit answer for regulators). Null iff the
+  /// flag has never been enabled.
+  locationSharingEnabledAt      DateTime?
+  /// The SUPER_ADMIN user who flipped the switch on. Retained via
+  /// `SetNull` on user delete because the flip is a compliance event
+  /// even after the admin off-boards.
+  locationSharingEnabledById    String?
+  /// FK to the `DpiaAssessment` (activity = LOCATION_SHARING, status =
+  /// APPROVED) that gated the flag flip. Required to enable, retained
+  /// for the audit trail even if the DPIA is later archived.
+  locationSharingDpiaId         String?
+  /// SHA-256 hex digest of the consent-copy file the tenant approved
+  /// at flag-flip time. Locks a specific wording into compliance
+  /// record — if Legal revises the copy, this field goes stale and
+  /// the FE alerts the admin (must re-flip to refresh).
+  locationSharingConsentCopySha String?
+
+  updatedAt   DateTime @updatedAt
+  updatedById String?
+  createdAt   DateTime @default(now())
+
+  company                  Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  updatedBy                User?           @relation("SecurityPolicyUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+  locationSharingEnabledBy User?           @relation("SecurityPolicyLocationSharingEnabler", fields: [locationSharingEnabledById], references: [id], onDelete: SetNull)
+  locationSharingDpia      DpiaAssessment? @relation("SecurityPolicyLocationSharingDpia", fields: [locationSharingDpiaId], references: [id], onDelete: SetNull)
 }
 
 /// A versioned privacy policy the tenant asks its users to accept.
@@ -1256,12 +1352,13 @@ model DpiaAssessment {
   approvedAt   DateTime?
   archivedAt   DateTime?
 
-  company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  ropaActivity RopaActivity   @relation(fields: [ropaActivityId], references: [id], onDelete: Restrict)
-  createdBy    User?          @relation("DpiaCreator", fields: [createdById], references: [id], onDelete: SetNull)
-  reviewedBy   User?          @relation("DpiaReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
-  approvedBy   User?          @relation("DpiaApprover", fields: [approvedById], references: [id], onDelete: SetNull)
-  riskItems    DpiaRiskItem[]
+  company                Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  ropaActivity           RopaActivity     @relation(fields: [ropaActivityId], references: [id], onDelete: Restrict)
+  createdBy              User?            @relation("DpiaCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  reviewedBy             User?            @relation("DpiaReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  approvedBy             User?            @relation("DpiaApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  riskItems              DpiaRiskItem[]
+  securityPoliciesGating SecurityPolicy[] @relation("SecurityPolicyLocationSharingDpia")
 
   @@index([companyId, status])
   @@index([ropaActivityId, createdAt])
@@ -2604,4 +2701,117 @@ model VendorReminderLog {
 
   @@unique([vendorId, kind, expectedFor], name: "one_reminder_per_cycle")
   @@index([companyId, firedAt])
+}
+
+// ---------- Location Sharing During Shift (ADR-0041) -----------------------
+
+/// A supervisor-initiated ask for a user's current location during an
+/// active shift. The state machine is `PENDING` on create, then one of
+/// `RESPONDED / DECLINED / EXPIRED / CANCELLED`. See
+/// `LocationShareRequestStatus` for the transition rules.
+///
+/// # Retention (ADR-0041 §Retention)
+///
+/// Row auto-purged 90 days after `createdAt` by
+/// `LocationSharingRetentionWorker`. The audit metadata (who asked,
+/// who was asked, when, outcome) survives that window in `AuditLog`
+/// which has its own retention. Purge only touches this row — the
+/// linked `LocationPing` may already be gone (7-day window).
+///
+/// # Invariants enforced at row level
+///
+/// - `supervisorId != targetUserId` (a user cannot ask themselves).
+///   Enforced in service, not DB (would need a CHECK constraint we
+///   don't have plumbing for). Duplicating the check server-side is
+///   the pragmatic call.
+/// - At most one PENDING request per (supervisor, targetUser) pair —
+///   partial unique index in the migration.
+///
+/// # Notes
+///
+/// - `reason` is free-form supervisor input, 5–200 chars. Surfaced to
+///   the user in the notification body and the response modal so the
+///   ask is transparent ("verify sales visit at Client X").
+/// - `expiresAt` is set at creation = `createdAt + 15 min` (ADR-0041
+///   §Open questions resolved). Cron flips PENDING → EXPIRED past
+///   this timestamp.
+/// - `respondedAt`, `viewedAt` are provenance fields — see the
+///   AuditLog for the full history (that's the immutable record).
+model LocationShareRequest {
+  id             String                     @id @default(cuid())
+  companyId      String
+  supervisorId   String
+  targetUserId   String
+  status         LocationShareRequestStatus @default(PENDING)
+  reason         String
+  createdAt      DateTime                   @default(now())
+  expiresAt      DateTime
+  respondedAt    DateTime?
+  cancelledAt    DateTime?
+  viewedAt       DateTime?
+  /// Populated iff the user answered with coordinates (status =
+  /// RESPONDED). Points to the `LocationPing` row carrying the
+  /// actual lat/lng. Nullable because the ping may be purged by
+  /// retention (7d) while this row lives on (90d) — reads must
+  /// handle the null-with-status=RESPONDED case gracefully.
+  locationPingId String?                    @unique
+
+  company      Company       @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  supervisor   User          @relation("LocationShareRequestSupervisor", fields: [supervisorId], references: [id], onDelete: Restrict)
+  targetUser   User          @relation("LocationShareRequestTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
+  locationPing LocationPing? @relation(fields: [locationPingId], references: [id], onDelete: SetNull)
+
+  /// Primary read path: "any pending ask for me right now?" (target
+  /// side) and "my open asks" (supervisor side). Kept narrow —
+  /// broader queries are audit-driven and go through AuditLog.
+  @@index([targetUserId, status, createdAt])
+  @@index([supervisorId, status, createdAt])
+  /// Purge cursor for the retention worker.
+  @@index([companyId, createdAt])
+  /// One live PENDING ask per (supervisor, target) pair. The DB-level
+  /// unique index also uses a partial predicate on `status = 'PENDING'`
+  /// (raw SQL in the migration) so terminal-state rows don't collide.
+  /// The Prisma-level unique here is a functional dup safeguard.
+  @@index([supervisorId, targetUserId, status])
+}
+
+/// The single coordinate payload delivered by the user in response
+/// to a `LocationShareRequest`. One-shot: not a stream, not a
+/// history — see ADR-0041 §Sampling model (on-demand only).
+///
+/// # Retention (ADR-0041 §Retention)
+///
+/// Row auto-purged 7 days after `createdAt` by
+/// `LocationSharingRetentionWorker`. The corresponding
+/// `LocationShareRequest` (90-day retention) may outlive its ping;
+/// downstream code MUST handle a nullable `locationPingId` on the
+/// request row.
+///
+/// # Coordinate precision
+///
+/// `Decimal(10, 7)` — same convention as `Geofence.latitude/longitude`
+/// so `AttendanceService` helpers can be reused without rounding
+/// noise. `accuracyMeters` is stored as the raw client-reported
+/// value; HR sees it in the raw display line ("lat, lng ± Nm") so
+/// they can eyeball how much to trust the reading.
+model LocationPing {
+  id               String   @id @default(cuid())
+  companyId        String
+  userId           String
+  latitude         Decimal  @db.Decimal(10, 7)
+  longitude        Decimal  @db.Decimal(10, 7)
+  accuracyMeters   Int
+  /// Client wall-clock at collection time (from `Geolocation.timestamp`).
+  /// Distinct from `createdAt` (server receive time) so HR can spot
+  /// devices with drifted clocks in the response UI.
+  clientCapturedAt DateTime
+  createdAt        DateTime @default(now())
+
+  company Company               @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  user    User                  @relation(fields: [userId], references: [id], onDelete: Restrict)
+  request LocationShareRequest?
+
+  /// Retention worker scans on `createdAt`.
+  @@index([companyId, createdAt])
+  @@index([userId, createdAt])
 }

@@ -2,7 +2,8 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Patch } from '@nestjs/comm
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { SecurityPolicy } from '@prisma/client';
 
-import { SecurityPolicyDto, UpdateSecurityPolicyDto } from './dto/security-policy.dto';
+import { LocationSharingAction, SecurityPolicyDto, UpdateSecurityPolicyDto } from './dto/security-policy.dto';
+import type { SecurityPolicyLocationSharingAction, SecurityPolicyUpdate } from './security-policy.service';
 import { SecurityPolicyService } from './security-policy.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -39,12 +40,29 @@ export class SecurityPolicyController {
     @CurrentUser() actor: AuthenticatedUser,
     @Body() body: UpdateSecurityPolicyDto,
   ): Promise<SecurityPolicyDto> {
+    const patch: SecurityPolicyUpdate = {};
+    if (body.mfaEnforceHighPrivileged !== undefined) {
+      patch.mfaEnforceHighPrivileged = body.mfaEnforceHighPrivileged;
+    }
+    if (body.locationSharing) {
+      patch.locationSharing = toLocationSharingAction(body.locationSharing);
+    }
     const policy = await this.service.update(
       { id: actor.id, companyId: actor.companyId, role: actor.role },
-      body,
+      patch,
     );
     return toDto(policy);
   }
+}
+
+function toLocationSharingAction(
+  dto: UpdateSecurityPolicyDto['locationSharing'],
+): SecurityPolicyLocationSharingAction | undefined {
+  if (!dto) return undefined;
+  if (dto.action === LocationSharingAction.ENABLE) {
+    return { action: 'ENABLE', dpiaId: dto.dpiaId!, consentCopySha: dto.consentCopySha! };
+  }
+  return { action: 'DISABLE' };
 }
 
 function toDto(policy: SecurityPolicy): SecurityPolicyDto {
@@ -52,6 +70,13 @@ function toDto(policy: SecurityPolicy): SecurityPolicyDto {
     id: policy.id,
     companyId: policy.companyId,
     mfaEnforceHighPrivileged: policy.mfaEnforceHighPrivileged,
+    locationSharingEnabled: policy.locationSharingEnabled,
+    locationSharingEnabledAt: policy.locationSharingEnabledAt
+      ? policy.locationSharingEnabledAt.toISOString()
+      : null,
+    locationSharingEnabledById: policy.locationSharingEnabledById,
+    locationSharingDpiaId: policy.locationSharingDpiaId,
+    locationSharingConsentCopySha: policy.locationSharingConsentCopySha,
     updatedAt: policy.updatedAt.toISOString(),
     updatedById: policy.updatedById,
   };

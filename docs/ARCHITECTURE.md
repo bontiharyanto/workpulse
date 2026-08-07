@@ -49,6 +49,28 @@ Rules:
 - **Services** hanya mengimpor `PrismaService`, service lain, dan file dari `domain/`.
 - **Domain** hanya mengimpor `domain/*` — tanpa `@nestjs/*`, tanpa Prisma. Membuatnya sepele di-unit-test.
 
+### 3.1 Location Sharing Module Boundary (ADR-0041)
+
+Modul `src/location-sharing/` mengikuti bentuk yang sama, dengan tiga
+titik interaksi:
+
+- Depends **on** `PrismaService`, `NotificationService`, dan
+  `SecurityPolicyService` (untuk membaca feature flag tenant).
+- Depends **on** shared consent copy dari `@workpulse/shared-types`
+  (`LOCATION_SHARING_CONSENT_COPY`) — SHA-256-nya adalah kontrak
+  dengan Legal.
+- Depended **on by** — belum ada. Modul lain tidak boleh mengimpor
+  `LocationSharingService` sebagai ketergantungan konsumen (mis. HR
+  reporting), karena data lokasi punya retention terpisah 7 hari dan
+  tidak boleh bocor ke laporan retensi lebih panjang.
+
+Domain layer (`domain/request-lifecycle.ts`) memegang konstanta TTL,
+quota, dan retensi + pure state-transition guards; service memegang
+orkestrasi transaksi + audit + notifikasi fanout. Retention worker
+(`location-sharing-retention.worker.ts`) hanya menggerakkan cron —
+purge logic-nya berada di `purgeLocationSharingForCompany` yang bisa
+di-unit-test tanpa Nest scheduler.
+
 ## 4. Cross-Cutting Concerns
 
 | Concern                | Location                                                                   |
@@ -69,6 +91,8 @@ Rules:
 - **LeaveType / LeaveBalance / LeaveRequest** — `LeaveBalance` punya kolom `version` untuk optimistic locking bersamaan dengan `SELECT ... FOR UPDATE`.
 - **OvertimeRequest** — pre-approval flow dengan `ratePerHour` & `totalAmount` yang dikomputasi server-side.
 - **Holiday** — kalender per company; digunakan saat menghitung durasi cuti.
+- **SecurityPolicy** — tenant-scoped feature-flag row (MFA enforcement, location-sharing enable). Cached 30s per tenant di `SecurityPolicyService`. Perubahan menghasilkan `SECURITY_POLICY_UPDATED` audit dengan before/after diff.
+- **LocationShareRequest + LocationPing** (ADR-0041) — on-demand supervisor-initiated location share. Request row 90d retention (audit metadata), Ping row 7d retention (coord). Partial unique index memastikan max satu `PENDING` per (supervisor, target).
 - **AuditLog** — immutable; `REVOKE UPDATE, DELETE` untuk role app.
 
 Semua tabel domain: `createdAt`, `updatedAt`, `deletedAt` (soft delete kecuali `AttendanceEvent`, `AuditLog`, `Holiday`).
