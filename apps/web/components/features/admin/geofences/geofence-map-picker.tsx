@@ -58,7 +58,6 @@ L.Icon.Default.mergeOptions({
 // so the connect-src rule doesn't apply). If your CSP tightens
 // img-src, add `https://unpkg.com`.
 
-const DEFAULT_CENTER: [number, number] = [-6.2088, 106.8456]; // Monas
 const DEFAULT_ZOOM = 15;
 
 interface Value {
