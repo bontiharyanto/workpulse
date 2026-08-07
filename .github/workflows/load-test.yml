@@ -57,7 +57,7 @@ jobs:
       # tenants never see the probe rows.
       TEST_TENANT_ID: ${{ inputs.target == 'prod' && secrets.LOAD_TEST_PROD_TENANT_ID || secrets.LOAD_TEST_STAGING_TENANT_ID }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Guard prod target
         if: inputs.target == 'prod'
