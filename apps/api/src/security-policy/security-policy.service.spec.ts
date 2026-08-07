@@ -24,15 +24,22 @@ function buildKit(envMfaEnforce = false): Kit {
 }
 
 function makePolicy(overrides: Partial<SecurityPolicy> = {}): SecurityPolicy {
-  return {
+  const base: SecurityPolicy = {
     id: 'sp-1',
     companyId: 'c-1',
     mfaEnforceHighPrivileged: false,
+    // ADR-0041 rollout gate fields — default `false / null` in fresh
+    // rows. Overrides can enable per-test if a scenario needs it.
+    locationSharingEnabled: false,
+    locationSharingEnabledAt: null,
+    locationSharingEnabledById: null,
+    locationSharingDpiaId: null,
+    locationSharingConsentCopySha: null,
     updatedAt: new Date('2026-08-06T00:00:00Z'),
     updatedById: null,
     createdAt: new Date('2026-08-06T00:00:00Z'),
-    ...overrides,
   };
+  return { ...base, ...overrides };
 }
 
 describe('SecurityPolicyService.getForCompany', () => {

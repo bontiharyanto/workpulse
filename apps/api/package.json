@@ -113,7 +113,10 @@
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",
     "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/src/$1"
+      "^@/(.*)$": "<rootDir>/src/$1",
+      "^@workpulse/shared-types$": "<rootDir>/../../packages/shared-types/src/index.ts",
+      "^@workpulse/shared-types/(.*)\\.js$": "<rootDir>/../../packages/shared-types/src/$1.ts",
+      "^(\\./.*)\\.js$": "$1"
     }
   }
 }

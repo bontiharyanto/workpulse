@@ -33,6 +33,7 @@ import { HealthModule } from './health/health.module';
 import { HolidayModule } from './holiday/holiday.module';
 import { LeaveModule } from './leave/leave.module';
 import { LeaveTypeModule } from './leave-type/leave-type.module';
+import { LocationSharingModule } from './location-sharing/location-sharing.module';
 import { NotificationModule } from './notification/notification.module';
 import { buildLoggerParams } from './observability/logger.config';
 import { OvertimeModule } from './overtime/overtime.module';
@@ -106,6 +107,7 @@ import { WebhookModule } from './webhook/webhook.module';
     HolidayModule,
     ReportModule,
     NotificationModule,
+    LocationSharingModule,
     DataExportModule,
     DataErasureModule,
     RetentionModule,
