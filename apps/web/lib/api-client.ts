@@ -78,6 +78,11 @@ import type {
   Session,
   SessionListResponse,
   SessionRevokeOthersResponse,
+  CreateLocationShareRequestInput,
+  LocationShareRequestDto,
+  LocationSharingSelfStatus,
+  RespondLocationShareRequestInput,
+  UpdateLocationSharingConsentInput,
   UpdateNotificationPreferencesInput,
   UpdateRetentionPolicyInput,
   UpdateSecurityPolicyInput,
@@ -1581,6 +1586,48 @@ export const notificationsApi = {
     apiRequest<NotificationPreferenceRow[]>('/notifications/preferences', {
       method: 'PUT',
       json: body,
+    }),
+};
+
+// ----- Location sharing (ADR-0041) ----------------------------------------
+
+export const locationSharingApi = {
+  // ---- Self-service consent + status ---------------------------------
+  selfStatus: (): Promise<LocationSharingSelfStatus> =>
+    apiRequest<LocationSharingSelfStatus>('/me/location-sharing', { method: 'GET' }),
+  updateConsent: (body: UpdateLocationSharingConsentInput): Promise<void> =>
+    apiRequest<void>('/me/location-sharing/consent', { method: 'PATCH', json: body }),
+
+  // ---- Requests ------------------------------------------------------
+  create: (body: CreateLocationShareRequestInput): Promise<LocationShareRequestDto> =>
+    apiRequest<LocationShareRequestDto>('/location-sharing/requests', {
+      method: 'POST',
+      json: body,
+    }),
+  cancel: (id: string): Promise<LocationShareRequestDto> =>
+    apiRequest<LocationShareRequestDto>(`/location-sharing/requests/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }),
+  get: (id: string): Promise<LocationShareRequestDto> =>
+    apiRequest<LocationShareRequestDto>(`/location-sharing/requests/${encodeURIComponent(id)}`, {
+      method: 'GET',
+    }),
+  respond: (
+    id: string,
+    body: RespondLocationShareRequestInput,
+  ): Promise<LocationShareRequestDto> =>
+    apiRequest<LocationShareRequestDto>(
+      `/location-sharing/requests/${encodeURIComponent(id)}/respond`,
+      {
+        method: 'POST',
+        json: body,
+      },
+    ),
+  inbox: (): Promise<LocationShareRequestDto[]> =>
+    apiRequest<LocationShareRequestDto[]>('/location-sharing/inbox', { method: 'GET' }),
+  outgoing: (limit = 25): Promise<LocationShareRequestDto[]> =>
+    apiRequest<LocationShareRequestDto[]>(`/location-sharing/outgoing?limit=${limit}`, {
+      method: 'GET',
     }),
 };
 

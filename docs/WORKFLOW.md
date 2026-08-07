@@ -1830,6 +1830,101 @@ Kapan pakai:
 
 ### 1.13 Notification Archive + Mark-All-Read
 
+---
+
+### 1.14 Location Sharing During Shift (ADR-0041)
+
+> Full design rationale: [`docs/ADR/ADR-0041-location-sharing-during-shift.md`](./ADR/ADR-0041-location-sharing-during-shift.md).
+
+Fitur ini memungkinkan **satu** permintaan lokasi ad-hoc dari supervisor
+kepada karyawan lapangan (`User.isFieldWorker = true`) yang telah opt-in.
+Silent tracking **tidak** didukung dan tidak dapat diaktifkan.
+
+**Empat pilar policy (non-negotiable):**
+
+1. **Opt-in per karyawan** — tanpa opt-in yang pinned ke SHA copy terkini
+   (`SecurityPolicy.locationSharingConsentCopySha`), semua request `POST
+   /location-sharing/requests` ditolak dengan `TARGET_NOT_OPTED_IN` /
+   `TARGET_CONSENT_STALE`.
+2. **On-demand only** — satu request = satu koordinat. Tidak ada polling
+   background, tidak ada rekaman rute.
+3. **Transparansi total** — user menerima notifikasi (in-app + email)
+   pada tiga event: permintaan masuk, koordinatnya dilihat, dan setiap
+   perubahan consent-nya sendiri.
+4. **Retensi ketat** — `LocationPing` dihapus otomatis 7 hari, metadata
+   `LocationShareRequest` 90 hari. Enforced oleh
+   `LocationSharingRetentionWorker` (`@Cron('0 0 * * * *')`).
+
+**State machine `LocationShareRequest`:**
+
+```
+                                                     15 min TTL
+PENDING ─┬──────► RESPONDED (LocationPing dibuat)    ┌───► EXPIRED
+         ├──────► DECLINED                           │
+         ├──────► CANCELLED (supervisor menarik)     │
+         └────────────────────────────────────────────┘
+```
+
+Transisi selalu final; server menolak update pada status non-`PENDING`.
+
+**Rollout gate (SUPER_ADMIN):**
+
+Fitur hanya aktif per tenant bila `SecurityPolicy.locationSharingEnabled`
+= `true`. Toggle memerlukan (a) DPIA `APPROVED` untuk aktivitas
+`location-sharing`, dan (b) SHA copy persetujuan terkini
+(`LOCATION_SHARING_CONSENT_COPY.id`). SUPER_ADMIN memflip toggle di
+`/admin/security` dengan konfirmasi dialog. Setiap flip menghasilkan
+`SECURITY_POLICY_UPDATED` audit + `LOCATION_SHARING_ENABLED` /
+`LOCATION_SHARING_DISABLED` (audit tunggal dengan DPIA id + SHA copy).
+
+**Endpoint (semua tenant-scoped + role-gated):**
+
+| Method    | Path                                        | Role                                       | Notes                                                            |
+| --------- | ------------------------------------------- | ------------------------------------------ | ---------------------------------------------------------------- |
+| `POST`    | `/location-sharing/requests`                | SUPERVISOR / HR / SUPER_ADMIN              | Buat request. Quota 6/user/24h.                                  |
+| `DELETE`  | `/location-sharing/requests/:id`            | Supervisor pemilik                         | Batalkan PENDING → `CANCELLED`.                                  |
+| `GET`     | `/location-sharing/requests/:id`            | Pihak terlibat + HR                        | Setiap GET oleh non-target dgn ping → notif `LOCATION_SHARE_VIEWED`. |
+| `POST`    | `/location-sharing/requests/:id/respond`    | Target user                                | Body: `{ outcome: 'ACCEPT' \| 'DECLINE', ... }`. Cek TTL + re-consent. |
+| `GET`     | `/location-sharing/inbox`                   | Target user                                | List PENDING milik saya.                                         |
+| `GET`     | `/location-sharing/outgoing`                | SUPERVISOR / HR                            | List 25 terakhir yang saya kirim.                                |
+| `GET`     | `/me/location-sharing`                      | Any authenticated                          | `{ tenantEnabled, eligible, consentedAt, consentedCopySha, currentCopySha }`. |
+| `PATCH`   | `/me/location-sharing/consent`              | Any eligible user                          | `OPT_IN` (dgn SHA) atau `OPT_OUT`. Opt-out → auto-cancel semua PENDING milik saya. |
+
+**Error codes (di-mapkan ke copy FE di
+`apps/web/components/features/location-sharing/location-requests-supervisor-panel.tsx`):**
+
+| Code                              | HTTP | UI Copy (ID)                                                                          |
+| --------------------------------- | ---- | ------------------------------------------------------------------------------------- |
+| `FEATURE_NOT_ENABLED`             | 403  | Fitur berbagi lokasi belum diaktifkan admin.                                          |
+| `TARGET_NOT_FIELD_WORKER`         | 403  | Karyawan bukan field worker.                                                          |
+| `TARGET_NOT_OPTED_IN`             | 403  | Karyawan belum opt-in.                                                                |
+| `TARGET_CONSENT_STALE`            | 403  | Karyawan opt-in atas copy lama — perlu re-approve.                                    |
+| `NOT_MY_SUBORDINATE`              | 403  | Karyawan bukan bagian tim langsung Anda.                                              |
+| `DAILY_QUOTA_EXCEEDED`            | 409  | Kuota harian permintaan (6/24 jam) sudah habis.                                       |
+| `PENDING_REQUEST_ALREADY_EXISTS`  | 409  | Ada permintaan PENDING lain untuk karyawan ini.                                       |
+| `REQUEST_EXPIRED`                 | 409  | Permintaan hangus (>15 menit).                                                        |
+| `REQUEST_NOT_PENDING`             | 409  | Permintaan sudah dijawab / dibatalkan.                                                |
+| `CONSENT_COPY_STALE`              | 400  | Anda opt-in atas copy lama — setujui ulang copy terkini.                              |
+
+**Audit actions (immutable):**
+
+`LOCATION_SHARE_REQUESTED`, `LOCATION_SHARE_ACCEPTED`, `LOCATION_SHARE_DECLINED`,
+`LOCATION_SHARE_CANCELLED`, `LOCATION_SHARE_VIEWED`, `LOCATION_SHARING_OPTED_IN`,
+`LOCATION_SHARING_OPTED_OUT`, `LOCATION_SHARING_ENABLED`,
+`LOCATION_SHARING_DISABLED`. Koordinat tidak pernah masuk `afterJson` — retention
+audit log > 7 hari, dan menyimpan koordinat di sana akan memperpanjang efektif
+retention di luar envelope DPIA.
+
+**FE surfaces:**
+
+- `/admin/security` — SUPER_ADMIN toggle (aktif/nonaktif tenant).
+- `/settings/privacy` — user opt-in / opt-out + baca copy penuh.
+- `/team/location-requests` — supervisor: buat request + riwayat.
+- `/team/location-requests/[id]` — supervisor: detail (buka = notif ke target).
+- `/me/location-sharing/inbox/[id]` — user: accept/decline modal.
+- Notifikasi bell + email dengan copy per template di
+  `apps/api/src/notification/domain/templates.ts`.
+
 Bell dropdown (Fase 6 / ADR-0006) menampilkan 20 baris terbaru
 dengan polling `unread-count` tiap 30 s. Ini cukup untuk "quick
 peek", tapi kalau user jarang buka bell, unread cepat menumpuk

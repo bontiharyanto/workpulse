@@ -152,6 +152,15 @@ export const approvalsSection: NavSection = {
       module: 'admin',
       roles: ADMIN_ROLES,
     },
+    {
+      href: '/team/location-requests',
+      label: 'Permintaan Lokasi',
+      icon: MapPin,
+      module: 'attendance',
+      roles: APPROVER_ROLES,
+      description:
+        'Kirim permintaan lokasi ke karyawan lapangan yang telah opt-in (ADR-0041).',
+    },
   ],
 };
 
@@ -417,6 +426,10 @@ export const segmentLabels: Record<string, string> = {
   dpia: 'DPIA',
   security: 'Keamanan',
   breaches: 'Breach Ledger',
+  team: 'Tim',
+  'location-requests': 'Permintaan Lokasi',
+  'location-sharing': 'Berbagi Lokasi',
+  inbox: 'Inbox',
   'approvals-backlog': 'Backlog',
   exports: 'Ekspor',
   config: 'Konfigurasi',

@@ -4,6 +4,10 @@ import {
   leaveApprovedBySupervisor,
   leaveRejected,
   leaveSubmitted,
+  locationShareRequested,
+  locationShareResponded,
+  locationShareViewed,
+  locationSharingConsentChanged,
   overtimeApproved,
   overtimeCompleted,
   overtimeRejected,
@@ -146,5 +150,89 @@ describe('notification templates — attendance absent', () => {
   it('embeds the workDate in the data payload for deep-link filtering', () => {
     const c = attendanceAbsentMarked(base);
     expect((c.data as { workDate?: string }).workDate).toBe('2026-08-01');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Location sharing (ADR-0041) — every template must:
+//   1. embed a deep link the FE can navigate to
+//   2. state the reason / actor
+//   3. never leak coordinates into the body (retention lives elsewhere)
+// ---------------------------------------------------------------------------
+
+describe('notification templates — location sharing', () => {
+  it('locationShareRequested reads first-person, embeds reason, links to inbox', () => {
+    const c = locationShareRequested({
+      requestId: 'req-1',
+      supervisorName: 'Rani (Supervisor)',
+      reason: 'konfirmasi kehadiran di lokasi klien A',
+      expiresAt: '2026-08-07T08:15:00.000Z',
+    });
+    expect(c.type).toBe('LOCATION_SHARE_REQUESTED');
+    expect(c.title).toContain('Rani (Supervisor)');
+    expect(c.body).toContain('konfirmasi kehadiran');
+    expect(c.body).toContain('menerima atau menolak');
+    // Time is rendered in Asia/Jakarta (WIB): 08:15Z → 15.15 WIB. The
+    // Indonesian locale uses `.` as the time separator, not `:` — a
+    // stable output across Node LTS versions we care to lock down here.
+    expect(c.body).toContain('15.15 WIB');
+    expect((c.data as { href?: string }).href).toBe(
+      '/me/location-sharing/inbox/req-1',
+    );
+  });
+
+  it('locationShareResponded outcome map drives copy for supervisor bell', () => {
+    const base = {
+      requestId: 'req-2',
+      targetUserName: 'Budi',
+    } as const;
+    expect(locationShareResponded({ ...base, outcome: 'RESPONDED' }).body).toContain(
+      'mengirim koordinat',
+    );
+    expect(locationShareResponded({ ...base, outcome: 'DECLINED' }).title).toContain(
+      'menolak',
+    );
+    expect(locationShareResponded({ ...base, outcome: 'EXPIRED' }).body).toContain(
+      'hangus otomatis',
+    );
+    expect(locationShareResponded({ ...base, outcome: 'CANCELLED' }).body).toContain(
+      'dibatalkan',
+    );
+  });
+
+  it('locationShareViewed keeps copy calm + notes the transparency contract', () => {
+    const c = locationShareViewed({
+      requestId: 'req-3',
+      viewerName: 'HR Officer',
+      viewerRole: 'HR',
+    });
+    expect(c.type).toBe('LOCATION_SHARE_VIEWED');
+    expect(c.title).toContain('HR Officer');
+    expect(c.body).toContain('setiap kali koordinat Anda dilihat');
+    expect((c.data as { href?: string }).href).toBe('/me/location-sharing/history');
+  });
+
+  it('locationSharingConsentChanged surfaces the action + points to settings', () => {
+    const optIn = locationSharingConsentChanged({ action: 'OPT_IN', actorSelf: true });
+    expect(optIn.title).toContain('mengaktifkan');
+    expect(optIn.body).toContain('mengaktifkan');
+    expect((optIn.data as { href?: string }).href).toBe('/settings/privacy');
+
+    const optOut = locationSharingConsentChanged({ action: 'OPT_OUT', actorSelf: true });
+    expect(optOut.title).toContain('menonaktifkan');
+    expect(optOut.body).toContain('menonaktifkan');
+  });
+
+  it('locationShareRequested truncates absurdly long reasons', () => {
+    const reason = 'x'.repeat(500);
+    const c = locationShareRequested({
+      requestId: 'req-4',
+      supervisorName: 'Rani',
+      reason,
+      expiresAt: '2026-08-07T08:15:00.000Z',
+    });
+    // truncated with a `…` per the shared helper
+    expect(c.body).toContain('…');
+    expect(c.body.length).toBeLessThan(600);
   });
 });

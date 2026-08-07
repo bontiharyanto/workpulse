@@ -12,6 +12,14 @@ function buildPolicyService(enforce: boolean): SecurityPolicyService {
       id: 'sp-1',
       companyId,
       mfaEnforceHighPrivileged: enforce,
+      // ADR-0041 fields default to "feature disabled" — this guard
+      // only cares about mfaEnforceHighPrivileged, so we leave the
+      // rollout-gate fields at their neutral zero values.
+      locationSharingEnabled: false,
+      locationSharingEnabledAt: null,
+      locationSharingEnabledById: null,
+      locationSharingDpiaId: null,
+      locationSharingConsentCopySha: null,
       updatedAt: new Date(),
       updatedById: null,
       createdAt: new Date(),

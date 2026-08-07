@@ -135,6 +135,22 @@ const TYPE_LABELS: Record<NotificationType, { title: string; hint: string }> = {
     title: 'Kontrak vendor hampir habis',
     hint: 'Peringatan bahwa kontrak dengan vendor / processor akan berakhir dalam 60 hari (atau sudah kadaluarsa) sehingga negosiasi renewal dapat dimulai lebih awal.',
   },
+  LOCATION_SHARE_REQUESTED: {
+    title: 'Permintaan berbagi lokasi',
+    hint: 'Diberitahu saat supervisor Anda meminta lokasi Anda selama shift aktif (ADR-0041). Sangat direkomendasikan tetap aktif — Anda perlu tahu setiap permintaan agar dapat menerima atau menolak.',
+  },
+  LOCATION_SHARE_RESPONDED: {
+    title: 'Respon permintaan lokasi',
+    hint: 'Notifikasi ke supervisor saat karyawan menjawab (menerima, menolak, atau hangus) permintaan lokasi.',
+  },
+  LOCATION_SHARE_VIEWED: {
+    title: 'Lokasi Anda dilihat',
+    hint: 'Diberitahu setiap kali supervisor atau HR membuka koordinat yang Anda bagikan — transparansi wajib per ADR-0041 dan tidak dapat dinonaktifkan.',
+  },
+  LOCATION_SHARING_CONSENT_CHANGED: {
+    title: 'Perubahan persetujuan berbagi lokasi',
+    hint: 'Konfirmasi ke Anda sendiri saat mengaktifkan / menonaktifkan persetujuan berbagi lokasi. Berperan sebagai bukti bahwa aksi tersebut memang dilakukan oleh Anda.',
+  },
 };
 
 /** Group types into sections for readability. */
@@ -202,6 +218,16 @@ const SECTIONS: Array<{ id: string; label: string; types: NotificationType[] }> 
     id: 'compliance',
     label: 'Kepatuhan',
     types: ['BREACH_DEADLINE_WARNING', 'VENDOR_REVIEW_DUE', 'VENDOR_CONTRACT_EXPIRING'],
+  },
+  {
+    id: 'location-sharing',
+    label: 'Berbagi Lokasi',
+    types: [
+      'LOCATION_SHARE_REQUESTED',
+      'LOCATION_SHARE_RESPONDED',
+      'LOCATION_SHARE_VIEWED',
+      'LOCATION_SHARING_CONSENT_CHANGED',
+    ],
   },
 ];
 

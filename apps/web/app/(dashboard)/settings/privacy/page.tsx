@@ -4,6 +4,7 @@ import type { JSX } from 'react';
 import { RequireAuth } from '@/components/features/auth/require-auth';
 import { ConsentHistoryPanel } from '@/components/features/privacy/consent-history-panel';
 import { DataExportPanel } from '@/components/features/privacy/data-export-panel';
+import { LocationSharingConsentPanel } from '@/components/features/privacy/location-sharing-consent-panel';
 import { PrivacyErasurePanel } from '@/components/features/privacy/privacy-erasure-panel';
 import { Separator } from '@/components/ui/separator';
 
@@ -31,6 +32,8 @@ export default function PrivacySettingsPage(): JSX.Element {
         <DataExportPanel />
         <Separator />
         <PrivacyErasurePanel />
+        <Separator />
+        <LocationSharingConsentPanel />
         <Separator />
         <ConsentHistoryPanel />
       </div>
