@@ -34,6 +34,10 @@ export const notificationTypeSchema = z.enum([
   'RETENTION_AUDIT_GAP_DETECTED',
   'VENDOR_REVIEW_DUE',
   'VENDOR_CONTRACT_EXPIRING',
+  'LOCATION_SHARE_REQUESTED',
+  'LOCATION_SHARE_RESPONDED',
+  'LOCATION_SHARE_VIEWED',
+  'LOCATION_SHARING_CONSENT_CHANGED',
 ]);
 export type NotificationType = z.infer<typeof notificationTypeSchema>;
 
