@@ -141,8 +141,8 @@ importers:
         specifier: ^7.8.1
         version: 7.8.2
       zod:
-        specifier: ^3.23.8
-        version: 3.25.76
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       '@nestjs/cli':
         specifier: ^10.4.5
@@ -232,8 +232,6 @@ importers:
       typescript:
         specifier: ^5.5.4
         version: 5.9.3
-
-  apps/load-test: {}
 
   apps/web:
     dependencies:
@@ -340,8 +338,8 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.19(yaml@2.9.0))
       zod:
-        specifier: ^3.23.8
-        version: 3.25.76
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       '@types/leaflet':
         specifier: ^1.9.22
@@ -407,8 +405,8 @@ importers:
   packages/shared-types:
     dependencies:
       zod:
-        specifier: ^3.23.8
-        version: 3.25.76
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       '@workpulse/config':
         specifier: workspace:*
@@ -463,6 +461,9 @@ packages:
   '@aws-sdk/core@3.977.4':
     resolution: {integrity: sha512-CEkcQlMOQJCvul60U7wdAOACjtdgFWDsfJI+6wUOGdhGNV2lGbuJpi/R50QLpFG3Tp+sQxa/RmzC3X7KHbhuTA==}
     engines: {node: '>=20.0.0'}
+    deprecated: |-
+      Deprecated due to Document number parsing bug in JSON, see
+        https://github.com/aws/aws-sdk-js-v3/issues/8246. Newer version available.
 
   '@aws-sdk/credential-provider-env@3.972.65':
     resolution: {integrity: sha512-lJT2aRw9wCV8jPHyFJjdZLD4HTydL6/22AnCSOB8e/LqOc55nEJGLHkJQeSxhn8QiqyjFwPKQFtMw0ovjRUY/g==}
@@ -3161,6 +3162,7 @@ packages:
 
   crypto-js@4.2.0:
     resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
+    deprecated: Active development of CryptoJS has been discontinued. This library is no longer maintained.
 
   cssesc@3.0.0:
     resolution: {integrity: sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==}
@@ -6407,8 +6409,8 @@ packages:
     resolution: {integrity: sha512-zK7YHHz4ZXpW89AHXUPbQVGKI7uvkd3hzusTdotCg1UxyaVtg0zFJSTfW/Dq5f7OBBVnq6cZIaC8Ti4hb6dtCA==}
     engines: {node: '>= 14'}
 
-  zod@3.25.76:
-    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+  zod@4.4.3:
+    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
 snapshots:
 
@@ -13433,4 +13435,4 @@ snapshots:
       compress-commons: 6.0.2
       readable-stream: 4.7.0
 
-  zod@3.25.76: {}
+  zod@4.4.3: {}
