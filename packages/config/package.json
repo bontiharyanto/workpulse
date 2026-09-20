@@ -10,12 +10,12 @@
   ],
   "//": "Deliberately no `exports` field, and the shim uses `.js` (not `.cjs`). ESLint 8's legacy config resolver goes through Node's default CJS resolver, which only probes `.js`, `.json`, and `.node` when the caller does not spell out an extension. A `.cjs` file at `<pkg>/eslint.cjs` therefore fails to satisfy `extends: '@workpulse/config/eslint'`. Revisit when we move to ESLint 9 flat config.",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^7.18.0",
-    "@typescript-eslint/parser": "^7.18.0",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-import-resolver-typescript": "^3.6.3",
+    "@typescript-eslint/eslint-plugin": "^8.70.0",
+    "@typescript-eslint/parser": "^8.70.0",
+    "eslint": "^10.10.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import": "^2.30.0",
-    "eslint-plugin-unused-imports": "^3.2.0"
+    "eslint-plugin-unused-imports": "^4.4.1"
   }
 }
